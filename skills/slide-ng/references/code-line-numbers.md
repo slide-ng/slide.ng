@@ -7,7 +7,7 @@ description: Line numbers and the first line number
 
 - Per block: `{lines:true}`; first number: `{startLine:5}`.
 - For every block: `lineNumbers: true` in the headmatter.
-- Options go in the second brace, after any ranges: `{2,3} {lines:true, startLine:5}`.
+- Options go in the second brace, after any ranges: `{6,7} {lines:true, startLine:5}`. Ranges use the numbers shown: with `startLine:5` the first line is 5.
 
 <!-- verify -->
 

@@ -232,7 +232,7 @@ Code fences are coloured while the slides are generated (Shiki), so the browser 
 The language is the first word. Everything after it is optional and written in Slidev's order:
 
 ````md
-```ts [title.ts] {2,3|5|all} {lines:true, startLine:5, maxHeight:'100px'}
+```ts [title.ts] {6,7|9|all} {lines:true, startLine:5, maxHeight:'100px'}
 const a = 1;
 ```
 ````
@@ -244,7 +244,7 @@ const a = 1;
 | `{1\|3-4\|all}`             | one range **per click**: line 1, then lines 3 and 4, then everything (`hide` shows nothing; `all` shows all lines). Each `\|` adds one click to the slide |
 | `{at:'+1', finally:'last'}` | in the options: the first click of the ranges (default `+1`) and what is shown after the last click (`last`, `all`, `hide` or a range)                    |
 | `lines:true`                | line numbers (set `lineNumbers: true` in the headmatter for every block)                                                                                  |
-| `startLine:5`               | the first line number                                                                                                                                     |
+| `startLine:5`               | the first line number. Ranges use the numbers shown, as in Slidev: with `startLine:5` the first line is 5, so `{6,7}` is its second and third line        |
 | `maxHeight:'100px'`         | scroll inside the block                                                                                                                                   |
 
 The ranges and the options are two separate braces, as in Slidev. Options only take simple values (numbers, `true`/`false`, text).
@@ -631,7 +631,7 @@ Keys in the headmatter (the first frontmatter) that matter for `slide-ng build` 
 title: My talk
 titleTemplate: '%s | Conf 2026' # %s is the title; the browser tab shows "My talk | Conf 2026"
 info:
-  | # markdown for the info dialog; without markup, up to 300 characters, it is also the page description
+  | # markdown for the info dialog; with the markup taken out and cut at 300 characters, it is also the page description and the PDF's subject
   ## About this talk
 author: Ada
 keywords: [angular, slides] # a list or a comma separated text

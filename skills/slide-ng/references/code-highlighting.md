@@ -8,7 +8,7 @@ description: Fenced code blocks, titles, Shiki themes and the copy button
 Fences are coloured with Shiki while the slides are generated, so the browser gets finished HTML. The language is the first word. Everything after it is optional, in this order:
 
 ````md
-```ts [title.ts] {2,3|5|all} {lines:true, startLine:5, maxHeight:'100px'}
+```ts [title.ts] {6,7|9|all} {lines:true, startLine:5, maxHeight:'100px'}
 const a = 1;
 ```
 ````

@@ -11,7 +11,7 @@ All in the headmatter:
 title: My talk
 titleTemplate: '%s | Conf 2026' # %s is the title
 info:
-  | # markdown for the info dialog; short plain text (up to 300 chars) is also the page description
+  | # markdown for the info dialog; without its markup (up to 300 chars) it is also the page description and the PDF subject
   ## About this talk
 author: Ada
 keywords: [angular, slides] # a list or comma separated text
