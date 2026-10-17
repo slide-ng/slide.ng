@@ -45,10 +45,11 @@ export function parseBox(text: string): Box | null {
   return { x: n[0], y: n[1], w: n[2], h: n[3] ?? NaN, rot: Number.isNaN(n[4]) ? 0 : (n[4] ?? 0) };
 }
 
+/** An arrow's text is `x,y,width,height` as in Slidev's v-drag-arrow: from (x, y) to (x + width, y + height); a size may be negative. */
 export function parseArrow(text: string): Arrow | null {
   const n = numbers(text);
   if (!n || n.length !== 4 || n.some(Number.isNaN)) return null;
-  return { x1: n[0], y1: n[1], x2: n[2], y2: n[3] };
+  return { x1: n[0], y1: n[1], x2: n[0] + n[2], y2: n[1] + n[3] };
 }
 
 const round = (v: number) => Math.round(v);
@@ -70,7 +71,8 @@ export function formatBox(b: Box, style: 'array' | 'plain'): string {
   return style === 'array' ? `[${list.join(',')}]` : list.join(',');
 }
 
-export const formatArrow = (a: Arrow): string => [a.x1, a.y1, a.x2, a.y2].map(round).join(',');
+export const formatArrow = (a: Arrow): string =>
+  [a.x1, a.y1, a.x2 - a.x1, a.y2 - a.y1].map(round).join(',');
 
 export const moveBox = (b: Box, dx: number, dy: number): Box => ({
   ...b,

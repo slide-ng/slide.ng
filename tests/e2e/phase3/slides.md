@@ -48,5 +48,5 @@ Last slide.
 <div id="d1" slide-ng-drag="[100,200,160,60]" style="background:#fca5a5">Box</div>
 <div id="d2" slide-ng-drag="square" style="background:#93c5fd">Named</div>
 <slide-ng-drag id="d3" pos="500,100,150,_" style="background:#86efac">Component</slide-ng-drag>
-<slide-ng-drag-arrow id="d4" pos="300,250,420,330" />
+<slide-ng-drag-arrow id="d4" pos="300,250,120,80" />
 <div id="d5" slide-ng-drag style="background:#fde68a;width:100px">Bare</div>

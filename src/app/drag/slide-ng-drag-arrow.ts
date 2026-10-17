@@ -5,7 +5,7 @@ import { Arrow, formatArrow, moveArrow, parseArrow } from './drag-math';
 import { DragState, DragTarget } from './drag-state';
 import { resolvePos } from './resolve-pos';
 
-// `<slide-ng-drag-arrow pos="x1,y1,x2,y2" />`: an arrow between two points of the slide. Drag it by its line; its
+// `<slide-ng-drag-arrow pos="x,y,width,height" />` (Slidev's spelling): an arrow from (x, y) to (x + width, y + height). Drag it by its line; its
 // two ends get handles (see drag-controls.ts). `pos` may also be a name from the frontmatter's `dragPos`.
 @Component({
   selector: 'slide-ng-drag-arrow',

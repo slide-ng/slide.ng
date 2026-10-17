@@ -95,9 +95,11 @@ describe('rotationTo', () => {
 
 describe('arrows', () => {
   it('parse and format with four numbers', () => {
-    expect(parseArrow('10,20,30,40')).toEqual({ x1: 10, y1: 20, x2: 30, y2: 40 });
+    // x, y, width, height as in Slidev: from (10,20) to (40,60); a negative size points back
+    expect(parseArrow('10,20,30,40')).toEqual({ x1: 10, y1: 20, x2: 40, y2: 60 });
+    expect(parseArrow('400,300,200,-100')).toEqual({ x1: 400, y1: 300, x2: 600, y2: 200 });
     expect(parseArrow('1,2,3')).toBeNull();
-    expect(formatArrow({ x1: 1.2, y1: 2, x2: 3, y2: 4.7 })).toBe('1,2,3,5');
+    expect(formatArrow({ x1: 1.2, y1: 2, x2: 3, y2: 4.7 })).toBe('1,2,2,3');
   });
   it('moves as a whole or by one end', () => {
     const a = { x1: 0, y1: 0, x2: 10, y2: 10 };
