@@ -16,6 +16,7 @@ description: slide-ng-clicks, slide-ng-switch and slide-ng-click-gap
 
 - Leave an empty line after `<slide-ng-clicks>` and before `</slide-ng-clicks>`, otherwise markdown does not turn the list into HTML.
 - Options: `depth="2"` (include nested lists), `every="2"` (items per click), `at="3"` (first click), `hide` (items hide instead of show).
+- What gets a click: each item of a single list, each body row of a single table, otherwise each child (each paragraph, picture or list).
 
 ```md
 <slide-ng-switch>

@@ -1,4 +1,4 @@
-// <slide-ng-clicks> makes each list item of its content appear on its own click.
+// <slide-ng-clicks> makes each child of its content appear on its own click (each item of a list, each row of a table).
 // Options: depth="2" (nested lists), every="2" (items per click), at="3" (first click), hide.
 import {
   Component,
@@ -37,10 +37,7 @@ export class SlideNgClicks implements OnInit, OnDestroy {
     if (at == null) return;
     const relative = typeof at === 'string';
 
-    // Document order is the same order Slidev walks the children.
-    const items = Array.from(this.el.querySelectorAll('li')).filter(
-      (li) => this.listDepth(li) <= depth,
-    );
+    const items = this.items(depth);
 
     let index = 1,
       previous = 0;
@@ -57,7 +54,7 @@ export class SlideNgClicks implements OnInit, OnDestroy {
         () => info,
         () => this.hide(),
       );
-      // The <li> elements are plain HTML, so we toggle their classes by hand.
+      // The items are plain HTML, so we toggle their classes by hand.
       effect(
         () => {
           li.classList.toggle('slidev-vclick-hidden', state.hidden());
@@ -73,6 +70,20 @@ export class SlideNgClicks implements OnInit, OnDestroy {
     const gap = {};
     this.keys.push(gap);
     this.ctx.register(gap, { delta: size, max: this.ctx.currentOffset + size - 1 });
+  }
+
+  // What gets a click, as in Slidev's v-clicks: each child of the element; when the only child is a list, each item (and with
+  // `depth`, the items of the lists inside it); when it is a table, each body row. Document order is Slidev's order.
+  private items(depth: number): HTMLElement[] {
+    const children = Array.from(this.el.children) as HTMLElement[];
+    const only = children.length === 1 ? children[0] : null;
+    if (only && (only.tagName === 'UL' || only.tagName === 'OL'))
+      return Array.from(this.el.querySelectorAll('li')).filter((li) => this.listDepth(li) <= depth);
+    if (only?.tagName === 'TABLE') {
+      const body = only.querySelectorAll<HTMLElement>('tbody > tr');
+      return Array.from(body.length ? body : only.querySelectorAll<HTMLElement>('tr'));
+    }
+    return children;
   }
 
   // How many <ul>/<ol> sit between this <li> and the <slide-ng-clicks> element.

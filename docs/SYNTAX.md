@@ -199,7 +199,8 @@ List items one by one:
 
 Leave an empty line after `<slide-ng-clicks>` and before `</slide-ng-clicks>`, otherwise markdown does not
 turn the list into HTML. Options: `depth="2"` (include nested lists), `every="2"` (items per click),
-`at="3"` (first click), `hide` (items hide instead of show).
+`at="3"` (first click), `hide` (items hide instead of show). As in Slidev, a single list gives each item a click, a single table each
+body row, and anything else (paragraphs, pictures, several lists) each child of `<slide-ng-clicks>`. `every="0.5"` gives each item two clicks.
 
 ## Built-in components
 
