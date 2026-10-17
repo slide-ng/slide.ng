@@ -42,6 +42,11 @@ function render(latex, displayMode) {
     // `output: 'html'`: the MathML part is left out because Angular does not know MathML-only tags like <annotation>.
     return katex.renderToString(latex, {
       throwOnError: false,
+      // KaTeX's own strict warnings name no formula; say which one (a deck's setup/katex.ts `strict` still wins).
+      strict: (code, message) => {
+        console.warn(`[slides] math "${latex.trim().slice(0, 50)}": ${message}`);
+        return 'ignore';
+      },
       ...katexOptions,
       displayMode,
       output: 'html',
