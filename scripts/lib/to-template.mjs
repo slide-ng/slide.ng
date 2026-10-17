@@ -16,8 +16,11 @@ import { applyAttrSugar } from './attr-sugar.mjs';
 
 export { escapeCode, protect };
 
-// A tag that uses Angular syntax: [x]="..", (x)="..", *x, #x or @x on it.
-const ANGULAR_TAG = '<[a-z][\\w-]*\\s[^>\\n]*[\\[(*#@][^>\\n]*>';
+// A tag that uses Angular syntax: [x]="..", (x)="..", *x, #x or @x on it. Only an attribute's name counts: `@` or `#` inside a
+// quoted value (`href="mailto:a@b.com"`, `href="/#top"`) is plain HTML.
+const VALUE = `(?:\\s*=\\s*(?:"[^"\\n]*"|'[^'\\n]*'|[^\\s>"']+))?`;
+const ATTR = `\\s+[^\\s=>"'/]+${VALUE}`;
+const ANGULAR_TAG = `<[a-z][\\w-]*(?:${ATTR})*?\\s+[\\[(*#@][^\\s=>"']*${VALUE}(?:${ATTR})*\\s*\\/?>`;
 
 // The tags that start an HTML block in CommonMark even with text after them on the line.
 const BLOCK_TAGS = new Set(

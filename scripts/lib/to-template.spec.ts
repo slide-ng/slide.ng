@@ -36,6 +36,14 @@ describe('toTemplate: Angular syntax is protected', () => {
 });
 
 describe('toTemplate: plain text is made safe', () => {
+  it('leaves a link alone whose @ or # is only in an attribute value', () => {
+    expect(toTemplate('Mail <a href="mailto:a@b.com">a@b.com</a> now')).toBe(
+      '<p>Mail <a href="mailto:a&#64;b.com">a&#64;b.com</a> now</p>\n',
+    );
+    expect(toTemplate('See <a href="https://x.org/#top">https://x.org</a>')).not.toContain(
+      '<a href="https://x.org">',
+    );
+  });
   it('escapes a lone @ and braces in normal text', () => {
     const html = toTemplate('mail me@example.com {not a block}');
     expect(html).toContain('me&#64;example.com');
