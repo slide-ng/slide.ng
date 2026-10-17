@@ -8,13 +8,16 @@ import { downloadTarget } from '../export/filename.mjs';
 import { pwaEnabled } from '../build/pwa.mjs';
 import { titleHtml } from './math.mjs';
 
-// A heading's markdown as text for the tab title, the outline and the overview: `[a](b)` is `a`, `code` and **b** lose their marks.
+// A heading's markdown as text for the tab title, the outline and the overview: `[a](b)` is `a`, `code` and **b** lose their marks,
+// and HTML tags go.
 export function plainTitle(title) {
   return String(title)
     .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
     .replace(/`([^`]*)`/g, '$1')
     .replace(/(\*\*|\*|~~)(\S(?:.*?\S)?)\1/g, '$2')
     .replace(/(?<!\w)(__|_)(\S(?:.*?\S)?)\1(?!\w)/g, '$2')
+    .replace(/<(rt|rp)\b[^>]*>[\s\S]*?<\/\1>/gi, '') // a ruby reading is not part of the title text
+    .replace(/<\/?[A-Za-z][^>]*>/g, '') // H<sub>2</sub>O is H2O
     .trim();
 }
 

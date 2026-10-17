@@ -210,6 +210,9 @@ describe('plainTitle', () => {
     expect(plainTitle('**Bold** and _it_ and snake_case_name')).toBe(
       'Bold and it and snake_case_name',
     );
+    expect(plainTitle('H<sub>2</sub>O and <ruby>振<rt>ふ</rt></ruby>り仮名')).toBe(
+      'H2O and 振り仮名',
+    );
   });
 });
 

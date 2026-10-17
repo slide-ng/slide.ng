@@ -78,6 +78,7 @@ t.ok(
   pdfInfo(pdf).match(/Page size.*/)[0],
 );
 t.ok('the pdf title comes from the headmatter', /Title:\s+Print deck/.test(pdfInfo(pdf)));
+t.ok('the pdf is tagged for screen readers', /Tagged:\s+yes/.test(pdfInfo(pdf)), pdfInfo(pdf));
 t.ok(
   'the pdf has real text, including lazy Magic Move code',
   text(pdf).includes('Moving code') && text(pdf).includes('const'),

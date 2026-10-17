@@ -39,10 +39,16 @@ function setProperties(pdf, headmatter) {
  * `pages` is `{ no, id }` for every PDF page in order; `slides` are the deck's slides (for titles and levels).
  */
 export async function buildPdf({ buffers, pages, slides, headmatter, withToc }) {
-  const pdf = await PDFDocument.create();
-  for (const bytes of buffers) {
-    const part = await PDFDocument.load(bytes);
-    (await pdf.copyPages(part, part.getPageIndices())).forEach((p) => pdf.addPage(p));
+  // One batch (the usual case) is kept as Chromium wrote it, with its tags for screen readers: copying pages into a new
+  // document drops them. Several batches (`--per-slide`) are joined, and that copy is untagged.
+  let pdf;
+  if (buffers.length === 1) pdf = await PDFDocument.load(buffers[0]);
+  else {
+    pdf = await PDFDocument.create();
+    for (const bytes of buffers) {
+      const part = await PDFDocument.load(bytes);
+      (await pdf.copyPages(part, part.getPageIndices())).forEach((p) => pdf.addPage(p));
+    }
   }
   setProperties(pdf, headmatter);
   if (withToc) addOutline(pdf, outlineTree(tocEntries(slides, pages)));
