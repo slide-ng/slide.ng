@@ -62,19 +62,16 @@ export class Nav {
   readonly hasNext = computed(() => this.no() < this.total || this.clicks() < this.clicksTotal());
   readonly hasPrev = computed(() => this.no() > 1 || this.clicks() > 0);
 
-  readonly tocTree = computed(() =>
-    buildTocTree(
-      SLIDES.map((s, i) => ({
-        no: i + 1,
-        title: s.title,
-        titleHtml: s.titleHtml ?? null,
-        level: s.level,
-        routeAlias: s.routeAlias,
-        hideInToc: s.hideInToc,
-      })),
-      this.no(),
-    ),
-  );
+  /** The slides as the table of contents sees them. */
+  readonly tocSlides = SLIDES.map((s, i) => ({
+    no: i + 1,
+    title: s.title,
+    titleHtml: s.titleHtml ?? null,
+    level: s.level,
+    routeAlias: s.routeAlias,
+    hideInToc: s.hideInToc,
+  }));
+  readonly tocTree = computed(() => buildTocTree(this.tocSlides, this.no()));
 
   /** Next click, or the next slide when the clicks are used up. */
   next() {
