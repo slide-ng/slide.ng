@@ -23,12 +23,15 @@ export function parseOptions(text = '') {
     if (text[i] === '[') {
       const list = [];
       i++;
-      for (space(); i < text.length && text[i] !== ']'; space()) {
+      // A list left open (`[1, 2}`) ends at the `}`; every turn reads something, so a stray character cannot loop forever.
+      for (space(); i < text.length && text[i] !== ']' && text[i] !== '}'; space()) {
+        const at = i;
         list.push(value());
         space();
         if (text[i] === ',') i++;
+        else if (i === at) i++;
       }
-      i++;
+      if (text[i] === ']') i++;
       return list;
     }
     const quoted = /^('[^']*'|"[^"]*")/.exec(text.slice(i));

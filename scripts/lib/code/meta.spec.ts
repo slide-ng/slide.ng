@@ -34,6 +34,7 @@ describe('options', () => {
   });
   it('keeps a comma inside quotes', () => {
     expect(parseOptions("{title:'a, b'}")).toEqual({ title: 'a, b' });
+    expect(parseOptions('{a: [1, 2}')).toEqual({ a: [1, 2] }); // a list left open ends (it used to loop forever)
   });
   it('reads nested objects and lists, as Mermaid options use them', () => {
     expect(parseOptions('{sequence: {mirrorActors: false}, scale: 0.7, ids: [1, 2]}')).toEqual({
