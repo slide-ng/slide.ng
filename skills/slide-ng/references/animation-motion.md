@@ -18,7 +18,7 @@ Moves an element between named states with CSS transitions. A small substitute f
 </div>
 ```
 
-- `initial` before the slide, `enter` while shown, `click-N` from click N on (`click-N-M`: N up to M, later clicks win), `leave` after the slide.
+- `initial` before the slide, `enter` while shown, `click-N` from click N on (`click-N-M`: from N until M, M not included, later clicks win), `leave` after the slide.
 - With `slide-ng-click` on the same element: `initial` before its click, `enter` after.
 - Properties: `x`, `y` (px), `scale`, `scaleX`, `scaleY`, `rotate` (deg), `opacity`, and any other CSS property in camelCase; `transition: { duration, delay, ease }` (ms, ms, CSS timing function; default 500 / 0 / `ease-out`).
 - Not supported: springs, `hovered`, `tapped`, `focused`, `visible`, keyframe lists, presets.

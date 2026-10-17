@@ -9,7 +9,7 @@ description: UnoCSS utility classes, scoped slide styles, dark mode and directio
 - **Per-slide `<style>`**: applies to that slide only; the CSS is nested under the slide's own element, so layout elements can be targeted too. Nested rules and `&` work. `--uno:` directives do not; use utility classes in the HTML.
 - **Global CSS**: `styles/index.css` in the deck, a theme or an addon (comes after the app's CSS).
 - **Dark mode**: UnoCSS `dark:` classes (`dark:text-white`), `<slide-ng-light-or-dark>`.
-- **Direction**: while a transition runs the stage has `slidev-nav-go-forward` / `slidev-nav-go-backward`, so `forward:text-red` and `backward:text-red` classes work.
+- **Direction**: after a move the stage has `slidev-nav-go-forward` / `slidev-nav-go-backward`, so `forward:text-red` and `backward:text-red` classes work.
 - Pictures from `public/` are written `/photo.png`.
 
 <!-- verify -->

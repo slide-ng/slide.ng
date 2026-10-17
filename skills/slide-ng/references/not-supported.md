@@ -9,7 +9,7 @@ If a feature is not listed as present in the other references, assume it is miss
 
 **Syntax and markup**
 
-- MDC / Comark syntax (`comark: true`, `mdc: true`): not parsed.
+- MDC / Comark syntax (`comark: true`, `mdc: true`): not parsed; the generator warns and the syntax stays text.
 - `<script setup>`, Vue directives other than the slide.ng ones, a Vue-to-Angular converter.
 - `selectable`, `themeConfig`, `TitleRenderer` (slide titles are plain text), `PoweredBySlidev`, `notesAutoRuby`.
 - Slide hooks `onSlideEnter`, `onSlideLeave`, `useIsSlideActive`.

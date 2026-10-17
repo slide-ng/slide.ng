@@ -12,7 +12,7 @@ Add the attribute to any HTML element.
 <div slide-ng-click="3">Shows at click 3 (a number is the click with this number)</div>
 <div slide-ng-click="+2">Shows two clicks after the previous element</div>
 <div [slide-ng-click]="[2, 4]">Shows from click 2 until click 4, then hides</div>
-<div slide-ng-after>Shows together with the element before it</div>
+<div slide-ng-after>Same click as the element before it (a relative +0)</div>
 <div slide-ng-click="2" slide-ng-click-hide>Visible first, hides at click 2</div>
 ```
 

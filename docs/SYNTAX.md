@@ -162,8 +162,8 @@ transition: slide-left
 `transition: slide-left | slide-right` gives the forward and the backward variant yourself.
 Like Slidev, the transition set on a slide is used between that slide and the next one (in both directions).
 Set `transition` in the headmatter for the whole deck. The default is no transition.
-The duration is the CSS variable `--slidev-transition-duration` (0.5s). While a transition runs the class
-`slidev-nav-go-forward` or `slidev-nav-go-backward` is on the stage, so `forward:text-red` and `backward:text-red` classes work.
+The duration is the CSS variable `--slidev-transition-duration` (0.5s). After a move the class
+`slidev-nav-go-forward` or `slidev-nav-go-backward` is on the stage (until the next move), so `forward:text-red` and `backward:text-red` classes work.
 
 ## Clicks
 
@@ -174,7 +174,7 @@ Clicks reveal things step by step. Add these to any HTML element:
 <div slide-ng-click="3">Shows at click 3 (a number means "the click with this number")</div>
 <div slide-ng-click="+2">Shows two clicks after the previous element</div>
 <div [slide-ng-click]="[2, 4]">Shows from click 2 until click 4, then hides</div>
-<div slide-ng-after>Shows together with the element before it</div>
+<div slide-ng-after>Same click as the element before it (a relative +0)</div>
 <div slide-ng-click="2" slide-ng-click-hide>Visible first, hides at click 2</div>
 ```
 
@@ -210,7 +210,7 @@ Available in every slide without importing anything.
 | `<slide-ng-link to="3">text</slide-ng-link>`                                                                                                                                           | a link to slide 3, or to a `routeAlias`. (Called `slide-ng-link` because `link` is a built-in HTML tag.)                                                                                                                  |
 | `<slide-ng-light-or-dark>`                                                                                                                                                             | shows `<div dark>...</div>` in dark mode and `<div light>...</div>` in light mode                                                                                                                                         |
 | `<slide-ng-render-when context="slide">`                                                                                                                                               | content only where the slide is drawn: `slide`, `presenter`, `print`, `overview`, or `main` (slide or presenter). `[context]="['slide','overview']"` takes several. Content marked `<div fallback>` shows everywhere else |
-| `<slide-ng-switch>`                                                                                                                                                                    | one child per click: `<slide-ng-switch><div at="1">a</div><div at="2">b</div><div at="3-5">c</div></slide-ng-switch>` (a number lasts until the next one starts, `3-5` is explicit)                                       |
+| `<slide-ng-switch>`                                                                                                                                                                    | one child per click: `<slide-ng-switch><div at="1">a</div><div at="2">b</div><div at="3-5">c</div></slide-ng-switch>` (a number lasts until the next one starts; `3-5` is clicks 3 and 4, the end is not included)        |
 | `<slide-ng-click-gap size="2" />`                                                                                                                                                      | leaves two clicks empty                                                                                                                                                                                                   |
 | `<slide-ng-clicks>`, `slide-ng-click`, `slide-ng-after`                                                                                                                                | see Clicks                                                                                                                                                                                                                |
 | `<slide-ng-arrow x1="10" y1="20" x2="100" y2="200" color="red" width="2" two-way />`                                                                                                   | an arrow on the slide (SVG, positions in slide pixels). `two-way` adds a head at the start                                                                                                                                |
@@ -394,7 +394,7 @@ const count = Math.max(1, 2);
 ```
 ````
 
-`//    ^?` shows the type of the word above the `^`. A block that does not compile is shown without types, with a warning.
+`//    ^?` shows the type of the word above the `^`, on a line of its own. A TypeScript error in the block is shown under its line (add `// @errors: <code>` to expect it), and the types still work.
 
 ## Marks and motion
 
@@ -425,7 +425,7 @@ colour `red`, `blue`, `green`, `orange`, `yellow`, `pink`, `purple`, `teal`, `cy
 </div>
 ```
 
-`initial` is before the slide, `enter` while it is shown, `click-N` from click N on (`click-N-M`: from N up to M, later clicks win), `leave` after the slide.
+`initial` is before the slide, `enter` while it is shown, `click-N` from click N on (`click-N-M`: from click N until click M, M not included, later clicks win), `leave` after the slide.
 Put `slide-ng-click` on the same element and it uses `initial` before its click and `enter` after. Properties: `x`, `y` (px), `scale`, `scaleX`, `scaleY`, `rotate` (deg),
 `opacity`, and any other CSS property (camelCase); `transition: { duration, delay, ease }` (ms, ms, CSS timing function, default 500 / 0 / `ease-out`).
 Not supported: springs, `hovered`, `tapped`, `focused`, `visible`, keyframe lists, presets.
@@ -542,7 +542,7 @@ frontmatter. The CSS for the classes you use is built automatically.
 
 Open `/presenter` (or press the presenter button) for the presenter page: current slide, next step, notes with click markers, a clicks slider and the timer.
 The audience page (`/3`) in another window or on another device follows it; `/notes` shows only the notes and follows too.
-In notes, `[click]` and `[click:3]` mark where a click starts; double click a marker to jump there. The layout button cycles three arrangements.
+In notes, `[click]` marks where the next click starts and `[click:3]` moves three clicks on (counted from the marker before it, as in Slidev); double click a marker to jump there. The layout button cycles three arrangements.
 Windows of one browser follow each other with no server; other devices need the dev server (see Remote below).
 
 ```md

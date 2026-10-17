@@ -5,7 +5,7 @@ description: Click markers in speaker notes
 
 # Click markers in notes
 
-In a slide's note, `[click]` marks where a click starts and `[click:3]` marks click 3. The presenter page shows the note in sections; double click a marker to jump the slide to that click.
+In a slide's note, `[click]` marks where the next click starts and `[click:3]` moves three clicks on from the marker before it (Slidev's counting). The presenter page shows the note in sections; double click a marker to jump the slide to that click.
 
 ```md
 <!--

@@ -37,6 +37,7 @@ There are two kinds of hooks:
 Returns the options of Shiki's `codeToHtml`, used when slides are generated. As in Slidev, `langs` adds languages (names, or grammar objects with a
 `name`), `transformers` change the HTML of every block, and `theme` or `themes` choose the colours (`themes` wins when both are given).
 The options of later roots are put over earlier ones; `langs` of all roots are collected.
+The example uses `@shikijs/transformers`, which is not part of slide.ng: install it in the deck first (`npm i -D @shikijs/transformers`).
 
 ```ts
 // setup/shiki.ts
@@ -129,7 +130,7 @@ export default (monaco: typeof Monaco) => {
 ## Code runners: `setup/code-runners.ts`
 
 Returns a map from the editor's language id to a function. `{monaco-run}` editors of that language run the function instead of the built-in JavaScript
-runner. The function gets the editor's text and returns `{ lines: string[][], error?: string }` (each inner list is one output line).
+runner. The function gets the editor's text and returns `{ lines: string[][], error?: string }` (or a promise of it) (each inner list is one output line).
 
 ```ts
 // setup/code-runners.ts

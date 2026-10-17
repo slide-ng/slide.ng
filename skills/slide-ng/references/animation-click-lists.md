@@ -21,7 +21,7 @@ description: slide-ng-clicks, slide-ng-switch and slide-ng-click-gap
 <slide-ng-switch>
   <div at="1">shown at click 1</div>
   <div at="2">shown at click 2</div>
-  <div at="3-5">shown from click 3 to 5</div>
+  <div at="3-5">shown at clicks 3 and 4 (the end is not included)</div>
 </slide-ng-switch>
 
 <slide-ng-click-gap size="2" />

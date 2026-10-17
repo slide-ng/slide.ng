@@ -129,7 +129,7 @@ The hooks of a theme or addon work the same as in a deck and are listed, with ex
 
 | Token             | From                      | Use                                                                                                                                                                                             |
 | ----------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `SHORTCUTS_SETUP` | `slide-ng/lib/shortcuts`  | A function `(actions, list) => list`: add, change or remove keyboard shortcuts. One provider is used; the last root that provides it wins.                                                      |
+| `SHORTCUTS_SETUP` | `slide-ng/lib/shortcuts`  | A function `(actions, list) => list`: add, change or remove keyboard shortcuts. One provider is used (the last root's); the `setup/shortcuts.ts` files of all roots run after it.               |
 | `CODE_RUNNERS`    | `slide-ng/code/runners`   | `{ provide: CODE_RUNNERS, multi: true, useValue: { javascript: (code) => result } }`: replace how `{monaco-run}` runs a language. The key is Monaco's language id (`javascript`, `typescript`). |
 | `SYNC_TRANSPORTS` | `slide-ng/sync/transport` | Another way to carry presenter sync (multi).                                                                                                                                                    |
 
