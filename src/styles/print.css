@@ -23,7 +23,7 @@ html.print *::after {
   break-after: page;
   /* One unbreakable box per page: without it Chromium carried content taller than the page (a long Mermaid
      diagram) over to a next page inside the frame, where it was clipped away and the PDF lost it. */
-  contain: strict;
+  contain: size layout paint; /* not `style`: it would scope CSS counters (KaTeX equation numbers) to each element */
 }
 .print-slide-container > * {
   position: absolute;
