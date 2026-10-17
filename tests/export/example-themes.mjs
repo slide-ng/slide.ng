@@ -73,6 +73,12 @@ ${markup}
 
 - one
 - two
+
+---
+layout: end
+---
+
+# Thanks
 `,
   );
   const site = join(dir, 'site');
@@ -121,6 +127,11 @@ ${markup}
     .first()
     .evaluate((e) => getComputedStyle(e).backgroundColor);
   t.ok(`${name}: the slide background`, bg === background, bg);
+  await open(4);
+  const end = await page
+    .locator('.slidev-layout.end')
+    .evaluate((e) => getComputedStyle(e).backgroundColor);
+  t.ok(`${name}: the end slide in the theme's colour, not black`, end === background, end);
   t.ok(`${name}: no console errors`, problems.length === 0, problems.join('|'));
   await browser.close();
   await served.close();

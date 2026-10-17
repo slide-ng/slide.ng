@@ -190,6 +190,12 @@ html.dark {
 /* the closing slide in the theme's colours instead of black */
 .slidev-layout.end {
   color: var(--bp-muted);
+  background:
+    linear-gradient(var(--bp-line-strong) 1px, transparent 1px) 0 0 / 100px 100px,
+    linear-gradient(90deg, var(--bp-line-strong) 1px, transparent 1px) 0 0 / 100px 100px,
+    linear-gradient(var(--bp-line) 1px, transparent 1px) 0 0 / 20px 20px,
+    linear-gradient(90deg, var(--bp-line) 1px, transparent 1px) 0 0 / 20px 20px,
+    var(--bp-bg);
 }
 
 /* letter spacing breaks the joining of Arabic letters */
