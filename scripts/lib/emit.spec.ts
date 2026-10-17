@@ -339,6 +339,10 @@ describe('closeEntities', () => {
     );
     expect(closeEntities('<pre>&amp</pre>')).toBe('<pre>&amp</pre>');
     expect(closeEntities('<a href="/s?q=x&copy=1">a</a>')).toBe('<a href="/s?q=x&copy=1">a</a>');
+    expect(closeEntities('<img alt="&copy 2024">')).toBe('<img alt="&copy; 2024">');
+    expect(closeEntities('<a title="a>b" href="?x&copy=1">a</a>')).toBe(
+      '<a title="a>b" href="?x&copy=1">a</a>',
+    );
   });
 });
 

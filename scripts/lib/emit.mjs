@@ -76,12 +76,21 @@ export function keepSpaces(html) {
 
 // Browsers (and Vue) read the old entities without `;` (`Option&ltA>`, `&copy 2024`); Angular shows them as text. The common
 // ones get their `;`, unless the letters go on to a longer entity (`&ltimes;`).
+const TAG = /(<(?:[^>"']|"[^"]*"|'[^']*')*>)/; // a tag, with `>` allowed inside its quoted values
 export function closeEntities(html) {
   return outsidePre(html, (part) =>
-    // Only in text: inside a tag (`href="?q=x&copy=1"`) a browser leaves them as written.
-    part.replace(/(<[^>]*>)|&(lt|gt|amp|quot|copy|reg|nbsp)(?![a-zA-Z0-9]*;)/g, (m, tag, name) =>
-      tag ? tag : `&${name};`,
-    ),
+    part
+      .split(TAG)
+      .map((p, i) =>
+        // In an attribute a browser reads them too, except before `=`, a letter or a digit (`href="?q=x&copy=1"`).
+        p.replace(
+          i % 2
+            ? /&(lt|gt|amp|quot|copy|reg|nbsp)(?![a-zA-Z0-9]*;|[=a-zA-Z0-9])/g
+            : /&(lt|gt|amp|quot|copy|reg|nbsp)(?![a-zA-Z0-9]*;)/g,
+          '&$1;',
+        ),
+      )
+      .join(''),
   );
 }
 
