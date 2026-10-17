@@ -1,0 +1,8 @@
+{
+  "name": "moss",
+  "headmatter": {
+    "colorSchema": "dark",
+    "transition": "slide-left",
+    "fonts": { "sans": "Manrope", "mono": "IBM Plex Mono" }
+  }
+}

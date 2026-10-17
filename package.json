@@ -58,7 +58,7 @@
     "check:skills": "node scripts/check-skills-drift.mjs",
     "update:skills-hash": "node scripts/update-skills-hash.mjs",
     "screenshots": "node tests/e2e/screenshots.mjs && node tests/e2e/screenshots-features.mjs && node tests/e2e/screenshots-phase3.mjs",
-    "test:export": "node tests/export/run.mjs && node tests/export/sandbox-filter.mjs && node tests/export/build.mjs && node tests/export/theme.mjs && node tests/export/scaffold.mjs && node tests/export/mcp.mjs && node tests/export/offline.mjs && node tests/export/offline-net.mjs && node tests/skills/verify-samples.mjs",
+    "test:export": "node tests/export/run.mjs && node tests/export/sandbox-filter.mjs && node tests/export/build.mjs && node tests/export/theme.mjs && node tests/export/example-themes.mjs && node tests/export/scaffold.mjs && node tests/export/mcp.mjs && node tests/export/offline.mjs && node tests/export/offline-net.mjs && node tests/skills/verify-samples.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",

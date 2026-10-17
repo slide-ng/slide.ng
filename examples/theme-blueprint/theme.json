@@ -1,0 +1,8 @@
+{
+  "name": "blueprint",
+  "headmatter": {
+    "colorSchema": "dark",
+    "transition": "fade",
+    "fonts": { "sans": "IBM Plex Sans", "mono": "IBM Plex Mono" }
+  }
+}

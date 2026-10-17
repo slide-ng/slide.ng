@@ -1,0 +1,173 @@
+/* blueprint: navy drafting paper with a grid, white lines, amber pencil marks. */
+:root,
+html.dark {
+  --bp-bg: #0f2c4c;
+  --bp-line: rgba(255, 255, 255, 0.07);
+  --bp-line-strong: rgba(255, 255, 255, 0.14);
+  --bp-text: #eaf2fa;
+  --bp-muted: #9fb6cc;
+  --bp-cyan: #7cc4e8;
+  --bp-amber: #ffb547;
+  --slidev-theme-primary: #ffb547;
+  --slidev-code-background: #0b2340;
+  --slidev-code-foreground: #eaf2fa;
+  --slidev-code-radius: 0;
+}
+.slidev-layout {
+  color: var(--bp-text);
+  background:
+    linear-gradient(var(--bp-line-strong) 1px, transparent 1px) 0 0 / 100px 100px,
+    linear-gradient(90deg, var(--bp-line-strong) 1px, transparent 1px) 0 0 / 100px 100px,
+    linear-gradient(var(--bp-line) 1px, transparent 1px) 0 0 / 20px 20px,
+    linear-gradient(90deg, var(--bp-line) 1px, transparent 1px) 0 0 / 20px 20px,
+    var(--bp-bg);
+}
+.slidev-layout h1,
+.slidev-layout h2,
+.slidev-layout h3 {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.slidev-layout h1 {
+  font-size: 1.9rem;
+}
+.slidev-layout h2,
+.slidev-layout h3 {
+  color: var(--bp-cyan);
+}
+.slidev-layout a,
+.slidev-layout strong {
+  color: var(--bp-amber);
+}
+.slidev-layout ul li::marker {
+  color: var(--bp-amber);
+  content: '+ ';
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+}
+.slidev-layout pre {
+  border: 1px solid var(--bp-line-strong);
+}
+.slidev-layout blockquote {
+  border-left: 2px dashed var(--bp-amber);
+  padding-left: 1rem;
+  color: var(--bp-muted);
+}
+
+.bp-cover {
+  display: grid;
+  padding: 2.2rem;
+}
+.bp-frame {
+  position: relative;
+  display: grid;
+  align-content: center;
+  padding: 2.5rem 3rem;
+  border: 1px solid var(--bp-line-strong);
+}
+.bp-corner {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-color: var(--bp-amber);
+  border-style: solid;
+}
+.bp-corner.tl {
+  left: -1px;
+  top: -1px;
+  border-width: 2px 0 0 2px;
+}
+.bp-corner.tr {
+  right: -1px;
+  top: -1px;
+  border-width: 2px 2px 0 0;
+}
+.bp-corner.bl {
+  left: -1px;
+  bottom: -1px;
+  border-width: 0 0 2px 2px;
+}
+.bp-corner.br {
+  right: -1px;
+  bottom: -1px;
+  border-width: 0 2px 2px 0;
+}
+.bp-cover h1 {
+  font-size: 2.8rem;
+  line-height: 1.1;
+}
+.bp-cover h1 + p {
+  color: var(--bp-muted);
+  font-size: 1.2rem;
+}
+.bp-sheet {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding: 0.35rem 0.8rem;
+  border-left: 1px solid var(--bp-line-strong);
+  border-top: 1px solid var(--bp-line-strong);
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  color: var(--bp-amber);
+}
+
+.bp-section {
+  display: grid;
+  align-content: center;
+  gap: 1.2rem;
+}
+.bp-section h1 {
+  font-size: 2.8rem;
+  margin: 0;
+}
+.bp-dim {
+  position: relative;
+  height: 1px;
+  background: var(--bp-cyan);
+}
+.bp-dim::before,
+.bp-dim::after {
+  content: '';
+  position: absolute;
+  top: -6px;
+  width: 1px;
+  height: 13px;
+  background: var(--bp-cyan);
+}
+.bp-dim::before {
+  left: 0;
+}
+.bp-dim::after {
+  right: 0;
+}
+
+.slidev-layout.fact h1 {
+  color: var(--bp-amber);
+  font-size: 5.5rem;
+}
+
+.bp-note {
+  display: flex;
+  align-items: baseline;
+  gap: 0.8rem;
+  margin: 0.6rem 0;
+}
+.bp-note-label {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border: 1.5px solid var(--bp-amber);
+  border-radius: 50%;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.75rem;
+  color: var(--bp-amber);
+}
+.bp-note-text {
+  border-bottom: 1px dashed var(--bp-line-strong);
+  padding-bottom: 0.2rem;
+}

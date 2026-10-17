@@ -1,0 +1,108 @@
+/* moss: forest green, moss and clay, sand-coloured text. */
+:root,
+html.dark {
+  --moss-bg: #131a15;
+  --moss-panel: #1b251e;
+  --moss-text: #e9e4d6;
+  --moss-muted: #a2a593;
+  --moss-accent: #8fb573;
+  --moss-clay: #c98b5a;
+  --slidev-theme-primary: #8fb573;
+  --slidev-code-background: #1b251e;
+  --slidev-code-foreground: #e9e4d6;
+  --slidev-code-radius: 10px;
+}
+.slidev-layout {
+  background: var(--moss-bg);
+  color: var(--moss-text);
+}
+.slidev-layout h1 {
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+.slidev-layout h2,
+.slidev-layout h3 {
+  color: var(--moss-accent);
+}
+.slidev-layout a,
+.slidev-layout strong {
+  color: var(--moss-clay);
+}
+.slidev-layout ul li::marker {
+  color: var(--moss-accent);
+}
+.slidev-layout blockquote {
+  background: var(--moss-panel);
+  border-radius: 10px;
+  padding: 0.8rem 1.1rem;
+  color: var(--moss-muted);
+}
+.slidev-layout :not(pre) > code {
+  color: var(--moss-accent);
+}
+.slidev-layout pre {
+  border: 1px solid #2a382e;
+}
+
+.moss-cover {
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 4rem;
+  background:
+    radial-gradient(70% 90% at 90% 0%, rgba(143, 181, 115, 0.28), transparent 60%),
+    radial-gradient(50% 60% at 0% 100%, rgba(201, 139, 90, 0.18), transparent 70%), var(--moss-bg);
+}
+.moss-cover h1 {
+  font-size: 4rem;
+  line-height: 1.02;
+  margin-bottom: 0.8rem;
+}
+.moss-cover h1 + p {
+  font-size: 1.3rem;
+  color: var(--moss-muted);
+}
+
+.moss-section {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+.moss-section-bar {
+  width: 10px;
+  height: 7rem;
+  border-radius: 5px;
+  background: linear-gradient(var(--moss-accent), var(--moss-clay));
+}
+.moss-section h1 {
+  font-size: 3.4rem;
+  line-height: 1.05;
+  margin: 0;
+}
+
+.slidev-layout.fact h1 {
+  color: var(--moss-accent);
+}
+.slidev-layout.statement h1 {
+  color: var(--moss-text);
+}
+
+.moss-stat {
+  display: inline-block;
+  min-width: 10rem;
+  margin: 0 1.5rem 1rem 0;
+  padding: 1rem 1.2rem;
+  border-radius: 12px;
+  background: var(--moss-panel);
+  border: 1px solid #2a382e;
+}
+.moss-stat-value {
+  font-size: 2.4rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--moss-accent);
+}
+.moss-stat-label {
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--moss-muted);
+}

@@ -1,0 +1,8 @@
+{
+  "name": "paper",
+  "headmatter": {
+    "colorSchema": "light",
+    "transition": "fade",
+    "fonts": { "sans": "Source Sans 3", "serif": "Fraunces", "mono": "JetBrains Mono" }
+  }
+}
