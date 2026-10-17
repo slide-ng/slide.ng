@@ -3,6 +3,7 @@
 import { InjectionToken } from '@angular/core';
 import type { RunResult } from './monaco/run-js';
 
-export type CodeRunnerFn = (code: string) => Promise<RunResult>;
+// A runner may answer at once or later (Slidev accepts both).
+export type CodeRunnerFn = (code: string) => RunResult | Promise<RunResult>;
 
 export const CODE_RUNNERS = new InjectionToken<Record<string, CodeRunnerFn>[]>('CODE_RUNNERS');

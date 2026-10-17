@@ -95,7 +95,11 @@ export class MonacoEditor {
     this.ready = new Promise((resolve) => (this.markReady = resolve));
     afterNextRender(() => void this.start());
     inject(DestroyRef).onDestroy(() => this.disposables.disposeAll());
-    effect(() => this.monaco?.editor.setTheme(this.dark.isDark() ? 'vs-dark' : 'vs'));
+    // Read the mode first: before Monaco loads the call below is skipped, and an effect that read nothing never runs again.
+    effect(() => {
+      const theme = this.dark.isDark() ? 'vs-dark' : 'vs';
+      this.monaco?.editor.setTheme(theme);
+    });
   }
 
   private async start() {

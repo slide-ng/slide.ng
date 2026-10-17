@@ -28,7 +28,22 @@ function show(arg) {
 }
 
 const log = (...args) => send({ line: args.map(show) });
-const sandboxConsole = { log, info: log, debug: log, warn: log, error: log, clear: () => send({ clear: true }) };
+// console.table as text: an index column and one column per key (or "Values"), padded to line up.
+const table = (data) => {
+  if (!data || typeof data !== 'object') return log(data);
+  const rows = Object.entries(data);
+  const isObject = (v) => v !== null && typeof v === 'object';
+  const cols = [...new Set(rows.flatMap(([, v]) => (isObject(v) ? Object.keys(v) : ['Values'])))];
+  const cells = [['(index)', ...cols]].concat(
+    rows.map(([k, v]) => [k, ...cols.map((c) => (isObject(v) ? (c in v ? show(v[c]) : '') : c === 'Values' ? show(v) : ''))]),
+  );
+  const widths = cells[0].map((_, i) => Math.max(...cells.map((r) => String(r[i]).length)));
+  for (const r of cells) send({ line: [r.map((c, i) => String(c).padEnd(widths[i])).join(' | ')] });
+};
+const sandboxConsole = {
+  log, info: log, debug: log, warn: log, error: log, table, group: log, groupCollapsed: log, groupEnd: () => {},
+  clear: () => send({ clear: true }),
+};
 
 (async () => {
   try {
