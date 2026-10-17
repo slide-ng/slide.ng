@@ -66,7 +66,9 @@ export function startNavSync(nav: Nav) {
       const d = sync.directions();
       if (!(nav.isPresenter ? d.presenterReceive : d.viewerReceive)) return;
       if (!s.lastUpdate || s.lastUpdate.type === type || s.page < 1) return;
-      if (s.lastUpdate.via === sync.id) return; // our own move, passed on by the presenter
+      // Our own move: passed on by the presenter, or made by this window while it was the presenter page (the state stays
+      // when the window moves from /presenter/3 to /1).
+      if (s.lastUpdate.via === sync.id || s.lastUpdate.id === sync.id) return;
       const page = Math.min(s.page, nav.total);
       if (page === nav.no() && s.clicks === nav.clicks()) return;
       applied = `${page}:${s.clicks}`;
