@@ -171,7 +171,17 @@ export class ClicksContext {
   /** `place` registers the element again; it lets the clicks be renumbered in document order when the slide mounts. */
   track(key: unknown, el: Element, place: () => void) {
     this.placers.set(key, { el, place });
+    // Content that appears later (an `@defer` block) is numbered in document order too, once its elements are there.
+    if (this.mounted() && !this.reorderQueued) {
+      this.reorderQueued = true;
+      queueMicrotask(() => {
+        this.reorderQueued = false;
+        this.inDocumentOrder();
+        this.publish();
+      });
+    }
   }
+  private reorderQueued = false;
 
   // ngOnInit runs for the slide's own template before the views of the components in it, so clicks inside a component
   // register after the slide's later clicks. Slidev numbers them in document order; do the same once everything is there.

@@ -16,7 +16,9 @@ function clickVariants(variants: Variants, current: number | 'all'): Variant[] {
     if (!m || !variant) continue;
     const from = +m[1],
       to = m[2] ? +m[2] : Infinity;
-    if (current === 'all' || (from <= current && current < to)) found.push({ from, variant });
+    // `all` is the state after every click: a range that has ended (`click-2-4`) is over by then.
+    const at = current === 'all' ? Infinity : current;
+    if (from <= at && (to === Infinity || at < to)) found.push({ from, variant });
   }
   return found.sort((a, b) => a.from - b.from).map((f) => f.variant);
 }

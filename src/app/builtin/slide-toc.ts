@@ -59,8 +59,11 @@ export class TocList {
   // The generator drew the title's math with KaTeX from the deck's own markdown; the sanitizer would strip KaTeX's styles.
   private sanitizer = inject(DomSanitizer);
   protected trusted = (html: string): SafeHtml => this.sanitizer.bypassSecurityTrustHtml(html);
-  // `listStyle` can give one list-style per level, like Slidev.
-  protected style = computed(() => [this.listStyle()].flat()[this.level() - 1] || null);
+  // `listStyle` gives one list-style per level, like Slidev; a single style applies at every level.
+  protected style = computed(() => {
+    const style = this.listStyle();
+    return (Array.isArray(style) ? style[this.level() - 1] : style) || null;
+  });
 }
 
 // <slide-ng-toc /> is the table of contents, built from the slides' titles and levels (Slidev's <Toc />).

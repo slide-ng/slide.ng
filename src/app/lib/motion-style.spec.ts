@@ -19,6 +19,9 @@ describe('mixVariants', () => {
     expect(mixVariants(v, 'enter', 2)).toEqual({ x: 40, opacity: 1, y: 60 }); // later click wins, range is active
     expect(mixVariants(v, 'enter', 4)).toEqual({ x: 0, opacity: 1, y: 60 }); // the range end is exclusive
   });
+  it('the final state (print, overview) leaves out a range that has ended', () => {
+    expect(mixVariants(v, 'enter', 'all')).toEqual({ x: 0, opacity: 1, y: 60 });
+  });
   it('leave starts from the final state and applies leave on top', () => {
     expect(mixVariants(v, 'leave', 0)).toEqual({ x: 80, opacity: 1, y: 60 });
   });
