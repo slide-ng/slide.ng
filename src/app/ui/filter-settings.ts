@@ -59,6 +59,7 @@ type Slider = {
           type="number"
           class="slidev-number"
           [id]="'filter-' + f.key + '-number'"
+          [attr.aria-label]="f.label + ' value'"
           [min]="f.min"
           [max]="f.max"
           [step]="f.step"

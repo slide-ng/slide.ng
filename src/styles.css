@@ -68,15 +68,36 @@ html.dark .canvas {
   white-space: nowrap;
 }
 
-/* Ported from Slidev's vclick.css: hidden elements keep their space but cannot be seen or clicked. */
+/* Ported from Slidev's vclick.css: hidden elements keep their space but cannot be seen or clicked. `visibility` also keeps a
+   screen reader from reading what is not shown yet (it changes at the end of the fade out, and at once on the way in). */
 .slidev-vclick-target {
   transition: all 0.1s ease;
 }
 .slidev-vclick-hidden {
   opacity: 0 !important;
+  visibility: hidden !important;
   pointer-events: none !important;
   user-select: none !important;
 }
 .slidev-vclick-display-none {
   display: none !important;
+}
+
+/* People who ask their system for less motion get no slide transitions, fades or animations: changes happen at once. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --slidev-transition-duration: 0.01ms;
+  }
+  *,
+  ::before,
+  ::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }

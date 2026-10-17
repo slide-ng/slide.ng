@@ -128,6 +128,11 @@ html[data-presenter='off'] #nav-presenter {
 .slidev-slider:focus-visible {
   opacity: 1;
 }
+/* Slidev's slider has no outline; a keyboard user still has to see where the focus is. */
+.slidev-slider:focus-visible {
+  outline: 2px solid var(--slidev-theme-primary);
+  outline-offset: 2px;
+}
 .slidev-slider::-webkit-slider-thumb {
   appearance: none;
   width: 5px;

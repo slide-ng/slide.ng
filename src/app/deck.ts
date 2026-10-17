@@ -1,5 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
+import { SLIDES } from '../slides/generated';
 import { DragControls } from './drag/drag-controls';
+import { ProblemBanner } from './dev/problem-banner';
 import { SideEditor } from './dev/side-editor';
 import { SideEditorState } from './dev/side-editor-state';
 import { WebCamera } from './record/web-camera';
@@ -39,6 +41,7 @@ import { Overview } from './ui/overview';
     InfoDialog,
     ContextMenu,
     OfflineBadge,
+    ProblemBanner,
   ],
   providers: [Nav, Ui, Drawings],
   host: { '(window:keydown)': 'key($event)' },
@@ -69,14 +72,22 @@ import { Overview } from './ui/overview';
     <app-goto />
     <app-info-dialog />
     <app-context-menu />
+    <app-problem-banner />
     <div id="hud">
       slide {{ nav.no() }}/{{ nav.total }} clicks {{ nav.clicks() }}/{{ nav.clicksTotal() }}
     </div>
+    <!-- Screen readers hear the new slide's number and title (not every click) -->
+    <div class="sr-only" aria-live="polite" aria-atomic="true">{{ announcement() }}</div>
   `,
 })
 export class Deck {
   protected nav = inject(Nav);
   private ui = inject(Ui);
+  protected announcement = computed(() => {
+    const no = this.nav.no();
+    const title = SLIDES[no - 1]?.title;
+    return `Slide ${no} of ${this.nav.total}${title ? `: ${title}` : ''}`;
+  });
   protected editor = inject(SideEditorState);
   protected key = keyHandler(this.nav, this.ui);
   private drawings = inject(Drawings);

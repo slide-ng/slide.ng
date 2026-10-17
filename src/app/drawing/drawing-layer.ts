@@ -20,6 +20,7 @@ import { Drawings } from './drawings';
     <svg
       #svg
       id="drawing-layer"
+      aria-hidden="true"
       class="w-full h-full absolute top-0"
       [class.pointer-events-auto]="drawings.enabled()"
       [class.touch-none]="drawings.enabled()"

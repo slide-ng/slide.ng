@@ -50,7 +50,7 @@ export async function run({ t, open, hud, windowGroup, browser }) {
       'Delete',
       'Pin drawing',
     ].every((x) => titles.includes(x)) &&
-      titles.filter((x) => x === 'Set brush color').length === 7,
+      titles.filter((x) => x.startsWith('Brush color: ')).length === 7,
     titles.join('|'),
   );
 

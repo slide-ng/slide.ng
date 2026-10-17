@@ -12,6 +12,7 @@ export function pagePdf(page, { width, height }) {
     margin: { top: 0, right: 0, bottom: 0, left: 0 },
     printBackground: true,
     preferCSSPageSize: true,
+    tagged: true, // headings, lists and text are marked for screen readers
   });
 }
 

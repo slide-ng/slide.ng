@@ -50,6 +50,20 @@ export function clockParts(
   };
 }
 
+const SAVED = 'slide-ng-timer';
+function readSaved(): TimerState | null {
+  try {
+    const t = JSON.parse(sessionStorage.getItem(SAVED) ?? 'null');
+    return t &&
+      ['running', 'paused', 'stopped'].includes(t.status) &&
+      typeof t.startedAt === 'number'
+      ? (t as TimerState)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 @Injectable({ providedIn: 'root' })
 export class Timer {
   private sync = inject(SyncState);
@@ -65,6 +79,9 @@ export class Timer {
   readonly parts = computed(() => clockParts(this.mode, this.duration, this.state(), this.now()));
 
   constructor() {
+    // A reload of the presenter page keeps a running or paused timer (it is kept per tab).
+    const saved = readSaved();
+    if (saved && saved.status !== 'stopped' && this.state().status === 'stopped') this.set(saved);
     effect((onCleanup) => {
       if (this.status() !== 'running') return;
       this.now.set(Date.now());
@@ -75,6 +92,11 @@ export class Timer {
 
   private set(timer: TimerState) {
     this.sync.patchShared({ timer });
+    try {
+      sessionStorage.setItem(SAVED, JSON.stringify(timer));
+    } catch {
+      // no storage (a private window): the timer just starts over after a reload
+    }
   }
 
   start() {
