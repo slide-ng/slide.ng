@@ -152,13 +152,14 @@ export class MonacoEditor {
       this.contentHeight.set(height);
     };
     if (modified != null) {
+      // The model first: disposal runs backwards, and the editor must let go of its models before they go.
+      const changed = newModel(modified);
       const editor = this.disposables.add(
         monaco.editor.createDiffEditor(this.box().nativeElement, {
           renderOverviewRuler: false,
           ...options,
         }),
       );
-      const changed = newModel(modified);
       editor.setModel({ original: model, modified: changed });
       const [a, b] = [editor.getOriginalEditor(), editor.getModifiedEditor()];
       const resize = () => grow(Math.max(a.getContentHeight(), b.getContentHeight()) + 4);
