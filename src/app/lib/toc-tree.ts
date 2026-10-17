@@ -3,6 +3,7 @@
 export interface TocSlide {
   no: number;
   title: string | null;
+  titleHtml?: string | null;
   level: number | null;
   routeAlias: string | null;
   hideInToc: boolean;
@@ -11,6 +12,7 @@ export interface TocSlide {
 export interface TocItem {
   no: number;
   title: string;
+  titleHtml?: string | null; // the title with KaTeX math, when it has some
   path: string; // `3` or the routeAlias
   level: number; // depth in the tree, 1 = top
   hideInToc: boolean;
@@ -29,6 +31,7 @@ function add(tree: TocItem[], slide: TocSlide, level = 1) {
   tree.push({
     no: slide.no,
     title: slide.title!,
+    titleHtml: slide.titleHtml ?? null,
     path: slide.routeAlias ?? String(slide.no),
     level,
     hideInToc: slide.hideInToc,

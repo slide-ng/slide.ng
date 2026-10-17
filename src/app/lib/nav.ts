@@ -67,6 +67,7 @@ export class Nav {
       SLIDES.map((s, i) => ({
         no: i + 1,
         title: s.title,
+        titleHtml: s.titleHtml ?? null,
         level: s.level,
         routeAlias: s.routeAlias,
         hideInToc: s.hideInToc,

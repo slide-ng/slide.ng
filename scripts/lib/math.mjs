@@ -69,3 +69,18 @@ export function renderMath({ block, latex, ranges, options }) {
   });
   return `<slide-ng-katex-block-wrapper${a}><div ngNonBindable>${drawn}</div></slide-ng-katex-block-wrapper>`;
 }
+
+/** A slide title with `$math$` as HTML (for the table of contents), or null when it has no math. Text is escaped. */
+export function titleHtml(title) {
+  if (!title) return null;
+  const { markdown, maths } = extractMath(title);
+  if (!maths.length) return null;
+  const text = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return markdown
+    .split(/(NGMATH\d+X)/)
+    .map((part) => {
+      const m = /^NGMATH(\d+)X$/.exec(part);
+      return m ? render(maths[+m[1]].latex, false) : text(part);
+    })
+    .join('');
+}

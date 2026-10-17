@@ -1,4 +1,5 @@
 import { Component, computed, inject, input, numberAttribute } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Nav } from '../lib/nav';
 import { TocItem, filterToc } from '../lib/toc-tree';
 import { SlideLink } from './slide-link';
@@ -20,7 +21,13 @@ import { SlideLink } from './slide-link';
             [class.slidev-toc-item-active]="item.active"
             [class.slidev-toc-item-parent-active]="item.activeParent"
           >
-            <slide-ng-link [to]="item.path">{{ item.title }}</slide-ng-link>
+            <slide-ng-link [to]="item.path">
+              @if (item.titleHtml) {
+                <span [innerHTML]="trusted(item.titleHtml)"></span>
+              } @else {
+                {{ item.title }}
+              }
+            </slide-ng-link>
             <app-toc-list
               [list]="item.children"
               [level]="level() + 1"
@@ -48,6 +55,9 @@ export class TocList {
       `slidev-toc-list-level-${this.level()}`,
     ].join(' '),
   );
+  // The generator drew the title's math with KaTeX from the deck's own markdown; the sanitizer would strip KaTeX's styles.
+  private sanitizer = inject(DomSanitizer);
+  protected trusted = (html: string): SafeHtml => this.sanitizer.bypassSecurityTrustHtml(html);
   // `listStyle` can give one list-style per level, like Slidev.
   protected style = computed(() => [this.listStyle()].flat()[this.level() - 1] || null);
 }

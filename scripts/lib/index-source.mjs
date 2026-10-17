@@ -6,12 +6,14 @@ import { checkRouteAlias } from './route-alias.mjs';
 import { noteToHtml } from './note-html.mjs';
 import { downloadTarget } from '../export/filename.mjs';
 import { pwaEnabled } from '../build/pwa.mjs';
+import { titleHtml } from './math.mjs';
 
 // What the app needs to know about one slide, besides its component.
 function metaOf(slide, index) {
   const f = slide.frontmatter;
   return {
     title: slide.title ?? null,
+    titleHtml: titleHtml(slide.title), // only when the title has $math$
     level: slide.level ?? null,
     layout: slide.layout ?? layoutName(f, index),
     note: slide.note ?? null,

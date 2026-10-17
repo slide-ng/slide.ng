@@ -1,4 +1,4 @@
-import { extractMath, renderMath } from './math.mjs';
+import { extractMath, renderMath, titleHtml } from './math.mjs';
 import { hasMath } from './features.mjs';
 
 const found = (md: string) => extractMath(md) as { markdown: string; maths: any[] };
@@ -61,5 +61,15 @@ describe('hasMath (feature detection)', () => {
     expect(hasMath('```sh\necho $HOME and $PATH\n```')).toBe(false);
     expect(hasMath('use `$x$` here')).toBe(false);
     expect(hasMath('costs $5 or $6')).toBe(false);
+  });
+});
+
+describe('titleHtml', () => {
+  it('draws the math of a title and escapes the rest, or gives null without math', () => {
+    const html = titleHtml('A <b> title $x^2$')!;
+    expect(html.startsWith('A &lt;b&gt; title ')).toBe(true);
+    expect(html).toContain('class="katex"');
+    expect(titleHtml('Plain title, $5 and $10')).toBeNull();
+    expect(titleHtml(null)).toBeNull();
   });
 });
