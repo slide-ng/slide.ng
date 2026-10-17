@@ -2,7 +2,7 @@ import { Directive, ElementRef, effect, inject, input, signal } from '@angular/c
 import { Ui } from '../lib/ui-state';
 import { RENDER_CONTEXT, SLIDE_NO } from '../lib/slide-context';
 import { Box, formatBox, moveBox, parseBox } from './drag-math';
-import { DragState, DragTarget } from './drag-state';
+import { DragState, DragTarget, zoomOf } from './drag-state';
 import { resolvePos } from './resolve-pos';
 
 // `<img slide-ng-drag="[x, y, w, h]">` or `slide-ng-drag="name"` (with `dragPos: { name: x,y,w,h }` in the frontmatter) or just `slide-ng-drag`.
@@ -60,7 +60,7 @@ export class SlideNgDrag implements Extract<DragTarget, { kind: 'box' }> {
   private natural(): Box {
     const canvas = this.el.closest('.canvas')!.getBoundingClientRect();
     const r = this.el.getBoundingClientRect();
-    const k = this.ui!.canvasScale();
+    const k = this.ui!.canvasScale() * zoomOf(this.el); // a zoomed slide scales its pixels too
     return {
       x: (r.left - canvas.left) / k,
       y: (r.top - canvas.top) / k,
@@ -84,7 +84,7 @@ export class SlideNgDrag implements Extract<DragTarget, { kind: 'box' }> {
 
   protected move(e: PointerEvent) {
     if (!this.grab) return;
-    const k = this.ui!.canvasScale();
+    const k = this.ui!.canvasScale() * zoomOf(this.el); // a zoomed slide scales its pixels too
     this.value.set(
       moveBox(this.grab.start, (e.clientX - this.grab.x) / k, (e.clientY - this.grab.y) / k),
     );

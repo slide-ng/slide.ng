@@ -41,3 +41,7 @@ export class DragState {
     this.saver?.({ slide, site: +site, pos });
   }
 }
+
+/** The `zoom` of the slide an element is in (`--slidev-zoom` on the slide's host, 1 without one). Slide pixels are scaled by it. */
+export const zoomOf = (el: Element): number =>
+  Number(getComputedStyle(el).getPropertyValue('--slidev-zoom')) || 1;

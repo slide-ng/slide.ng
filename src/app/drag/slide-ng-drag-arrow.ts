@@ -2,7 +2,7 @@ import { Component, ElementRef, computed, effect, inject, input, signal } from '
 import { RENDER_CONTEXT, SLIDE_NO } from '../lib/slide-context';
 import { Ui } from '../lib/ui-state';
 import { Arrow, formatArrow, moveArrow, parseArrow } from './drag-math';
-import { DragState, DragTarget } from './drag-state';
+import { DragState, DragTarget, zoomOf } from './drag-state';
 import { resolvePos } from './resolve-pos';
 
 // `<slide-ng-drag-arrow pos="x,y,width,height" />` (Slidev's spelling): an arrow from (x, y) to (x + width, y + height). Drag it by its line; its
@@ -93,7 +93,7 @@ export class SlideNgDragArrow implements Extract<DragTarget, { kind: 'arrow' }> 
 
   protected move(e: PointerEvent) {
     if (!this.grab) return;
-    const k = this.ui!.canvasScale();
+    const k = this.ui!.canvasScale() * zoomOf(this.el);
     this.value.set(
       moveArrow(this.grab.start, (e.clientX - this.grab.x) / k, (e.clientY - this.grab.y) / k),
     );

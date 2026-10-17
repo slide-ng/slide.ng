@@ -1,7 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 import { Ui } from '../lib/ui-state';
 import { Arrow, Box, Corner, moveArrowEnd, nudgeDelta, resizeBox, rotationTo } from './drag-math';
-import { DragState } from './drag-state';
+import { DragState, zoomOf } from './drag-state';
 
 // The frame, corner handles and rotation handle of the element being dragged (Slidev's DragControl).
 // It sits inside the slide canvas, so everything here is in slide pixels. Arrow keys nudge the element.
@@ -19,10 +19,10 @@ import { DragState } from './drag-state';
         id="drag-frame"
         data-drag-ui
         class="absolute border border-dashed border-primary"
-        [style.left.px]="b.x"
-        [style.top.px]="b.y"
-        [style.width.px]="b.w"
-        [style.height.px]="b.h"
+        [style.left.px]="b.x * zoom()"
+        [style.top.px]="b.y * zoom()"
+        [style.width.px]="b.w * zoom()"
+        [style.height.px]="b.h * zoom()"
         [style.transform]="b.rot ? 'rotate(' + b.rot + 'deg)' : null"
       >
         @for (c of corners; track c) {
@@ -56,8 +56,8 @@ import { DragState } from './drag-state';
           class="drag-end absolute w-3 h-3 rounded-full bg-white border border-primary pointer-events-auto touch-none"
           [attr.data-end]="n"
           style="cursor: move; margin: -6px 0 0 -6px"
-          [style.left.px]="n === 1 ? a.x1 : a.x2"
-          [style.top.px]="n === 1 ? a.y1 : a.y2"
+          [style.left.px]="(n === 1 ? a.x1 : a.x2) * zoom()"
+          [style.top.px]="(n === 1 ? a.y1 : a.y2) * zoom()"
           (pointerdown)="startEnd($event, n === 1 ? 1 : 2)"
           (pointermove)="onMove($event)"
           (pointerup)="end($event)"
@@ -84,6 +84,11 @@ export class DragControls {
     if (t?.kind !== 'box') return null;
     const b = t.value();
     return { ...b, h: Number.isNaN(b.h) ? t.el.offsetHeight : b.h };
+  });
+  // The controls are drawn over the slide, outside a zoomed layout: slide pixels of a zoomed slide are multiplied by its zoom.
+  protected zoom = computed(() => {
+    const t = this.drag.active();
+    return t ? zoomOf(t.el) : 1;
   });
   protected arrow = computed<Arrow | null>(() => {
     const t = this.drag.active();
@@ -115,7 +120,7 @@ export class DragControls {
     const start = this.box();
     if (t?.kind !== 'box' || !start) return;
     const canvas = t.el.closest('.canvas')!.getBoundingClientRect();
-    const k = this.ui.canvasScale();
+    const k = this.ui.canvasScale() * this.zoom();
     const center = { x: start.x + start.w / 2, y: start.y + start.h / 2 };
     this.begin(e, (_dx, _dy, ev) => {
       const pointer = { x: (ev.clientX - canvas.left) / k, y: (ev.clientY - canvas.top) / k };
@@ -132,7 +137,7 @@ export class DragControls {
 
   protected onMove(e: PointerEvent) {
     if (!this.hold) return;
-    const k = this.ui.canvasScale();
+    const k = this.ui.canvasScale() * this.zoom();
     this.hold.apply((e.clientX - this.hold.x) / k, (e.clientY - this.hold.y) / k, e);
   }
 
