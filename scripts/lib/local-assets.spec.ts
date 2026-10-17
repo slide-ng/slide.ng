@@ -22,7 +22,8 @@ describe('localAssets', () => {
   });
   it('leaves files in public, missing files and files outside the deck', () => {
     const found = new Set<string>();
-    const html = '<img src="./pub/p.png"><img src="./nope.png"><img src="../../etc/passwd">';
+    const html =
+      '<img src="./pub/p.png"><img src="./nope.png"><img src="../../etc/passwd"><img src="./50%.png">';
     expect(localAssets(html, ctx, found)).toBe(html);
     expect(found.size).toBe(0);
   });

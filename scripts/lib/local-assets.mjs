@@ -26,7 +26,13 @@ export function localAssets(html, ctx, found) {
   return html.replace(RELATIVE, (match, attr, quote, address, rest = '') => {
     const inPublic = (ctx.publics ?? []).some((p) => existsSync(join(p, address)));
     if (inPublic) return match; // the browser finds it next to the page, as before
-    const target = resolve(dirname(ctx.file), decodeURI(address));
+    let decoded;
+    try {
+      decoded = decodeURI(address);
+    } catch {
+      decoded = address; // a literal `%` (`./50%.png`), not an escape
+    }
+    const target = resolve(dirname(ctx.file), decoded);
     if (!existsSync(target) || !statSync(target).isFile() || /\.md$/i.test(target)) return match;
     const rel = relative(root, realpathSync(target));
     if (!rel || rel.startsWith('..') || isAbsolute(rel)) return match; // outside the deck: not served
