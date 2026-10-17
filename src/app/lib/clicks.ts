@@ -64,6 +64,8 @@ export class ClicksContext {
   private raw = signal(this.clicksStart);
   readonly mounted = signal(false);
   private maxes = signal<number[]>([]); // signals cannot watch a Map, so we publish a copy
+  // Elements that can work out their clicks again, to put them in document order when the slide mounts.
+  private placers = new Map<unknown, { el: Element; place: () => void }>();
 
   /** Like Slidev: 0 until the slide is mounted, then the biggest registered max (or the frontmatter override). */
   readonly total = computed(
@@ -74,6 +76,7 @@ export class ClicksContext {
 
   constructor() {
     afterNextRender(() => {
+      this.inDocumentOrder();
       this.publish();
       this.mounted.set(true);
     });
@@ -165,7 +168,29 @@ export class ClicksContext {
     if (this.mounted()) this.publish(); // an element added later (inside @if) still counts
   }
 
+  /** `place` registers the element again; it lets the clicks be renumbered in document order when the slide mounts. */
+  track(key: unknown, el: Element, place: () => void) {
+    this.placers.set(key, { el, place });
+  }
+
+  // ngOnInit runs for the slide's own template before the views of the components in it, so clicks inside a component
+  // register after the slide's later clicks. Slidev numbers them in document order; do the same once everything is there.
+  // Only when every registered element can be placed again (otherwise the arrival order is kept).
+  private inDocumentOrder() {
+    const keys = [...this.relativeSizeMap.keys()];
+    if (keys.length < 2 || keys.some((k) => !this.placers.has(k))) return;
+    const el = (k: unknown) => this.placers.get(k)!.el;
+    const sorted = [...keys].sort((a, b) =>
+      el(a).compareDocumentPosition(el(b)) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1,
+    );
+    if (sorted.every((k, i) => k === keys[i])) return;
+    this.relativeSizeMap.clear();
+    this.maxMap.clear();
+    for (const k of sorted) this.placers.get(k)!.place();
+  }
+
   unregister(key: unknown) {
+    this.placers.delete(key);
     this.relativeSizeMap.delete(key);
     this.maxMap.delete(key);
     if (this.mounted()) this.publish();

@@ -2,6 +2,7 @@
 // A subclass reads `shown()` (the range for the current click) and applies it to its own lines.
 import {
   Directive,
+  ElementRef,
   OnDestroy,
   OnInit,
   computed,
@@ -22,6 +23,7 @@ export abstract class RangedBlock implements OnInit, OnDestroy {
   startLine = input(1, { transform: numberAttribute });
 
   protected clicks = inject(ClicksContext);
+  private blockHost = inject<ElementRef<Element>>(ElementRef).nativeElement;
   private info = signal<ClickInfo | null>(null);
 
   /** The range for the current click, and whether the whole block is hidden at this click. */
@@ -35,9 +37,13 @@ export abstract class RangedBlock implements OnInit, OnDestroy {
   // In template order, so that "+1" counts the elements before this one.
   ngOnInit() {
     if (!this.ranges().length) return;
-    const info = this.clicks.calculateSince(this.at(), this.ranges().length - 1);
-    this.info.set(info);
-    this.clicks.register(this, info);
+    const place = () => {
+      const info = this.clicks.calculateSince(this.at(), this.ranges().length - 1);
+      this.info.set(info);
+      this.clicks.register(this, info);
+    };
+    place();
+    this.clicks.track(this, this.blockHost, place);
   }
 
   ngOnDestroy() {

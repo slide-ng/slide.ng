@@ -101,9 +101,13 @@ export class ShikiMagicMove implements OnInit, OnDestroy {
   // In template order, so that "+1" counts the elements before this one.
   ngOnInit() {
     const total = this.ranges().reduce((sum, r) => sum + r.length, 0);
-    const info = this.clicks.calculateSince(this.at(), total - 1);
-    this.info.set(info);
-    this.clicks.register(this, info);
+    const place = () => {
+      const info = this.clicks.calculateSince(this.at(), total - 1);
+      this.info.set(info);
+      this.clicks.register(this, info);
+    };
+    place();
+    this.clicks.track(this, this.host, place);
     // Load the animation code and the steps; neither is needed before this.
     void Promise.all([
       import('@shikijs/magic-move/renderer'),

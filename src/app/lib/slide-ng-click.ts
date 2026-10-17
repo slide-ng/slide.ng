@@ -2,6 +2,7 @@
 // <div slide-ng-after>, <div slide-ng-click-hide>. Port of Slidev's slide-ng-click / slide-ng-after directives.
 import {
   Directive,
+  ElementRef,
   OnDestroy,
   OnInit,
   computed,
@@ -44,6 +45,7 @@ export class SlideNgClick implements OnInit, OnDestroy {
   hide = input(false, { alias: 'slide-ng-click-hide', transform: booleanAttribute });
 
   private ctx = inject(ClicksContext);
+  private el = inject<ElementRef<Element>>(ElementRef).nativeElement;
   info = signal<ClickInfo | null>(null);
   state = stateOf(
     this.ctx,
@@ -58,6 +60,11 @@ export class SlideNgClick implements OnInit, OnDestroy {
   // Inputs are set before ngOnInit, and ngOnInit runs in template order.
   // That order is what makes relative clicks ("+1") work.
   ngOnInit() {
+    this.place();
+    this.ctx.track(this, this.el, () => this.place());
+  }
+
+  private place() {
     const at = this.at() ?? (this.after() ? '+0' : undefined); // slide-ng-after = same click as the element before
     const info = this.ctx.calculate(at);
     this.info.set(info);
