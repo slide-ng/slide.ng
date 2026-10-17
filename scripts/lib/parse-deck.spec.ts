@@ -162,3 +162,16 @@ describe('parseDeck: imports outside the deck folder', () => {
     expect(slides.map((s) => s.title)).toEqual(['T', 'Outside one', 'Last']);
   });
 });
+
+describe('parseDeck: broken YAML', () => {
+  it("stops at a slide's broken frontmatter with the file, line and slide", async () => {
+    await expect(
+      parse('---\ntitle: ok\n---\n\n# One\n\n---\nclass: "unterminated\n---\n\n# Two\n'),
+    ).rejects.toThrow('/deck/slides.md:8: the frontmatter of slide 2 is not valid YAML');
+  });
+  it('gives the line of a broken headmatter in the file', async () => {
+    await expect(parse('---\ntitle: ok\nfoo: [unclosed\n---\n\n# One\n')).rejects.toThrow(
+      '/deck/slides.md:3: the headmatter is not valid YAML',
+    );
+  });
+});

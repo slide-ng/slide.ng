@@ -1,6 +1,7 @@
 // Reads the deck with Slidev's parser. Its `load` function follows `src:` imports
 // (also with a `#2,4-6` slide range) and merges the importing slide's frontmatter
 // over the imported one, so we get one flat list of slides.
+import { existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { injectPreparserExtensionLoader, load } from '@slidev/parser/fs';
 import { assertReadable, allowsOutsideRoot } from './outside-root.mjs';
@@ -12,6 +13,10 @@ import { preparserExtensions } from './setup/node-setups.mjs';
 // with the themes' defaults under it (see roots.mjs).
 export async function parseDeck(file = 'slides.md', sources, options = {}) {
   const entry = resolve(file);
+  if (!sources && !existsSync(entry))
+    throw new Error(
+      `${entry} not found. Run slide-ng in the deck's folder, name the file (slide-ng build talk.md), or start a deck with: slide-ng create my-deck`,
+    );
   // setup/preparser.ts of the roots: the parser asks for them once it has read the headmatter (which says which roots there are).
   injectPreparserExtensionLoader(async (_, headmatter, filepath, mode) => {
     const found = resolveRoots({
@@ -21,7 +26,17 @@ export async function parseDeck(file = 'slides.md', sources, options = {}) {
     });
     return preparserExtensions(found, { filepath, headmatter, mode });
   });
-  const data = await load({ userRoot: dirname(entry), roots: [dirname(entry)] }, entry, sources);
+  let data;
+  try {
+    data = await load({ userRoot: dirname(entry), roots: [dirname(entry)] }, entry, sources);
+  } catch (e) {
+    // The headmatter is parsed strictly; its line is counted from the YAML, so say where that is in the file.
+    if (e?.name !== 'YAMLParseError' || !e.linePos?.[0]) throw e;
+    throw new Error(
+      `${entry}:${e.linePos[0].line + 1}: the headmatter is not valid YAML: ${e.message.split('\n')[0].replace(/ at line \d+, column \d+:?$/, '')}`,
+      { cause: e },
+    );
+  }
   const problems = [];
   const roots = resolveRoots({
     deckRoot: dirname(entry),
@@ -53,6 +68,16 @@ export async function parseDeck(file = 'slides.md', sources, options = {}) {
       end: s.source.end,
     },
   }));
+
+  // A slide's frontmatter is parsed leniently, so a broken one would just lose keys: stop instead, as for the headmatter.
+  data.slides.forEach((slide, i) => {
+    const error = slide.source?.frontmatterDoc?.errors?.[0];
+    if (!error) return;
+    const line = slide.source.start + (error.linePos?.[0]?.line ?? 1); // start is the `---` line, counted from 1
+    throw new Error(
+      `${slide.source.filepath}:${line}: the frontmatter of slide ${i + 1} is not valid YAML: ${error.message.split('\n')[0].replace(/ at line \d+, column \d+:?$/, '')}`,
+    );
+  });
 
   // Import problems (missing file, circular import, bad range) are collected by the parser.
   for (const md of Object.values(data.markdownFiles))
