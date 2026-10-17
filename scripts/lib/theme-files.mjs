@@ -75,6 +75,11 @@ export function themeCss(roots, headmatter = {}, fontFaces = null) {
 export async function applyRoots(deck, out, write, warn) {
   const generated = resolve(out);
   syncRoots(deck.roots, generated);
+  // Where each copy came from, so a build error in `roots/deck/components/x.ts` can name the author's own file (cli/runtime.mjs).
+  write(
+    `${out}roots.json`,
+    JSON.stringify(Object.fromEntries(deck.roots.map((r) => [r.id, r.dir])), null, 2) + '\n',
+  );
   const scanned = scanRoots(deck.roots);
   scanned.problems.forEach(warn);
   deck.layouts = scanned.layouts;

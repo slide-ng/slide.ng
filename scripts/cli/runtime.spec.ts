@@ -18,4 +18,21 @@ describe('withSlideSources', () => {
       'src/slides/generated/slide-009.ts:1:1',
     );
   });
+  it("names the author's own file for an error in a copied theme or deck file", () => {
+    const app = mkdtempSync(join(tmpdir(), 'slide-ng-runtime-'));
+    mkdirSync(join(app, 'src/slides/generated'), { recursive: true });
+    writeFileSync(
+      join(app, 'src/slides/generated/roots.json'),
+      JSON.stringify({ deck: '/talk', 'theme-t': '/themes/t' }),
+    );
+    expect(
+      withSlideSources(
+        `ERROR ${app}/src/slides/generated/roots/deck/components/signup.ts:73:2 - TS2339`,
+        app,
+      ),
+    ).toBe('ERROR /talk/components/signup.ts:73:2 - TS2339');
+    expect(withSlideSources('src/slides/generated/roots/theme-t/layouts/split.ts:5:37', app)).toBe(
+      '/themes/t/layouts/split.ts:5:37',
+    );
+  });
 });

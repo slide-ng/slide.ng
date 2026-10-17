@@ -159,6 +159,8 @@ async function generate() {
         'remote-assets',
         'fonts',
         'roots',
+        'roots.json',
+        'problem.ts',
         'public',
       ),
   );
@@ -167,6 +169,8 @@ async function generate() {
   deck.slides.forEach((s, i) => write(`${OUT}${slideName(i + 1)}.ts`, slideSource(s, i + 1, deck)));
   writeMonacoTargets(deck.root);
   write(`${OUT}index.ts`, indexSource(deck));
+  // The dev server shows a generator error in the page (dev/problem-banner.ts); a good run clears it.
+  write(`${OUT}problem.ts`, "export const PROBLEM = '';\n");
   write(`${OUT}features.css`, featureCss(features));
   // The generated slides are scanned too: icon tags and alerts only become class names there.
   const slideFiles = deck.slides.map((_, i) => `${OUT}${slideName(i + 1)}.ts`);
@@ -204,7 +208,10 @@ if (process.argv.includes('--watch')) {
   const regenerate = coalesce(() =>
     generate()
       .then(watchAll)
-      .catch((e) => console.error(e.message)),
+      .catch((e) => {
+        console.error(e.message);
+        write(`${OUT}problem.ts`, `export const PROBLEM = ${JSON.stringify(e.message)};\n`);
+      }),
   );
   // Editors save in bursts; wait a moment so we generate once.
   const onChange = () => {

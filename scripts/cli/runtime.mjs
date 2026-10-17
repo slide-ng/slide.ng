@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ngBinary, prepareApp } from './app-root.mjs';
 import { packageRoot } from './package-root.mjs';
+import { ROOT_FOLDERS } from '../lib/roots.mjs';
 import { claimDirectory, markDirectory } from './safe-dir.mjs';
 
 export { packageRoot };
@@ -11,21 +12,31 @@ export { packageRoot };
 // Angular's errors name the generated file (src/slides/generated/slide-003.ts); add the markdown file and line it came from,
 // which the generator wrote into the file's first line.
 export function withSlideSources(text, appRoot) {
-  return text.replace(
-    /src\/slides\/generated\/(slide-(\d+))\.ts(:\d+:\d+)?/g,
-    (match, name, no) => {
+  const generated = join(appRoot, 'src/slides/generated');
+  let roots = null; // read once, when an error names a copied theme or deck file
+  return text
+    .replace(/src\/slides\/generated\/(slide-(\d+))\.ts(:\d+:\d+)?/g, (match, name, no) => {
       try {
-        const first = readFileSync(
-          join(appRoot, 'src/slides/generated', `${name}.ts`),
-          'utf8',
-        ).split('\n')[0];
+        const first = readFileSync(join(generated, `${name}.ts`), 'utf8').split('\n')[0];
         const from = /GENERATED from (\S+)/.exec(first)?.[1];
         return from ? `${match} (slide ${+no}, ${from})` : match;
       } catch {
         return match;
       }
-    },
-  );
+    })
+    .replace(/\S*src\/slides\/generated\/roots\/([\w.-]+)\/([^\s:]+)/g, (match, id, rest) => {
+      try {
+        roots ??= JSON.parse(readFileSync(join(generated, 'roots.json'), 'utf8'));
+        return roots[id] ? join(roots[id], rest) : match;
+      } catch {
+        return match;
+      }
+    })
+    .replace(
+      /Could not resolve "(\.\.\/[^"]*)"/g,
+      (match) =>
+        `${match} (only the folders ${ROOT_FOLDERS.join(', ')} of a deck or theme are copied into the app: keep shared code inside one of them)`,
+    );
 }
 
 function run(args, { cwd, env, quiet }) {

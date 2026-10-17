@@ -6,6 +6,7 @@
 import { spawn, spawnSync } from 'node:child_process';
 import { createServer } from 'node:net';
 import { hostname, networkInterfaces } from 'node:os';
+import { createInterface } from 'node:readline';
 import { join, resolve } from 'node:path';
 import { removeInside } from '../lib/tool-dir.mjs';
 import { randomPassword, randomSecret } from '../dev/config.mjs';
@@ -14,6 +15,7 @@ import { applyThemeFlag, parseFlags } from './flags.mjs';
 import { packageRoot } from './package-root.mjs';
 import { askPassword } from './prompt.mjs';
 import { remoteLines } from './remote-info.mjs';
+import { withSlideSources } from './runtime.mjs';
 import { watchChildren } from './watch-children.mjs';
 
 export const DEV_FLAGS = {
@@ -123,7 +125,7 @@ export async function devCommand(argv) {
       env,
       stdio,
     }),
-    spawn(process.execPath, ngArgs, { cwd: appRoot, env, stdio }),
+    angularServer(ngArgs, { appRoot, env, quiet }),
   ];
   const stopAll = () => children.forEach((c) => c.kill());
   watchChildren(
@@ -159,4 +161,22 @@ export async function devCommand(argv) {
       }).join('\n'),
     );
   }
+}
+
+// The Angular dev server, with its errors pointing at the deck's files (slides.md line, the author's own components/ file)
+// instead of the generated copies, as the build does (runtime.mjs). Its colours stay when the terminal has them.
+function angularServer(ngArgs, { appRoot, env, quiet }) {
+  const child = spawn(process.execPath, ngArgs, {
+    cwd: appRoot,
+    env: process.stdout.isTTY ? { ...env, FORCE_COLOR: '1' } : env,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  const relay = (from, to) =>
+    createInterface({ input: from }).on('line', (line) =>
+      to.write(`${withSlideSources(line, appRoot)}\n`),
+    );
+  if (!quiet) relay(child.stdout, process.stdout);
+  else child.stdout.resume();
+  relay(child.stderr, process.stderr);
+  return child;
 }
