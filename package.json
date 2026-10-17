@@ -40,7 +40,8 @@
     "README.md",
     "CHANGELOG.md",
     "docs",
-    "!**/*.spec.ts"
+    "!**/*.spec.ts",
+    "!src/slides/generated"
   ],
   "engines": {
     "node": ">=22.22.3"
