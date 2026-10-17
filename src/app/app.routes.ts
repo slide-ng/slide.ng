@@ -17,11 +17,16 @@ const printQuery: CanActivateFn = (route) => {
 
 // Headmatter `presenter: false` (or `dev` / `build` in the other mode) has no presenter page: the address goes to slide 1.
 // With `dev --remote`, someone without the password gets the slides, not the notes (like Slidev's router).
-const unlocked: CanActivateFn = async () => {
+const unlocked: CanActivateFn = async (_route, state) => {
   const api = inject(DevApi);
   const router = inject(Router); // before the await: inject() only works synchronously
   await api.token(); // asks for the password once when the server wants one
-  return api.locked() ? router.createUrlTree(['/1']) : true;
+  if (api.locked()) return router.createUrlTree(['/1']);
+  // The router would write `?password=` back into the address bar at the end of this navigation: go there without it.
+  const url = router.parseUrl(state.url);
+  if (!('password' in url.queryParams)) return true;
+  delete url.queryParams['password'];
+  return url;
 };
 const presenterAllowed: CanActivateFn = () =>
   presenterEnabled() || inject(Router).createUrlTree(['/1']);
