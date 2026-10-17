@@ -125,6 +125,17 @@ export function slideSource(slide, no, deck = {}) {
     no,
     (deck.components ?? []).flatMap((c) => (c.selector ? [c.selector] : [])),
   );
+  // A drag position by name (`slide-ng-drag="square"`, `pos="square"`) is looked up in the slide's `dragPos`.
+  const dragPos = slide.frontmatter.dragPos ?? {};
+  const named = [
+    ...markup.matchAll(/\sslide-ng-drag="([A-Za-z][\w-]*)"/g),
+    ...markup.matchAll(/<slide-ng-drag(?:-arrow)?\b[^>]*?\spos="([A-Za-z][\w-]*)"/g),
+  ];
+  for (const m of named)
+    if (!Object.hasOwn(dragPos, m[1]))
+      console.warn(
+        `[slides] slide ${no}: the drag position "${m[1]}" is not in this slide's dragPos; it starts where the layout puts it`,
+      );
   // Angular removes <script> elements from templates without a word; say so, and where code goes instead.
   if (/<script[\s>]/i.test(markup))
     console.warn(

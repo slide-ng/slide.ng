@@ -248,6 +248,25 @@ describe('slideSource: built-in components are imported when the slide uses them
   });
 });
 
+describe('slideSource: drag positions and renamed names', () => {
+  it('warns about a drag position name that dragPos does not have', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    slideSource(
+      slide({ dragPos: { square: '1,2,3,4' } }, '<div slide-ng-drag="square">a</div>'),
+      2,
+    );
+    expect(warn).not.toHaveBeenCalled();
+    slideSource(slide({}, '<div slide-ng-drag="circle">a</div>'), 3);
+    expect(warn.mock.calls[0][0]).toContain('"circle" is not in this slide\'s dragPos');
+    warn.mockRestore();
+  });
+  it('lists every renamed name of a slide at once', () => {
+    expect(() =>
+      slideSource(slide({}, '<v-clicks>\n\n- a\n\n</v-clicks>\n\n<div v-click>b</div>'), 2),
+    ).toThrow(/slide 2: "v-clicks" was renamed to .*"v-click" was renamed to/);
+  });
+});
+
 describe('keepSpaces', () => {
   it('keeps a space between two tags on one line, like Vue', () => {
     expect(keepSpaces('<p><strong>bold</strong> <em>italic</em></p>')).toBe(

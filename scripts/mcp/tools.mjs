@@ -142,7 +142,7 @@ export const TOOLS = [
       const after = await load(ctx, { [file]: text });
       if (after.slides.length !== deck.slides.length)
         throw new Error(
-          'the new text is not exactly one slide (it has --- separators, or frontmatter for a slide that had none); use insert_slide to add slides',
+          'the new text is not exactly one slide (it has --- separators between slides); use insert_slide to add slides',
         );
       expected[no - 1] = fingerprint(after.slides[no - 1]);
       return summary(await commit(ctx, file, text, expected), no);

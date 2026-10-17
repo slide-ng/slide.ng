@@ -24,7 +24,8 @@ export function rewriteIcons(html, sets = installedSets()) {
     let found = false;
     let rest = attrs.replace(/(\sclass\s*=\s*)(["'])(.*?)\2/, (_, eq, q, value) => {
       found = true;
-      return `${eq}${q}${icon} ${value}${q}`;
+      // `inline` (Slidev's starter writes it on icons) would make the span lose its size: an icon is inline-block already.
+      return `${eq}${q}${icon} ${value.replace(/(^|\s)inline(?=\s|$)/g, '$1inline-block')}${q}`;
     });
     if (!found) rest = ` class="${icon}"${attrs}`;
     return selfClose ? `<span${rest}></span>` : `<span${rest}>`;

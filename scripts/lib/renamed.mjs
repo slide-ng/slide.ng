@@ -58,19 +58,19 @@ const plainName = (attr) => attr.replace(/^\[|\]$/g, '').split('.')[0];
  */
 export function assertNoRenamedNames(markup, no, own = []) {
   const mine = new Set(own);
-  const fail = (oldName, newName) => {
-    throw new Error(
-      `[slide.ng] slide ${no}: "${oldName}" was renamed to ${newName} (see docs/RENAMES.md)`,
-    );
-  };
+  const found = new Map(); // every old name on the slide, so one run lists them all
   for (const m of markup.matchAll(TAG)) {
     const name = m[1];
     if (Object.hasOwn(RENAMED_ELEMENTS, name) && !mine.has(name))
-      fail(name, RENAMED_ELEMENTS[name]);
+      found.set(name, RENAMED_ELEMENTS[name]);
     for (const a of m[2].matchAll(ATTRIBUTE)) {
       const attr = plainName(a[1]);
       if (Object.hasOwn(RENAMED_ATTRIBUTES, attr) && !mine.has(`[${attr}]`))
-        fail(attr, RENAMED_ATTRIBUTES[attr]);
+        found.set(attr, RENAMED_ATTRIBUTES[attr]);
     }
   }
+  if (found.size)
+    throw new Error(
+      `slide ${no}: ${[...found].map(([o, n]) => `"${o}" was renamed to ${n}`).join(', ')} (see docs/RENAMES.md)`,
+    );
 }

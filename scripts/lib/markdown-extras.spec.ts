@@ -69,6 +69,11 @@ describe('rewriteIcons', () => {
       '<span class="i-mdi:account-circle"></span>',
     );
   });
+  it('keeps an icon with class inline visible (inline-block)', () => {
+    expect(rewriteIcons('<carbon-arrow-right class="inline ml-1" />', sets)).toBe(
+      '<span class="i-carbon:arrow-right inline-block ml-1"></span>',
+    );
+  });
   it('adds to an existing class and keeps other attributes', () => {
     expect(rewriteIcons('<ph-star-fill class="text-red" style="color: blue" />', sets)).toBe(
       '<span class="i-ph:star-fill text-red" style="color: blue"></span>',
