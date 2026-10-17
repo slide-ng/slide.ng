@@ -5,8 +5,8 @@ html.dark {
   --paper-ink: #1d1b18;
   --paper-muted: #6b645a;
   --paper-rule: #d8cfc0;
-  --paper-accent: #c8412b;
-  --slidev-theme-primary: #c8412b;
+  --paper-accent: #c03e29; /* 4.6:1 on the paper, for links and strong text */
+  --slidev-theme-primary: #c03e29;
   --slidev-code-background: #ebe4d7;
   --slidev-code-foreground: #1d1b18;
   --slidev-code-radius: 2px;

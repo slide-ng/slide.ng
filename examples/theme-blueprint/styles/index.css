@@ -7,8 +7,8 @@
   --bp-text: #0f2c4c;
   --bp-muted: #4d6a86;
   --bp-cyan: #1d6fa5;
-  --bp-amber: #b86b00;
-  --slidev-theme-primary: #b86b00;
+  --bp-amber: #a35f00; /* 4.6:1 on the light sheet */
+  --slidev-theme-primary: #a35f00;
   --slidev-code-background: #e6eef6;
   --slidev-code-foreground: #0f2c4c;
   --slidev-code-radius: 0;
