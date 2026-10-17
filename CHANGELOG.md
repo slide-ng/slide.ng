@@ -6,11 +6,33 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ### Added
 
+- Three example themes: `examples/theme-paper` (light, editorial), `examples/theme-moss` (dark, green and clay) and `examples/theme-blueprint` (navy drafting grid, with a light "whiteprint" palette), each with a cover and a section layout, a component and a README.
+- `docs/CLI.md`, every command and flag; `slide-ng --version`; `slide-ng <command> --help` lists that command's flags.
+- Angular's common pipes (`number`, `currency`, `date`, ...) and a deck's own pipes in `components/` work in slides; `@angular/forms` is included for slide components.
+- `## Title {#id .class}` on headings and `{width=120}` after a picture.
+- `themeColor` in the headmatter (or a theme's `theme.json`) colours the installed app; a downloaded PDF is kept by the offline worker.
+- `$math$` in a slide title is drawn in `<slide-ng-toc>`; `console.table` and `console.group` in `{monaco-run}`; a code runner may return its result directly.
+- Warnings for `<script>` in a slide, an `@if`/`@for` in the middle of a line, `mdc: true` / `comark: true`, and a `javascript:` link (replaced by `#`).
 - Slidev's UnoCSS shortcuts `abs-tl`, `abs-tr`, `abs-b`, `abs-bl`, `abs-br`, `bg-primary` and the z-index names `z-drawing`, `z-camera`, `z-dragging`, `z-label`, `z-focus-indicator`.
 - `skills/slide-ng/references/port-a-slidev-deck.md`: a recipe for porting a Slidev deck, with a worked Vue to Angular example and a list of pitfalls.
 
+### Changed
+
+- Code sizes follow Slidev's (`--slidev-code-font-size` 12px, padding 8px, margin `4px 0`, inline code 0.9em in a light weight), and a raw `<pre>` is no longer styled.
+- `download: true` in the headmatter makes the PDF when Chromium runs and only warns when it does not; `--download` still fails without it.
+- A broken frontmatter stops the build with the file, line and slide; Angular's build errors name the `slides.md` line of the slide.
+- With `dev --remote`, the presenter, notes and notes-print pages need the password (without it they go to the slides).
+- A deck's `setup/shortcuts.ts` adds to a theme's shortcut provider instead of replacing it.
+- The npm package no longer contains `src/slides/generated`.
+
 ### Fixed
 
+- PDF export: diagrams taller than the slide were lost, persisted drawings were missing, global layers showed slide 1 on every page, a Mermaid syntax error added a page, `\begin{align}` numbers stayed at (1), and the subject held raw markdown.
+- Generator: `$first`/`$last` in bindings became math, `@keyframes` in a slide `<style>` did nothing, the space between two inline elements was dropped, `\|` in `{{ }}` in a table broke the build, a deck's own `theme.json` was ignored, and Twoslash `^?` popups covered the code.
+- App: clicks inside a component were numbered after the slide's later clicks, view transitions with a shared `view-transition-name` were skipped, Monaco ignored the dark mode, `slide-ng-mark` was drawn too low when a web font arrived late, a `maxHeight` code block scrolled the page and the overview, auto-fit text overlapped, a scaled Mermaid diagram ran off the slide, code and math were mirrored in right-to-left decks, an `iframe` page was dark in a dark deck's PDF, `{monaco-diff}` logged an error when left, and the table of contents marked the wrong slide in print.
+- CLI and dev server: `theme eject` refused theme folders outside the deck, an ejected theme warned about `background.ts`, a missing `slides.md` gave a raw error, `dev --remote --bind` listed addresses it did not answer on, Monaco's icon font was refused for a deck outside the package, and a failed setup hook printed a stack trace.
+- MCP: `remove_slide` named the wrong slide, `update_slide` could not add or remove frontmatter, and edits dropped the blank line before `---`.
+- Themes: cover pictures, layout inputs (`issue`, `date`, `no`, `sheet`), end slides, subtitle contrast, task lists and Arabic headings in the example themes.
 - A code block is a block box, so the margin and border of `.slidev-code-wrapper` apply (the wrapper was an inline element).
 
 ## [0.1.0] - 2026-10-17

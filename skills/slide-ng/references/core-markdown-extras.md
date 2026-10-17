@@ -39,3 +39,6 @@ A claim[^1].
 
 [^1]: Listed at the bottom.
 ```
+
+- `## Title {#id .class}` puts an id and classes on a heading; `![logo](/logo.png){width=120}` sizes a picture.
+- `:emoji:` shortcodes are not converted: type the emoji. A `javascript:` link becomes `#` (with a warning).

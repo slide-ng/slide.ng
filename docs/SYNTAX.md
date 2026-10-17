@@ -448,6 +448,10 @@ A claim[^1].
 
 Footnote numbers are not links. A note is one paragraph of inline markdown.
 
+`{#id .class}` at the end of a heading puts an id and classes on it (`## Results {#results .text-red}`), and `{width=120}` or
+`{height=80}` right after a picture sets its size (`![logo](/logo.png){width=120}`). `:emoji:` shortcodes are not converted: type the emoji.
+A link to a `javascript:` address is replaced by `#` with a warning, because it would run code when clicked.
+
 ## Icons
 
 Any icon of an installed [Iconify](https://iconify.design) set can be written as a tag, `<set-name />`, or as a class:
@@ -628,7 +632,7 @@ SLIDE_NG_PASSWORD=secret npm start -- --remote   # keeps the password out of the
 ```
 
 It prints the public and private deck addresses and the presenter address (`/presenter/1?password=secret`). Use that address on the presenter's device; a viewer opens `http://<your address>:4230/1?password=secret`.
-The password lets a device sync and write (slides, drawings and the `{monaco-write}` files); it is sent without encryption, so use it on a network you trust. See [SECURITY-MODEL.md](SECURITY-MODEL.md).
+The password lets a device sync and write (slides, drawings and the `{monaco-write}` files), and opens the presenter and notes pages: without it they go to the slides. It is sent without encryption, so use it on a network you trust. See [SECURITY-MODEL.md](SECURITY-MODEL.md).
 
 ## The page, export and build
 
@@ -658,7 +662,8 @@ export: # defaults for `slide-ng export`; command line flags win
 remoteAssets: true # a build downloads pictures with http(s) addresses and serves them itself
 pwa:
   true # a build adds a manifest, install icons and a service worker: the deck opens offline after one visit
-  # (icon: public/icon.png, public/icon.svg or a local favicon, else the slide.ng icons)
+  # (icon: public/icon.png, public/icon.svg or a local favicon, else the slide.ng icons; a downloaded PDF is kept too)
+themeColor: '#0f2c4c' # the browser's bar colour for the installed app (a theme can set it)
 fonts: # web fonts, as in Slidev (sans, serif, mono, local, weights, italic, fallbacks, provider)
   sans: Inter
   selfHost: true # a build downloads the font files and serves them itself (default on with `pwa` and `build --offline`; false turns it off)
