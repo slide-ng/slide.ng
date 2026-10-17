@@ -15,6 +15,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { launch, reporter } from '../e2e/browser.mjs';
 import { serveDirectory } from '../../scripts/export/static-server.mjs';
+import { consoleProblem } from '../console-problem.mjs';
 
 const t = reporter();
 const bin = resolve('bin/slide-ng.mjs');
@@ -209,7 +210,8 @@ const context = await browser.newContext({
 const problems = [];
 const page = await context.newPage();
 page.on('console', (m) => {
-  if (['error', 'warning'].includes(m.type())) problems.push(`${m.type()}: ${m.text()}`);
+  const problem = consoleProblem(m);
+  if (problem) problems.push(problem);
 });
 page.on('pageerror', (e) => problems.push(String(e)));
 page.on('response', (r) => {

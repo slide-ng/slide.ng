@@ -2,6 +2,7 @@
 import { execSync } from 'node:child_process';
 import { readFileSync, readdirSync } from 'node:fs';
 import { launch, reporter, serve } from './browser.mjs';
+import { consoleProblem } from '../console-problem.mjs';
 
 if (!process.env.SKIP_BUILD) execSync('npm run build', { stdio: 'inherit' });
 const { server, port } = await serve('dist/slide-ng/browser');
@@ -14,7 +15,8 @@ const problems = []; // console errors and warnings, must stay empty
 async function open(url, size = { width: 1280, height: 720 }) {
   const page = await browser.newPage({ viewport: size });
   page.on('console', (m) => {
-    if (['error', 'warning'].includes(m.type())) problems.push(`${m.type()}: ${m.text()}`);
+    const problem = consoleProblem(m);
+    if (problem) problems.push(problem);
   });
   page.on('pageerror', (e) => problems.push(String(e)));
   await page.goto(base + url);

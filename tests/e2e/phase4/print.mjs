@@ -1,4 +1,5 @@
 // The /print page: every slide stacked, optional click steps, a range, dark mode, the paper size.
+import { consoleProblem } from '../../console-problem.mjs';
 export async function run({ t, base, browser, problems }) {
   // This page has no #hud, so it is opened and awaited here.
   async function printPage(query, scheme = 'light') {
@@ -7,7 +8,8 @@ export async function run({ t, base, browser, problems }) {
       colorScheme: scheme,
     });
     page.on('console', (m) => {
-      if (['error', 'warning'].includes(m.type())) problems.push(`${m.type()}: ${m.text()}`);
+      const problem = consoleProblem(m);
+      if (problem) problems.push(problem);
     });
     page.on('pageerror', (e) => problems.push(String(e)));
     await page.goto(`${base}/print${query}`);

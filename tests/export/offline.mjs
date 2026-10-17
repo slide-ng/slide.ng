@@ -17,6 +17,7 @@ import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { launch, reporter } from '../e2e/browser.mjs';
 import { fontProvider, remotePictures } from './offline-fixtures.mjs';
+import { consoleProblem } from '../console-problem.mjs';
 
 const t = reporter();
 const bin = resolve('bin/slide-ng.mjs');
@@ -180,8 +181,8 @@ const context = await browser.newContext({
 const problems = [];
 const watch = (page, name) => {
   page.on('console', (m) => {
-    if (['error', 'warning'].includes(m.type()))
-      problems.push(`${name} ${m.type()}: ${m.text().slice(0, 200)}`);
+    const problem = consoleProblem(m);
+    if (problem) problems.push(`${name} ${problem.slice(0, 300)}`);
   });
   page.on('pageerror', (e) => problems.push(`${name} ${String(e).slice(0, 200)}`));
   page.on('requestfailed', (r) => problems.push(`${name} request failed: ${r.url().slice(-80)}`));

@@ -1,4 +1,5 @@
 // Helpers shared by the showcase browser tests: open a page, press keys, read the readout.
+import { consoleProblem } from '../console-problem.mjs';
 export function makeContext(base, browser, t) {
   const problems = []; // console errors and warnings, must stay empty
   // `before(page)` can set up the page (routes, init scripts) before it loads.
@@ -12,7 +13,8 @@ export function makeContext(base, browser, t) {
     const page = from ? await from.newPage() : await browser.newPage({ viewport: size });
     if (from) await page.setViewportSize(size);
     page.on('console', (m) => {
-      if (['error', 'warning'].includes(m.type())) problems.push(`${m.type()}: ${m.text()}`);
+      const problem = consoleProblem(m);
+      if (problem) problems.push(problem);
     });
     page.on('pageerror', (e) => problems.push(String(e)));
     await before(page);
