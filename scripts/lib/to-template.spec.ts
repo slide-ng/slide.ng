@@ -36,6 +36,9 @@ describe('toTemplate: Angular syntax is protected', () => {
 });
 
 describe('toTemplate: plain text is made safe', () => {
+  it('treats a line of only non-breaking spaces as blank', () => {
+    expect(toTemplate('# A\n\u00a0\n\ntext')).toBe('<h1>A</h1>\n<p>text</p>\n');
+  });
   it('leaves a link alone whose @ or # is only in an attribute value', () => {
     expect(toTemplate('Mail <a href="mailto:a@b.com">a@b.com</a> now')).toBe(
       '<p>Mail <a href="mailto:a&#64;b.com">a&#64;b.com</a> now</p>\n',

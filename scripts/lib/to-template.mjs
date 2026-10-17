@@ -71,6 +71,9 @@ export function toTemplate(markdown, ctx = {}) {
   md = footnotes.markdown;
 
   // 2. Hide Angular syntax. The Vue-like forms of slide-ng-mark and slide-ng-motion, and icon tags, are rewritten into plain HTML first.
+  // A line of only non-breaking spaces (a Slidev deck's spacer) is an empty paragraph in markdown-it, which takes no room;
+  // marked would keep it as a line of text. Make it a blank line, as it looks.
+  md = md.replace(/^[ \t]*\u00a0[ \t\u00a0]*$/gm, '');
   md = rewriteIcons(rewriteDirectives(joinLines(md)));
   md = md.replace(/^[ \t]*(\}[ \t]*)?(@\w+.*\{|\})[ \t]*$/gm, hide); // @if (..) {   }   } @else {
   md = md.replace(/^[ \t]*@let\s.*;[ \t]*$/gm, hide); // @let x = 1;
