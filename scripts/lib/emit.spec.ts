@@ -338,6 +338,7 @@ describe('closeEntities', () => {
       '<p>Option&lt;A> &copy; 2024 &lt; &ltimes;</p>',
     );
     expect(closeEntities('<pre>&amp</pre>')).toBe('<pre>&amp</pre>');
+    expect(closeEntities('<a href="/s?q=x&copy=1">a</a>')).toBe('<a href="/s?q=x&copy=1">a</a>');
   });
 });
 
@@ -353,6 +354,9 @@ describe('safeLinks', () => {
     expect(safeLinks('<a href="java&#115;cript:x">a</a>', 3)).toBe('<a href="#">a</a>');
     expect(safeLinks('<a href="java\tscript:x">a</a>', 3)).toBe('<a href="#">a</a>');
     expect(safeLinks('<a href=javascript:x>a</a>', 3)).toBe('<a href="#">a</a>');
+    // a code sample that shows such a link is text and stays as it is
+    const sample = '<p><code ngNonBindable>&lt;a href=javascript:x&gt;</code> here</p>';
+    expect(safeLinks(sample, 3)).toBe(sample);
     expect(warn).toHaveBeenCalledTimes(6);
     warn.mockRestore();
   });

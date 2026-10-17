@@ -38,7 +38,9 @@ export function warnInlineControlFlow(markdown, no) {
 // A static href or src in an Angular template is not sanitized, so `[x](javascript:...)` would run when clicked.
 // Script addresses are replaced by `#`, like markdown-it does for links, and the author is told. The whole value is read
 // (quotes of the other kind, `java&#115;cript:`, spaces and control characters inside the scheme, no quotes at all).
-const URL_ATTR = /(\s(?:href|src|xlink:href)\s*=\s*)(?:"([^"]*)"|'([^']*)'|([^\s>"']+))/gi;
+const URL_ATTR = /(\s(?:href|src|xlink:href)\s*=\s*)(?:"([^"]*)"|'([^']*)'|([^\s<>"'`]+))/gi;
+// Code samples are text: an `href=javascript:` shown in one is left as it is.
+const CODE_SAMPLE = /(<pre[\s>][\s\S]*?<\/pre>|<code(?:\s[^>]*)?>[\s\S]*?<\/code>)/;
 const decodeRefs = (v) =>
   v
     .replace(/&#x([0-9a-f]+);?/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
@@ -49,16 +51,23 @@ const decodeRefs = (v) =>
 // eslint-disable-next-line no-control-regex
 const INVISIBLE = /[\s\u0000-\u001f]/g;
 export function safeLinks(html, no) {
-  return html.replace(URL_ATTR, (all, attr, dq, sq, bare) => {
-    const value = decodeRefs(dq ?? sq ?? bare)
-      .replace(INVISIBLE, '')
-      .toLowerCase();
-    if (!/^(?:javascript|vbscript|data:text\/html)/.test(value)) return all;
-    console.warn(
-      `[slides] slide ${no}: a javascript: (or similar) address was replaced by # (it would run code)`,
-    );
-    return `${attr}"#"`;
-  });
+  return html
+    .split(CODE_SAMPLE)
+    .map((part, i) =>
+      i % 2
+        ? part
+        : part.replace(URL_ATTR, (all, attr, dq, sq, bare) => {
+            const value = decodeRefs(dq ?? sq ?? bare)
+              .replace(INVISIBLE, '')
+              .toLowerCase();
+            if (!/^(?:javascript|vbscript|data:text\/html)/.test(value)) return all;
+            console.warn(
+              `[slides] slide ${no}: a javascript: (or similar) address was replaced by # (it would run code)`,
+            );
+            return `${attr}"#"`;
+          }),
+    )
+    .join('');
 }
 
 export function keepSpaces(html) {
@@ -69,7 +78,10 @@ export function keepSpaces(html) {
 // ones get their `;`, unless the letters go on to a longer entity (`&ltimes;`).
 export function closeEntities(html) {
   return outsidePre(html, (part) =>
-    part.replace(/&(lt|gt|amp|quot|copy|reg|nbsp)(?![a-zA-Z0-9]*;)/g, '&$1;'),
+    // Only in text: inside a tag (`href="?q=x&copy=1"`) a browser leaves them as written.
+    part.replace(/(<[^>]*>)|&(lt|gt|amp|quot|copy|reg|nbsp)(?![a-zA-Z0-9]*;)/g, (m, tag, name) =>
+      tag ? tag : `&${name};`,
+    ),
   );
 }
 
