@@ -28,9 +28,15 @@ async function draw(code: string, config: Record<string, unknown>): Promise<stri
   const run = async () => {
     const { default: mermaid } = await import('mermaid');
     mermaid.initialize({ startOnLoad: false, ...config });
-    const { svg } = await mermaid.render(`mermaid-${++counter}`, code);
-    cache.set(key, svg);
-    return svg;
+    const id = `mermaid-${++counter}`;
+    try {
+      const { svg } = await mermaid.render(id, code);
+      cache.set(key, svg);
+      return svg;
+    } finally {
+      // After a syntax error Mermaid leaves its error drawing in <body>; on paper it became an extra page.
+      document.getElementById(`d${id}`)?.remove();
+    }
   };
   const result = queue.then(run);
   queue = result.catch(() => undefined);
@@ -103,9 +109,11 @@ export class Mermaid {
     const scale = this.scale();
     const height = parseFloat(svg?.getAttribute('viewBox')?.split(' ')[3] ?? '');
     if (!svg || scale == null || isNaN(height)) return;
+    const width = parseFloat(svg.getAttribute('viewBox')?.split(' ')[2] ?? '');
     svg.setAttribute('height', String(height * scale));
-    svg.removeAttribute('width');
-    // Never wider than the slide: a gantt chart is drawn as wide as the window, so scaling its height alone overflowed.
-    svg.setAttribute('style', 'max-width: 100%');
+    if (isNaN(width)) svg.removeAttribute('width');
+    else svg.setAttribute('width', String(width * scale));
+    // Never wider than the slide (a gantt chart is drawn as wide as the window); the height follows the width then.
+    svg.setAttribute('style', 'max-width: 100%; height: auto');
   }
 }
