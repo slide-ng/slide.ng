@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createGenerator } from '@unocss/core';
 import config from '../../uno.config.mjs';
+import { boundClasses } from './make-css.mjs';
 
 const css = async (classes: string) =>
   (await (await createGenerator(config)).generate(classes)).css;
@@ -15,5 +16,13 @@ describe('uno.config shortcuts', () => {
     expect(await css('z-drawing z-camera z-dragging z-label z-focus-indicator')).toContain(
       'z-index:200',
     );
+  });
+});
+
+describe('boundClasses', () => {
+  it('finds the classes of [class.x] bindings', async () => {
+    const text = `<div [class.rotate-45]="on"></div> host: { '[class.justify-end]': 'right()' }`;
+    expect(boundClasses(text)).toBe('rotate-45 justify-end');
+    expect(await css(`${text}\n${boundClasses(text)}`)).toContain('rotate:45deg');
   });
 });

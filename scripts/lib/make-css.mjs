@@ -38,6 +38,12 @@ export async function makeCss(files, extraConfigs = []) {
   const uno = await createGenerator(mergeUnoConfigs(config, extraConfigs));
   // UnoCSS finds class names in plain text, so we hand it the files as one string.
   const text = files.map((f) => readFileSync(f, 'utf8')).join('\n');
-  const { css } = await uno.generate(text);
+  const { css } = await uno.generate(`${text}\n${boundClasses(text)}`);
   return css;
+}
+
+// `[class.font-bold]="on"` (in a slide, a template or a `host`) names a class UnoCSS cannot split out of the binding: the
+// names are handed to it on their own as well.
+export function boundClasses(text) {
+  return [...text.matchAll(/\[class\.([^\]\s"'=]+)\]/g)].map((m) => m[1]).join(' ');
 }
