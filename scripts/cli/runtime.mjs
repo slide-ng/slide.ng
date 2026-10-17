@@ -40,8 +40,12 @@ function run(args, { cwd, env, quiet }) {
   if (result.status !== 0) {
     if (quiet)
       process.stderr.write(withSlideSources(`${result.stdout ?? ''}${result.stderr ?? ''}`, cwd));
+    const what = args[0].includes('generate') ? 'generating the slides' : 'the Angular build';
+    // Killed (by the system, for example out of memory) leaves no output of its own: say that instead of "exit code null".
     throw new Error(
-      `${args[0].includes('generate') ? 'generating the slides' : 'the Angular build'} failed (exit code ${result.status})`,
+      result.signal
+        ? `${what} was stopped by ${result.signal} (often a lack of memory, for example with several builds at once); run it again`
+        : `${what} failed (exit code ${result.status})`,
     );
   }
 }
