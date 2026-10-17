@@ -73,7 +73,7 @@ t.ok(
 t.ok(
   'the build used a working copy and left the package alone',
   statSync(join(repo, 'src/slides/generated/index.ts')).mtimeMs === generatedBefore &&
-    existsSync(join(deck, '.slide-ng/app/src/slides/generated/index.ts')),
+    existsSync(join(deck, '.slide-ng/app-build/src/slides/generated/index.ts')),
 );
 
 // ---- open it

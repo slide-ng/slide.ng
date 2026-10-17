@@ -42,7 +42,7 @@ export async function exportCommand(argv, { notes = false } = {}) {
     if (!dist) {
       workDir = join(dirname(entry), '.slide-ng', 'export-build');
       console.log('Building the deck for export...');
-      dist = buildDeck({ entry, workDir, base, quiet: true });
+      dist = buildDeck({ entry, workDir, base, quiet: true, folder: 'app-export' });
     }
     const server = await serveDirectory(dist, base);
     served = { origin: server.origin, base };

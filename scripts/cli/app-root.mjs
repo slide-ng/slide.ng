@@ -1,7 +1,7 @@
 // Where the Angular app is built for a deck.
 //   A deck inside this repository (tests, examples, `npm start`) is built in place.
-//   Any other deck (a folder made by `slide-ng create`) gets a working copy of the app in `<deck>/.slide-ng/app`,
-//   made fresh from this package each time, so nothing is ever written into the installed package.
+//   Any other deck (a folder made by `slide-ng create`) gets a working copy of the app in `<deck>/.slide-ng/app` (dev),
+//   `app-build` or `app-export`, made fresh from this package each time, so nothing is ever written into the installed package.
 import {
   cpSync,
   existsSync,
@@ -26,8 +26,10 @@ export function isInPlace(entry) {
   );
 }
 
-export const appRootFor = (entry) =>
-  isInPlace(entry) ? packageRoot : join(dirname(resolve(entry)), '.slide-ng', 'app');
+// `folder` keeps the commands apart: `dev` uses `app`, a build `app-build` and an export `app-export`, so a build or an
+// export while the dev server runs does not replace the files under it.
+export const appRootFor = (entry, folder = 'app') =>
+  isInPlace(entry) ? packageRoot : join(dirname(resolve(entry)), '.slide-ng', folder);
 
 /** The `ng` program of this package's @angular/cli, wherever npm put it. */
 /** The path of @angular/core's package.json as this package resolves it. */
@@ -52,8 +54,8 @@ const RUNTIME_FILES = [
  * Makes the folder the app is built in and returns it. For a deck outside this package it is a copy of `src/`,
  * the Angular and TypeScript settings and `public/`; the generated slides (`src/slides/generated`) are left out, the generator writes them.
  */
-export function prepareApp(entry) {
-  const root = appRootFor(entry);
+export function prepareApp(entry, folder = 'app') {
+  const root = appRootFor(entry, folder);
   checkToolDir(dirname(resolve(entry))); // a symlinked .slide-ng would make the steps below write into another folder
   if (root === packageRoot) return root;
   refuseLink(root);

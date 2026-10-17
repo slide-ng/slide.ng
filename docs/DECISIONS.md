@@ -463,3 +463,6 @@ Source: an independent review of the repository (nine findings). Each fix has a 
    and `@angular/forms` stays out of the bundle.
 8. **`<slide-ng-drag-arrow pos>` is `x,y,width,height`, as Slidev's `v-drag-arrow`** (from (x, y) to (x + width, y + height), sizes may be
    negative). It was `x1,y1,x2,y2`, which drew a ported Slidev arrow somewhere else.
+9. **`dev`, `build` and `export` each have their own working copy** (`.slide-ng/app`, `app-build`, `app-export`). They shared one, so a
+   build while the dev server ran replaced the files under it and stopped it. The price is a slower first build for each command (each has
+   its own Angular cache).

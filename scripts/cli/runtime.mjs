@@ -85,9 +85,11 @@ export function buildDeck({
   quiet = false,
   cwd = process.cwd(),
   env = {},
+  folder = 'app-build',
 }) {
   claimDirectory(workDir, cwd);
-  const appRoot = prepareApp(entry); // this package itself for decks inside it, a working copy for any other deck
+  // this package itself for decks inside it, a working copy for any other deck (its own, so `dev` can keep running)
+  const appRoot = prepareApp(entry, folder);
   generateSlides(entry, { quiet, appRoot, env: { SLIDE_NG_BASE: base, ...env } });
   run([ngBinary(), 'build', '--output-path', workDir, '--base-href', base], {
     cwd: appRoot,

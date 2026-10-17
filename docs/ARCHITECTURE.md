@@ -207,8 +207,8 @@ bin/slide-ng.mjs  ->  scripts/cli/<command>.mjs   dev, build, export, export-not
 
 **CLI.** `bin/slide-ng.mjs` only picks a command (`cli/pick-command.mjs`) and loads it. `cli/flags.mjs` is the one flag reader (unknown flags fail).
 `cli/runtime.mjs` runs the generator and `ng build` for one deck; `cli/app-root.mjs` decides where: a deck inside this repository (tests, `npm start`) is built in place,
-any other deck gets a working copy of the app in `<deck>/.slide-ng/app` (a fresh copy of `src/`, the Angular and TypeScript settings and `public/`, with `node_modules` linked), so an
-installed package is never written to. The package is one package with a `bin` entry and a `template/` folder for `create` (not a monorepo; see DECISIONS.md).
+any other deck gets a working copy of the app in `<deck>/.slide-ng/` (a fresh copy of `src/`, the Angular and TypeScript settings and `public/`, with `node_modules` linked), so an
+installed package is never written to. `dev`, `build` and `export` each have their own copy (`app`, `app-build`, `app-export`), so a build while the dev server runs leaves it alone. The package is one package with a `bin` entry and a `template/` folder for `create` (not a monorepo; see DECISIONS.md).
 
 **Print route.** `/print` (and `/presenter/print` for notes) draws every slide as `.print-slide-container` with the id `<slideNo>-<clickN>`; `?print=clicks` makes one page per click
 step. It sets `data-slide-ng-print="ready"` when done. Components that load late (Mermaid, PlantUML, Monaco, Magic Move, `slide-ng-mark`, code runners) put `data-slide-ng-waitfor` on
