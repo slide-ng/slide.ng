@@ -41,6 +41,7 @@ export class SlideVideo {
   controls = input(false, { transform: booleanAttribute });
 
   protected played = false;
+  private started = false;
   private video = viewChild.required<ElementRef<HTMLVideoElement>>('video');
   private nav = inject(Nav);
   private slideNo = inject(SLIDE_NO);
@@ -55,6 +56,11 @@ export class SlideVideo {
     effect(() => {
       if (!this.canPlay) return;
       const video = this.video().nativeElement;
+      // `timestamp` is where playing starts, not only where a reset goes (before loading, this sets the start position).
+      if (!this.started) {
+        this.started = true;
+        video.currentTime = this.timestamp();
+      }
       const shown = this.shown();
       const autoplay = this.autoplay();
       if (shown) {

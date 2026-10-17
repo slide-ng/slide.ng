@@ -257,6 +257,8 @@
 }
 
 /* An embedded page without its own background shows white, as on screen, also in a dark deck's PDF. */
-.slidev-layout iframe {
+/* The iframe layouts' own hosts (sn-frame) are not .slidev-layout, so they are named too. */
+.slidev-layout iframe,
+.slidev-layout-iframe {
   background: white;
 }

@@ -1,5 +1,6 @@
 import { Component, computed, inject, input, numberAttribute } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
+import { resolveAssetUrl } from './background';
 
 // The web page box used by the iframe layouts. `scale` shrinks or grows the page inside it.
 @Component({
@@ -14,5 +15,6 @@ export class Frame {
   size = computed(() => `${(1 / (this.scale() || 1)) * 100}%`);
   private sanitizer = inject(DomSanitizer);
   // Angular refuses plain strings in an iframe src. The address comes from the deck author, so we trust it.
-  src = computed(() => this.sanitizer.bypassSecurityTrustResourceUrl(this.url()));
+  // A `public/` page (`/colophon.html`) gets the deck's base, like a picture.
+  src = computed(() => this.sanitizer.bypassSecurityTrustResourceUrl(resolveAssetUrl(this.url())));
 }
