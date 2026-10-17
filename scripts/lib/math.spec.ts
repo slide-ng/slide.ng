@@ -9,6 +9,14 @@ describe('extractMath', () => {
     expect(r.markdown).toBe('so NGMATH0X here');
     expect(r.maths).toEqual([{ block: false, latex: 'x^2 + y_1' }]);
   });
+  it('leaves $ in Angular bindings, interpolations and control flow alone', () => {
+    const md =
+      '@for (x of xs; track x; let l = $last) {\n<div [class.b]="$first" [class.i]="$last">{{ \'$\' + x }}</div>\n}';
+    expect(found(md)).toEqual({ markdown: md, maths: [] });
+    expect(found('<b [title]="$first">x</b> and $y^2$').maths).toEqual([
+      { block: false, latex: 'y^2' },
+    ]);
+  });
   it('does not treat prices as math', () => {
     expect(found('it costs $5 and $10 today').maths).toHaveLength(0);
   });

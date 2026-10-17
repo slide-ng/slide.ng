@@ -9,6 +9,8 @@ const BLOCK =
   /^\$\$[ \t]*(?:\{([\w,|*-]+)\})?[ \t]*(\{[^}\n]*\})?[ \t]*\n([\s\S]*?)\n?[ \t]*\$\$[ \t]*$/gm;
 const BLOCK_ONE_LINE = /^\$\$[ \t]*([^\n{][^\n]*?)[ \t]*\$\$[ \t]*$/gm;
 // $latex$ : no space after the first $ or before the last, and the last is not followed by a digit (so "$5 and $10" is text)
+// interpolations, opening tags (with their bindings) and control-flow lines
+const ANGULAR = /\{\{[\s\S]*?\}\}|<[A-Za-z][^<>]*>|^[ \t]*@[A-Za-z]+[^\n]*$/gm;
 const INLINE = /(?<![\\$])\$(?![\s$])((?:\\.|[^$\\\n])+?)(?<![\s\\])\$(?!\d)/g;
 
 /** Cuts the math out of the markdown. Each piece is replaced by a word NGMATH<n>X; `maths` lists them. */
@@ -20,7 +22,12 @@ export function extractMath(markdown) {
     (_, ranges, options, latex) => `\n${put({ block: true, latex, ranges, options })}\n`,
   );
   md = md.replace(BLOCK_ONE_LINE, (_, latex) => `\n${put({ block: true, latex })}\n`);
+  // `$` in Angular code is not math: `[class.x]="$first"`, `{{ '$' + n }}`, `@for (...; let l = $last)`.
+  // Those pieces are set aside while inline math is looked for, then put back.
+  const kept = [];
+  md = md.replace(ANGULAR, (code) => `NGKEEP${kept.push(code) - 1}X`);
   md = md.replace(INLINE, (_, latex) => put({ block: false, latex }));
+  md = md.replace(/NGKEEP(\d+)X/g, (_, i) => kept[+i]);
   return { markdown: md, maths };
 }
 
