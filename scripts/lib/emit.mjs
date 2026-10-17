@@ -7,7 +7,7 @@ import { splitSlots } from './slots.mjs';
 import { attr } from './protect.mjs';
 import { toTemplate } from './to-template.mjs';
 import { tagDragSites } from './drag-sites.mjs';
-import { rebaseCss, rebaseHtml } from './asset-paths.mjs';
+import { hasRootUrl, rebaseCss, rebaseHtml } from './asset-paths.mjs';
 import { assertNoRenamedNames } from './renamed.mjs';
 import { commonPipes } from './pipes.mjs';
 import { commonDirectives } from './angular-imports.mjs';
@@ -65,9 +65,15 @@ export const slideInfo = (slide, no) => ({
 
 // The layout's opening tag: frontmatter keys the layout knows become attributes (= inputs).
 function openTag(def, frontmatter) {
+  // Text, numbers and booleans are attributes (an input with numberAttribute or booleanAttribute converts them); a list or
+  // an object is bound as its value, since as text it would be `a,b` or `[object Object]`.
   const attrs = def.props
     .filter((p) => frontmatter[p] != null)
-    .map((p) => ` ${p}="${attr(frontmatter[p])}"`);
+    .map((p) =>
+      typeof frontmatter[p] === 'object'
+        ? ` [${p}]="${attr(JSON.stringify(frontmatter[p]))}"`
+        : ` ${p}="${attr(frontmatter[p])}"`,
+    );
   if (frontmatter.class)
     attrs.push(` ${def.classProp ? 'contentClass' : 'class'}="${attr(frontmatter.class)}"`);
   return `<${def.tag}${attrs.join('')}>`;
@@ -146,6 +152,10 @@ export function slideSource(slide, no, deck = {}) {
   const providers = ['ClicksContext'];
   if (clicksStart) providers.push(`{ provide: CLICKS_START, useValue: ${+clicksStart} }`);
   if (clicks) providers.push(`{ provide: CLICKS_TOTAL, useValue: ${+clicks} }`);
+  if (base === './' && hasRootUrl(css))
+    console.warn(
+      `[slides] slide ${no}: url(/...) in a <style> is not found in an offline folder (the build cannot rewrite it there); use the picture in an inline style="background-image: url(/...)" or an <img> instead`,
+    );
   const styles = scopeCss(rebaseCss(css, base), slideName(no));
 
   // Where the slide is in the markdown: the build runner adds it to Angular's errors (cli/runtime.mjs).

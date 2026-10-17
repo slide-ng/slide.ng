@@ -81,6 +81,11 @@ describe('toTemplate: code is literal', () => {
       '<p>',
     );
   });
+  it('shows a pair of escaped braces as text, not as an interpolation', () => {
+    expect(toTemplate('Show \\{\\{ name \\}\\} literally.')).toBe(
+      "<p>Show {{ '{' }}&#123; name &#125;&#125; literally.</p>\n",
+    );
+  });
   it('draws a code fence inside a list item', () => {
     const html = toTemplate('- A shell:\n\n  ```bash\n  npm ci\n  ```\n- next');
     expect(html).toContain('<pre');

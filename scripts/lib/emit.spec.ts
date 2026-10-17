@@ -1,6 +1,6 @@
 import { LAYOUTS, layoutName } from './layouts.mjs';
 import { keepSpaces, safeLinks, warnInlineControlFlow, slideSource } from './emit.mjs';
-import { indexSource } from './index-source.mjs';
+import { indexSource, plainTitle } from './index-source.mjs';
 import { parseDeck } from './parse-deck.mjs';
 import { initHighlighter } from './code/highlighter.mjs';
 
@@ -122,6 +122,20 @@ describe('slideSource: layout props and slots', () => {
     expect(src).toContain('<sn-image-left image=\\"/a.png\\" backgroundSize=\\"contain\\">');
     expect(src).not.toContain('other');
   });
+  it('binds a list or an object to the layout input, keeps text and numbers as attributes', () => {
+    const layouts = {
+      ...LAYOUTS,
+      brief: { ...LAYOUTS['default'], tag: 'deck-brief', props: ['owners', 'code', 'meta'] },
+    };
+    const src = slideSource(
+      slide({ layout: 'brief', owners: ['Priya', 'Jonas'], code: 7, meta: { a: 1 } }, 'x'),
+      2,
+      { layouts },
+    );
+    expect(src).toContain(
+      '<deck-brief [owners]=\\"[&quot;Priya&quot;,&quot;Jonas&quot;]\\" code=\\"7\\" [meta]=\\"&#123;&quot;a&quot;:1&#125;\\">',
+    );
+  });
   it('sends `class` to the content for layouts with a class prop, to the layout element otherwise', () => {
     expect(slideSource(slide({ layout: 'two-cols', class: 'c' }, 'x'), 2)).toContain(
       '<sn-two-cols contentClass=',
@@ -187,6 +201,15 @@ describe('indexSource', () => {
     expect(src).toContain('"level":2');
     expect(src).toContain('export const HEADMATTER');
     expect(src.match(/component: Slide00\d/g)?.length).toBe(2);
+  });
+});
+
+describe('plainTitle', () => {
+  it('drops the markdown of a heading, keeps words with underscores', () => {
+    expect(plainTitle('With `code` and [a link](https://x.org)')).toBe('With code and a link');
+    expect(plainTitle('**Bold** and _it_ and snake_case_name')).toBe(
+      'Bold and it and snake_case_name',
+    );
   });
 });
 

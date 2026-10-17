@@ -82,6 +82,8 @@ export function toTemplate(markdown, ctx = {}) {
 
   // 3. Markdown -> HTML, then make the remaining braces and @ harmless.
   let html = protect(applyAttrSugar(markAlerts(marked.parse(md, { async: false }))));
+  // Angular decodes `&#123;&#123;` back to `{{` and reads an interpolation: the first brace of a pair is written as one.
+  html = html.replace(/&#123;(?=&#123;)/g, "{{ '{' }}");
   html = finishFootnotes(html, footnotes.notes, (note) =>
     protect(marked.parseInline(note, { async: false })),
   );
