@@ -10,7 +10,7 @@ import { join, relative, sep } from 'node:path';
 import { ICONS } from './pwa-icons.mjs';
 
 const SKIP = [
-  /\.pdf$/i,
+  /\.pdf$/i, // stored when it is first downloaded, not up front
   /^og-image\./,
   /^\.slide-ng-build$/,
   /^sw\.js$/,
@@ -33,6 +33,18 @@ function listFiles(dir, from = dir) {
   });
 }
 
+/** The browser's colour for the app's bar: the headmatter's `themeColor`, or the slide.ng ink. */
+export const themeColor = (headmatter) =>
+  /^#[0-9a-f]{3,8}$/i.test(String(headmatter.themeColor ?? '')) ? headmatter.themeColor : '#16131A';
+
+/** Up to 12 characters for the home screen, cut between words when it can be (`Blueprints for…` gives `Blueprints`). */
+export function shortName(name) {
+  if (name.length <= 12) return name;
+  const words = name.slice(0, 13).split(/\s+/);
+  const fit = words.length > 1 ? words.slice(0, -1).join(' ') : '';
+  return fit || name.slice(0, 12);
+}
+
 /** The web app manifest. `iconFiles` are the names of the icons that exist in the build (see pwa-icons.mjs). */
 export function manifestJson(headmatter, iconFiles = []) {
   const name = String(headmatter.title ?? 'slide.ng');
@@ -44,12 +56,13 @@ export function manifestJson(headmatter, iconFiles = []) {
   }));
   return {
     name,
-    short_name: name.slice(0, 12),
+    short_name: shortName(name),
     start_url: './',
     scope: './',
     display: 'fullscreen',
-    theme_color: '#16131A', // brand ink
-    background_color: '#FBF8F3', // brand paper
+    // `themeColor` in the headmatter (a theme can set it in theme.json); the splash follows the colour schema
+    theme_color: themeColor(headmatter),
+    background_color: headmatter.colorSchema === 'dark' ? '#121212' : '#ffffff',
     ...(icons.length ? { icons } : {}),
   };
 }
@@ -82,6 +95,12 @@ self.addEventListener('fetch', (event) => {
       if (hit) return hit;
       // A deck address such as /3 or /presenter/2 is answered by the app's index.html.
       if (request.mode === 'navigate') return caches.match('index.html').then((page) => page || fetch(request));
+      // The PDF is not stored up front (it can be large); once downloaded it is kept, so it also works offline.
+      if (/\\.pdf$/i.test(new URL(request.url).pathname))
+        return fetch(request).then((res) => {
+          if (res.ok) caches.open(CACHE).then((cache) => cache.put(request, res.clone()));
+          return res;
+        });
       return fetch(request);
     }),
   );

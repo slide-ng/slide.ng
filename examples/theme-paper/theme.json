@@ -7,7 +7,8 @@
       "sans": "Source Sans 3",
       "serif": "Fraunces",
       "mono": "JetBrains Mono"
-    }
+    },
+    "themeColor": "#f4efe6"
   },
   "layouts": {
     "cover": {

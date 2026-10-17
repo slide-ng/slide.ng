@@ -1,6 +1,7 @@
 // The <head> of the page, made from the headmatter: title, description, author, keywords, favicon, language,
 // `htmlAttrs`, `seoMeta` (Open Graph and Twitter tags) and the PWA manifest link.
 // The headmatter can come from someone else's deck, so every value is escaped and attribute names are checked.
+import { themeColor } from '../build/pwa.mjs';
 
 const escapeHtml = (text) =>
   String(text)
@@ -107,7 +108,7 @@ export function headParts(headmatter, { ogImage = null, pwa = false, warn = () =
   if (pwa)
     tags.push(
       '<link rel="manifest" href="manifest.webmanifest">',
-      '<meta name="theme-color" content="#16131A">',
+      `<meta name="theme-color" content="${themeColor(headmatter)}">`,
     );
   if (headmatter.favicon) {
     const href = faviconHref(headmatter.favicon);

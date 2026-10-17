@@ -3,6 +3,10 @@
   "headmatter": {
     "colorSchema": "dark",
     "transition": "slide-left",
-    "fonts": { "sans": "Manrope", "mono": "IBM Plex Mono" }
+    "fonts": {
+      "sans": "Manrope",
+      "mono": "IBM Plex Mono"
+    },
+    "themeColor": "#131a15"
   }
 }
