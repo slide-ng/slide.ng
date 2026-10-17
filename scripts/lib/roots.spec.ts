@@ -58,6 +58,19 @@ describe('theme and addon names in node_modules (the rule of Slidev)', () => {
     ]);
     expect(candidateNames('@me/theme-x', 'theme')).toEqual(['@me/theme-x']);
   });
+  it("reads the deck's own theme.json, so its layouts can declare inputs and slots", () => {
+    const deck = folder();
+    writeFileSync(
+      join(deck, 'theme.json'),
+      JSON.stringify({ layouts: { recipe: { props: ['serves'], slots: ['ingredients'] } } }),
+    );
+    const roots = resolveRoots({ deckRoot: deck, headmatter: {} });
+    expect(roots.at(-1)?.manifest.layouts['recipe']).toEqual({
+      props: ['serves'],
+      slots: ['ingredients'],
+      classProp: false,
+    });
+  });
   it('finds the official scoped package, in a parent folder too', () => {
     const base = folder();
     dirIn(base, 'node_modules', '@slide-ng', 'theme-seriph');

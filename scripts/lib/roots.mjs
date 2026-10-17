@@ -151,7 +151,7 @@ export function resolveRoots({ deckRoot, headmatter, themeOverride }) {
     kind: 'deck',
     spec: '.',
     dir: resolve(deckRoot),
-    manifest: { headmatter: {}, layouts: {} },
+    manifest: readManifest(resolve(deckRoot)), // a deck can declare the inputs and slots of its own layouts too
   });
   return roots;
 }
