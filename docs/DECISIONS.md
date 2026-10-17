@@ -479,3 +479,8 @@ Source: an independent review of the repository (nine findings). Each fix has a 
     every mistyped component name; only the slides that use a listed tag get it.
 14. **Swipes use touch events**, with `touch-action: pan-y pinch-zoom` on the stage: a sideways swipe is the deck's, pinch zoom stays the
     browser's, and an up or down swipe still counts after the browser has taken it as panning (which cancels pointer events).
+15. **`<slide-ng-clicks>` gives a click to each child, as Slidev's `v-clicks` does**: each item of a single list, each body row of a
+    single table, otherwise each child element. It used to count list items only, so a ported `v-clicks` over paragraphs showed everything.
+16. **A relative picture next to `slides.md` is copied into the build** (`/_local/...`) when `public/` does not have it. Slidev decks
+    write `./images/x.png` because Vite bundles it; failing silently with a 404 made those decks look broken. Files outside the deck's
+    folder are never copied.
