@@ -7,7 +7,8 @@ import { extractMath } from './math.mjs';
 // Code languages named on fences, in magic-move steps, and on `<<<` lines (by name or file extension).
 export function detectLangs(text) {
   const langs = new Set();
-  for (const m of text.matchAll(/^`{3,}\s*([\w#+-]+)/gm)) langs.add(m[1]);
+  // Fences may be indented (inside a list or an HTML block) and may use tildes.
+  for (const m of text.matchAll(/^[ \t]*(?:`{3,}|~{3,})\s*([\w#+-]+)/gm)) langs.add(m[1]);
   for (const line of text.split('\n')) {
     const m = SNIPPET_LINE.exec(line);
     if (!m) continue;
