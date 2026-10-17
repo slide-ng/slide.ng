@@ -9,6 +9,10 @@ const spec = {
 };
 
 describe('parseFlags', () => {
+  it('does not take the next flag as a value', () => {
+    expect(() => parseFlags(['--format', '--open'], spec)).toThrow('--format needs a value');
+    expect(parseFlags(['--format=--open'], spec).flags).toEqual({ format: '--open' });
+  });
   it('reads values after a space or an equals sign', () => {
     expect(parseFlags(['--port', '3030', '--format=png'], spec).flags).toEqual({
       port: 3030,

@@ -10,7 +10,7 @@ const HELP = `slide-ng: slides from markdown
 Usage: slide-ng [command] [slides.md] [flags]      (slide-ng --version prints the version)
 
 Commands:
-  dev (default)   start the dev server       --port --open --remote[=password] --bind --log --force
+  dev (default)   start the dev server       --port --open --remote[=password] --bind --theme --log --force
   build           make a static site          --base --out --download --without-notes --offline --theme ...
   export          make a PDF, PNG, PPTX or Markdown file    --format --output --range --with-clicks --dark --scale ...
   export-notes    make a PDF of the speaker notes

@@ -92,30 +92,48 @@ export function readManifest(dir) {
   } catch (e) {
     throw new Error(`${file} is not valid JSON (${e.message})`, { cause: e });
   }
-  const object = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
+  const wrong = []; // values of the wrong type, said once (they are ignored)
+  const isObject = (v) => v && typeof v === 'object' && !Array.isArray(v);
+  const object = (v, where) => {
+    if (isObject(v)) return v;
+    if (v !== undefined && where) wrong.push(`"${where}" should be an object`);
+    return {};
+  };
   // A key that is not set stays undefined, so a layout that replaces a built-in one keeps the built-in value (scan-roots.mjs).
-  const names = (list) =>
-    Array.isArray(list) ? list.filter((p) => /^[A-Za-z][\w-]*$/.test(p)) : undefined;
+  const names = (list, where) => {
+    if (list === undefined) return undefined;
+    if (!Array.isArray(list)) {
+      wrong.push(`"${where}" should be a list of names, like ["image"]`);
+      return undefined;
+    }
+    const good = list.filter((p) => typeof p === 'string' && /^[A-Za-z][\w-]*$/.test(p));
+    if (good.length < list.length) wrong.push(`"${where}" has entries that are not names`);
+    return good;
+  };
+  const layout = (name, value) => {
+    const l = object(value, `layouts.${name}`);
+    return {
+      props: names(l.props, `layouts.${name}.props`),
+      slots: names(l.slots, `layouts.${name}.slots`),
+      classProp: l.classProp === undefined ? undefined : Boolean(l.classProp),
+    };
+  };
   const layouts = Object.fromEntries(
-    Object.entries(object(data.layouts)).map(([name, l]) => [
-      name,
-      {
-        props: names(l?.props),
-        slots: names(l?.slots),
-        classProp: l?.classProp === undefined ? undefined : Boolean(l.classProp),
-      },
-    ]),
+    Object.entries(object(data.layouts, 'layouts')).map(([name, l]) => [name, layout(name, l)]),
   );
+  if (data.name !== undefined && typeof data.name !== 'string') wrong.push('"name" should be text');
   const unknown = Object.keys(object(data)).filter(
     (k) => !['name', 'headmatter', 'layouts', '$schema'].includes(k),
   );
   if (unknown.length)
-    console.warn(
+    warnOnce(
       `[slides] ${file}: ${unknown.map((k) => `"${k}"`).join(', ')} is not read (settings such as colorSchema and fonts go under "headmatter")`,
     );
+  const headmatter = object(data.headmatter, 'headmatter');
+  if (wrong.length) warnOnce(`[slides] ${file}: ${wrong.join('; ')}; ignored`);
   return {
     name: typeof data.name === 'string' ? data.name : undefined,
-    headmatter: object(data.headmatter),
+    headmatter,
     layouts,
   };
 }
@@ -125,6 +143,14 @@ const safeId = (text) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '') || 'root';
+
+// theme.json is read several times in one build (the deck, the generator, the setup files): each message is said once.
+const said = new Set();
+function warnOnce(message) {
+  if (said.has(message)) return;
+  said.add(message);
+  console.warn(message);
+}
 
 /**
  * The roots of a deck, in order: theme, addons, deck. Built-in theme is not listed (it is the base everything sits on).
@@ -156,6 +182,12 @@ export function resolveRoots({ deckRoot, headmatter, themeOverride }) {
       manifest: readManifest(dir),
     });
   });
+  // A package whose `files` leaves the folders out installs empty: say so instead of a later "is not a known element".
+  for (const r of roots)
+    if (!existsSync(join(r.dir, 'theme.json')) && !ROOT_FOLDERS.some((f) => isDir(join(r.dir, f))))
+      warnOnce(
+        `[slides] ${r.kind} "${r.spec}" (${r.dir}) has none of ${ROOT_FOLDERS.join(', ')} or theme.json: if it is a package, check that its package.json "files" lists them`,
+      );
   roots.push({
     id: 'deck',
     kind: 'deck',

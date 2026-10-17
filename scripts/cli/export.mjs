@@ -1,6 +1,6 @@
 // The `export` and `export-notes` commands: build the deck (or use `--dist` / `--url`), serve it, and run the exporter.
 import { dirname, join, resolve } from 'node:path';
-import { exportNotes, exportSlides } from '../export/index.mjs';
+import { exportNotes, exportSlides, pagesToExport } from '../export/index.mjs';
 import { outputBase } from '../export/filename.mjs';
 import { EXPORT_FLAGS, resolveExportOptions } from '../export/options.mjs';
 import { serveDirectory } from '../export/static-server.mjs';
@@ -16,6 +16,7 @@ export async function exportCommand(argv, { notes = false } = {}) {
   checkToolDir(dirname(entry)); // before anything is written or removed under .slide-ng
   const deck = await parseDeck(entry);
   const options = resolveExportOptions(flags, deck.headmatter);
+  pagesToExport(deck, options.range); // a range that picks no slide fails now, not after the build
   const routerMode = deck.headmatter.routerMode === 'hash' ? 'hash' : 'history';
   const base = flags.base ?? '/';
 

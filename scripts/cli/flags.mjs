@@ -45,8 +45,9 @@ export function parseFlags(argv, spec) {
       flags[name] = inline === undefined ? true : inline;
       continue;
     }
-    // A value flag takes `=value` or the next argument.
-    const value = inline ?? argv[++i];
+    // A value flag takes `=value` or the next argument, unless that is another flag (`--out --base /x/` forgot the folder);
+    // a value that starts with `--` is written `--name=--value`.
+    const value = inline ?? (argv[i + 1]?.startsWith('--') ? undefined : argv[++i]);
     if (value === undefined) throw new Error(`--${name} needs a value`);
     flags[name] = s.type === 'number' ? toNumber(name, value) : value;
   }

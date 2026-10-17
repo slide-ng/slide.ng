@@ -27,11 +27,11 @@ export async function launchBrowser(executablePath, { noSandbox } = {}) {
     const sandbox = /sandbox|as root/i.test(String(error.message))
       ? '\nChromium refused to run with its sandbox (as root, or in a container). If you trust the deck, run again with `--no-sandbox`.'
       : '';
-    throw new Error(
-      `Could not start Chromium (${first}).${sandbox}\n` +
-        'Install one with `npx playwright-core install chromium`, or point to an existing Chrome or Chromium with\n' +
-        '`--executable-path /path/to/chrome` (or the CHROME_PATH environment variable).',
-      { cause: error },
-    );
+    // Only a missing browser needs the install hint; a sandbox refusal means the browser is there.
+    const install = sandbox
+      ? ''
+      : '\nInstall one with `npx playwright-core install chromium`, or point to an existing Chrome or Chromium with\n' +
+        '`--executable-path /path/to/chrome` (or the CHROME_PATH environment variable).';
+    throw new Error(`Could not start Chromium (${first}).${sandbox}${install}`, { cause: error });
   }
 }
