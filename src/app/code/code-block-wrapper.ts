@@ -70,16 +70,22 @@ export class CodeBlockWrapper extends RangedBlock {
     });
   }
 
-  // With a maximum height the block scrolls; keep the highlighted lines in view.
+  // With a maximum height the block scrolls; keep the highlighted lines in view. Only the block scrolls:
+  // scrollIntoView would also scroll every container around it (the overview, the page).
   private scrollToHighlight() {
     const lit = Array.from(this.host.querySelectorAll<HTMLElement>('.line.highlighted'));
+    const box = this.host; // the wrapper is what scrolls (max-height, overflow-y)
     if (!lit.length) return;
     const height = lit.reduce((sum, el) => sum + el.offsetHeight, 0);
-    const target = height > this.host.offsetHeight ? lit[0] : lit[Math.round((lit.length - 1) / 2)];
-    target.scrollIntoView({
-      behavior: 'smooth',
-      block: height > this.host.offsetHeight ? 'start' : 'center',
-    });
+    const all = lit.length === this.host.querySelectorAll('.shiki code > .line').length;
+    if (all) return box.scrollTo({ top: 0, behavior: 'smooth' }); // `{*}`: nothing to look for, start at the top
+    const tall = height > box.clientHeight;
+    const target = tall ? lit[0] : lit[Math.round((lit.length - 1) / 2)];
+    // Rectangles are in screen pixels, the slide is scaled; scrollTop is in the block's own pixels.
+    const scale = box.getBoundingClientRect().height / box.offsetHeight || 1;
+    const offset = (target.getBoundingClientRect().top - box.getBoundingClientRect().top) / scale;
+    const top = box.scrollTop + offset - (tall ? 0 : (box.clientHeight - target.offsetHeight) / 2);
+    box.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
   }
 
   protected async copy() {

@@ -52,6 +52,16 @@ export async function run({ t, open, press, hud }) {
     (await box.locator('.line.dishonored').count()) === 5 &&
       (await box.locator('.line.highlighted').count()) === 1,
   );
+  await page.waitForTimeout(600); // the block scrolls smoothly
+  t.ok(
+    'keeping the highlight in view scrolls only the block, never the page around it',
+    (await page.evaluate(() =>
+      [
+        document.scrollingElement?.scrollTop ?? 0,
+        document.querySelector('#slide-container')?.scrollTop ?? 0,
+      ].join(),
+    )) === '0,0',
+  );
   await page.close();
 
   page = await open('/4');
