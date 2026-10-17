@@ -1,5 +1,6 @@
 // Where the Angular app and the generator live, and how to run them for one deck.
 import { spawnSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ngBinary, prepareApp } from './app-root.mjs';
 import { packageRoot } from './package-root.mjs';
@@ -7,15 +8,38 @@ import { claimDirectory, markDirectory } from './safe-dir.mjs';
 
 export { packageRoot };
 
+// Angular's errors name the generated file (src/slides/generated/slide-003.ts); add the markdown file and line it came from,
+// which the generator wrote into the file's first line.
+export function withSlideSources(text, appRoot) {
+  return text.replace(
+    /src\/slides\/generated\/(slide-(\d+))\.ts(:\d+:\d+)?/g,
+    (match, name, no) => {
+      try {
+        const first = readFileSync(
+          join(appRoot, 'src/slides/generated', `${name}.ts`),
+          'utf8',
+        ).split('\n')[0];
+        const from = /GENERATED from (\S+)/.exec(first)?.[1];
+        return from ? `${match} (slide ${+no}, ${from})` : match;
+      } catch {
+        return match;
+      }
+    },
+  );
+}
+
 function run(args, { cwd, env, quiet }) {
+  // Errors are kept (stderr is piped) so they can name the markdown line; progress still shows when not quiet.
   const result = spawnSync(process.execPath, args, {
     cwd,
     env: { ...process.env, ...env },
-    stdio: quiet ? 'pipe' : 'inherit',
+    stdio: quiet ? 'pipe' : ['inherit', 'inherit', 'pipe'],
     encoding: 'utf8',
   });
+  if (!quiet && result.stderr) process.stderr.write(withSlideSources(result.stderr, cwd));
   if (result.status !== 0) {
-    if (quiet) process.stderr.write(`${result.stdout ?? ''}${result.stderr ?? ''}`);
+    if (quiet)
+      process.stderr.write(withSlideSources(`${result.stdout ?? ''}${result.stderr ?? ''}`, cwd));
     throw new Error(
       `${args[0].includes('generate') ? 'generating the slides' : 'the Angular build'} failed (exit code ${result.status})`,
     );
