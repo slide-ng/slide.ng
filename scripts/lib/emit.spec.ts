@@ -347,8 +347,13 @@ describe('safeLinks', () => {
     expect(safeLinks('<a href="javascript:alert(1)">x</a> <a href="https://a.b">y</a>', 3)).toBe(
       '<a href="#">x</a> <a href="https://a.b">y</a>',
     );
-    expect(safeLinks("<iframe src=' JavaScript:x'></iframe>", 3)).toBe("<iframe src='#'></iframe>");
-    expect(warn).toHaveBeenCalledTimes(2);
+    expect(safeLinks("<iframe src=' JavaScript:x'></iframe>", 3)).toBe('<iframe src="#"></iframe>');
+    // a quote of the other kind, an entity or a tab in the scheme, and no quotes at all
+    expect(safeLinks(`<a href="javascript:alert('x')">a</a>`, 3)).toBe('<a href="#">a</a>');
+    expect(safeLinks('<a href="java&#115;cript:x">a</a>', 3)).toBe('<a href="#">a</a>');
+    expect(safeLinks('<a href="java\tscript:x">a</a>', 3)).toBe('<a href="#">a</a>');
+    expect(safeLinks('<a href=javascript:x>a</a>', 3)).toBe('<a href="#">a</a>');
+    expect(warn).toHaveBeenCalledTimes(6);
     warn.mockRestore();
   });
 });
