@@ -14,12 +14,13 @@ const message: string = 'edit me';
 
 ```ts {monaco-diff}
 console.log('Original text');
-~~~console.log('Modified text');
+~~~
+console.log('Modified text');
 ```
 ````
 
 - `{monaco}`: an editor with the code. Options (flat, after the braces): `lines`, `readonly`, `height` (`initial`, `auto` or a CSS size).
-- `{monaco-diff}`: two texts side by side, split by a line with `~~~`.
+- `{monaco-diff}`: two texts side by side, split by a line that holds only `~~~`.
 - Keys typed in an editor do not trigger slide shortcuts.
 - Settings: `setup/monaco.ts`, see `setup-monaco.md`. Monaco does not load types of packages (`monacoTypesSource` is missing).
 - Running code: `code-monaco-run.md`. Saving to a file: `code-monaco-write.md`.
@@ -43,6 +44,7 @@ const message: string = 'edit me';
 
 ```ts {monaco-diff}
 console.log('Original text');
-~~~console.log('Modified text');
+~~~
+console.log('Modified text');
 ```
 ````

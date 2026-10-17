@@ -85,17 +85,24 @@ export function scanRoots(roots) {
       const text = readFileSync(join(root.dir, 'components', file), 'utf8');
       // A pipe is in use when a slide's expressions name it (`{{ x | initials }}`).
       for (const p of pipeDeclarations(text)) {
-        const known = components.findIndex((c) => c.className === p.className);
+        const known = components.findIndex(
+          (c) => c.pipe === p.name || (c.className === p.className && !c.importPath),
+        );
         if (known >= 0) components.splice(known, 1);
         components.push({
           className: p.className,
+          pipe: p.name,
           importPath: `./roots/${root.id}/components/${file.slice(0, -3)}`,
           test: { test: (markup) => pipeNames(markup).has(p.name) },
         });
       }
       for (const d of declarations(text)) {
-        const known = components.findIndex((c) => c.className === d.className);
-        if (known >= 0) components.splice(known, 1); // same class name: the later root replaces it
+        // The same selector, or the class name of a built-in one: the later root replaces it. Two roots may both have a
+        // `Badge` class with other selectors: both stay (one is imported under another name, see below).
+        const known = components.findIndex(
+          (c) => c.selector === d.selector || (c.className === d.className && !c.importPath),
+        );
+        if (known >= 0) components.splice(known, 1);
         components.push({
           className: d.className,
           selector: d.selector,
@@ -103,6 +110,22 @@ export function scanRoots(roots) {
           test: selectorTest(d.selector),
         });
       }
+    }
+  }
+  // A class name that two files export gets an `as` name in the slides that import it (`Badge` and `Badge_2`).
+  // (Copies: the built-in entries are shared by every scan.)
+  for (const name of Object.keys(layouts)) layouts[name] = { ...layouts[name] };
+  components.forEach((c, i) => (components[i] = { ...c }));
+  const seen = new Map();
+  for (const c of [...Object.values(layouts), ...components]) {
+    const from = c.importPath ?? c.file;
+    const first = seen.get(c.className);
+    if (first === undefined) seen.set(c.className, from);
+    else if (first !== from) {
+      let n = 2;
+      while (seen.has(`${c.className}_${n}`)) n++;
+      c.alias = `${c.className}_${n}`;
+      seen.set(c.alias, from);
     }
   }
   return { layouts, components, problems };

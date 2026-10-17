@@ -1,5 +1,12 @@
 import { LAYOUTS, layoutName } from './layouts.mjs';
-import { keepSpaces, safeLinks, warnInlineControlFlow, slideSource } from './emit.mjs';
+import {
+  keepSpaces,
+  safeLinks,
+  slideLinks,
+  slideSource,
+  usesCustomElements,
+  warnInlineControlFlow,
+} from './emit.mjs';
 import { indexSource, plainTitle } from './index-source.mjs';
 import { parseDeck } from './parse-deck.mjs';
 import { initHighlighter } from './code/highlighter.mjs';
@@ -293,6 +300,34 @@ describe('keepSpaces', () => {
     expect(keepSpaces(nested)).toBe(
       '<pre class="shiki"><span>a</span><pre>x</pre><span>b</span> <span>c</span></pre>&ngsp;<b>d</b>',
     );
+  });
+});
+
+describe('custom elements', () => {
+  it('gives the schema only to slides that use a listed web component', () => {
+    const deck = { headmatter: { customElements: ['model-viewer', 'sl-*'] } };
+    const used = slideSource(slide({}, '<model-viewer src="a.glb"></model-viewer>'), 2, deck);
+    expect(used).toContain('schemas: [CUSTOM_ELEMENTS_SCHEMA]');
+    expect(used).toContain("import { CUSTOM_ELEMENTS_SCHEMA, Component } from '@angular/core';");
+    expect(slideSource(slide({}, '<other-thing></other-thing>'), 2, deck)).not.toContain('schemas');
+    expect(slideSource(slide({}, '<model-viewer></model-viewer>'), 2)).not.toContain('schemas');
+  });
+  it('matches names, prefixes and true', () => {
+    expect(usesCustomElements('<sl-button>', ['sl-*'])).toBe(true);
+    expect(usesCustomElements('<sl-button>', 'sl-button')).toBe(true);
+    expect(usesCustomElements('<sl-button>', ['model-viewer'])).toBe(false);
+    expect(usesCustomElements('<x-y>', true)).toBe(true);
+    expect(usesCustomElements('<p>', true)).toBe(false);
+  });
+});
+
+describe('slideLinks', () => {
+  it('turns links to slide numbers and aliases into slide links, and leaves other addresses', () => {
+    expect(slideLinks('<a href="/4">four</a>')).toBe('<slide-ng-link to="4">four</slide-ng-link>');
+    expect(slideLinks('<a href="/pricing">p</a>', ['pricing'])).toBe(
+      '<slide-ng-link to="pricing">p</slide-ng-link>',
+    );
+    expect(slideLinks('<a href="/about">a</a>')).toBe('<a href="/about">a</a>');
   });
 });
 

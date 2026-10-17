@@ -121,6 +121,17 @@ export function slideLinks(html, aliases = []) {
   );
 }
 
+// True when the markup has a tag the deck's `customElements` setting names: a list of names, where `sl-*` is a prefix, or `true`.
+export function usesCustomElements(markup, setting) {
+  if (!setting) return false;
+  const tags = [...markup.matchAll(/<([a-z][\w.]*-[\w.-]*)/g)].map((m) => m[1]);
+  if (setting === true) return tags.length > 0;
+  const names = [setting].flat().map(String);
+  return tags.some((tag) =>
+    names.some((n) => (n.endsWith('*') ? tag.startsWith(n.slice(0, -1)) : tag === n)),
+  );
+}
+
 /**
  * @param {any} slide @param {number} no
  * @param {{ root?: string, headmatter?: any, layers?: string[], layouts?: Record<string, any>, components?: any[], assetBase?: string }} [deck]
@@ -194,7 +205,8 @@ export function slideSource(slide, no, deck = {}) {
   const importLines = [
     ...new Set(
       imports.map(
-        (c) => `import { ${c.className} } from '${c.importPath ?? `../../app/${c.file}`}';`,
+        (c) =>
+          `import { ${c.className}${c.alias ? ` as ${c.alias}` : ''} } from '${c.importPath ?? `../../app/${c.file}`}';`,
       ),
     ),
     ...Object.entries(fromAngular).map(
@@ -202,6 +214,10 @@ export function slideSource(slide, no, deck = {}) {
     ),
   ];
 
+  // Web components (`<model-viewer>`, `<sl-button>`) are not Angular components: the deck lists them in `customElements`
+  // (names, `sl-*`, or `true` for any), and only the slides that use one get Angular's CUSTOM_ELEMENTS_SCHEMA, so a mistyped
+  // component name elsewhere is still an error.
+  const schema = usesCustomElements(markup, deck.headmatter?.customElements);
   const { clicksStart, clicks } = slide.frontmatter;
   const providers = ['ClicksContext'];
   if (clicksStart) providers.push(`{ provide: CLICKS_START, useValue: ${+clicksStart} }`);
@@ -217,15 +233,15 @@ export function slideSource(slide, no, deck = {}) {
     ? `${relative(deck.root ?? dirname(slide.source.filepath), slide.source.filepath) || 'slides.md'}:${Math.max(1, slide.source.start)}`
     : 'slides.md';
   return `// GENERATED from ${where} (slide ${no}) - do not edit
-import { Component${styles ? ', ViewEncapsulation' : ''} } from '@angular/core';
+import { ${schema ? 'CUSTOM_ELEMENTS_SCHEMA, ' : ''}Component${styles ? ', ViewEncapsulation' : ''} } from '@angular/core';
 import { CLICKS_START, CLICKS_TOTAL, ClicksContext } from '../../app/lib/clicks';
 import { SlideBase } from '../../app/lib/slide-base';
 ${importLines.join('\n')}
 
 @Component({
   selector: '${slideName(no)}',
-  imports: [${[...imports.map((c) => c.className), ...Object.values(fromAngular).flat()].join(', ')}],
-  providers: [${providers.join(', ')}],
+  imports: [${[...imports.map((c) => c.alias ?? c.className), ...Object.values(fromAngular).flat()].join(', ')}],
+  providers: [${providers.join(', ')}],${schema ? '\n  schemas: [CUSTOM_ELEMENTS_SCHEMA],' : ''}
   template: ${JSON.stringify(html)},${styles ? `\n  styles: [${JSON.stringify(styles)}],\n  encapsulation: ViewEncapsulation.None,` : ''}
 })
 export default class ${slideClass(no)} extends SlideBase {}

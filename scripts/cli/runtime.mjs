@@ -33,6 +33,11 @@ export function withSlideSources(text, appRoot) {
       }
     })
     .replace(
+      /'([a-z][\w.]*-[\w.-]*)' is not a known element:/g,
+      (match, tag) =>
+        `${match} (a web component? list it in the deck's headmatter: customElements: [${tag}])`,
+    )
+    .replace(
       /Could not resolve "(\.\.\/[^"]*)"/g,
       (match) =>
         `${match} (only the folders ${ROOT_FOLDERS.join(', ')} of a deck or theme are copied into the app: keep shared code inside one of them)`,

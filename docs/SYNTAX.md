@@ -378,7 +378,7 @@ console.log('runs on a click and the result appears');
 ````
 
 - `{monaco}`: an editor with the code. Options (flat, after the braces): `lines`, `readonly`, `height` (`initial`, `auto` or a CSS size).
-- `{monaco-diff}`: two texts side by side, split by a line with `~~~`.
+- `{monaco-diff}`: two texts side by side, split by a line that holds only `~~~`.
 - `{monaco-run}`: an editor and a **Run** result below it. `autorun` is `true`, `false` or `'once'`; `showOutputAt:'+1'` shows the output after a click.
   The code runs in a sandboxed frame with no access to the slides, and stops after 5 seconds. TypeScript is turned into JavaScript for you. `import` is not supported.
 - `{monaco-write}`: use it on a snippet line, `<<< ./snippets/demo.ts {monaco-write}` (a whole file inside the deck's folder). While you run `npm start`, edits are saved into that file about half a second after you stop typing. A region, a plain code block or a static build gets a normal editor (the generator warns for the first two).
@@ -543,6 +543,20 @@ A pipe in `components/` (`@Pipe({ name: 'initials' }) export class InitialsPipe`
 (`{{ name | initials }}`). Components can import `@angular/common`, `@angular/forms` and `@angular/router`, which come with slide.ng;
 do not install another copy of an `@angular/*` package in the deck (two copies of Angular give a blank page). `@angular/animations` is
 not included: use Angular's `animate.enter` / `animate.leave` or CSS.
+
+A package a component imports (`import Chart from 'chart.js/auto'`) is installed next to `slides.md` (`npm i chart.js`): it is
+found the way Node finds packages, from the deck's folder up. A package slide.ng itself comes with (Angular, `rxjs`, `shiki`) is
+always the slide.ng copy. Icon sets work the same way: `npm i -D @iconify-json/tabler` in the deck's folder.
+
+A web component (`<model-viewer>`, Shoelace's `<sl-button>`) is not an Angular component, so Angular stops with "is not a known
+element". Load its script in `setup/main.ts` (`import '@google/model-viewer'`) and list its tags in the headmatter:
+
+```yaml
+customElements: [model-viewer, sl-*] # a name ending in * is a prefix; true allows any tag with a dash
+```
+
+Only the slides that use a listed tag get Angular's `CUSTOM_ELEMENTS_SCHEMA`; elsewhere a mistyped component name is still an
+error. Attributes are set as written; bind a property with `[prop]="value"`.
 
 In the PDF and in the overview every slide is drawn at once, so `Nav.no()` is the slide being presented, not the slide being drawn:
 inject `SLIDE_NO` to know which slide a component is in.

@@ -145,12 +145,15 @@ else console.log(`kept ${work}`);
 async function combine() {
   const dir = join(work, 'combined');
   mkdirSync(dir, { recursive: true });
-  // Deck-level keys that change what is generated or compiled: the theme and the addons (one for all the samples) and the code aliases (joined).
+  // Deck-level keys that change what is generated or compiled: the theme and the addons (one for all the samples), the code
+  // aliases and the custom element tags (joined).
   const deckKeys = {};
   const aliases = {};
+  const customElements = [];
   for (const s of samples) {
     const head = (await parse(s.text, s.entry)).slides[0]?.frontmatter ?? {};
     Object.assign(aliases, head.codeAliases);
+    if (head.customElements) customElements.push(...[head.customElements].flat());
     for (const key of ['theme', 'addons']) {
       if (!head[key] || head[key] === 'default') continue;
       const value = JSON.stringify(head[key]);
@@ -163,6 +166,7 @@ async function combine() {
     title: 'Skill samples',
     ...Object.fromEntries(Object.entries(deckKeys).map(([k, v]) => [k, JSON.parse(v)])),
     ...(Object.keys(aliases).length ? { codeAliases: aliases } : {}),
+    ...(customElements.length ? { customElements } : {}),
   });
   let out = `---\n${headmatter}---\n\n# Skill samples\n`;
   const ranges = [];

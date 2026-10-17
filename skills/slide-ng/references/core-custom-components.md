@@ -21,6 +21,8 @@ Rules:
 - Import slide.ng services with the alias `slide-ng/` (it means `src/app/`), for example `import { Nav } from 'slide-ng/lib/nav'`. Do not use `../`.
 - A pipe in `components/` (`@Pipe({ name: 'initials' })`) is imported into the slides whose expressions use it: `{{ name | initials }}`.
 - Components can import `@angular/common`, `@angular/forms` and `@angular/router` (they come with slide.ng). Never install another `@angular/*` package in the deck: two copies of Angular give a blank page. `@angular/animations` is not included; use `animate.enter`/`animate.leave` or CSS.
+- An npm package a component imports is installed next to `slides.md` (`npm i chart.js`); it is found from the deck's folder up, like Node does. Packages slide.ng comes with (Angular, `rxjs`, `shiki`) always come from slide.ng.
+- Web components (`<model-viewer>`, `<sl-button>`) are not Angular components: load their script in `setup/main.ts` and list the tags in the headmatter, `customElements: [model-viewer, sl-*]` (`*` is a prefix, `true` allows any tag with a dash). Without it Angular stops with "is not a known element".
 
 <!-- verify-file: components/hello-box.ts -->
 
@@ -67,6 +69,37 @@ title: Own components
 <click-counter #c />
 
 The counter says {{ c.n() }}.
+```
+
+## Web components
+
+A web component's script is loaded in `setup/main.ts` (which still returns its providers); the tags are listed in `customElements`.
+
+```ts
+// setup/main.ts. A real package is imported the same way: import '@google/model-viewer';
+customElements.define(
+  'hello-star',
+  class extends HTMLElement {
+    connectedCallback() {
+      this.textContent = `★ ${this.getAttribute('label') ?? ''}`;
+    }
+  },
+);
+
+export default () => [];
+```
+
+<!-- verify -->
+
+```md
+---
+title: Web components
+customElements: [hello-*]
+---
+
+# Web components
+
+<hello-star label="a custom element"></hello-star>
 ```
 
 ## Sharing state in a slide

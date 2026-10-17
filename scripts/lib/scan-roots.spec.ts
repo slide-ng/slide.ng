@@ -116,4 +116,22 @@ describe('scanRoots', () => {
     expect(pipe.test.test("<p>{{ 'Ada Lovelace' | initials }}</p>")).toBe(true);
     expect(pipe.test.test('<td>a | initials</td>')).toBe(false);
   });
+  it("keeps two roots' components with the same class name, and lets a later one take a selector", () => {
+    const a = root('addon-a', {
+      'components/badge.ts': "@Component({ selector: 'sw-badge' }) export class Badge {}",
+      'components/chip.ts': "@Component({ selector: 'x-chip' }) export class X1Chip {}",
+    });
+    const b = root('addon-b', {
+      'components/badge.ts': "@Component({ selector: 'poll-badge' }) export class Badge {}",
+      'components/chip.ts': "@Component({ selector: 'x-chip' }) export class X2Chip {}",
+    });
+    const { components } = scanRoots([a, b]);
+    const badges = components.filter((c: any) => c.className === 'Badge');
+    expect(badges.map((c: any) => [c.selector, c.alias])).toEqual([
+      ['sw-badge', undefined],
+      ['poll-badge', 'Badge_2'],
+    ]);
+    const chips = components.filter((c: any) => c.selector === 'x-chip');
+    expect(chips.map((c: any) => c.className)).toEqual(['X2Chip']);
+  });
 });
