@@ -40,5 +40,14 @@ describe('extractStyles', () => {
   it('scopes css under the slide tag using nesting', () => {
     expect(scopeCss('h1 { color: red }', 'slide-003')).toBe('slide-003 {\nh1 { color: red }\n}');
     expect(scopeCss('', 'slide-003')).toBe('');
+    // rules that cannot be nested stay outside the slide's scope
+    expect(
+      scopeCss(
+        '.spin { animation: spin 2s } @keyframes spin { to { transform: rotate(1turn) } } @import url(x.css);',
+        'slide-001',
+      ),
+    ).toBe(
+      '@keyframes spin { to { transform: rotate(1turn) } }\n@import url(x.css);\nslide-001 {\n.spin { animation: spin 2s }  \n}',
+    );
   });
 });
