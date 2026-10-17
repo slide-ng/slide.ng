@@ -23,12 +23,21 @@ export function pipeDeclarations(source) {
   return [...source.matchAll(PIPE)].map((m) => ({ name: m[1], className: m[2] }));
 }
 
-/** The text a slide must contain for this selector to be in use: `<my-tag` for a tag, ` my-thing` for `[my-thing]`. */
+/**
+ * The text a slide must contain for this selector to be in use: `<my-tag` for a tag, ` my-thing` (or `*my-thing`,
+ * `[my-thing]`) for `[my-thing]`, `<button ... appRipple` for `button[appRipple]`. A list (`a, [b]`) matches any of its parts.
+ */
 export function selectorTest(selector) {
-  const attribute = /^\[([\w-]+)\]$/.exec(selector);
   const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  if (attribute) return new RegExp(`[\\s[]${escape(attribute[1])}[\\s=>/\\]]`);
-  return new RegExp(`<${escape(selector)}[\\s>/]`);
+  const attr = (name) => `[\\s[*]${escape(name)}[\\s=>/\\]]`;
+  const parts = selector.split(',').flatMap((part) => {
+    const [, tag, attrs] = /^\s*([\w-]*)((?:\[[^\]]+\])*)/.exec(part);
+    const name = /\[([\w-]+)/.exec(attrs)?.[1];
+    if (tag && name) return [`<${escape(tag)}\\s[^>]*?${attr(name)}`];
+    if (tag) return [`<${escape(tag)}[\\s>/]`];
+    return name ? [attr(name)] : [];
+  });
+  return new RegExp(parts.join('|') || '(?!)');
 }
 
 const tsFilesIn = (dir) =>

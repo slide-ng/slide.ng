@@ -34,6 +34,14 @@ describe('selectorTest', () => {
     expect(selectorTest('[my-glow]').test('<p [my-glow]="x">')).toBe(true);
     expect(selectorTest('[my-glow]').test('<p my-glowing>')).toBe(false);
   });
+  it('matches a structural use, a tag with an attribute and a list', () => {
+    expect(selectorTest('[repeatTimes]').test('<li *repeatTimes="3; let n">')).toBe(true);
+    expect(selectorTest('button[appRipple]').test('<button class="a" appRipple>')).toBe(true);
+    expect(selectorTest('button[appRipple]').test('<a appRipple>')).toBe(false);
+    expect(selectorTest('[appAutofocus], [focus-me]').test('<input focus-me>')).toBe(true);
+    expect(selectorTest('my-card, my-panel').test('<my-panel>')).toBe(true);
+    expect(selectorTest('.only-a-class').test('<p class="only-a-class">')).toBe(false);
+  });
 });
 
 function root(id: string, files: Record<string, string>, layouts = {}) {
