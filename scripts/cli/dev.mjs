@@ -141,10 +141,14 @@ export async function devCommand(argv) {
     });
 
   if (plan.remote) {
-    const addresses = Object.values(networkInterfaces())
-      .flat()
-      .filter((i) => i && i.family === 'IPv4' && !i.internal)
-      .map((i) => i.address);
+    // With --bind to one address, that is the only one that answers; list the others only for 0.0.0.0.
+    const addresses =
+      plan.host && plan.host !== '0.0.0.0'
+        ? [plan.host]
+        : Object.values(networkInterfaces())
+            .flat()
+            .filter((i) => i && i.family === 'IPv4' && !i.internal)
+            .map((i) => i.address);
     console.log(
       remoteLines({
         port: plan.port,

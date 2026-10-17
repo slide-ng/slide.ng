@@ -69,6 +69,13 @@ export async function parseDeck(file = 'slides.md', sources, options = {}) {
     },
   }));
 
+  // Slidev's MDC syntax (`mdc: true`, `comark: true`) is not supported: say so instead of showing the syntax as text.
+  for (const key of ['mdc', 'comark'])
+    if (data.headmatter[key])
+      problems.push(
+        `${entry}: \`${key}: true\` is not supported (MDC syntax such as :span[x]{.c} stays text); use HTML with classes instead`,
+      );
+
   // A slide's frontmatter is parsed leniently, so a broken one would just lose keys: stop instead, as for the headmatter.
   data.slides.forEach((slide, i) => {
     const error = slide.source?.frontmatterDoc?.errors?.[0];
