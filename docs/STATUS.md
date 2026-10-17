@@ -29,19 +29,25 @@ command line as a package, themes and addons, an example theme, the MCP server a
 ## Test results (last run, Node 22.23.3, Chromium from `/opt/pw-browsers`)
 
 - `npm run build`: succeeds.
-- `npm test`: 118 files, **878** tests passed (theme and addon names: `roots.spec.ts`; the agent skill: `skills.spec.ts`, `hash.spec.ts`, `samples.spec.ts`).
+- `npm test`: 120 files, **914** tests passed (theme and addon names: `roots.spec.ts`; the agent skill: `skills.spec.ts`, `hash.spec.ts`, `samples.spec.ts`).
 - `npm run test:e2e`: starter deck **45**, showcase **144**, code and content **128**, phase 3 decks **185**, print route **24**, setup hooks **24**, 0 failed. The official theme tests (every layout of four themes, fonts, PNG export) moved to the slide.ng-themes repository.
 - `npm run test:dev`: live update **6**, dev server **52**; 0 failed.
-- `npm run test:export`: export command **34**, sandbox filter **4**, build **47**, theme **22**, example themes (paper, moss, blueprint) **24**, scaffold **13**, MCP **23**, offline folder from disk **40**, network off **13**, agent skill samples **74** (generated one by one, then built together); 0 failed.
+- `npm run test:export`: export command **34**, sandbox filter **4**, build **47**, theme **22**, example themes (paper, moss, blueprint) **28**, scaffold **13**, MCP **23**, offline folder from disk **40**, network off **13**, agent skill samples **74** (generated one by one, then built together); 0 failed.
 
-## Testing for 1.0.0 (thirty decks and a real port)
+## Testing for 1.0.0 (fifty decks and a real port)
 
-Thirty decks written for the purpose (different subjects, themes, Angular features and Slidev features) and a port of a real Slidev talk
-were built, exported and presented. They found about ninety problems; all are fixed except the two below, each with a test where one
-can be written. The decisions are in DECISIONS.md ("Made while testing for 1.0.0"), the list in CHANGELOG.md.
+Fifty decks written for the purpose (different subjects, themes, Angular features and Slidev features) and a port of a real Slidev talk
+were built, exported and presented, in two rounds of thirty and twenty; turning thirty-one of them into a showcase found a few more.
+Round one found about ninety problems and round two about ninety more; all are fixed except the ones below, each with a test where
+one can be written. The decisions are in DECISIONS.md ("Made while testing for 1.0.0"), the list in CHANGELOG.md.
 
 - `:emoji:` shortcodes are not converted (it would need a new dependency); the docs and the skill say to type the emoji.
 - Behind some test servers the PDF button's `HEAD` probe is reported as a failed request; real hosts answer it, nothing to fix in slide.ng.
+- A paragraph right after a heading is dimmed (`h1 + p`, as in Slidev), also when it holds only a component; a theme can undo it.
+- A dark-only theme forced into light with `colorSchema` keeps its dark panels with light code colours.
+- In `dev`, a device that joins later sees drawings saved earlier only after the next regeneration.
+- Keyboard and screen reader use of the menus is not complete: Escape does not always give focus back, the overview moves a highlight
+  instead of the focus, and the context menu has no arrow-key support.
 
 ## Not done
 
