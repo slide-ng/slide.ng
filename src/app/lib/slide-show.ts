@@ -39,12 +39,12 @@ import { documentTitle } from './page-title';
       [style.height.px]="height"
       [style]="canvasStyle()"
     >
-      <app-slide-layer name="global-bottom" />
+      <app-slide-layer name="global-bottom" [no]="nav.no()" />
       <ng-container #host />
       @if (nav.notFound()) {
         <sn-404 />
       }
-      <app-slide-layer name="global-top" />
+      <app-slide-layer name="global-top" [no]="nav.no()" />
       <ng-content />
     </div>
   `,

@@ -26,10 +26,10 @@ import { SlideLayer } from '../lib/slide-layer';
     '[style.height.px]': 'height',
   },
   template: `
-    <app-slide-layer name="global-bottom" />
+    <app-slide-layer name="global-bottom" [no]="no()" />
     <ng-container #host />
     <app-drawing-preview [no]="no()" />
-    <app-slide-layer name="global-top" />
+    <app-slide-layer name="global-top" [no]="no()" />
   `,
 })
 export class PrintFrame {

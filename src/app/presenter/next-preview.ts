@@ -25,8 +25,9 @@ import { SlideLayer } from '../lib/slide-layer';
   template: `
     @if (frame(); as f) {
       <div id="next-canvas" class="canvas absolute left-1/2 top-1/2" [style]="style()">
-        <app-slide-layer name="global-bottom" /><ng-container #host /><app-slide-layer
+        <app-slide-layer name="global-bottom" [no]="f.no" /><ng-container #host /><app-slide-layer
           name="global-top"
+          [no]="f.no"
         /><app-drawing-preview [no]="f.no" />
       </div>
     } @else if (nav.ready()) {
