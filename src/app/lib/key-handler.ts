@@ -39,6 +39,8 @@ export function keyHandler(nav: Nav, ui: Ui): (e: KeyboardEvent) => void {
     if (e.isComposing) return; // a key that commits or cancels an input method's text (Japanese, Chinese, ...)
     // A modal <dialog> on a slide owns the keys: Escape closes it, and the slides do not move behind it.
     if (document.querySelector('dialog:modal')) return;
+    // The same for the info dialog: only Escape (which closes it) reaches the shortcuts.
+    if (ui.info() && e.key !== 'Escape') return;
     // Typing in the side editor can reload the page; keys that land on the page right then were meant for the editor.
     // Only in the first seconds after the page loaded, so a key pressed later on the slide still works.
     if (e.target === document.body && performance.now() < 5_000 && typedJustNow()) return;

@@ -73,7 +73,7 @@ import { TimerBar } from './timer-bar';
         </div>
       </div>
     </div>
-    <div id="hud">
+    <div id="hud" aria-hidden="true">
       slide {{ page() }}/{{ total }} clicks {{ state().clicks }}/{{ state().clicksTotal }}
     </div>
   `,

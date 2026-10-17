@@ -20,6 +20,7 @@ import { Ui } from '../lib/ui-state';
       id="slidev-goto-dialog"
       class="fixed right-5 transition-all w-90 max-w-90 min-w-90 z-modal text-main"
       [class]="ui.goto() ? 'top-5' : '-top-20 op0 pointer-events-none'"
+      [attr.aria-hidden]="ui.goto() ? null : 'true'"
     >
       <div class="bg-main shadow px-4 py-2 rounded border border-transparent dark:border-gray/20">
         <input

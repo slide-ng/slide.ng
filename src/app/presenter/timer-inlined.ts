@@ -1,7 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 import { Timer } from './timer';
 
-// The clock at the bottom right of the presenter page. Hover it for pause / play and reset.
+// The clock at the bottom right of the presenter page. Hover it (or Tab to it) for pause / play and reset.
 @Component({
   selector: 'app-timer-inlined',
   template: `
@@ -10,20 +10,36 @@ import { Timer } from './timer';
       class="group flex items-center justify-center pl-4 select-none"
       [class]="color()"
     >
-      <div class="w-22px cursor-pointer">
+      <!-- The buttons are always there (so Tab reaches them) and show on hover or focus, over the clock icon. -->
+      <div class="relative w-22px h-12 flex items-center justify-center">
         <div
-          class="group-hover:hidden text-2xl"
+          class="group-hover:op-0 group-focus-within:op-0 text-2xl"
           [class]="timer.mode === 'countdown' ? 'i-carbon:timer' : 'i-carbon:time'"
+          aria-hidden="true"
         ></div>
-        <div class="group-not-hover:hidden flex flex-col items-center">
-          <div id="timer-toggle" class="relative op-80 hover:op-100" (click)="timer.toggle()">
+        <div
+          class="absolute inset-0 flex flex-col items-center justify-center op-0 group-hover:op-100 group-focus-within:op-100"
+        >
+          <button
+            id="timer-toggle"
+            type="button"
+            class="relative op-80 hover:op-100 cursor-pointer bg-transparent border-0 p-0 text-inherit"
+            [attr.aria-label]="timer.status() === 'running' ? 'Pause the timer' : 'Start the timer'"
+            (click)="timer.toggle()"
+          >
             <div
               [class]="timer.status() === 'running' ? 'i-carbon:pause text-lg' : 'i-carbon:play'"
             ></div>
-          </div>
-          <div id="timer-reset" class="op-80 hover:op-100" (click)="timer.reset()">
+          </button>
+          <button
+            id="timer-reset"
+            type="button"
+            class="op-80 hover:op-100 cursor-pointer bg-transparent border-0 p-0 text-inherit"
+            aria-label="Reset the timer"
+            (click)="timer.reset()"
+          >
             <div class="i-carbon:renew"></div>
-          </div>
+          </button>
         </div>
       </div>
       <div id="timer-text" class="text-3xl px-3 my-auto font-mono">

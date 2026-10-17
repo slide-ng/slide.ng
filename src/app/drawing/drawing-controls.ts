@@ -151,7 +151,11 @@ import { BRUSH_COLORS, Drawings, ToolMode } from './drawings';
           <button
             icon-btn
             id="draw-close"
-            [title]="drawings.pinned() ? 'Drawing pinned' : 'Drawing unpinned'"
+            [title]="
+              drawings.pinned()
+                ? 'Close the drawing tools (the drawing stays)'
+                : 'Close the drawing tools'
+            "
             (click)="drawings.enabled.set(false)"
           >
             <div [class]="drawings.pinned() ? 'i-carbon:error' : 'i-carbon:close-outline'"></div>

@@ -1,6 +1,6 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-import { HEADMATTER } from '../../slides/generated';
+import { HEADMATTER, SLIDES } from '../../slides/generated';
 import { keyHandler } from '../lib/key-handler';
 import { DragControls } from '../drag/drag-controls';
 import { Drawings } from '../drawing/drawings';
@@ -161,13 +161,20 @@ import { TimerInlined } from './timer-inlined';
     <app-goto />
     <app-overview />
     <app-context-menu />
-    <div id="hud">
+    <div id="hud" aria-hidden="true">
       slide {{ nav.no() }}/{{ nav.total }} clicks {{ nav.clicks() }}/{{ nav.clicksTotal() }}
     </div>
+    <!-- As on the deck page: screen readers hear the new slide's number and title -->
+    <div class="sr-only" aria-live="polite" aria-atomic="true">{{ announcement() }}</div>
   `,
 })
 export class Presenter {
   protected nav = inject(Nav);
+  protected announcement = computed(() => {
+    const no = this.nav.no();
+    const title = SLIDES[no - 1]?.title;
+    return `Slide ${no} of ${this.nav.total}${title ? `: ${title}` : ''}`;
+  });
   protected prefs = inject(PresenterPrefs);
   private ui = inject(Ui);
   /** The main pane shows a shared screen instead of the slides. */
