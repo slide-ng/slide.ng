@@ -93,16 +93,26 @@ export function readManifest(dir) {
     throw new Error(`${file} is not valid JSON (${e.message})`, { cause: e });
   }
   const object = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
+  // A key that is not set stays undefined, so a layout that replaces a built-in one keeps the built-in value (scan-roots.mjs).
+  const names = (list) =>
+    Array.isArray(list) ? list.filter((p) => /^[A-Za-z][\w-]*$/.test(p)) : undefined;
   const layouts = Object.fromEntries(
     Object.entries(object(data.layouts)).map(([name, l]) => [
       name,
       {
-        props: Array.isArray(l?.props) ? l.props.filter((p) => /^[A-Za-z][\w-]*$/.test(p)) : [],
-        slots: Array.isArray(l?.slots) ? l.slots.filter((s) => /^[A-Za-z][\w-]*$/.test(s)) : [],
-        classProp: Boolean(l?.classProp),
+        props: names(l?.props),
+        slots: names(l?.slots),
+        classProp: l?.classProp === undefined ? undefined : Boolean(l.classProp),
       },
     ]),
   );
+  const unknown = Object.keys(object(data)).filter(
+    (k) => !['name', 'headmatter', 'layouts', '$schema'].includes(k),
+  );
+  if (unknown.length)
+    console.warn(
+      `[slides] ${file}: ${unknown.map((k) => `"${k}"`).join(', ')} is not read (settings such as colorSchema and fonts go under "headmatter")`,
+    );
   return {
     name: typeof data.name === 'string' ? data.name : undefined,
     headmatter: object(data.headmatter),

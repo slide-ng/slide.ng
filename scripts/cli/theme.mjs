@@ -16,18 +16,25 @@ import { parseFlags } from './flags.mjs';
 import { setHeadmatterKey } from '../lib/frontmatter-edit.mjs';
 import { findRootDir } from '../lib/roots.mjs';
 import { parseDeck } from '../lib/parse-deck.mjs';
+import { LAYOUTS } from '../lib/layouts.mjs';
 import { packageRoot } from './runtime.mjs';
 
-/** `from '../lib/clicks'` in a built-in layout becomes `from 'slide-ng/lib/clicks'` (the app's public path, see docs/THEMES.md). */
+/**
+ * `from '../lib/clicks'` in a built-in layout becomes `from 'slide-ng/lib/clicks'` (the app's public path, see docs/THEMES.md),
+ * and a helper next to the layouts (`./background`, `./frame`) becomes `slide-ng/layouts/...`: helpers are not copied, since a
+ * component file in `layouts/` would be read as a layout of its own.
+ */
 export function rewriteImports(source) {
-  return source.replace(/from '\.\.\/([\w/-]+)'/g, "from 'slide-ng/$1'");
+  return source
+    .replace(/from '\.\.\/([\w/-]+)'/g, "from 'slide-ng/$1'")
+    .replace(/from '\.\/([\w-]+)'/g, "from 'slide-ng/layouts/$1'");
 }
 
 function ejectBuiltIn(target) {
   const from = join(packageRoot, 'src/app/layouts');
   mkdirSync(join(target, 'layouts'), { recursive: true });
   for (const file of readdirSync(from).filter(
-    (f) => f.endsWith('.ts') && !f.endsWith('.spec.ts'),
+    (f) => f.endsWith('.ts') && !f.endsWith('.spec.ts') && Object.hasOwn(LAYOUTS, f.slice(0, -3)),
   )) {
     writeFileSync(
       join(target, 'layouts', file),
@@ -74,7 +81,7 @@ export async function themeCommand(argv) {
     throw new Error(`${relative(process.cwd(), target) || target} already exists and is not empty`);
 
   const deck = await parseDeck(entry, undefined, { theme: flags.theme });
-  const spec = flags.theme ?? deck.headmatter.theme ?? 'default';
+  const spec = flags.theme ?? process.env.SLIDE_NG_THEME ?? deck.headmatter.theme ?? 'default';
   if (spec === 'none') throw new Error('The theme is "none": there is nothing to eject');
   const source = spec === 'default' ? null : findRootDir(spec, 'theme', root);
   // A theme folder inside the deck can be edited where it is; one elsewhere (a shared folder) is copied like a package.

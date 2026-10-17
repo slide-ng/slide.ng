@@ -10,6 +10,10 @@ my-theme/
   layouts/
   components/
   styles/index.css
+  layers/          (optional: global-top.ts, global-bottom.ts, slide-top.ts, slide-bottom.ts)
+  setup/           (optional: setup hooks, see below)
+  public/          (optional: pictures and fonts, served from /)
+  uno.config.mjs   (optional: UnoCSS shortcuts and rules)
 ```
 
 Put it next to your deck and write `theme: ./my-theme` in the first headmatter. Start with only the parts you need.
@@ -37,6 +41,10 @@ If your layout reads frontmatter (`author: Ada`), give the component an input of
 { "layouts": { "quote": { "props": ["author"] } } }
 ```
 
+The list replaces the built-in layout's inputs, so keep the ones you still want: a `cover` that adds `event` lists
+`["background", "event"]`, or a `background:` picture is dropped. The `slide-ng/layouts/background` helper turns that input into the
+style the built-in cover uses (see `examples/theme-paper/layouts/cover.ts`).
+
 ## 3. Add a component
 
 `my-theme/components/callout.ts` with `selector: 'my-callout'`. Slides can write `<my-callout>text</my-callout>`; the generator
@@ -53,8 +61,16 @@ export default { shortcuts: { 'my-muted': 'op60 text-sm' } };
 
 ## 5. Default settings
 
-`theme.json` can set headmatter defaults, such as `"colorSchema": "dark"` or the fonts (`"fonts": { "sans": "Titillium Web", "mono": "Fira Code" }`,
-loaded from the provider, merged with the deck's own `fonts`). Pictures go in `public/`.
+`theme.json` can set headmatter defaults under `"headmatter"`, such as `"colorSchema": "dark"` or the fonts
+(`{ "headmatter": { "colorSchema": "dark", "fonts": { "sans": "Titillium Web", "mono": "Fira Code" } } }`; the fonts are loaded from the
+provider and merged with the deck's own `fonts`). Keys outside `"name"`, `"headmatter"` and `"layouts"` are not read. Pictures go in `public/`.
+
+Dark mode is the class `dark` on `<html>`: write `html.dark .my-quote { ... }` for the dark palette. The core styles dim the paragraph
+right after a heading (`h1 + p`, a subtitle); set its `opacity` in your CSS if your theme should not.
+
+A footer or page number goes in `layers/global-top.ts`. Read the slide's number with `inject(SLIDE_NO)` (from `slide-ng/lib/slide-context`):
+`Nav.no()` is the presented slide, so in the PDF it would print the same number on every page. `layers/global-bottom.ts` is drawn under
+the slide, so a theme that paints the slide background on `.slidev-layout` hides it.
 The official themes (the slide.ng-themes repository, `packages/theme-*`) are larger examples: `bricks` has components, `apple-basic` has layouts with props, `shibainu` has many layouts.
 
 ## Extra: setup hooks
@@ -62,13 +78,19 @@ The official themes (the slide.ng-themes repository, `packages/theme-*`) are lar
 `setup/providers.ts` can change shortcuts, or the way code editors run code. The example theme adds a `b` key (back one slide):
 
 ```ts
-import { SHORTCUTS_SETUP } from 'slide-ng/lib/shortcuts';
-export default [
+import type { Provider } from '@angular/core';
+import { SHORTCUTS_SETUP, type Shortcut, type ShortcutActions } from 'slide-ng/lib/shortcuts';
+
+const providers: Provider[] = [
   {
     provide: SHORTCUTS_SETUP,
-    useValue: (actions, list) => [...list, { name: 'back', key: 'b', run: actions.prevSlide }],
+    useValue: (actions: ShortcutActions, list: Shortcut[]): Shortcut[] => [
+      ...list,
+      { name: 'back', key: 'b', run: actions.prevSlide },
+    ],
   },
 ];
+export default providers;
 ```
 
 ## Sharing it

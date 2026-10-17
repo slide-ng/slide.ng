@@ -85,7 +85,8 @@ A layout is a standalone Angular component with a `selector` and an exported cla
 (`@Component({ ... selector: '...' ... }) export class Name`), so keep the selector as a string literal. Slide content goes into
 `<ng-content />`. A layout that replaces a built-in one **keeps the built-in layout's inputs** (for example `cover` keeps `background`):
 the frontmatter keys that are inputs become attributes of your tag, so give your component inputs of the same names. To change the list,
-use `theme.json`.
+use `theme.json`. Text, numbers and booleans arrive as text, as for any HTML attribute: use `input(0, { transform: numberAttribute })` or
+`booleanAttribute` for them (`draft: false` is the text `"false"` otherwise). A list or an object (`owners: [Priya, Jonas]`) is bound as its value.
 
 ### Components
 
@@ -139,9 +140,14 @@ The hooks of a theme or addon work the same as in a deck and are listed, with ex
 slide-ng theme eject [slides.md] [--dir theme]
 ```
 
-Copies the theme in use into `./theme` and sets `theme: ./theme`. For the built-in theme this copies every layout (their imports
-are rewritten to `slide-ng/...`) and the layouts' CSS as `styles/index.css`. For a package it copies the whole package folder without
+Copies the theme in use into `./theme` and sets `theme: ./theme` (`--theme` or `SLIDE_NG_THEME` picks another theme). For the
+built-in theme this copies every layout (their imports are rewritten to `slide-ng/...`, including the helpers `background` and `frame`,
+which stay in the package) and the layouts' CSS as `styles/index.css`. For a package it copies the whole package folder without
 `node_modules`, `.git` and symbolic links. It refuses a folder that is not empty.
+
+The built-in styles still load before the ejected `styles/index.css`: your copy overrides them rule by rule, so deleting a rule from the
+copy brings the built-in one back (to undo it, override it, for example `.slidev-layout.end { background: none }`). A later slide.ng
+version can change the built-in rules under your copy.
 
 ## How it works (for debugging)
 
