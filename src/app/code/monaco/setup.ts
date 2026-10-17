@@ -13,4 +13,17 @@ import * as monaco from 'monaco-editor';
   },
 };
 
+// Their language features would ask a JSON, CSS or HTML worker that is not bundled, and log "Missing requestHandler" errors:
+// turn every feature off, so those languages are highlighted and edited only.
+for (const defaults of [
+  monaco.json.jsonDefaults,
+  monaco.css.cssDefaults,
+  monaco.css.scssDefaults,
+  monaco.css.lessDefaults,
+  monaco.html.htmlDefaults,
+])
+  defaults.setModeConfiguration(
+    Object.fromEntries(Object.keys(defaults.modeConfiguration).map((k) => [k, false])),
+  );
+
 export { monaco };

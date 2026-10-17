@@ -205,9 +205,16 @@ export class MonacoEditor {
 
   protected execute = async (code: string) => {
     await this.ready;
-    // A runner from a theme replaces the built-in one for its language.
-    const custom = this.runners[this.model?.getLanguageId() ?? ''];
+    // A runner from a theme replaces the built-in one for its language. The code block's language picks it (as in Slidev),
+    // also one Monaco does not know (the editor then shows plain text).
+    const modelLang = this.model?.getLanguageId() ?? '';
+    const custom = this.runners[this.lang()] ?? this.runners[modelLang];
     if (custom) return custom(code);
+    if (modelLang !== 'javascript' && modelLang !== 'typescript')
+      return {
+        lines: [],
+        error: `No code runner for "${this.lang()}": add one in setup/code-runners.ts (see docs/SETUP.md)`,
+      };
     let js = code;
     if (this.model && this.model.getLanguageId() === 'typescript') {
       const worker = await this.monaco!.typescript.getTypeScriptWorker();
