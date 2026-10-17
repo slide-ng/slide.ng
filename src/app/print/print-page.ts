@@ -8,6 +8,8 @@ import { Nav } from '../lib/nav';
 import { parseRange } from '../lib/range';
 import { Ui } from '../lib/ui-state';
 import { PrintSlide } from './print-slide';
+import { initialDrawings } from '../drawing/persistence';
+import { SyncState } from '../sync/sync-state';
 
 // The route /print: every slide, one after the other at full size, for a PDF or for screenshots.
 //   ?print=clicks   one page for every click step    ?range=1,3-5   only these slides
@@ -36,6 +38,8 @@ export class PrintPage {
 
   constructor() {
     inject(Dark); // applies the light or dark class to <html>
+    // The deck's drawings (persisted ones and this browser's) are drawn on paper too; the deck page loads them itself.
+    inject(SyncState).drawings.update((d) => ({ ...initialDrawings(), ...d }));
     const doc = inject(DOCUMENT);
     doc.documentElement.classList.add('print');
     // The paper is the size of one slide, with no margin.
