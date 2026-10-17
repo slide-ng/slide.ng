@@ -57,5 +57,11 @@ describe('clockParts', () => {
       m: '-0',
       s: '30',
     });
+    // more than an hour over: the minus is in front of the hours
+    expect(clockParts('countdown', 2700, running, 1000 + 125 * 60_000 + 1000)).toEqual({
+      h: '-1',
+      m: '20',
+      s: '01',
+    });
   });
 });

@@ -1,6 +1,6 @@
 // The presenter timer (Slidev's useTimer): a stopwatch that counts up, or a countdown from `duration`.
 // The state is shared, so the presenter page, the notes page and other windows show the same time.
-import { Injectable, computed, effect, inject, signal } from '@angular/core';
+import { DestroyRef, Injectable, computed, effect, inject, signal } from '@angular/core';
 import { HEADMATTER } from '../../slides/generated';
 import { TimerState } from '../sync/shared-state';
 import { SyncState } from '../sync/sync-state';
@@ -43,9 +43,10 @@ export function clockParts(
   const h = Math.floor(abs / 3_600_000);
   const m = Math.floor(abs / 60_000) % 60;
   const s = Math.floor(abs / 1000) % 60;
+  // The minus goes in front of the first part shown: -1:20:01, -4:05.
   return {
-    h: h ? String(h) : '',
-    m: (negative ? '-' : '') + (h ? String(m).padStart(2, '0') : String(m)),
+    h: h ? (negative ? '-' : '') + String(h) : '',
+    m: (negative && !h ? '-' : '') + (h ? String(m).padStart(2, '0') : String(m)),
     s: String(s).padStart(2, '0'),
   };
 }
@@ -82,6 +83,11 @@ export class Timer {
     // A reload of the presenter page keeps a running or paused timer (it is kept per tab).
     const saved = readSaved();
     if (saved && saved.status !== 'stopped' && this.state().status === 'stopped') this.set(saved);
+    // A window that opens later (a second presenter, the notes page) asks where we are: tell it the timer too.
+    const answer = this.sync.onHello(() => {
+      if (this.state().status !== 'stopped') this.sync.patchShared({ timer: this.state() });
+    });
+    inject(DestroyRef).onDestroy(answer);
     effect((onCleanup) => {
       if (this.status() !== 'running') return;
       this.now.set(Date.now());

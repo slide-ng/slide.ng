@@ -12,6 +12,7 @@ export class WebSocketTransport implements SyncTransport {
   private socket: WebSocket | null = null;
   private waiting: string[] = [];
   private delay = 500;
+  private opened = false;
 
   constructor(private api: DevApi) {
     void this.connect();
@@ -37,6 +38,10 @@ export class WebSocketTransport implements SyncTransport {
     this.socket = socket;
     socket.onopen = () => {
       this.delay = 500;
+      // Back after a lost connection: the others moved on meanwhile, so ask where they are (presenters answer), as a
+      // window that opens does (SyncState.sendHello).
+      if (this.opened) socket.send(JSON.stringify({ channel: 'hello', data: {} }));
+      this.opened = true;
       this.waiting.splice(0).forEach((text) => socket.send(text));
     };
     socket.onmessage = (e) => {

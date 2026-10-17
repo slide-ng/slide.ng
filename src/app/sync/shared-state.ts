@@ -21,8 +21,9 @@ export interface SharedState {
   timer: TimerState;
   /** `null` = the presenter's cursor is not over the slide. (null, not undefined: JSON keeps null.) */
   cursor: Cursor | null;
-  /** Who moved last. A window ignores updates that came from its own kind. */
-  lastUpdate: { id: string; type: 'presenter' | 'viewer'; time: number } | null;
+  /** Who moved last. A window ignores updates that came from its own kind. `via` is set when a presenter passes on a
+   *  viewer's move (so the other viewers follow too): the id of that viewer, which ignores its own move coming back. */
+  lastUpdate: { id: string; type: 'presenter' | 'viewer'; time: number; via?: string } | null;
 }
 
 export const initialShared = (): SharedState => ({
@@ -79,6 +80,7 @@ export function cleanShared(data: unknown): Partial<SharedState> {
     num(u['time'])
   ) {
     out.lastUpdate = { id: u['id'].slice(0, 64), type: u['type'], time: u['time'] };
+    if (typeof u['via'] === 'string') out.lastUpdate.via = u['via'].slice(0, 64);
   }
   return out;
 }

@@ -19,16 +19,17 @@ export function startNavSync(nav: Nav) {
   const type = nav.isPresenter ? 'presenter' : 'viewer';
   const mayShare = nav.isPresenter || isLocalPage(location);
   let applied = ''; // "page:clicks" of the last move that came from outside: it is not sent back
+  let appliedFrom = ''; // the window that made it
   let first = true;
 
-  const send = () => {
+  const send = (via?: string) => {
     const d = sync.directions();
     if (!(nav.isPresenter ? d.presenterSend : d.viewerSend) || !mayShare) return;
     sync.patchShared({
       page: nav.no(),
       clicks: nav.clicks(),
       clicksTotal: nav.clicksTotal(),
-      lastUpdate: { id: sync.id, type, time: Date.now() },
+      lastUpdate: { id: sync.id, type, time: Date.now(), ...(via ? { via } : {}) },
     });
   };
 
@@ -42,9 +43,12 @@ export function startNavSync(nav: Nav) {
     untracked(() => {
       if (!mounted) return; // the slide is still being created
       const fromOutside = applied === `${page}:${clicks}`;
-      applied = '';
+      const from = appliedFrom;
+      applied = appliedFrom = '';
       const initial = first;
       first = false;
+      // A viewer's move reached the presenter: pass it on, so the other viewers follow too (as Slidev's presenter does).
+      if (fromOutside && nav.isPresenter && from) return send(from);
       if (fromOutside || (initial && !nav.isPresenter)) return;
       send();
     });
@@ -62,14 +66,17 @@ export function startNavSync(nav: Nav) {
       const d = sync.directions();
       if (!(nav.isPresenter ? d.presenterReceive : d.viewerReceive)) return;
       if (!s.lastUpdate || s.lastUpdate.type === type || s.page < 1) return;
+      if (s.lastUpdate.via === sync.id) return; // our own move, passed on by the presenter
       const page = Math.min(s.page, nav.total);
       if (page === nav.no() && s.clicks === nav.clicks()) return;
       applied = `${page}:${s.clicks}`;
+      appliedFrom = s.lastUpdate.type === 'viewer' ? s.lastUpdate.id : '';
       nav.jump(page, s.clicks);
     });
   });
 
-  // A window that opens later asks where we are; presenters answer.
+  // A window that opens later asks where we are; presenters answer (the timer answers too, see presenter/timer.ts). A
+  // second presenter asks as well: it ignores the other presenter's position, but takes its running timer.
   if (nav.isPresenter) inject(DestroyRef).onDestroy(sync.onHello(send));
-  else sync.sendHello();
+  sync.sendHello();
 }
