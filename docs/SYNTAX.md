@@ -183,6 +183,9 @@ Two forms exist because of how Angular reads attributes:
 - `slide-ng-click="3"` or `slide-ng-click="+2"` is plain text; slide.ng turns it into a number or a relative step.
 - `[slide-ng-click]="[2, 4]"` is an Angular binding; use it for ranges and for any value you compute.
 
+`slide-ng-after` and `+n` count from the relative counter, as in Slidev: the last plain or `+n` click before them, not an absolute
+`slide-ng-click="3"`. After only absolute clicks, `slide-ng-after` shows from the start; give it a number too (`slide-ng-click="3"`).
+
 List items one by one:
 
 ```md
@@ -543,6 +546,12 @@ not included: use Angular's `animate.enter` / `animate.leave` or CSS.
 
 In the PDF and in the overview every slide is drawn at once, so `Nav.no()` is the slide being presented, not the slide being drawn:
 inject `SLIDE_NO` to know which slide a component is in.
+
+A slide is drawn in every window that shows it: the presenter page and each audience page (they keep the same slide and click). A
+component that only shows things needs nothing more. One that acts (a timer that calls `nav.next()`, a sound, a request) does so in
+every window, so the deck would move twice: act in one window only, for example when `inject(RENDER_CONTEXT)` (from
+`slide-ng/lib/slide-context`) is `'slide'`, the audience page. It is `'presenter'` on the presenter page and `'previewNext'`, `'print'`
+or `'overview'` in previews.
 
 ## Styling
 
