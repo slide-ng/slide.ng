@@ -11,7 +11,7 @@ import {
   readdirSync,
   writeFileSync,
 } from 'node:fs';
-import { basename, dirname, join, relative, resolve } from 'node:path';
+import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { parseFlags } from './flags.mjs';
 import { setHeadmatterKey } from '../lib/frontmatter-edit.mjs';
 import { findRootDir } from '../lib/roots.mjs';
@@ -76,12 +76,16 @@ export async function themeCommand(argv) {
   const deck = await parseDeck(entry, undefined, { theme: flags.theme });
   const spec = flags.theme ?? deck.headmatter.theme ?? 'default';
   if (spec === 'none') throw new Error('The theme is "none": there is nothing to eject');
-  if (spec.startsWith('.') || spec.startsWith('/'))
-    throw new Error(`The theme "${spec}" is already a folder of this deck`);
+  const source = spec === 'default' ? null : findRootDir(spec, 'theme', root);
+  // A theme folder inside the deck can be edited where it is; one elsewhere (a shared folder) is copied like a package.
+  const isPath = spec.startsWith('.') || spec.startsWith('/');
+  const inDeck =
+    source && !relative(root, source).startsWith('..') && !isAbsolute(relative(root, source));
+  if (isPath && inDeck) throw new Error(`The theme "${spec}" is already a folder of this deck`);
 
   mkdirSync(target, { recursive: true });
   if (spec === 'default') ejectBuiltIn(target);
-  else ejectFolder(findRootDir(spec, 'theme', root), target);
+  else ejectFolder(source, target);
 
   writeFileSync(entry, setHeadmatterKey(readFileSync(entry, 'utf8'), 'theme', `./${dirName}`));
   console.log(

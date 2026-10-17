@@ -57,5 +57,7 @@ export async function createCommand(argv, packageRoot = ownRoot) {
   // npm leaves out files called .gitignore when it packs a package, so the template keeps it as _gitignore.
   if (existsSync(join(target, '_gitignore')))
     renameSync(join(target, '_gitignore'), join(target, '.gitignore'));
-  console.log(`Created ${target}\n\n  cd ${positionals[0]}\n  npm install\n  npm run dev\n`);
+  // Quoted when it has a space, so the line can be pasted.
+  const dir = /\s/.test(positionals[0]) ? JSON.stringify(positionals[0]) : positionals[0];
+  console.log(`Created ${target}\n\n  cd ${dir}\n  npm install\n  npm run dev\n`);
 }

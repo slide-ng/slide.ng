@@ -42,7 +42,9 @@ export function scanRoots(roots) {
   for (const root of roots) {
     for (const file of tsFilesIn(join(root.dir, 'layouts'))) {
       const name = file.slice(0, -3);
-      const found = declarations(readFileSync(join(root.dir, 'layouts', file), 'utf8'))[0];
+      const text = readFileSync(join(root.dir, 'layouts', file), 'utf8');
+      const found = declarations(text)[0];
+      if (!found && !text.includes('@Component')) continue; // a helper file (an ejected theme has background.ts)
       if (!found) {
         problems.push(
           `${root.id}/layouts/${file}: no component with a selector and an exported class, ignored`,

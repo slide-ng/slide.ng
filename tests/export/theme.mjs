@@ -70,6 +70,14 @@ t.ok(
     /^theme: \.\/theme$/m.test(readFileSync(join(ejected, 'slides.md'), 'utf8')),
   ejectOut.trim(),
 );
+// A theme folder outside the deck (here given by its absolute path) is copied in like a package.
+const shared = deck('shared', `theme: ${themeDir}\n`, true);
+await cli(['theme', 'eject'], shared);
+t.ok(
+  'theme eject copies a theme folder from outside the deck',
+  existsSync(join(shared, 'theme/layouts/cover.ts')) &&
+    /^theme: \.\/theme$/m.test(readFileSync(join(shared, 'slides.md'), 'utf8')),
+);
 const ejectedFiles = readdirSync(join(ejected, 'theme/layouts')).map((f) =>
   readFileSync(join(ejected, 'theme/layouts', f), 'utf8'),
 );

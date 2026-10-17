@@ -86,12 +86,14 @@ describe('scanRoots', () => {
   it('adds components, tests for their use, and reports unusable files', () => {
     const r = root('deck', {
       'components/box.ts': "@Component({ selector: 'my-box' }) export class MyBox {}",
-      'layouts/broken.ts': 'export const nothing = 1;',
+      'layouts/broken.ts': "@Component({ template: '' }) class NotExported {}",
+      'layouts/helper.ts': 'export const nothing = 1;', // a helper (an ejected theme has background.ts)
     });
     const { components, problems } = scanRoots([r]);
     const box = components.find((c: any) => c.className === 'MyBox');
     expect(box.importPath).toBe('./roots/deck/components/box');
     expect(box.test.test('<my-box>')).toBe(true);
     expect(problems[0]).toContain('broken.ts');
+    expect(problems.join()).not.toContain('helper.ts');
   });
 });

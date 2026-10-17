@@ -1,16 +1,17 @@
 #!/usr/bin/env node
 // The command line of slide.ng. `slide-ng [slides.md]` starts the dev server; the other commands are listed in HELP.
+import { readFileSync } from 'node:fs';
 import { pickCommand } from '../scripts/cli/pick-command.mjs';
 
 // Each command lives in scripts/cli/ and is loaded only when it is used, so `slide-ng --help` is instant.
 
 const HELP = `slide-ng: slides from markdown
 
-Usage: slide-ng [command] [slides.md] [flags]
+Usage: slide-ng [command] [slides.md] [flags]      (slide-ng --version prints the version)
 
 Commands:
   dev (default)   start the dev server       --port --open --remote[=password] --bind --log --force
-  build           make a static site          --base --out --download --without-notes --offline
+  build           make a static site          --base --out --download --without-notes --offline --theme ...
   export          make a PDF, PNG, PPTX or Markdown file    --format --output --range --with-clicks --dark --scale ...
   export-notes    make a PDF of the speaker notes
   format          tidy slides.md
@@ -37,7 +38,10 @@ const COMMANDS = {
 
 const [command, args] = pickCommand(process.argv.slice(2));
 try {
-  if (
+  if (process.argv[2] === '--version' || process.argv[2] === '-v') {
+    const pkg = new URL('../package.json', import.meta.url);
+    console.log(JSON.parse(readFileSync(pkg, 'utf8')).version);
+  } else if (
     command === 'help' ||
     args.includes('--help') ||
     args.includes('-h') ||
