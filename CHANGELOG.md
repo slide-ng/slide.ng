@@ -16,6 +16,8 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - Warnings for `<script>` in a slide, an `@if`/`@for` in the middle of a line, `mdc: true` / `comark: true`, and a `javascript:` link (replaced by `#`).
 - Slidev's UnoCSS shortcuts `abs-tl`, `abs-tr`, `abs-b`, `abs-bl`, `abs-br`, `bg-primary` and the z-index names `z-drawing`, `z-camera`, `z-dragging`, `z-label`, `z-focus-indicator`.
 - `skills/slide-ng/references/port-a-slidev-deck.md`: a recipe for porting a Slidev deck, with a worked Vue to Angular example and a list of pitfalls.
+- `customElements` in the headmatter (`[model-viewer, sl-*]`) lets slides use web components; Angular's "is not a known element" error points to it.
+- A `setup/monaco.ts` theme may be `{ light, dark }`; a single name is used in both modes and is no longer replaced when the mode changes.
 
 ### Changed
 
@@ -25,6 +27,11 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - With `dev --remote`, the presenter, notes and notes-print pages need the password (without it they go to the slides).
 - A deck's `setup/shortcuts.ts` adds to a theme's shortcut provider instead of replacing it.
 - The npm package no longer contains `src/slides/generated`.
+- A shortcut added later wins over an earlier one with the same key (a later root's or the deck's replaces a built-in key), and a deck's `CODE_RUNNERS` provider wins over a theme's or addon's `setup/code-runners.ts`.
+- A theme whose `theme.json` sets `colorSchema: light` or `dark` keeps that mode in every deck, as in Slidev.
+- `--remote` logins are signed with the password, so they survive a restart of the dev server with the same password.
+- `dev`, `build` and `export` each use their own working copy of the app (`.slide-ng/app`, `app-build`, `app-export`), so a build while `dev` runs no longer breaks it.
+- The npm package no longer contains the maintenance scripts, `docs/screenshots` or `docs/contributing` (0.5 MB instead of 1.9 MB).
 
 ### Fixed
 
@@ -50,6 +57,16 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - MCP: `remove_slide` named the wrong slide, `update_slide` could not add or remove frontmatter, and edits dropped the blank line before `---`.
 - Themes: cover pictures, layout inputs (`issue`, `date`, `no`, `sheet`), end slides, subtitle contrast, task lists and Arabic headings in the example themes.
 - A code block is a block box, so the margin and border of `.slidev-code-wrapper` apply (the wrapper was an inline element).
+- Phones: swipes never moved the slides (the browser took the gesture), a sideways swipe went back in the history, a touch beside the slide moved at the start of a swipe, the bar was hidden in portrait so the first tap pressed a hidden button, and the next-slide preview of a presenter page on its side was 25 px tall.
+- Sync: a viewer's move reached the presenter but not the other viewers; a device whose connection came back did not catch up; a second presenter showed a stopped timer; overtime past an hour read `1:-20:01`.
+- Keyboard and screen readers: Tab left the overview and the info dialog, arrow keys moved the slides behind the info dialog and a modal `<dialog>`, the presenter timer had no buttons, the presenter page announced nothing, and the test readout and the closed goto box were read out.
+- Side editor: editing a heading, a note or a click list reloaded the page and lost the caret, and a save after the slide had changed in the file could overwrite another slide (it is refused now). `{monaco-write}` lost the focus after the first save.
+- Links: `[four](/4)` and `[x](/alias)` leave the deck no more (they move inside it, also with a base, hash routing or offline), `[x](#id)` scrolls on the same slide, links to `public/` files, `srcset`, `poster` and `<object data>` get the base, and `<slide-ng-link>` has a real address (Ctrl+click opens a new tab).
+- Generator: a component used as an attribute after another one (`<button appRipple>`) was not imported; two addons with a `Badge` class lost one of them; the same selector in two roots stopped the build; a `<style>` inside `srcdoc` was taken as the slide's; spaces next to a Twoslash popup became boxes.
+- Dev server: it did not start when slide.ng is installed in a folder with a space; a layout that stopped being used broke every later rebuild; a package updated in the deck was served from the old bundle; icon sets installed in the deck were not found.
+- Export: slide PDFs lost their tags, and HTML in a heading (`<sub>`, `<ruby>`) showed in the outline, the tab title, the table of contents and goto. A range that picks no slide fails before the build.
+- CLI: a value flag took the next flag as its value (`--out --base /x/`); theme.json values of the wrong type and an empty theme package are reported; the sandbox error no longer suggests installing a browser.
+- App: radio buttons and checkboxes work with the keyboard again, keys that finish an input method's text no longer move the slides, table header alignment is kept, `bg-*` classes win over the reset on buttons, a custom code runner that throws no longer hangs, `theme-paper` headings use the deck's serif font, and a slow first visit says the slides are loading.
 
 ## [0.1.0] - 2026-10-16
 

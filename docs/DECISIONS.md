@@ -466,3 +466,16 @@ Source: an independent review of the repository (nine findings). Each fix has a 
 9. **`dev`, `build` and `export` each have their own working copy** (`.slide-ng/app`, `app-build`, `app-export`). They shared one, so a
    build while the dev server ran replaced the files under it and stopped it. The price is a slower first build for each command (each has
    its own Angular cache).
+10. **Of two shortcuts with the same key, the later one wins.** The list is built theme, addons, deck, so appending
+    `{ key: 'k' }` replaces an earlier root's `k` or a built-in key. Slidev runs every match; one action per key is easier to predict. For the
+    same reason a deck's `CODE_RUNNERS` provider comes after every root's `setup/code-runners.ts`.
+11. **A theme made for one mode keeps it.** `colorSchema: light` or `dark` in a `theme.json` means the theme has no colours for the other
+    mode, so a deck's `auto` (or the other mode) would show unstyled slides; the deck keeps the theme's mode and the generator says so.
+    This matches Slidev's `colorSchema` in a theme's package.
+12. **`--remote` logins are signed with the password** (`id.expiry.HMAC`) instead of being kept in the server's memory, so restarting the
+    dev server mid-talk does not ask every device for the password again. A login still runs out after 8 hours; changing the password ends
+    every login at once, and that is the only way to end one early (as before, there is no log-out).
+13. **Web components are allowed per tag (`customElements: [...]`), per slide.** `CUSTOM_ELEMENTS_SCHEMA` on every slide would hide
+    every mistyped component name; only the slides that use a listed tag get it.
+14. **Swipes use touch events**, with `touch-action: pan-y pinch-zoom` on the stage: a sideways swipe is the deck's, pinch zoom stays the
+    browser's, and an up or down swipe still counts after the browser has taken it as panning (which cancels pointer events).
