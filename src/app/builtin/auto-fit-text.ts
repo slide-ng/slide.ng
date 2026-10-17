@@ -33,7 +33,8 @@ export function biggestFit(min: number, max: number, fits: (size: number) => boo
   template: `<div #inner class="slidev-auto-fit-text-inner">
     <ng-content>{{ modelValue() }}</ng-content>
   </div>`,
-  styles: ['.slidev-auto-fit-text-inner { display: inline-block; }'],
+  // A line height relative to the size: an inherited one in px would let big lines overlap and spill out.
+  styles: ['.slidev-auto-fit-text-inner { display: inline-block; line-height: 1.2; }'],
 })
 export class AutoFitText implements AfterViewInit, OnDestroy {
   modelValue = input('');

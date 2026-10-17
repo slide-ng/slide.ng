@@ -105,6 +105,7 @@ export class Mermaid {
     if (!svg || scale == null || isNaN(height)) return;
     svg.setAttribute('height', String(height * scale));
     svg.removeAttribute('width');
-    svg.removeAttribute('style');
+    // Never wider than the slide: a gantt chart is drawn as wide as the window, so scaling its height alone overflowed.
+    svg.setAttribute('style', 'max-width: 100%');
   }
 }
