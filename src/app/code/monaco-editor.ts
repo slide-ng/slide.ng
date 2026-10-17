@@ -83,6 +83,9 @@ export class MonacoEditor {
   private ready: Promise<void>;
   private markReady!: () => void;
   private setups = inject(MONACO_SETUP);
+  // The editor theme in light and in dark mode. `theme` from setup/monaco.ts is one name for both, or `{ light, dark }`.
+  private themes = signal({ light: 'vs', dark: 'vs-dark' });
+  private theme = computed(() => this.themes()[this.dark.isDark() ? 'dark' : 'light']);
 
   protected height = computed(() => {
     const h = this.heightOption();
@@ -97,7 +100,7 @@ export class MonacoEditor {
     inject(DestroyRef).onDestroy(() => this.disposables.disposeAll());
     // Read the mode first: before Monaco loads the call below is skipped, and an effect that read nothing never runs again.
     effect(() => {
-      const theme = this.dark.isDark() ? 'vs-dark' : 'vs';
+      const theme = this.theme();
       this.monaco?.editor.setTheme(theme);
     });
   }
@@ -119,6 +122,11 @@ export class MonacoEditor {
     const fromSetup: Monaco.editor.IStandaloneEditorConstructionOptions = {};
     for (const setup of this.setups) Object.assign(fromSetup, await setup(monaco));
     if (this.disposables.isDisposed) return;
+    const theme: unknown = fromSetup.theme;
+    delete fromSetup.theme;
+    if (typeof theme === 'string') this.themes.set({ light: theme, dark: theme });
+    else if (theme && typeof theme === 'object')
+      this.themes.update((t) => ({ ...t, ...(theme as { light?: string; dark?: string }) }));
     const lang = LANGUAGES[this.lang()] ?? this.lang();
     const ext = EXTENSIONS[lang] ?? lang;
     const newModel = (value: string) =>
@@ -147,7 +155,7 @@ export class MonacoEditor {
       fontFamily: 'var(--slidev-code-font-family)',
       scrollBeyondLastLine: false,
       useInlineViewWhenSpaceIsLimited: false,
-      theme: this.dark.isDark() ? 'vs-dark' : 'vs',
+      theme: this.theme(),
     } as const;
     const options: Monaco.editor.IStandaloneEditorConstructionOptions = { ...base, ...fromSetup };
 

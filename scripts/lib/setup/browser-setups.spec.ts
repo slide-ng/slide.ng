@@ -34,6 +34,11 @@ describe('setupSource', () => {
     );
   });
 
+  it('keeps code runners from providers.ts and code-runners.ts in root order, so the deck wins', () => {
+    const text = setupSource([root('addon-a', ['code-runners']), root('deck', ['providers'])]);
+    expect(text.indexOf('...codeRunnerProviders(')).toBeLessThan(text.indexOf('...providers1'));
+  });
+
   it('still reads the older setup/providers.ts', () => {
     expect(setupSource([root('deck', ['providers'])])).toMatch(/\.\.\.providers0\]/);
   });

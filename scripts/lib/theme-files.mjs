@@ -25,13 +25,19 @@ export function setupSource(roots) {
   const has = (r, name) => existsSync(join(r.dir, 'setup', `${name}.ts`));
   const imports = [];
   const list = [];
-  roots
-    .filter((r) => has(r, 'providers'))
-    .forEach((r, i) => {
+  // `providers.ts` and `code-runners.ts` are in root order together: both can give a CODE_RUNNERS entry, and the later one wins.
+  roots.forEach((r, i) => {
+    if (has(r, 'providers')) {
       imports.push(`import providers${i} from './roots/${r.id}/setup/providers';`);
       list.push(`...providers${i}`);
-    });
+    }
+    if (has(r, 'code-runners')) {
+      imports.push(`import codeRunners${i} from './roots/${r.id}/setup/code-runners';`);
+      list.push(`...codeRunnerProviders([codeRunners${i}])`);
+    }
+  });
   for (const [name, helper] of BROWSER_SETUPS) {
+    if (name === 'code-runners') continue;
     const names = roots
       .filter((r) => has(r, name))
       .map((r) => {

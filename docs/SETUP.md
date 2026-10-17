@@ -122,10 +122,17 @@ and the object it returns is merged into the options of every editor. It may be 
 import type * as Monaco from 'monaco-editor';
 
 export default (monaco: typeof Monaco) => {
-  monaco.editor.defineTheme('mine', { base: 'vs-dark', inherit: true, rules: [], colors: {} });
-  return { fontSize: 14, minimap: { enabled: true }, theme: 'mine' };
+  monaco.editor.defineTheme('mine-light', { base: 'vs', inherit: true, rules: [], colors: {} });
+  monaco.editor.defineTheme('mine-dark', { base: 'vs-dark', inherit: true, rules: [], colors: {} });
+  return {
+    fontSize: 14,
+    minimap: { enabled: true },
+    theme: { light: 'mine-light', dark: 'mine-dark' },
+  };
 };
 ```
+
+`theme` is one name for light and dark mode alike, or `{ light, dark }` to follow the deck's mode (the default is `vs` and `vs-dark`).
 
 ## Code runners: `setup/code-runners.ts`
 
@@ -143,6 +150,7 @@ export default () => ({
 
 Gets the actions and the list so far, and returns the list to use. A shortcut is `{ name, key, run, when? }`; `key` is a `KeyboardEvent.key`
 name, with `shift+` in front if needed, and `space` for the space bar. The roots are chained: each gets the list the one before returned.
+When two shortcuts have the same key, the one later in the list wins: appending one replaces a built-in key or an earlier root's.
 
 ```ts
 // setup/shortcuts.ts

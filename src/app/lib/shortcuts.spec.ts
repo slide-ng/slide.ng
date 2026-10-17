@@ -116,12 +116,21 @@ describe('default shortcuts (the same keys as Slidev)', () => {
 });
 
 describe('findShortcut', () => {
-  it('takes the first match that is allowed right now', () => {
+  it('takes a match that is allowed right now', () => {
     const list: Shortcut[] = [
       { name: 'a', key: 'x', run: () => {}, when: () => false },
       { name: 'b', key: 'x', run: () => {} },
     ];
     expect(findShortcut(key('x'), list)?.name).toBe('b');
+  });
+  it('lets a shortcut added later win over one with the same key', () => {
+    const list: Shortcut[] = [
+      { name: 'addon-a', key: 'k', run: () => {} },
+      { name: 'addon-b', key: 'k', run: () => {} },
+    ];
+    expect(findShortcut(key('k'), list)?.name).toBe('addon-b');
+    const deck = [...defaultShortcuts(actions([])), { name: 'mine', key: 'space', run: () => {} }];
+    expect(findShortcut(key(' '), deck)?.name).toBe('mine');
   });
   it('lets a deck replace a shortcut by filtering the list', () => {
     const setup = (_a: ShortcutActions, list: Shortcut[]) =>

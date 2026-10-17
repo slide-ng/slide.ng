@@ -100,7 +100,9 @@ export function matches(
   return pressed === key && e.shiftKey === shift;
 }
 
-/** The first shortcut that matches and is allowed right now. */
+/** The shortcut that matches and is allowed right now; of two, the one added later (a later root's, the deck's) wins. */
 export function findShortcut(e: KeyboardEvent, list: Shortcut[]): Shortcut | undefined {
-  return list.find((s) => matches(e, s.key) && (s.when?.() ?? true));
+  for (let i = list.length - 1; i >= 0; i--)
+    if (matches(e, list[i].key) && (list[i].when?.() ?? true)) return list[i];
+  return undefined;
 }
