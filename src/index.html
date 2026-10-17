@@ -6,8 +6,28 @@
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <!-- Shown only when the app takes more than a second to start (a slow network); Angular replaces it once it runs. -->
+    <style>
+      .slide-ng-loading {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        font:
+          14px system-ui,
+          sans-serif;
+        color: #888;
+        opacity: 0;
+        animation: slide-ng-loading 0.3s 1s forwards;
+      }
+      @keyframes slide-ng-loading {
+        to {
+          opacity: 1;
+        }
+      }
+    </style>
   </head>
   <body>
-    <app-root></app-root>
+    <app-root><div class="slide-ng-loading" role="status">Loading the slides…</div></app-root>
   </body>
 </html>
