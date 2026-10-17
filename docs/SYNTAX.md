@@ -571,7 +571,7 @@ The presenter page has a **Screen Mirror** switch that shows a shared window ins
 ## Settings menu
 
 The same controls as Slidev, in the same order: Invert, Brightness, Contrast, Saturation, Sepia and Hue Rotate (slider and number box, Slidev's ranges and defaults; remembered under `slidev-viewer-css-filter`), Cursor Style (Cursor or Laser, `slidev-cursor-style`), Slide Scale (Fit or 1:1, not on the presenter page), Wake Lock (headmatter `wakeLock: true` starts it on; only where the browser supports it) and Hide Idle Cursor (not on the presenter page). The laser dot follows the pointer on the main page too. Below a divider: Show Presenter Cursor (presenter page), Dark Mode (only when `colorSchema` is `auto`), camera options and "Download as PDF".
-"Download as PDF" appears with `download: true` and is enabled only when the build made the PDF (`build --download`, see HOSTING.md).
+"Download as PDF" appears with `download: true` and is enabled only when the build made the PDF (`slide-ng build` with `download: true` or `--download`, see HOSTING.md).
 
 ## Moving things: `slide-ng-drag`
 
@@ -641,7 +641,7 @@ htmlAttrs: { data-theme: x } # more attributes on <html>
 seoMeta: # Open Graph and Twitter tags (ogTitle, ogDescription, ogImage, ogUrl, twitterCard, ...)
   ogImage: auto # auto = a screenshot of slide 1 made by the build; or a web address. An og-image.png next to slides.md is used when none is given
   ogUrl: https://example.org/talk # the public address; makes the picture's address complete
-download: true # a PDF button in the bar (the PDF is made by `slide-ng build --download`); or a file name or address
+download: true # a PDF button in the bar (`slide-ng build` makes the PDF; without Chromium it warns, `--download` fails); or a file name or address
 exportFilename: my-talk # the name of the exported file, without the extension. Only a plain name: folders and .. are removed
 export: # defaults for `slide-ng export`; command line flags win
   format: pdf

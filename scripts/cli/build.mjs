@@ -122,13 +122,23 @@ async function afterBuild({ dist, deck, entry, root, base, workDir, download, fl
       console.log(`download points to ${target}; no PDF is made`);
     else if (download) {
       const options = resolveExportOptions(exportOptions, head);
-      await exportSlides({
-        deck,
-        options: { ...options, format: 'pdf' },
-        served,
-        routerMode,
-        outBase: join(dist, target.replace(/\.pdf$/, '')),
-      });
+      const makePdf = () =>
+        exportSlides({
+          deck,
+          options: { ...options, format: 'pdf' },
+          served,
+          routerMode,
+          outBase: join(dist, target.replace(/\.pdf$/, '')),
+        });
+      // `--download` asks for the PDF, so it must be made. `download: true` in the headmatter alone only warns, like the
+      // install icons: the site is built and its PDF button stays disabled.
+      if (flags.download) await makePdf();
+      else
+        await makePdf().catch((error) =>
+          console.warn(
+            `No PDF for the download button: ${String(error.message).split('\n')[0]} (pass --download to make this an error)`,
+          ),
+        );
     }
   } finally {
     await server?.close();
