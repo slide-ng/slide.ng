@@ -40,7 +40,7 @@ export class Stage {
     return this.current.instance;
   }
 
-  // The new slide is created at once but stays hidden. The browser takes a picture of the old page,
+  // The new slide is created at once but stays out of the page. The browser takes a picture of the old page,
   // we remove the old slide and reveal the new one, and the browser cross-fades between the two.
   private viewTransition(old: ComponentRef<SlideBase>, entering: ComponentRef<SlideBase>) {
     if (!('startViewTransition' in document)) return old.destroy(); // no support: switch without animation
@@ -51,9 +51,11 @@ export class Stage {
       done = true;
       this.pendingSwap = undefined;
       old.destroy();
-      element.style.visibility = '';
+      element.style.display = '';
     };
-    element.style.visibility = 'hidden';
+    // display:none, not visibility:hidden: a hidden element still counts when the browser captures the old page, so a
+    // view-transition-name shared by both slides was a duplicate and the browser skipped the transition.
+    element.style.display = 'none';
     this.pendingSwap = swap;
     (
       document as Document & { startViewTransition(update: () => void): unknown }

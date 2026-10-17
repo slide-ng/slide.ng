@@ -297,9 +297,13 @@ transition: view-transition
 
 # transition after fade
 
+<h2 style="view-transition-name: vt-hero">Shared title</h2>
+
 ---
 
 # transition after view-transition
+
+<h2 style="view-transition-name: vt-hero">Shared title</h2>
 
 ---
 

@@ -47,10 +47,10 @@ describe('Stage with a view transition', () => {
     stage.show(1, null);
     stage.show(2, 'view-transition');
     expect(made[0].destroyed).toBe(false);
-    expect(made[1].location.nativeElement.style.visibility).toBe('hidden');
+    expect(made[1].location.nativeElement.style.display).toBe('none');
     swaps[0]();
     expect(made[0].destroyed).toBe(true);
-    expect(made[1].location.nativeElement.style.visibility).toBe('');
+    expect(made[1].location.nativeElement.style.display).toBe('');
   });
 
   it('leaves one slide after two quick moves', () => {
