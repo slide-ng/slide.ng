@@ -11,6 +11,7 @@ import { hasRootUrl, rebaseCss, rebaseHtml } from './asset-paths.mjs';
 import { assertNoRenamedNames } from './renamed.mjs';
 import { commonPipes } from './pipes.mjs';
 import { commonDirectives } from './angular-imports.mjs';
+import { setWarnSlide } from './code/highlighter.mjs';
 
 const pad = (no) => String(no).padStart(3, '0');
 export const slideName = (no) => `slide-${pad(no)}`;
@@ -142,7 +143,12 @@ export function slideSource(slide, no, deck = {}) {
   const layouts = deck.layouts ?? LAYOUTS;
   const layoutKey = slide.layout ?? layoutName(slide.frontmatter, no - 1, layouts);
   const def = layouts[layoutKey];
+  setWarnSlide(no);
   const { markdown, css } = extractStyles(tagDragSites(slide.content));
+  if (/@apply\b/.test(css))
+    console.warn(
+      `[slides] slide ${no}: @apply in a <style> does nothing here (there is no UnoCSS directive transformer); put the classes on the element, or write the CSS out`,
+    );
   warnInlineControlFlow(markdown, no);
   const layer = (name) =>
     deck.layers?.includes(name) ? `<app-slide-layer name="${name}"></app-slide-layer>` : '';

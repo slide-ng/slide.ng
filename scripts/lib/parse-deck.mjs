@@ -82,6 +82,12 @@ export async function parseDeck(file = 'slides.md', sources, options = {}) {
         `${entry}: \`${key}: true\` is not supported (MDC syntax such as :span[x]{.c} stays text); use HTML with classes instead`,
       );
 
+  // Old Slidev decks pick Prism; code here is always Shiki, so Prism theme CSS no longer applies.
+  if (data.headmatter.highlighter && data.headmatter.highlighter !== 'shiki')
+    problems.push(
+      `${entry}: \`highlighter: ${data.headmatter.highlighter}\` is not used: code is highlighted with Shiki (pick its colours in setup/shiki.ts); CSS written for Prism tokens does not apply`,
+    );
+
   // A slide's frontmatter is parsed leniently, so a broken one would just lose keys: stop instead, as for the headmatter.
   data.slides.forEach((slide, i) => {
     const error = slide.source?.frontmatterDoc?.errors?.[0];

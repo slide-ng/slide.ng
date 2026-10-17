@@ -70,6 +70,10 @@ export async function initHighlighter({
 
 export const twoslashTransformer = () => twoslash;
 
+// The slide being generated, for the warning below (the generator sets it, see emit.mjs).
+let warnSlide = 0;
+export const setWarnSlide = (no) => (warnSlide = no);
+
 // The language to draw with, or 'text' (and a warning) when it is not loaded.
 function usableLang(lang) {
   const name = resolveAlias(lang || 'text');
@@ -79,7 +83,9 @@ function usableLang(lang) {
     highlighter.getLoadedLanguages().includes(name)
   )
     return name;
-  console.warn(`[slides] code language "${lang}" is not loaded, showing it as plain text`);
+  console.warn(
+    `[slides] ${warnSlide ? `slide ${warnSlide}: ` : ''}code language "${lang}" is not loaded, showing it as plain text (Shiki has no such language: name a close one with codeAliases, or add it in setup/shiki.ts)`,
+  );
   return 'text';
 }
 

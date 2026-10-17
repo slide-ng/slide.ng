@@ -1,6 +1,6 @@
 // The generator's part of the theme contract (docs/THEMES.md): copies the roots into the app, and writes
 // `layers.ts`, `setup.ts` and `theme.css` from what they bring. Also returns their UnoCSS settings and files for class scanning.
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { fontsCss } from './fonts.mjs';
@@ -58,9 +58,29 @@ export const SETUP_PROVIDERS: (Provider | EnvironmentProviders)[] = [${list.join
 `;
 }
 
+// `@apply` (UnoCSS's directive, common in Slidev themes) is not transformed: the rule would silently do nothing.
+const warnedApply = new Set();
+function warnApply(roots) {
+  for (const r of roots) {
+    const dir = join(r.dir, 'styles');
+    if (!existsSync(dir)) continue;
+    for (const f of readdirSync(dir, { recursive: true })) {
+      const file = join(dir, String(f));
+      if (!String(f).endsWith('.css') || warnedApply.has(file)) continue;
+      if (/@apply\b/.test(readFileSync(file, 'utf8'))) {
+        warnedApply.add(file);
+        console.warn(
+          `[slides] ${file}: @apply does nothing here (there is no UnoCSS directive transformer); write the CSS out, or put the classes on the elements`,
+        );
+      }
+    }
+  }
+}
+
 /** `src/slides/generated/theme.css`: the deck's `fonts`, then the style sheets of the roots (`styles/index.css`), weakest first. */
 /** @param {{ id: string, dir: string }[]} roots @param {Record<string, any>} [headmatter] @param {string | null} [fontFaces] */
 export function themeCss(roots, headmatter = {}, fontFaces = null) {
+  warnApply(roots);
   const imports = roots
     .filter((r) => existsSync(join(r.dir, 'styles', 'index.css')))
     .map((r) => `@import './roots/${r.id}/styles/index.css';`);

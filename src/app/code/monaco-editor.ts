@@ -120,7 +120,17 @@ export class MonacoEditor {
     this.monaco = monaco;
     // setup/monaco.ts of the roots: they get `monaco`, and the options they return apply to every editor.
     const fromSetup: Monaco.editor.IStandaloneEditorConstructionOptions = {};
-    for (const setup of this.setups) Object.assign(fromSetup, await setup(monaco));
+    for (const setup of this.setups) {
+      try {
+        Object.assign(fromSetup, await setup(monaco));
+      } catch (e) {
+        // One broken setup file must not leave every editor blank (and an exporter waiting for them): say so and go on.
+        console.error(
+          'slide.ng: setup/monaco.ts failed, the editors start without its settings',
+          e,
+        );
+      }
+    }
     if (this.disposables.isDisposed) return;
     const theme: unknown = fromSetup.theme;
     delete fromSetup.theme;

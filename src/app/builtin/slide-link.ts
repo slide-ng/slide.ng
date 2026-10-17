@@ -8,10 +8,14 @@ import { Nav, findSlide } from '../lib/nav';
 // link opens that slide; a plain click moves inside the deck.
 @Component({
   selector: 'slide-ng-link',
-  template: `<a [href]="href()" (click)="go($event)"><ng-content /></a>`,
+  // `title` is the link's text when it has none, as in Slidev's <Link to="7" title="Details" />.
+  template: `<a [href]="href()" (click)="go($event)"
+    ><ng-content>{{ title() }}</ng-content></a
+  >`,
 })
 export class SlideLink {
   to = input.required<string | number>();
+  title = input('');
   private nav = inject(Nav);
   private location = inject(LocationStrategy);
   private target = computed(() =>

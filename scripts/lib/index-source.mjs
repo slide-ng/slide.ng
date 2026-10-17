@@ -7,6 +7,7 @@ import { noteToHtml } from './note-html.mjs';
 import { downloadTarget } from '../export/filename.mjs';
 import { pwaEnabled } from '../build/pwa.mjs';
 import { titleHtml } from './math.mjs';
+import { LAYOUTS } from './registry.mjs';
 
 // A heading's markdown as text for the tab title, the outline and the overview: `[a](b)` is `a`, `code` and **b** lose their marks,
 // and HTML tags go.
@@ -51,9 +52,16 @@ export function indexSource(deck) {
     typeof deck.headmatter.info === 'string'
       ? marked.parse(deck.headmatter.info, { async: false })
       : null;
+  // The page for an address with no slide: the `404` layout, so a theme's or the deck's own replaces the built-in one.
+  const notFound = deck.layouts?.['404'] ?? LAYOUTS['404'];
+  const notFoundFrom = notFound.importPath ?? `../../app/${notFound.file}`;
   return `// GENERATED from slides.md - do not edit
 import type { SlideMeta } from '../../app/lib/slide-meta';
+import { ${notFound.className} as NotFoundPage } from '${notFoundFrom}';
 ${imports.join('\n')}
+
+/** Shown for an address that matches no slide. */
+export const NOT_FOUND = NotFoundPage;
 
 export const HEADMATTER: Record<string, unknown> = ${JSON.stringify(deck.headmatter)};
 export const INFO_HTML: string | null = ${JSON.stringify(info)};

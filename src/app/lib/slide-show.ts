@@ -9,8 +9,8 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
-import { NotFoundLayout } from '../layouts/404';
-import { HEADMATTER } from '../../slides/generated';
+import { NgComponentOutlet } from '@angular/common';
+import { HEADMATTER, NOT_FOUND } from '../../slides/generated';
 import { CANVAS_HEIGHT, CANVAS_WIDTH, fitScale } from './canvas';
 import { hostSize } from './element-size';
 import { Nav } from './nav';
@@ -34,7 +34,7 @@ import { documentTitle } from './page-title';
     '(pointerdown)': 'hostClick($event)',
     '(click)': 'hostTap($event)',
   },
-  imports: [NotFoundLayout, SlideLayer],
+  imports: [NgComponentOutlet, SlideLayer],
   template: `
     <div
       #canvas
@@ -47,7 +47,7 @@ import { documentTitle } from './page-title';
       <app-slide-layer name="global-bottom" [no]="nav.no()" />
       <ng-container #host />
       @if (nav.notFound()) {
-        <sn-404 />
+        <ng-container *ngComponentOutlet="notFound" />
       }
       <app-slide-layer name="global-top" [no]="nav.no()" />
       <ng-content />
@@ -58,6 +58,7 @@ export class SlideShow {
   /** 'slide' for the audience's page, 'presenter' for the presenter's main pane. */
   context = input<RenderContext>('slide');
   protected nav = inject(Nav);
+  protected notFound = NOT_FOUND; // the deck's or theme's `404` layout, or the built-in one
   private ui = inject(Ui);
   private view = inject(ViewPrefs);
   private self = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;

@@ -10,7 +10,7 @@ import { Thumbnail } from './thumbnail';
 @Component({
   selector: 'app-overview',
   imports: [Thumbnail, IconBtn],
-  host: { '(window:resize)': 'measure()' },
+  host: { '(window:resize)': 'measure()', '(window:blur)': 'keepFocus()' },
   template: `
     @if (ui.overview()) {
       <div
@@ -73,6 +73,16 @@ export class Overview {
   protected cardWidth = 300;
   private dialog = viewChild<ElementRef<HTMLElement>>('dialog');
   private closeButton = viewChild('closeButton', { read: ElementRef<HTMLElement> });
+
+  // A page in a thumbnail's iframe that focuses itself would take the keys (Escape, arrows) away from the overview; the
+  // thumbnails are inert, but a frame's own script can still focus it. Take the focus back.
+  protected keepFocus() {
+    setTimeout(() => {
+      const active = document.activeElement;
+      if (this.ui.overview() && active instanceof HTMLIFrameElement && active.closest('#overview'))
+        this.dialog()?.nativeElement.focus();
+    });
+  }
 
   constructor() {
     focusWhileOpen(
