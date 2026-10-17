@@ -20,7 +20,17 @@ export function printUrl({ origin, base = '/', routerMode, query, path = 'print'
  */
 export async function loadPrintPage(page, { url, dark, timeout, waitUntil, wait, warn }) {
   await page.emulateMedia({ colorScheme: dark ? 'dark' : 'light', media: 'screen' });
-  await page.goto(url, { waitUntil, timeout });
+  try {
+    await page.goto(url, { waitUntil, timeout });
+  } catch (e) {
+    // A live page in an iframe (or a video) keeps the network busy, so "networkidle" never comes.
+    if (/Timeout/i.test(String(e?.message)) && waitUntil === 'networkidle')
+      throw new Error(
+        `the print page was still loading after ${Math.round(timeout / 1000)} s: a slide keeps the network busy (an iframe of a live site, a stream); run again with --wait-until load (and --wait 3000 if parts arrive late)`,
+        { cause: e },
+      );
+    throw e;
+  }
   await page.locator('[data-slide-ng-print="ready"]').waitFor({ state: 'attached', timeout });
 
   // Mermaid, Monaco, Magic Move, slide-ng-mark and the code runner mark themselves with `data-slide-ng-waitfor` until done.
