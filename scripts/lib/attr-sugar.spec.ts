@@ -7,6 +7,11 @@ describe('applyAttrSugar', () => {
     );
     expect(applyAttrSugar('<h1>Plain</h1>')).toBe('<h1>Plain</h1>');
   });
+  it('leaves an earlier heading alone when a later one has the braces', () => {
+    expect(applyAttrSugar('<h2>First</h2>\n<h2>Second {#s .red}</h2>')).toBe(
+      '<h2>First</h2>\n<h2 id="s" class="red">Second</h2>',
+    );
+  });
   it('puts {width=..} of a picture on the picture', () => {
     expect(applyAttrSugar('<p><img src="/a.png" alt="a">{width=120 height=40}</p>')).toBe(
       '<p><img src="/a.png" alt="a" width="120" height="40"></p>',

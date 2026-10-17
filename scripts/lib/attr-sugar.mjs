@@ -3,7 +3,8 @@
 //   ![logo](/logo.png){width=120}   a width or height on a picture
 // Run on the HTML from marked, before braces are made harmless for Angular.
 
-const HEADING = /<(h[1-6])>([\s\S]*?)\s*\{((?:\s*[#.][\w-]+)+)\s*\}<\/\1>/g;
+// The text may not run past its own closing tag, so `{...}` on a later heading stays with that heading.
+const HEADING = /<(h[1-6])>((?:(?!<\/\1>)[\s\S])*?)\s*\{((?:\s*[#.][\w-]+)+)\s*\}<\/\1>/g;
 const IMAGE_SIZE = /(<img\b[^>]*?)(\s*\/?)>\{((?:\s*(?:width|height)=\d+(?:px|%)?)+)\s*\}/g;
 
 export function applyAttrSugar(html) {
