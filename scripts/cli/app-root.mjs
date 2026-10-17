@@ -2,7 +2,15 @@
 //   A deck inside this repository (tests, examples, `npm start`) is built in place.
 //   Any other deck (a folder made by `slide-ng create`) gets a working copy of the app in `<deck>/.slide-ng/app`,
 //   made fresh from this package each time, so nothing is ever written into the installed package.
-import { cpSync, existsSync, mkdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join, resolve, sep } from 'node:path';
 import { checkToolDir, refuseLink, removeInside } from '../lib/tool-dir.mjs';
@@ -22,6 +30,10 @@ export const appRootFor = (entry) =>
   isInPlace(entry) ? packageRoot : join(dirname(resolve(entry)), '.slide-ng', 'app');
 
 /** The `ng` program of this package's @angular/cli, wherever npm put it. */
+/** The path of @angular/core's package.json as this package resolves it. */
+const ngCore = () =>
+  createRequire(join(packageRoot, 'package.json')).resolve('@angular/core/package.json');
+
 export function ngBinary() {
   const pkg = createRequire(join(packageRoot, 'package.json')).resolve('@angular/cli/package.json');
   return join(dirname(pkg), 'bin', 'ng.js');
@@ -65,9 +77,15 @@ export function prepareApp(entry) {
     '{ "name": "slide-ng-app", "private": true, "type": "module" }\n',
   );
 
-  // Use the packages next to this one (Angular and friends). Without a copy of its own, npm has put them higher up and the lookup finds them.
-  if (existsSync(join(packageRoot, 'node_modules')) && !existsSync(join(root, 'node_modules'))) {
-    symlinkSync(join(packageRoot, 'node_modules'), join(root, 'node_modules'), 'dir');
-  }
+  // Use the packages next to this one (Angular and friends): the folder that holds @angular/core, which npm may have put
+  // higher up. It is linked as the copy's own node_modules, and the build keeps that path (preserveSymlinks), because the
+  // dev server only serves files under <copy>/node_modules: Monaco's icon font was refused from the real path.
+  const modules = dirname(dirname(dirname(ngCore())));
+  if (!existsSync(join(root, 'node_modules')))
+    symlinkSync(modules, join(root, 'node_modules'), 'dir');
+  const config = JSON.parse(readFileSync(join(root, 'angular.json'), 'utf8'));
+  for (const project of Object.values(config.projects ?? {}))
+    if (project.architect?.build?.options) project.architect.build.options.preserveSymlinks = true;
+  writeFileSync(join(root, 'angular.json'), JSON.stringify(config, null, 2) + '\n');
   return root;
 }
