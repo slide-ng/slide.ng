@@ -8,6 +8,7 @@ import {
   mkdirSync,
   readFileSync,
   rmSync,
+  statSync,
   symlinkSync,
   writeFileSync,
 } from 'node:fs';
@@ -50,6 +51,39 @@ const RUNTIME_FILES = [
   'proxy.conf.mjs',
 ];
 
+// The dev server keeps its pre-bundled packages in `.angular/cache`, keyed by the lock file of the folder it runs in. The
+// copy has none, so a package the deck updates (`npm i chart.js@5` next to slides.md) would be served from the old bundle:
+// the cache is dropped whenever the deck's installed packages change.
+const LOCK_FILES = [
+  'package.json',
+  'package-lock.json',
+  'pnpm-lock.yaml',
+  'yarn.lock',
+  'bun.lock',
+  'bun.lockb',
+  'node_modules/.package-lock.json',
+];
+export function forgetStaleDeps(root, deckDir) {
+  const stamp = LOCK_FILES.map((f) => {
+    try {
+      const s = statSync(join(deckDir, f));
+      return `${f}:${s.size}:${s.mtimeMs}`;
+    } catch {
+      return '';
+    }
+  }).join('|');
+  const file = join(root, '.deck-packages');
+  let old = null;
+  try {
+    old = readFileSync(file, 'utf8');
+  } catch {
+    // first run
+  }
+  if (old !== null && old !== stamp) removeInside(join(root, '.angular', 'cache'), root);
+  rmSync(file, { force: true }); // a link here is removed, never written through
+  writeFileSync(file, stamp);
+}
+
 /**
  * Makes the folder the app is built in and returns it. For a deck outside this package it is a copy of `src/`,
  * the Angular and TypeScript settings and `public/`; the generated slides (`src/slides/generated`) are left out, the generator writes them.
@@ -73,6 +107,7 @@ export function prepareApp(entry, folder = 'app') {
     rmSync(join(root, file), { force: true }); // a link here is removed, never written through
     cpSync(join(packageRoot, file), join(root, file));
   }
+  forgetStaleDeps(root, dirname(resolve(entry)));
   rmSync(join(root, 'package.json'), { force: true });
   writeFileSync(
     join(root, 'package.json'),

@@ -2,7 +2,7 @@
 import { existsSync, mkdirSync, mkdtempSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { prepareApp } from '../cli/app-root.mjs';
+import { forgetStaleDeps, prepareApp } from '../cli/app-root.mjs';
 import { buildCommand } from '../cli/build.mjs';
 import { exportCommand } from '../cli/export.mjs';
 import { checkToolDir, removeInside } from './tool-dir.mjs';
@@ -78,5 +78,20 @@ describe('a deck with a symlinked .slide-ng', () => {
       process.chdir(cwd);
     }
     expect(intact(victim)).toBe(true);
+  });
+});
+
+describe('the app copy of a deck', () => {
+  it('drops the dev cache when the deck installs other packages', () => {
+    const deck = mkdtempSync(join(tmpdir(), 'appcopy-'));
+    const root = join(deck, '.slide-ng/app');
+    mkdirSync(join(root, '.angular/cache/vite'), { recursive: true });
+    writeFileSync(join(deck, 'package.json'), '{}');
+    forgetStaleDeps(root, deck);
+    forgetStaleDeps(root, deck);
+    expect(existsSync(join(root, '.angular/cache/vite'))).toBe(true);
+    writeFileSync(join(deck, 'package.json'), '{ "dependencies": { "chart.js": "5" } }');
+    forgetStaleDeps(root, deck);
+    expect(existsSync(join(root, '.angular/cache'))).toBe(false);
   });
 });

@@ -3,6 +3,8 @@
 // proxies `/__slide-ng/*` to it (proxy.conf.mjs), so the page uses the same address and the same origin for everything.
 // Even with `--remote` this server is not reachable from the network by itself: only through the proxy, with the same checks.
 import { createServer } from 'node:http';
+import { realpathSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { API, check } from './auth.mjs';
 import { readConfig } from './config.mjs';
 import { createHandler } from './routes.mjs';
@@ -29,7 +31,16 @@ export function startServer(ctx) {
 }
 
 // Started as a program by scripts/dev.mjs (or by a test, with its own environment).
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Run directly (not imported by a test): compare real paths, since the URL is percent-encoded (`a%20b`) and argv may be a link.
+const real = (path) => {
+  try {
+    return realpathSync(path);
+  } catch {
+    return null; // a bundled test has no such file
+  }
+};
+const self = real(fileURLToPath(import.meta.url));
+if (self && process.argv[1] && self === real(process.argv[1])) {
   const ctx = readConfig(process.env);
   const { port } = await startServer(ctx);
   console.log(
