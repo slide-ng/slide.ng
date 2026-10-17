@@ -81,6 +81,17 @@ describe('toTemplate: code is literal', () => {
       '<p>',
     );
   });
+  it('draws a code fence inside a list item', () => {
+    const html = toTemplate('- A shell:\n\n  ```bash\n  npm ci\n  ```\n- next');
+    expect(html).toContain('<pre');
+    expect(html).not.toContain('NGFENCE');
+    expect(html).not.toContain('<code>`</code>');
+  });
+  it('keeps an inline tag with a binding at the start of a line in its paragraph', () => {
+    expect(toTemplate(`<span [title]="'x'">A</span>\n\n<span [title]="'y'">B</span>`)).toBe(
+      `<p><span [title]="'x'">A</span></p>\n<p><span [title]="'y'">B</span></p>\n`,
+    );
+  });
   it('joins a tag or @let written over several lines', () => {
     const html = toTemplate('<input\n  type="range"\n  [value]="v()"\n  (input)="set($event)"\n/>');
     expect(html).toContain('<input type="range" [value]="v()" (input)="set($event)"/>');

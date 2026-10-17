@@ -17,6 +17,9 @@ describe('extractMath', () => {
       { block: false, latex: 'y^2' },
     ]);
   });
+  it('keeps {{ inside inline math as math', () => {
+    expect(found('So ${{a}} + b$ here').maths).toEqual([{ block: false, latex: '{{a}} + b' }]);
+  });
   it('does not treat prices as math', () => {
     expect(found('it costs $5 and $10 today').maths).toHaveLength(0);
   });

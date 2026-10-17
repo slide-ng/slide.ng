@@ -26,8 +26,10 @@ export function extractMath(markdown) {
   // Those pieces are set aside while inline math is looked for, then put back.
   const kept = [];
   md = md.replace(ANGULAR, (code) => `NGKEEP${kept.push(code) - 1}X`);
-  md = md.replace(INLINE, (_, latex) => put({ block: false, latex }));
-  md = md.replace(/NGKEEP(\d+)X/g, (_, i) => kept[+i]);
+  const restore = (text) => text.replace(/NGKEEP(\d+)X/g, (_, i) => kept[+i]);
+  // `${{a}} + b$`: what was set aside inside a formula is math again.
+  md = md.replace(INLINE, (_, latex) => put({ block: false, latex: restore(latex) }));
+  md = restore(md);
   return { markdown: md, maths };
 }
 

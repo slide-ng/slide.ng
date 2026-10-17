@@ -19,6 +19,13 @@ export { escapeCode, protect };
 // A tag that uses Angular syntax: [x]="..", (x)="..", *x, #x or @x on it.
 const ANGULAR_TAG = '<[a-z][\\w-]*\\s[^>\\n]*[\\[(*#@][^>\\n]*>';
 
+// The tags that start an HTML block in CommonMark even with text after them on the line.
+const BLOCK_TAGS = new Set(
+  'address article aside blockquote body caption center col colgroup dd details dialog dir div dl dt fieldset figcaption figure footer form frame frameset h1 h2 h3 h4 h5 h6 head header hr html iframe legend li link main menu menuitem nav noframes ol optgroup option p param search section summary table tbody td tfoot th thead title tr track ul'.split(
+    ' ',
+  ),
+);
+
 // A tag or `@let` written over several lines (as Prettier formats a tag with many bindings) is joined into one line, so the
 // rules below see it whole. Only a tag that starts its line and ends a later line with `>` or `/>` is joined.
 const MULTILINE_TAG = /^([ \t]*)<([a-z][\w-]*)([^<>]*\n[^<>]*?)(\/?>)[ \t]*$/gm;
@@ -62,9 +69,12 @@ export function toTemplate(markdown, ctx = {}) {
   md = md.replace(new RegExp(`^[ \\t]*${ANGULAR_TAG}[ \\t]*$`, 'gm'), (line) =>
     /\/>[ \t]*$/.test(line) ? hide(line) : `<ngkeep${kept.push(line) - 1}>`,
   );
+  // A tag that starts a line with more after it: a block element (`<div [x]>..`) starts an HTML block, as in markdown;
+  // any other tag (`<span [title]>..`, a component) stays in the paragraph.
   md = md.replace(
     new RegExp(`^([ \\t]*)(${ANGULAR_TAG})(?=[ \\t]*\\S)`, 'gm'),
-    (_, ws, tag) => ws + hide(tag),
+    (_, ws, tag) =>
+      ws + (BLOCK_TAGS.has(/^<([\w-]+)/.exec(tag)[1].toLowerCase()) ? hide(tag) : keep(tag)),
   );
   md = md.replace(new RegExp(ANGULAR_TAG, 'g'), keep); // tag inside a paragraph
   // {{ interpolation }}; `\|` (how a table cell writes a pipe) is a plain `|` for Angular
@@ -80,6 +90,7 @@ export function toTemplate(markdown, ctx = {}) {
   html = html.replace(/<p>NGMATH(\d+)X<\/p>/g, (_, i) => renderMath(math.maths[+i]));
   html = html.replace(/NGMATH(\d+)X/g, (_, i) => renderMath(math.maths[+i]));
   html = html.replace(/<p>NGFENCE(\d+)X<\/p>/g, (_, i) => renderFence(fences[+i], ctx));
+  html = html.replace(/NGFENCE(\d+)X/g, (_, i) => renderFence(fences[+i], ctx)); // in a tight list item
   html = html.replace(
     /NGCODE(\d+)X/g,
     (_, i) => `<code ngNonBindable>${escapeCode(inlines[+i])}</code>`,
