@@ -19,6 +19,16 @@ export { escapeCode, protect };
 // A tag that uses Angular syntax: [x]="..", (x)="..", *x, #x or @x on it.
 const ANGULAR_TAG = '<[a-z][\\w-]*\\s[^>\\n]*[\\[(*#@][^>\\n]*>';
 
+// A tag or `@let` written over several lines (as Prettier formats a tag with many bindings) is joined into one line, so the
+// rules below see it whole. Only a tag that starts its line and ends a later line with `>` or `/>` is joined.
+const MULTILINE_TAG = /^([ \t]*)<([a-z][\w-]*)([^<>]*\n[^<>]*?)(\/?>)[ \t]*$/gm;
+const MULTILINE_LET = /^([ \t]*)@let\b([^;]*\n[^;]*);[ \t]*$/gm;
+const oneLine = (s) => s.trim().replace(/\s*\n\s*/g, ' ');
+const joinLines = (md) =>
+  md
+    .replace(MULTILINE_TAG, (_, ws, name, attrs, end) => `${ws}<${name} ${oneLine(attrs)}${end}`)
+    .replace(MULTILINE_LET, (_, ws, body) => `${ws}@let ${oneLine(body)};`);
+
 /** @param {string} markdown @param {{ file?: string, root?: string, headmatter?: any }} [ctx] file, root: where snippet paths start; headmatter: deck-wide code settings */
 export function toTemplate(markdown, ctx = {}) {
   const kept = []; // Angular syntax we put back at the end
@@ -44,10 +54,14 @@ export function toTemplate(markdown, ctx = {}) {
   md = footnotes.markdown;
 
   // 2. Hide Angular syntax. The Vue-like forms of slide-ng-mark and slide-ng-motion, and icon tags, are rewritten into plain HTML first.
-  md = rewriteIcons(rewriteDirectives(md));
+  md = rewriteIcons(rewriteDirectives(joinLines(md)));
   md = md.replace(/^[ \t]*(\}[ \t]*)?(@\w+.*\{|\})[ \t]*$/gm, hide); // @if (..) {   }   } @else {
   md = md.replace(/^[ \t]*@let\s.*;[ \t]*$/gm, hide); // @let x = 1;
-  md = md.replace(new RegExp(`^[ \\t]*${ANGULAR_TAG}[ \\t]*$`, 'gm'), hide); // tag alone on a line
+  // A tag alone on a line. An opening tag becomes a placeholder tag, so that (like the same tag without bindings) it starts an HTML
+  // block and the lines up to the next empty line stay as they are; a self-closing tag becomes a comment.
+  md = md.replace(new RegExp(`^[ \\t]*${ANGULAR_TAG}[ \\t]*$`, 'gm'), (line) =>
+    /\/>[ \t]*$/.test(line) ? hide(line) : `<ngkeep${kept.push(line) - 1}>`,
+  );
   md = md.replace(
     new RegExp(`^([ \\t]*)(${ANGULAR_TAG})(?=[ \\t]*\\S)`, 'gm'),
     (_, ws, tag) => ws + hide(tag),
@@ -71,6 +85,7 @@ export function toTemplate(markdown, ctx = {}) {
     (_, i) => `<code ngNonBindable>${escapeCode(inlines[+i])}</code>`,
   );
   return html
+    .replace(/<ngkeep(\d+)>/g, (_, i) => kept[+i])
     .replace(/<!--NGKEEP(\d+)X-->/g, (_, i) => kept[+i])
     .replace(/NGKEEP(\d+)X/g, (_, i) => kept[+i]);
 }

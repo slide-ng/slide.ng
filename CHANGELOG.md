@@ -28,6 +28,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ### Fixed
 
+- A tag with bindings or a `#ref` written over several lines, or a multi-line `@let`, was shown as text; a wrapper tag with bindings turned the lines inside it into paragraphs (so `ng-content select` missed them, and some decks failed with NG5002).
 - A directive in `components/` with a selector like `button[appRipple]`, a list (`[a], [b]`) or used as `*structural` was never imported; a pipe inside a `<code>` written in HTML was not imported; `{#id}` on a heading could land on an earlier heading; `\|` in code in a table cell kept its backslash.
 - PDF export: diagrams taller than the slide were lost, persisted drawings were missing, global layers showed slide 1 on every page, a Mermaid syntax error added a page, `\begin{align}` numbers stayed at (1), and the subject held raw markdown.
 - Generator: `$first`/`$last` in bindings became math, `@keyframes` in a slide `<style>` did nothing, the space between two inline elements was dropped, `\|` in `{{ }}` in a table broke the build, a deck's own `theme.json` was ignored, and Twoslash `^?` popups covered the code.

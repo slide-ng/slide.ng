@@ -487,7 +487,9 @@ Rules, so the markdown converter does not break your Angular code:
 - `@if`, `@for`, `@switch` ... lines (`@name ( ... ) {`) and the closing `}` or `} @else {` must be on their own line.
 - `@let name = value;` must be on its own line.
 - A tag that uses a binding, event, `#ref` or `*directive` is passed through untouched. Put it on its own line,
-  or inline in a paragraph.
+  or inline in a paragraph. It may span several lines (as Prettier writes a tag with many bindings) when it starts its first line and
+  its `>` or `/>` ends the last; `@let` may span lines too. A wrapper tag alone on its line keeps the lines below it as HTML up to the
+  next empty line, with or without bindings: leave an empty line after it to write markdown inside.
 - `{{ ... }}` is passed through untouched.
 - Angular's common pipes (`number`, `currency`, `percent`, `date`, `json`, `uppercase`, `lowercase`, `titlecase`, `slice`, `keyvalue`,
   `async`, `i18nPlural`, `i18nSelect`) work in a slide's expressions: `{{ 1234.5 | number }}`. They are imported only by the slides that use them.

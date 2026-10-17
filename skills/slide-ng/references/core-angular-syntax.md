@@ -55,7 +55,7 @@ The markdown is converted first, then Angular compiles the result. Follow these 
 
 - `@if`, `@for`, `@switch`, `@case`, `@else` lines (`@name ( ... ) {`) and the closing `}` or `} @else {` go on their own line.
 - `@let name = value;` goes on its own line.
-- A tag with a binding `[x]`, an event `(x)`, a `#ref` or a `*directive` is passed through untouched. Put it on its own line or inline in a paragraph.
+- A tag with a binding `[x]`, an event `(x)`, a `#ref` or a `*directive` is passed through untouched. Put it on its own line or inline in a paragraph. It may span several lines when it starts its first line and `>` or `/>` ends the last (`@let` may span lines too). A wrapper tag alone on its line keeps the lines below it as HTML until the next empty line, as a plain HTML tag does: leave an empty line after it to write markdown inside.
 - `{{ ... }}` is passed through untouched. Inside math, `{{` stays math.
 - A single `{`, `}` or `@` in normal text (an email address) is escaped for you.
 - A slide has no component class of its own, so it has no fields. Share state inside a slide with template references (`<app-counter #c />`) or `@let`.

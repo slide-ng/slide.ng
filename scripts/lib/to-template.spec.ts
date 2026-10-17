@@ -72,6 +72,23 @@ describe('toTemplate: code is literal', () => {
     expect(html).toContain('<code ngNonBindable>&#123;&#123; x &#125;&#125;</code>');
     expect(html).toContain('<code ngNonBindable>&#64;if</code>');
   });
+  it('keeps the lines inside a wrapper tag with bindings as they are, like the same tag without them', () => {
+    const md = '<card-frame [accent]="true">\n<b card-title>T</b>\nbody\n</card-frame>';
+    expect(toTemplate(md)).toBe(
+      '<card-frame [accent]="true">\n<b card-title>T</b>\nbody\n</card-frame>',
+    );
+    expect(toTemplate('<ng-template #row let-p>\n**{{ p }}**\n</ng-template>')).not.toContain(
+      '<p>',
+    );
+  });
+  it('joins a tag or @let written over several lines', () => {
+    const html = toTemplate('<input\n  type="range"\n  [value]="v()"\n  (input)="set($event)"\n/>');
+    expect(html).toContain('<input type="range" [value]="v()" (input)="set($event)"/>');
+    expect(html).not.toContain('&lt;');
+    expect(toTemplate("@let team = [\n  'a',\n  'b',\n];\n\n{{ team.length }}")).toContain(
+      "@let team = [ 'a', 'b', ];",
+    );
+  });
   it('reads \\| in inline code of a table cell as a pipe, and keeps it elsewhere', () => {
     expect(toTemplate('| a | b |\n|---|---|\n| `x \\| y` | 1 |')).toContain(
       '<code ngNonBindable>x | y</code>',
