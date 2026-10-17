@@ -192,6 +192,10 @@ html:not(.dark) .shiki {
 .twoslash-meta-line.twoslash-popover-line {
   margin-top: -10px;
 }
+/* An error or query line under the code wraps instead of running off the slide (the block does not scroll, see below) */
+.slidev-code.twoslash .twoslash-meta-line {
+  white-space: pre-wrap;
+}
 /* A popup would be cut off by the block's own scrolling, so Twoslash blocks do not scroll */
 .slidev-code.twoslash {
   overflow: visible;

@@ -251,3 +251,19 @@
   transform-origin: top left;
   border: 0;
 }
+
+/* In a right-to-left deck (htmlAttrs dir: rtl) code and math still read left to right. */
+.slidev-layout pre,
+.slidev-layout code,
+.slidev-layout .katex {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+.slidev-layout pre {
+  text-align: left;
+}
+
+/* An embedded page without its own background shows white, as on screen, also in a dark deck's PDF. */
+.slidev-layout iframe {
+  background: white;
+}

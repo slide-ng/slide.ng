@@ -3,7 +3,7 @@
   --alert: #0969da;
   margin: 1em 0;
   padding: 0.4em 1em;
-  border-left: 0.25em solid var(--alert);
+  border-inline-start: 0.25em solid var(--alert); /* on the right in a right-to-left deck */
 }
 .markdown-alert > p {
   margin: 0.5em 0;
