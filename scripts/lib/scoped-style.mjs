@@ -2,8 +2,11 @@
 // return the CSS separately; emit.mjs puts it into the slide component, scoped to that slide.
 export function extractStyles(markdown) {
   const css = [];
-  // Splitting with a capture group puts the code (fences, also indented in a list, and inline code) at the odd positions.
-  const parts = markdown.split(/(^[ \t]*```.*\n[\s\S]*?^[ \t]*```[ \t]*$|`[^`\n]+`)/gm);
+  // Splitting with a capture group puts the code (fences, also indented in a list, and inline code) and quoted attribute
+  // values (`<iframe srcdoc="<style>...">` keeps its own styles) at the odd positions.
+  const parts = markdown.split(
+    /(^[ \t]*```.*\n[\s\S]*?^[ \t]*```[ \t]*$|`[^`\n]+`|=\s*"[^"]*"|=\s*'[^']*')/gm,
+  );
   const text = parts
     .map((part, i) =>
       i % 2

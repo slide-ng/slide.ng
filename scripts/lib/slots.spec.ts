@@ -37,6 +37,10 @@ describe('extractStyles', () => {
     const md = '```html\n<style>a{}</style>\n```';
     expect(extractStyles(md)).toEqual({ markdown: md, css: '' });
   });
+  it('leaves a style tag inside an attribute value alone', () => {
+    const md = '<iframe srcdoc="<style>p{color:red}</style><p>red</p>"></iframe>';
+    expect(extractStyles(md)).toEqual({ markdown: md, css: '' });
+  });
   it('leaves a style tag in inline code alone, and still finds the real block', () => {
     const { markdown, css } = extractStyles(
       'Write a `<style>` block:\n\n<style>\nh1 { color: red }\n</style>',
