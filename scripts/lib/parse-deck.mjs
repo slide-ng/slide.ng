@@ -96,11 +96,14 @@ export async function parseDeck(file = 'slides.md', sources, options = {}) {
   // not `key: value` pairs, so the slide's text is lost. Say so.
   data.slides.forEach((slide, i) => {
     const raw = slide.frontmatterRaw ?? '';
-    const value = slide.frontmatterDoc?.toJS?.();
-    // A commented-out key (`# layout: center`) is fine; a heading or plain text is not.
+    const value = (slide.source ?? slide).frontmatterDoc?.toJS?.();
+    // Text reads as a YAML string; a heading alone reads as a comment, so there are no keys at all. Frontmatter with keys is
+    // real, and a `# ...` line in it is a comment (Slidev's starter begins with `# You can also start simply with 'default'`).
+    const hasKeys = value != null && typeof value === 'object' && Object.keys(value).length > 0;
     const text =
       (value != null && typeof value !== 'object') ||
-      raw.split('\n').some((l) => /^#{1,6}\s+\S/.test(l) && !/^#\s*[\w-]+\s*:/.test(l));
+      (!hasKeys &&
+        raw.split('\n').some((l) => /^#{1,6}\s+\S/.test(l) && !/^#\s*[\w-]+\s*:/.test(l)));
     if (!text) return;
     const first = raw.split('\n').find((l) => l.trim()) ?? '';
     problems.push(

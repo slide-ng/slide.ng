@@ -104,6 +104,12 @@ describe('parseDeck: a slide that starts right after ---', () => {
     const { problems } = await parse('# Z\n\n---\n# layout: center\n---\n\n# A\n');
     expect(problems).toEqual([]);
   });
+  it('does not warn for a comment in frontmatter that has keys', async () => {
+    const { problems } = await parse(
+      "# Z\n\n---\n# You can also start simply with 'default'\nlayout: center\n---\n\n# A\n",
+    );
+    expect(problems).toEqual([]);
+  });
   it('drops the --- of a last slide written without a blank line', async () => {
     const { slides } = await parse('# A\n\n---\n# B\n');
     expect(slides.at(-1)!.content).toBe('# B');
