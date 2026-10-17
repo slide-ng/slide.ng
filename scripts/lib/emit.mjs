@@ -1,4 +1,5 @@
 // Writes the TypeScript source of one generated slide component.
+import { dirname, relative } from 'node:path';
 import { COMPONENTS, LAYOUTS } from './registry.mjs';
 import { layoutName } from './layouts.mjs';
 import { extractStyles, scopeCss } from './scoped-style.mjs';
@@ -17,6 +18,33 @@ export const slideClass = (no) => `Slide${pad(no)}`;
 // Angular drops text that is only whitespace, so `**bold** *italic*` read "bolditalic". Like Vue's `condense`, a space
 // between two tags on one line is kept (`&ngsp;` is Angular's kept space); a line break between blocks still goes.
 // Code samples are left alone (Angular keeps whitespace inside <pre> itself).
+// `Status: @if (on) { yes } @else { no }` is shown as text: control flow must start its own line. Say so (code samples aside).
+export function warnInlineControlFlow(markdown, no) {
+  const prose = markdown
+    .replace(/^(`{3,}|~{3,})[^\n]*\n[\s\S]*?^\1[ \t]*$/gm, '')
+    .replace(/`[^`\n]*`/g, '');
+  for (const line of prose.split('\n')) {
+    const at = line.search(/@(?:if|for|switch|defer)\s*\(/);
+    if (at > 0 && line.slice(0, at).trim() && !/^\s*\}/.test(line))
+      console.warn(
+        `[slides] slide ${no}: "${line.trim().slice(0, 60)}" has @if/@for in the middle of a line, which is shown as text; put "@if (...) {" and "}" on lines of their own`,
+      );
+  }
+}
+
+// A static href or src in an Angular template is not sanitized, so `[x](javascript:...)` would run when clicked.
+// Script addresses are replaced by `#`, like markdown-it does for links, and the author is told.
+const SCRIPT_URL =
+  /(\s(?:href|src|xlink:href)\s*=\s*)(["'])\s*(?:javascript|vbscript|data:text\/html)[^"']*\2/gi;
+export function safeLinks(html, no) {
+  return html.replace(SCRIPT_URL, (_, attr, quote) => {
+    console.warn(
+      `[slides] slide ${no}: a javascript: (or similar) address was replaced by # (it would run code)`,
+    );
+    return `${attr}${quote}#${quote}`;
+  });
+}
+
 export function keepSpaces(html) {
   return html
     .split(/(<pre[\s>][\s\S]*?<\/pre>)/)
@@ -71,11 +99,15 @@ export function slideSource(slide, no, deck = {}) {
   const layoutKey = slide.layout ?? layoutName(slide.frontmatter, no - 1, layouts);
   const def = layouts[layoutKey];
   const { markdown, css } = extractStyles(tagDragSites(slide.content));
+  warnInlineControlFlow(markdown, no);
   const layer = (name) =>
     deck.layers?.includes(name) ? `<app-slide-layer name="${name}"></app-slide-layer>` : '';
   const layout = `${openTag(def, slide.frontmatter)}${body(markdown, def, no, { file: slide.file, root: deck.root, roots: deck.roots?.map((r) => r.dir), allowOutsideRoot: deck.allowOutsideRoot, headmatter: deck.headmatter, codeblocks: deck.transformers?.codeblocks, slide: slideInfo(slide, no) }, layoutKey)}</${def.tag}>`;
   const base = deck.assetBase ?? '/'; // where the deck is served from in a build; `/public` files get it in front
-  const html = keepSpaces(rebaseHtml(layer('slide-bottom') + layout + layer('slide-top'), base));
+  const html = safeLinks(
+    keepSpaces(rebaseHtml(layer('slide-bottom') + layout + layer('slide-top'), base)),
+    no,
+  );
 
   // Look for components outside code samples only (code is just text).
   const markup = html
@@ -109,7 +141,11 @@ export function slideSource(slide, no, deck = {}) {
   if (clicks) providers.push(`{ provide: CLICKS_TOTAL, useValue: ${+clicks} }`);
   const styles = scopeCss(rebaseCss(css, base), slideName(no));
 
-  return `// GENERATED from slides.md (slide ${no}) - do not edit
+  // Where the slide is in the markdown: the build runner adds it to Angular's errors (cli/runtime.mjs).
+  const where = slide.source
+    ? `${relative(deck.root ?? dirname(slide.source.filepath), slide.source.filepath) || 'slides.md'}:${slide.source.start}`
+    : 'slides.md';
+  return `// GENERATED from ${where} (slide ${no}) - do not edit
 import { Component${styles ? ', ViewEncapsulation' : ''} } from '@angular/core';
 import { CLICKS_START, CLICKS_TOTAL, ClicksContext } from '../../app/lib/clicks';
 import { SlideBase } from '../../app/lib/slide-base';

@@ -1,5 +1,5 @@
 import { LAYOUTS, layoutName } from './layouts.mjs';
-import { keepSpaces, slideSource } from './emit.mjs';
+import { keepSpaces, safeLinks, warnInlineControlFlow, slideSource } from './emit.mjs';
 import { indexSource } from './index-source.mjs';
 import { parseDeck } from './parse-deck.mjs';
 import { initHighlighter } from './code/highlighter.mjs';
@@ -224,5 +224,29 @@ describe('keepSpaces', () => {
     expect(keepSpaces('<pre><span>a</span> <span>b</span></pre>')).toBe(
       '<pre><span>a</span> <span>b</span></pre>',
     );
+  });
+});
+
+describe('safeLinks', () => {
+  it('replaces script addresses in href and src, and leaves normal ones', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(safeLinks('<a href="javascript:alert(1)">x</a> <a href="https://a.b">y</a>', 3)).toBe(
+      '<a href="#">x</a> <a href="https://a.b">y</a>',
+    );
+    expect(safeLinks("<iframe src=' JavaScript:x'></iframe>", 3)).toBe("<iframe src='#'></iframe>");
+    expect(warn).toHaveBeenCalledTimes(2);
+    warn.mockRestore();
+  });
+});
+
+describe('warnInlineControlFlow', () => {
+  it('warns about @if in the middle of a line, not on its own line or in code', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    warnInlineControlFlow('Status: @if (on) { yes }', 2);
+    warnInlineControlFlow('@if (on) {\nyes\n} @else if (x) {\nno\n}', 2);
+    warnInlineControlFlow('Use `x @if (y) {` like this\n\n```ts\nconst a = 1; @if (b) {\n```', 2);
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0][0]).toContain('slide 2');
+    warn.mockRestore();
   });
 });
