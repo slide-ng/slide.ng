@@ -21,6 +21,9 @@ html.print *::after {
   display: block;
   overflow: hidden;
   break-after: page;
+  /* One unbreakable box per page: without it Chromium carried content taller than the page (a long Mermaid
+     diagram) over to a next page inside the frame, where it was clipped away and the PDF lost it. */
+  contain: strict;
 }
 .print-slide-container > * {
   position: absolute;
