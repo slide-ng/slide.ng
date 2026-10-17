@@ -49,4 +49,9 @@ describe('formatMarkdown', () => {
   it('leaves a file without frontmatter alone apart from blank lines', async () => {
     expect(await formatMarkdown('# One\n\n---\n\n# Two\n')).toBe('# One\n\n---\n\n# Two\n');
   });
+  it('keeps a last slide written as --- then a heading as one slide', async () => {
+    const out = await formatMarkdown('---\ntitle: t\n---\n\n# A\n\n---\n# B\n');
+    expect(out.match(/^# /gm)?.length).toBe(2);
+    expect(out).not.toMatch(/---\n\n---/);
+  });
 });

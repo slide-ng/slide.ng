@@ -150,7 +150,7 @@ export function slideSource(slide, no, deck = {}) {
 
   // Where the slide is in the markdown: the build runner adds it to Angular's errors (cli/runtime.mjs).
   const where = slide.source
-    ? `${relative(deck.root ?? dirname(slide.source.filepath), slide.source.filepath) || 'slides.md'}:${slide.source.start}`
+    ? `${relative(deck.root ?? dirname(slide.source.filepath), slide.source.filepath) || 'slides.md'}:${Math.max(1, slide.source.start)}`
     : 'slides.md';
   return `// GENERATED from ${where} (slide ${no}) - do not edit
 import { Component${styles ? ', ViewEncapsulation' : ''} } from '@angular/core';

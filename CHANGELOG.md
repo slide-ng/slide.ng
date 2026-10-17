@@ -28,6 +28,8 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ### Fixed
 
+- A code fence inside a list item became stray backticks; a tag with bindings at the start of a line (`<span [title]>`) lost its paragraph and ran into the next one; `{{` inside `$inline math$` showed a placeholder.
+- `---` straight followed by a heading and text is read as frontmatter (as in Slidev): a warning now says the text is lost; a last slide written that way no longer shows a stray rule, and `slide-ng format` no longer turns it into an empty slide (it refuses to write when the slide count would change). `defaults: { level }` reaches the table of contents, and errors on slide 1 name line 1 instead of 0.
 - A tag with bindings or a `#ref` written over several lines, or a multi-line `@let`, was shown as text; a wrapper tag with bindings turned the lines inside it into paragraphs (so `ng-content select` missed them, and some decks failed with NG5002).
 - A directive in `components/` with a selector like `button[appRipple]`, a list (`[a], [b]`) or used as `*structural` was never imported; a pipe inside a `<code>` written in HTML was not imported; `{#id}` on a heading could land on an earlier heading; `\|` in code in a table cell kept its backslash.
 - PDF export: diagrams taller than the slide were lost, persisted drawings were missing, global layers showed slide 1 on every page, a Mermaid syntax error added a page, `\begin{align}` numbers stayed at (1), and the subject held raw markdown.

@@ -55,9 +55,14 @@ export async function parseDeck(file = 'slides.md', sources, options = {}) {
 
   const slides = data.slides.map((s) => ({
     title: s.title,
-    level: s.level,
+    // `level` in the frontmatter, or in the headmatter's `defaults`, wins over the heading's level
+    level:
+      (s.frontmatter?.level ?? defaults.level) != null
+        ? +(s.frontmatter?.level ?? defaults.level)
+        : s.level,
     frontmatter: { ...defaults, ...s.frontmatter },
-    content: s.content,
+    // The last slide written as `---` then `# B` (no frontmatter, no blank line) keeps the `---` in its content: drop it.
+    content: s.content.replace(/^---[ \t]*\n/, ''),
     note: s.note,
     file: s.source?.filepath, // the markdown file this slide came from (snippet paths start there)
     // Where the slide sits in that file, in lines: the dev server edits the file there.
@@ -83,6 +88,22 @@ export async function parseDeck(file = 'slides.md', sources, options = {}) {
     const line = slide.source.start + (error.linePos?.[0]?.line ?? 1); // start is the `---` line, counted from 1
     throw new Error(
       `${slide.source.filepath}:${line}: the frontmatter of slide ${i + 1} is not valid YAML: ${error.message.split('\n')[0].replace(/ at line \d+, column \d+:?$/, '')}`,
+    );
+  });
+
+  // `---` straight followed by `# Title` and text reads the lines up to the next `---` as frontmatter, as in Slidev; they are
+  // not `key: value` pairs, so the slide's text is lost. Say so.
+  data.slides.forEach((slide, i) => {
+    const raw = slide.frontmatterRaw ?? '';
+    const value = slide.frontmatterDoc?.toJS?.();
+    // A commented-out key (`# layout: center`) is fine; a heading or plain text is not.
+    const text =
+      (value != null && typeof value !== 'object') ||
+      raw.split('\n').some((l) => /^#{1,6}\s+\S/.test(l) && !/^#\s*[\w-]+\s*:/.test(l));
+    if (!text) return;
+    const first = raw.split('\n').find((l) => l.trim()) ?? '';
+    problems.push(
+      `${slide.source?.filepath ?? entry}:${Math.max(1, slide.source?.start ?? 1)}: slide ${i + 1}: the lines after "---" (${first.trim().slice(0, 40)}) were read as frontmatter, so they are not shown; put an empty line after "---" to start a slide with text`,
     );
   });
 

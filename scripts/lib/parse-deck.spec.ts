@@ -87,6 +87,27 @@ describe('parseDeck: title, level and defaults', () => {
     expect(slides[0].frontmatter).toMatchObject({ layout: 'center', transition: 'fade' });
     expect(slides[1].frontmatter).toMatchObject({ layout: 'quote', transition: 'fade' });
   });
+  it('takes `level` from the headmatter defaults too', async () => {
+    const { slides } = await parse(
+      '---\ndefaults:\n  level: 2\n---\n\n# A\n\n---\nlevel: 1\n---\n\n# B\n\n---\n\n# C\n',
+    );
+    expect(slides.map((s) => s.level)).toEqual([2, 1, 2]);
+  });
+});
+
+describe('parseDeck: a slide that starts right after ---', () => {
+  it('warns when text right after --- was read as frontmatter', async () => {
+    const { problems } = await parse('# Z\n\n---\n# Slide A\n\nText\n\n---\n# Slide B\n');
+    expect(problems.join()).toContain('were read as frontmatter');
+  });
+  it('does not warn for a commented-out key', async () => {
+    const { problems } = await parse('# Z\n\n---\n# layout: center\n---\n\n# A\n');
+    expect(problems).toEqual([]);
+  });
+  it('drops the --- of a last slide written without a blank line', async () => {
+    const { slides } = await parse('# A\n\n---\n# B\n');
+    expect(slides.at(-1)!.content).toBe('# B');
+  });
 });
 
 describe('parseDeck: src imports', () => {

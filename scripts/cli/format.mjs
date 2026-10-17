@@ -7,10 +7,18 @@ import { resolve } from 'node:path';
 import { parse, prettify, stringify } from '@slidev/parser/fs';
 import { parseFlags } from './flags.mjs';
 
-/** The formatted text of a markdown deck. */
+/** The formatted text of a markdown deck. Throws when formatting would change the number of slides. */
 export async function formatMarkdown(text, filepath = 'slides.md') {
-  const deck = prettify(await parse(text, filepath));
-  return stringify(deck);
+  const parsed = await parse(text, filepath);
+  // A last slide written `---` then `# B` keeps the `---` in its content; printed again it would make an empty slide.
+  for (const slide of parsed.slides) slide.content = slide.content.replace(/^---[ \t]*\n/, '');
+  const after = stringify(prettify(parsed));
+  const count = (await parse(after, filepath)).slides.length;
+  if (count !== parsed.slides.length)
+    throw new Error(
+      `${filepath}: formatting would turn ${parsed.slides.length} slides into ${count}, so the file is left as it is (an empty line after each "---" that starts a slide with text avoids this)`,
+    );
+  return after;
 }
 
 export async function formatCommand(argv) {
