@@ -114,7 +114,7 @@ export default () => ({ theme: 'base', themeVariables: { primaryColor: '#ff0000'
 
 ## Monaco: `setup/monaco.ts`
 
-Runs once Monaco is loaded (only for decks that have an editor). It gets the `monaco` module, so it can add themes or languages (the `monaco.languages.typescript` namespace is deprecated and has no types in this Monaco version),
+Runs once Monaco is loaded (only for decks that have an editor). It gets the `monaco` module, so it can add themes or languages (TypeScript settings are `monaco.typescript.typescriptDefaults`; the old `monaco.languages.typescript` is undefined in this Monaco version; an editor's model is `file:///model-N.mts`, so an extra library for `import './context'` goes at `file:///context.ts`),
 and the object it returns is merged into the options of every editor. It may be async.
 
 ```ts

@@ -5,7 +5,7 @@ description: setup/monaco.ts - editor options and Monaco configuration
 
 # setup/monaco.ts
 
-Runs once Monaco is loaded (only for decks with an editor). Gets the `monaco` module (add themes, languages; `monaco.languages.typescript` is deprecated and untyped in this Monaco version). The object it returns is merged into the options of every editor. May be async.
+Runs once Monaco is loaded (only for decks with an editor). Gets the `monaco` module (add themes, languages; TypeScript settings are `monaco.typescript.typescriptDefaults`, the old `monaco.languages.typescript` is undefined; models are `file:///model-N.mts`, so an extra lib for `./context` goes at `file:///context.ts`). The object it returns is merged into the options of every editor. May be async.
 
 - `theme` is one name for light and dark mode alike, or `{ light, dark }` to follow the deck's mode (the default is `vs` and `vs-dark`).
 - No type loading for packages (`monacoTypesSource` and friends are missing).

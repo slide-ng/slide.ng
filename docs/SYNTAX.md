@@ -707,6 +707,10 @@ fonts: # web fonts, as in Slidev (sans, serif, mono, local, weights, italic, fal
 A build (`slide-ng build`) writes files of `public/` that slides name with a leading slash (`![](/photo.png)`, `<img src>`, `<video src poster>`, inline `url()`) with the deck's base in front (`/talk/photo.png`), and
 `build --offline` makes them relative to the page. In the dev server nothing changes. `url()` inside a slide's `<style>` gets the base too, except in an offline folder (see [OFFLINE.md](OFFLINE.md)).
 
+A relative address that `public/` does not have, but that names a file in the deck's folder (`![](./images/chart.png)`, `<img src="../shared/logo.svg">`
+from a slide in `pages/`), is copied into the build and served from `/_local/` (as Vite bundles such pictures for Slidev). A file outside the
+deck's folder is not; `url()` in a `<style>` is not rewritten this way, so put those pictures in `public/`.
+
 `export:` takes `format`, `range`, `withClicks`, `dark`, `timeout`, `wait`, `waitUntil`, `withToc`, `perSlide`, `scale` and `omitBackground`. It cannot name an output folder or
 a browser program: a deck may come from someone else, so those only come from the command line or the environment.
 In an exported PDF a slide that has clicks shows its last state, unless `--with-clicks` makes a page for every click step. A `@defer` block that waits (`on timer`, `on viewport`) may still show its placeholder when the page is captured: give `export` a `--wait`. `slide-ng-render-when context="print"` shows content only on paper.

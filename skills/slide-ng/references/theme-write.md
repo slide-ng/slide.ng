@@ -18,9 +18,8 @@ A theme is a folder (or an npm package) with any of: `layouts/`, `components/`, 
 ```json
 {
   "name": "minimal",
-  "headmatter": { "colorSchema": "dark", "transition": "fade" },
-  "layouts": { "quote": { "props": ["author"], "slots": [], "classProp": false } },
-  "fonts": { "sans": "Titillium Web" }
+  "headmatter": { "colorSchema": "dark", "transition": "fade", "fonts": { "sans": "Titillium Web" } },
+  "layouts": { "quote": { "props": ["author"], "slots": [], "classProp": false } }
 }
 ```
 

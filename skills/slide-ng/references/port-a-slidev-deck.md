@@ -255,7 +255,8 @@ title: Footer layer
 - Copy `style.css` to `styles/index.css`. The class names of the layouts are the same (`.slidev-layout`, `.slidev-vclick-hidden`, `.slidev-vclick-target`, `.slidev-vclick-current`, `.slidev-code-wrapper`), so CSS that styles them works unchanged. `@import url(...)` lines are moved to the top of the final CSS for you.
 - `.slidev-vclick-hidden` overrides (blur instead of fade) work too.
 - Fonts come from the `fonts` key. `selfHost: true` or `build --offline` puts them in the build.
-- `public/` is copied as is and served at `/`. Write `/logo.png` in markdown and components.
+- `public/` is copied as is and served at `/`. Write `/logo.png` in markdown and components. A relative picture next to `slides.md` (`./images/x.png`) in a slide's markup is copied into the build too; in components, CSS `url()` and frontmatter, move the file to `public/`.
+- `@apply` (UnoCSS or Windi directive) does nothing (the generator warns): write the CSS out, or put the classes on the elements. Windi's comma in arbitrary values (`grid-cols-[80px,1fr]`) is `_` in UnoCSS (`grid-cols-[80px_1fr]`).
 - Icons are `<span>` elements here, not `<svg>`. Selectors like `.rows span` now also match the icon; see the pitfalls.
 - Missing UnoCSS names are added in a `uno.config.mjs` next to `slides.md` (`shortcuts`, `rules`, `presets`).
 
@@ -305,3 +306,11 @@ Compare with screenshots, one per slide and per click state:
 - **Template slots.** Slidev's `<template #1>` children of `<v-switch>` and `<template #dark>` of `<LightOrDark>` render nothing here, without a warning. Write `<div at="1">` children for `<slide-ng-switch>` and `<div dark>` / `<div light>` for `<slide-ng-light-or-dark>`.
 - **`@click="$slidev.nav.next"`.** There is no `$slidev`. Put a small component in `components/` that injects `Nav` and calls `nav.next()` from a button, or inject `Nav` in an existing one.
 - **The theme.** Keep `theme:` only for a theme that exists for slide.ng: a Slidev theme name such as `seriph` is looked up as `@slide-ng/theme-seriph` and stops the build when that is not installed. Use `default`, a folder, or a published slide.ng theme.
+- **Self-closing HTML tags.** Vue accepts `<div />`; Angular stops with NG5002. Write `<div></div>` (components and `<img />`, `<br />` are fine).
+- **Named slots.** A Vue `<template #title>` / `v-slot:title` of your own component becomes an element with an attribute (`<span slot-title>`) and `<ng-content select="[slot-title]" />` in the component. Layout slots are `::name::` lines.
+- **Sub-folders of `components/`** are not scanned (`components/logos/x.vue`): put each component file directly in `components/`.
+- **An HTML comment is a note.** `<!-- ... -->` at the end of a slide becomes its speaker note, as in Slidev; a porter's own remark there shows in the presenter view.
+- **Icons in `components/` and `layers/`.** `<carbon-x />` is rewritten only in slide markdown. In a component template write `<span class="i-carbon:x"></span>`.
+- **Theme layouts and components.** A layout imports the components it uses, also those of its own theme: `import { Footer } from '../components/footer'` and `imports: [Footer]` (the theme's folders are copied side by side).
+- **Headings beat utility sizes.** `.slidev-layout h4` sets a size, so `<h4 class="text-xs">` keeps the heading size, as in current Slidev; older decks expected the class to win: add `!` (`!text-xs`).
+- **`monaco.languages.typescript`** is undefined in this Monaco; use `monaco.typescript.typescriptDefaults` in `setup/monaco.ts`.

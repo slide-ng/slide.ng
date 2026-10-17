@@ -35,7 +35,7 @@ export function withSlideSources(text, appRoot) {
     .replace(
       /'([a-z][\w.]*-[\w.-]*)' is not a known element:/g,
       (match, tag) =>
-        `${match} (a web component? list it in the deck's headmatter: customElements: [${tag}])`,
+        `${match} (in a layout, layer or component: import the component there, imports: [...], and write an icon as <span class="i-set:name"></span>; a web component: list it in the deck's headmatter, customElements: [${tag}])`,
     )
     .replace(
       /Could not resolve "(\.\.\/[^"]*)"/g,
