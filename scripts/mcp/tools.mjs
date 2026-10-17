@@ -195,7 +195,12 @@ export const TOOLS = [
       );
       const expected = deck.slides.map(fingerprint);
       expected.splice(no - 1, 1);
-      return summary(await commit(ctx, ctx.entry, text, expected), Math.min(no, expected.length));
+      const after = await commit(ctx, ctx.entry, text, expected);
+      // Name the slide that was removed, not the one that now has its number.
+      return {
+        slides: after.slides.length,
+        removed: { no, title: deck.slides[no - 1]?.title ?? null },
+      };
     },
   },
   {

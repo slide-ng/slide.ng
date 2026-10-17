@@ -158,6 +158,10 @@ t.ok(
 const removed = await call('remove_slide', { no: 3 });
 const afterRemove = await call('list_slides', {});
 t.ok(
+  'remove_slide: the result names the removed slide',
+  removed.json?.removed?.title === 'Inserted',
+);
+t.ok(
   'remove_slide: Inserted is gone',
   !removed.error &&
     afterRemove.json.map((s) => s.title).join() === 'MCP deck,Three,Two' &&
