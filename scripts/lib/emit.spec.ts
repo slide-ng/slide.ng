@@ -287,6 +287,12 @@ describe('keepSpaces', () => {
     expect(keepSpaces('<pre><span>a</span> <span>b</span></pre>')).toBe(
       '<pre><span>a</span> <span>b</span></pre>',
     );
+    // a Twoslash popup holds its own <pre> inside the code block
+    const nested =
+      '<pre class="shiki"><span>a</span><pre>x</pre><span>b</span> <span>c</span></pre> <b>d</b>';
+    expect(keepSpaces(nested)).toBe(
+      '<pre class="shiki"><span>a</span><pre>x</pre><span>b</span> <span>c</span></pre>&ngsp;<b>d</b>',
+    );
   });
 });
 

@@ -44,7 +44,7 @@ import { Overview } from './ui/overview';
     ProblemBanner,
   ],
   providers: [Nav, Ui, Drawings],
-  host: { '(window:keydown)': 'key($event)' },
+  host: { '(window:keydown)': 'key($event)', '(click)': 'anchor($event)' },
   template: `
     <div
       class="stage"
@@ -83,6 +83,15 @@ import { Overview } from './ui/overview';
 export class Deck {
   protected nav = inject(Nav);
   private ui = inject(Ui);
+  // `[results](#results)` to a heading of the same slide: the page's <base href> would turn it into another address and
+  // leave the deck, so the slide scrolls to the element instead. `#/3` (hash routing) is a slide address and stays as it is.
+  protected anchor(e: MouseEvent) {
+    const link = (e.target as Element | null)?.closest?.('a[href^="#"]');
+    const id = link?.getAttribute('href')?.slice(1);
+    if (!link || !id || id.startsWith('/')) return;
+    e.preventDefault();
+    document.getElementById(decodeURIComponent(id))?.scrollIntoView({ block: 'nearest' });
+  }
   protected announcement = computed(() => {
     const no = this.nav.no();
     const title = SLIDES[no - 1]?.title;

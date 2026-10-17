@@ -47,10 +47,27 @@ export function safeLinks(html, no) {
 }
 
 export function keepSpaces(html) {
-  return html
-    .split(/(<pre[\s>][\s\S]*?<\/pre>)/)
-    .map((part, i) => (i % 2 ? part : part.replace(/>([ \t]+)</g, '>&ngsp;<')))
-    .join('');
+  return outsidePre(html, (part) => part.replace(/>([ \t]+)</g, '>&ngsp;<'));
+}
+
+// Runs `fn` on the parts of `html` outside <pre> blocks. A <pre> may hold another (a Twoslash popup inside the code), so the
+// blocks are counted, not matched up to the first </pre>.
+function outsidePre(html, fn) {
+  let out = '';
+  let depth = 0;
+  let from = 0;
+  for (const m of html.matchAll(/<pre[\s>]|<\/pre>/g)) {
+    const opening = m[0] !== '</pre>';
+    // The outside parts keep the `<` of <pre and the `>` of </pre>, so a space next to a code sample is seen as between tags.
+    if (opening && depth++ === 0) {
+      out += fn(html.slice(from, m.index + 1));
+      from = m.index + 1;
+    } else if (!opening && depth > 0 && --depth === 0) {
+      out += html.slice(from, m.index + m[0].length - 1);
+      from = m.index + m[0].length - 1;
+    }
+  }
+  return out + (depth > 0 ? html.slice(from) : fn(html.slice(from)));
 }
 export { layoutName };
 
@@ -95,6 +112,15 @@ function body(markdown, def, no, ctx, layout) {
     .join('');
 }
 
+// A markdown link to another slide, `[pricing](/pricing)` or `[four](/4)`, moves inside the deck like <slide-ng-link>: with a
+// base, hash routing or an offline folder a plain address would leave the deck.
+export function slideLinks(html, aliases = []) {
+  const names = new Set(aliases.map(String));
+  return html.replace(/<a href="\/([\w-]+)(?:#[^"]*)?">([\s\S]*?)<\/a>/g, (link, to, text) =>
+    /^\d+$/.test(to) || names.has(to) ? `<slide-ng-link to="${to}">${text}</slide-ng-link>` : link,
+  );
+}
+
 /**
  * @param {any} slide @param {number} no
  * @param {{ root?: string, headmatter?: any, layers?: string[], layouts?: Record<string, any>, components?: any[], assetBase?: string }} [deck]
@@ -111,8 +137,11 @@ export function slideSource(slide, no, deck = {}) {
     deck.layers?.includes(name) ? `<app-slide-layer name="${name}"></app-slide-layer>` : '';
   const layout = `${openTag(def, slide.frontmatter)}${body(markdown, def, no, { file: slide.file, root: deck.root, roots: deck.roots?.map((r) => r.dir), allowOutsideRoot: deck.allowOutsideRoot, headmatter: deck.headmatter, codeblocks: deck.transformers?.codeblocks, slide: slideInfo(slide, no) }, layoutKey)}</${def.tag}>`;
   const base = deck.assetBase ?? '/'; // where the deck is served from in a build; `/public` files get it in front
+  const aliases = (deck.slides ?? []).map((sl) => sl.frontmatter?.routeAlias).filter(Boolean);
   const html = safeLinks(
-    keepSpaces(rebaseHtml(layer('slide-bottom') + layout + layer('slide-top'), base)),
+    keepSpaces(
+      rebaseHtml(slideLinks(layer('slide-bottom') + layout + layer('slide-top'), aliases), base),
+    ),
     no,
   );
 
