@@ -76,6 +76,11 @@ export function slideSource(slide, no, deck = {}) {
     no,
     (deck.components ?? []).flatMap((c) => (c.selector ? [c.selector] : [])),
   );
+  // Angular removes <script> elements from templates without a word; say so, and where code goes instead.
+  if (/<script[\s>]/i.test(markup))
+    console.warn(
+      `[slides] slide ${no}: <script> is removed (an Angular template cannot run one); put the code in a component in components/ or in setup/main.ts`,
+    );
   const used = (deck.components ?? COMPONENTS).filter((c) => c.test.test(markup));
   const pipes = commonPipes(markup);
   const imports = [def, ...used];
