@@ -186,7 +186,15 @@ const rootFolders = (roots) =>
     .flatMap((r) => (r.kind === 'deck' ? ROOT_FOLDERS.map((f) => join(r.dir, f)) : [r.dir]))
     .filter((d) => existsSync(d));
 
-const { files, folders } = await generate();
+// A failed first run prints its message, not Node's stack trace (SLIDE_NG_DEBUG=1 shows the stack).
+let first;
+try {
+  first = await generate();
+} catch (e) {
+  console.error(`[slides] ${process.env.SLIDE_NG_DEBUG ? e.stack : e.message}`);
+  process.exit(1);
+}
+const { files, folders } = first;
 if (process.argv.includes('--watch')) {
   let timer;
   const watched = new Set();
