@@ -5,10 +5,12 @@
   padding: 0.4em 1em;
   border-inline-start: 0.25em solid var(--alert); /* on the right in a right-to-left deck */
 }
-.markdown-alert > p {
+.markdown-alert > p,
+.slidev-layout .markdown-alert > p {
   margin: 0.5em 0;
 }
-.markdown-alert-title {
+.markdown-alert-title,
+.slidev-layout .markdown-alert-title {
   display: flex;
   align-items: center;
   gap: 0.5em;
