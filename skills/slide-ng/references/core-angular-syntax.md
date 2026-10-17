@@ -15,8 +15,11 @@ slide.ng is **not Vue**. Each slide becomes a standalone Angular component, comp
 | switch             | `@switch (x) { @case (1) { ... } }`     | `v-if` chains                                   |
 | local value        | `@let total = a + b;`                   | `<script setup>`, `ref()`, `computed()`         |
 | bind a property    | `[prop]="expr"`                         | `:prop="expr"`, `v-bind`                        |
-| listen to an event | `(click)="x = 1"`                       | `@click="x = 1"`, `v-on`                        |
+| listen to an event | `(click)="c.n.set(0)"`                  | `@click="x = 1"`, `v-on`                        |
 | template reference | `<app-counter #c />` then `{{ c.n() }}` | `ref="c"`                                       |
+| format a value     | `{{ price \| currency }}`               | Vue filters                                     |
+
+A slide has no component class: an event handler cannot assign a slide field (`(click)="x = 1"` does not compile). Call a method or set a signal of a template reference instead. Angular's common pipes (`number`, `currency`, `percent`, `date`, `json`, `uppercase`, `lowercase`, `titlecase`, `slice`, `keyvalue`, `async`, `i18nPlural`, `i18nSelect`) work and are imported only where used.
 
 Only the slide.ng directives exist (all start with `slide-ng-`): `slide-ng-click`, `slide-ng-after`, `slide-ng-click-hide`, `slide-ng-mark`, `slide-ng-motion`, `slide-ng-drag`. They are Angular attribute directives. Others (`v-if`, `v-for`, `v-model`, `v-html`, `v-bind`) are plain unknown attributes: no error, and they do nothing.
 

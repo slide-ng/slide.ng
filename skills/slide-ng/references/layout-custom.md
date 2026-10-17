@@ -16,6 +16,8 @@ A layout is a standalone Angular component in `layouts/<name>.ts` (deck, theme o
 ```
 
 - `slots` are the names accepted after `::name::`; `classProp: true` sends the slide's `class` to the input `contentClass` instead of the tag.
+- A slot's content arrives as an element with the slot name as an attribute: place it with `<ng-content select="[name]" />`.
+- A deck's own folder can have a `theme.json` too, to declare the inputs and slots of its own `layouts/`.
 - The inputs are not read from the component (Angular decorators are not parsed).
 - `slide-ng theme eject` copies the built-in layouts into `./theme/layouts` as a starting point.
 

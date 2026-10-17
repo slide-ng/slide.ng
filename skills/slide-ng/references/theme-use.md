@@ -20,6 +20,7 @@ addons:
 - Theme `fonts` are merged with the deck's `fonts` key by key. `themeConfig` is not read.
 - Addons were unit-tested for resolution and merge order only; no deck was built end to end with one.
 - Official themes: `theme-official.md`. Write one: `theme-write.md`.
+- The slide.ng repository also has example themes to copy into a deck as folders: `examples/theme-minimal`, `theme-paper` (light, editorial), `theme-moss` (dark, green and clay), `theme-blueprint` (navy drafting grid).
 
 <!-- verify -->
 

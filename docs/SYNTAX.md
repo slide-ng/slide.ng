@@ -472,7 +472,10 @@ Total: {{ items.length }}
 Big number.
 }
 
-<my-chart [data]="values" (picked)="x = $event" />
+@let values = [3, 1, 4];
+
+<app-counter #c />
+<my-chart [data]="values" (picked)="c.n.set($event)" />
 ```
 
 Rules, so the markdown converter does not break your Angular code:
@@ -482,6 +485,8 @@ Rules, so the markdown converter does not break your Angular code:
 - A tag that uses a binding, event, `#ref` or `*directive` is passed through untouched. Put it on its own line,
   or inline in a paragraph.
 - `{{ ... }}` is passed through untouched.
+- Angular's common pipes (`number`, `currency`, `percent`, `date`, `json`, `uppercase`, `lowercase`, `titlecase`, `slice`, `keyvalue`,
+  `async`, `i18nPlural`, `i18nSelect`) work in a slide's expressions: `{{ 1234.5 | number }}`. They are imported only by the slides that use them.
 - A single `{`, `}` or `@` in normal text (like an email address) is safe: it is escaped for you.
 - Slides have no component class of their own. To share state between parts of a slide use template
   references (`<app-counter #c />` then `{{ c.n() }}`) or `@let`.
@@ -619,7 +624,7 @@ The password lets a device sync and write (slides, drawings and the `{monaco-wri
 
 ## The page, export and build
 
-Keys in the headmatter (the first frontmatter) that matter for `slide-ng build` and `slide-ng export` (flags and hosting are in README.md and HOSTING.md):
+Keys in the headmatter (the first frontmatter) that matter for `slide-ng build` and `slide-ng export` (flags are in CLI.md, hosting in HOSTING.md):
 
 ```md
 ---

@@ -19,7 +19,7 @@ Commands:
   create <dir>    start a new deck in <dir>
   skills install  copy the agent skill into .agents/skills/slide-ng      --dir --force
 
-Every flag is described in README.md.
+Every flag is described in docs/CLI.md (https://github.com/slide-ng/slide.ng/blob/main/docs/CLI.md).
 `;
 
 const COMMANDS = {

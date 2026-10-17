@@ -21,7 +21,7 @@ layout: two-cols
 
 - `::default::` goes back to the default part, so parts can be written in any order.
 - If the layout has no slot with that name, a `[slides]` warning is printed and the text stays in the normal flow.
-- Slots of the built-ins: `two-cols`: `left`, `right`; `two-cols-header`: `left`, `right`, `bottom`. Theme layouts declare theirs in `theme.json`.
+- Slots of the built-ins: `two-cols`: `left`, `right`; `two-cols-header`: `left`, `right`, `bottom`. Theme layouts declare theirs in `theme.json` (a deck's own layouts in the deck's `theme.json`), and place them with `<ng-content select="[name]" />`.
 
 <!-- verify -->
 

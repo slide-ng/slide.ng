@@ -20,7 +20,7 @@ npm start    # dev server at http://localhost:4230
 npm run build
 ```
 
-Other commands (`create`, `build`, `export`, `format`, `mcp`, ...) are run with `node bin/slide-ng.mjs <command>`. Everything is documented at [slide-ng.dev](https://slide-ng.dev) and in [docs/](docs/).
+Other commands (`create`, `build`, `export`, `format`, `mcp`, ...) are run with `node bin/slide-ng.mjs <command>`; every command and flag is in [docs/CLI.md](docs/CLI.md). Everything is documented at [slide-ng.dev](https://slide-ng.dev) and in [docs/](docs/).
 
 ## Features
 

@@ -14,7 +14,7 @@ const count = Math.max(1, 2);
 ```
 ````
 
-- `//    ^?` shows the type of the word above the `^`.
+- `//    ^?` shows the type of the word above the `^`, on a line of its own under that code line (it does not cover the code).
 - A block that does not compile is shown without types and a warning is printed.
 - The headmatter `twoslash: dev|build` switch is not read.
 

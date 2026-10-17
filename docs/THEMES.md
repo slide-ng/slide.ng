@@ -3,6 +3,10 @@
 A theme or addon is a folder (or an npm package) that adds to the built-in look. This page is the reference; the step-by-step
 guide is [WRITING-A-THEME.md](WRITING-A-THEME.md). The working example is [`examples/theme-minimal`](../examples/theme-minimal).
 
+The repository has three more example themes to copy or use as they are: [`theme-paper`](../examples/theme-paper) (light, editorial: serif
+headlines, a vermilion accent), [`theme-moss`](../examples/theme-moss) (dark, forest green and clay) and [`theme-blueprint`](../examples/theme-blueprint)
+(navy drafting grid, amber marks). Each README lists its layouts, inputs and component.
+
 ## Using one
 
 ```yaml
@@ -113,6 +117,9 @@ import { SHORTCUTS_SETUP } from 'slide-ng/lib/shortcuts';
   and `themeConfig` are merged key by key, as in Slidev.
 - `layouts.<name>`: `props` are the frontmatter keys that become inputs, `slots` are the names accepted after `::name::`,
   `classProp: true` sends the slide's `class` to the input `contentClass` instead of the tag.
+  A slot's content reaches the layout as an element with the slot's name as an attribute, so the layout places it with
+  `<ng-content select="[name]" />` (the built-in `two-cols` uses `select="[left]"` and `select="[right]"`).
+- The deck's own folder can have a `theme.json` too, to declare the inputs and slots of its own layouts.
 
 ## Setup hooks
 
