@@ -9,7 +9,7 @@ import {
   watch,
   writeFileSync,
 } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { coalesce } from './lib/coalesce.mjs';
 import { offerInstall } from './lib/install-root.mjs';
 import { parseDeck } from './lib/parse-deck.mjs';
@@ -22,6 +22,7 @@ import { layoutName } from './lib/layouts.mjs';
 import { makeCss, tsFiles } from './lib/make-css.mjs';
 import { detectFeatures } from './lib/features.mjs';
 import { initHighlighter } from './lib/code/highlighter.mjs';
+import { snippetFiles } from './lib/code/snippet.mjs';
 import { setKatexOptions } from './lib/math.mjs';
 import { katexOptions, shikiSetup, transformersSetup } from './lib/setup/node-setups.mjs';
 import { applyPreTransformers } from './lib/setup/pre-transform.mjs';
@@ -98,6 +99,7 @@ async function readDeck() {
 }
 
 async function generate() {
+  snippetFiles.clear();
   const deck = await readDeck();
   deckRead = true;
   const build = buildOptions();
@@ -176,7 +178,7 @@ async function generate() {
     ),
   );
   console.log(`[slides] generated ${deck.slides.length} slides`);
-  return { files: deck.files, folders: rootFolders(deck.roots) };
+  return { files: [...deck.files, ...snippetFiles], folders: rootFolders(deck.roots) };
 }
 
 // What to watch for the roots: a theme or addon folder as a whole, and only the known folders of the deck's own folder
@@ -209,9 +211,20 @@ if (process.argv.includes('--watch')) {
     clearTimeout(timer);
     timer = setTimeout(regenerate, 100);
   };
-  // The entry file, every file it imports with `src:`, and the folders of themes and addons.
+  // The entry file, every file it imports with `src:` or `<<<`, and the folders of themes and addons. A file is watched through
+  // its folder: an editor that saves by writing a new file and renaming it over the old one ends a watch on the file itself.
+  const names = new Map(); // folder -> the file names wanted in it
   const watchAll = ({ files, folders }) => {
-    for (const f of files) if (!watched.has(f)) (watched.add(f), watch(f, onChange));
+    for (const f of files) {
+      const dir = dirname(f);
+      if (!names.has(dir)) {
+        names.set(dir, new Set());
+        watch(dir, (_, name) => {
+          if (name && names.get(dir).has(String(name))) onChange();
+        });
+      }
+      names.get(dir).add(basename(f));
+    }
     for (const d of folders)
       if (!watched.has(d)) (watched.add(d), watch(d, { recursive: true }, onChange));
   };

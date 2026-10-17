@@ -38,6 +38,9 @@ export function dedent(lines) {
   return lines.map((l) => l.slice(cut));
 }
 
+/** Every snippet file read since the set was last cleared (generate.mjs clears it before each run). */
+export const snippetFiles = new Set();
+
 // `line` is the whole `<<<` line, `file` the markdown file it is in, `root` the project folder.
 // `options.roots` adds the folders of themes and addons; `options.allowOutsideRoot` is the deck's explicit opt-in. Without it a
 // file whose real place is outside those folders is an OutsideRootError (a symlink that leads out counts as outside).
@@ -51,6 +54,7 @@ export function resolveSnippet(line, file, root, options = {}) {
     roots: options.roots ?? [root],
     allowOutsideRoot: options.allowOutsideRoot,
   });
+  snippetFiles.add(path); // the dev server watches it (also while it is missing: creating it fixes the slide)
   if (!existsSync(path) || !statSync(path).isFile())
     throw new Error(`Code snippet not found: ${path}`);
   let lines = readFileSync(path, 'utf8').replace(/\r/g, '').replace(/\n$/, '').split('\n');
