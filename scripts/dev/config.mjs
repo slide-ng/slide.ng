@@ -22,8 +22,8 @@ export function readConfig(env, cwd = process.cwd()) {
     token: env.SLIDE_NG_TOKEN || randomSecret(),
     /** `--remote` password; empty only without --remote. */
     password: env.SLIDE_NG_PASSWORD ?? '',
-    /** The logins that are valid (one random cookie value each, 8 hours) and the limit on wrong passwords. */
-    sessions: createSessions(),
+    /** The logins that are valid (one random cookie value each, 8 hours, signed with the password) and the limit on wrong passwords. */
+    sessions: createSessions({ secret: env.SLIDE_NG_PASSWORD ?? '' }),
     loginGuard: createLoginGuard(),
     remote: env.SLIDE_NG_REMOTE === '1',
     /** Host names the machine is reached by (besides localhost and addresses). */

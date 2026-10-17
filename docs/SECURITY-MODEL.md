@@ -23,7 +23,7 @@ What the server can do for the page that passes these checks: move `v-drag` elem
 
 ## `--remote`
 
-`--remote` opens the dev server to your network so that others can follow the presenter. It always has a password (`--remote=secret`, `SLIDE_NG_PASSWORD`, a prompt on a terminal, or a random one that is printed). Wrong passwords are limited per client address, a login lasts 8 hours, and every other rule above still applies.
+`--remote` opens the dev server to your network so that others can follow the presenter. It always has a password (`--remote=secret`, `SLIDE_NG_PASSWORD`, a prompt on a terminal, or a random one that is printed). Wrong passwords are limited per client address, a login lasts 8 hours, and every other rule above still applies. The login cookie is signed with the password, so a login survives a restart of the dev server with the same password (and stops working when the password changes); it cannot be withdrawn before it runs out except by changing the password.
 
 **Whoever has the password can edit your slides.** They can rewrite `slides.md` and everything it imports, which includes adding raw HTML and scripts that every viewer of the deck then runs, and writing the `{monaco-write}` files. They cannot write setup files, `package.json` or hidden files through the server, and cannot read any file that is not part of a slide. There is **no HTTPS**: the password, the token and the slides cross the network in clear text, so someone who can read the network traffic can take the login. Use it on a network you trust, share the password only with people you would let edit the deck, and stop the server when the talk is over.
 

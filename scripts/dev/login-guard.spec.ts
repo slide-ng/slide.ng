@@ -57,4 +57,17 @@ describe('createSessions', () => {
     t = 1001;
     expect(s.has(a)).toBe(false);
   });
+  it('signs the logins with the password, so a restart with the same password keeps them', () => {
+    let t = 0;
+    const first = createSessions({ now: () => t, ttlMs: 1000, secret: 'pw' });
+    const a = first.issue();
+    const again = createSessions({ now: () => t, ttlMs: 1000, secret: 'pw' });
+    expect(again.has(a)).toBe(true);
+    expect(createSessions({ now: () => t, ttlMs: 1000, secret: 'other' }).has(a)).toBe(false);
+    const [id, expires, mac] = a.split('.');
+    expect(again.has(`${id}.${Number(expires) + 9999}.${mac}`)).toBe(false); // a longer life is not signed
+    expect(again.has(`${'0'.repeat(48)}.${expires}.${mac}`)).toBe(false);
+    t = 1001;
+    expect(again.has(a)).toBe(false);
+  });
 });
