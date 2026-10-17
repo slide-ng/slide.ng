@@ -52,15 +52,16 @@ function write(path, text) {
 // Magic Move's and Twoslash's CSS, and Monaco's CSS (it carries its icon font inside). Monaco's package maps `exports` to JavaScript only, so its CSS is reached by path.
 function featureCss(features) {
   const imports = [];
-  if (features.math)
-    imports.push(
-      "@import 'katex/dist/katex.min.css';",
-      '.slidev-layout .katex { direction: ltr; unicode-bidi: isolate; } /* math reads left to right in an RTL deck */',
-    );
+  if (features.math) imports.push("@import 'katex/dist/katex.min.css';");
   if (features.magicMove) imports.push("@import '@shikijs/magic-move/style.css';");
   if (features.twoslash) imports.push("@import '@shikijs/twoslash/style-rich.css';");
   if (features.monaco)
     imports.push("@import '../../../node_modules/monaco-editor/min/vs/editor/editor.main.css';");
+  // Rules after every @import: an @import that follows a rule is ignored by the browser.
+  if (features.math)
+    imports.push(
+      '.slidev-layout .katex { direction: ltr; unicode-bidi: isolate; } /* math reads left to right in an RTL deck */',
+    );
   return imports.length ? imports.join('\n') + '\n' : '/* no feature styles needed */\n';
 }
 
