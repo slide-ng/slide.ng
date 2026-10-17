@@ -38,8 +38,8 @@ import { Ui } from '../lib/ui-state';
           [disabled]="!ui.goto()"
           [value]="text()"
           (input)="type($event)"
-          (keydown.enter)="go()"
-          (keydown.escape)="close()"
+          (keydown.enter)="!$any($event).isComposing && go()"
+          (keydown.escape)="!$any($event).isComposing && close()"
           (keydown.arrowdown)="move($event, 1)"
           (keydown.arrowup)="move($event, -1)"
         />

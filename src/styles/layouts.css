@@ -101,6 +101,13 @@
   text-align: left;
   font-weight: 400;
 }
+/* A table's `| ---: |` alignment reaches the header too (marked writes it as an align attribute, which the rule above beats). */
+.slidev-layout th[align='right'] {
+  text-align: right;
+}
+.slidev-layout th[align='center'] {
+  text-align: center;
+}
 .slidev-layout td,
 .slidev-layout th {
   padding: 0.75rem 0.5rem;

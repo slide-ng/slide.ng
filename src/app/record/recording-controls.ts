@@ -26,7 +26,9 @@ import { clock } from './recording-file';
         (click)="recorder.active() ? recorder.stop() : recorder.start()"
       >
         <div
-          [class]="recorder.active() ? 'i-carbon:stop-filled-alt color-red-500' : 'i-carbon:record'"
+          [class]="
+            recorder.active() ? 'i-carbon:stop-filled-alt color-red-500' : 'i-carbon:recording'
+          "
         ></div>
       </button>
       @if (recorder.active()) {
