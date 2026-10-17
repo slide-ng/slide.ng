@@ -1,0 +1,3 @@
+/* The CSS reset comes first, before the utility classes (angular.json): as in Slidev, `bg-red-500` on a <button type="button">
+   then wins over the reset's `[type=button] { background-color: transparent }`, which has the same specificity. */
+@import '@unocss/reset/tailwind.css';

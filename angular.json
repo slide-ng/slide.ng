@@ -49,6 +49,7 @@
               }
             ],
             "styles": [
+              "src/styles/reset.css",
               "src/slides/generated/uno.css",
               "src/slides/generated/features.css",
               "src/styles.css",

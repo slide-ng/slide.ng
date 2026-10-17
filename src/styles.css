@@ -1,6 +1,4 @@
 /* Global styles. The details live in src/styles/. */
-/* The same reset Slidev uses, so layouts start from the same plain page. */
-@import '@unocss/reset/tailwind.css';
 @import './styles/vars.css';
 @import './styles/layouts.css';
 @import './styles/code.css';
