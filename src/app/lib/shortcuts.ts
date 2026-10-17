@@ -1,7 +1,7 @@
 // Keyboard shortcuts as a plain list of { name, key, run, when }.
 // The defaults are the same keys as Slidev's setup/shortcuts.ts. A deck can change them by
 // providing SHORTCUTS_SETUP (see docs/SYNTAX.md): it gets the default list and returns the list to use.
-import { InjectionToken } from '@angular/core';
+import { InjectionToken, inject } from '@angular/core';
 
 export interface Shortcut {
   name: string;
@@ -40,6 +40,17 @@ export const SHORTCUTS_SETUP = new InjectionToken<
 >('SHORTCUTS_SETUP', {
   factory: () => (_actions, list) => list,
 });
+
+/** The `setup/shortcuts.ts` files of the roots, weakest first. They run after SHORTCUTS_SETUP, so both kinds add up. */
+export const SHORTCUTS_FILES = new InjectionToken<
+  ((actions: ShortcutActions, list: Shortcut[]) => Shortcut[])[]
+>('SHORTCUTS_FILES', { factory: () => [] });
+
+/** The list in use: the defaults, then a theme's SHORTCUTS_SETUP provider, then every setup/shortcuts.ts. Call it in an injection context. */
+export function resolveShortcuts(actions: ShortcutActions): Shortcut[] {
+  const base = inject(SHORTCUTS_SETUP)(actions, defaultShortcuts(actions));
+  return inject(SHORTCUTS_FILES).reduce((all, f) => f(actions, all), base);
+}
 
 export function defaultShortcuts(a: ShortcutActions): Shortcut[] {
   const play = () => !a.overviewOpen() && !a.dragActive(); // arrow keys move through the overview while it is open, and nudge a selected slide-ng-drag

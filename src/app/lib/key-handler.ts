@@ -6,7 +6,7 @@ import { dropMouseFocus, pressesControl } from './key-focus';
 import { Dark } from './dark';
 import { Fullscreen } from './fullscreen';
 import { Nav } from './nav';
-import { SHORTCUTS_SETUP, defaultShortcuts, findShortcut } from './shortcuts';
+import { findShortcut, resolveShortcuts } from './shortcuts';
 import { Ui } from './ui-state';
 
 // Is the user typing somewhere? Then letters are text, not shortcuts.
@@ -27,7 +27,7 @@ export function keyHandler(nav: Nav, ui: Ui): (e: KeyboardEvent) => void {
     inject(Drawings),
     inject(DragState),
   );
-  const shortcuts = inject(SHORTCUTS_SETUP)(actions, defaultShortcuts(actions));
+  const shortcuts = resolveShortcuts(actions);
   document.addEventListener('click', dropMouseFocus);
   inject(DestroyRef).onDestroy(() => document.removeEventListener('click', dropMouseFocus));
   return (e) => {

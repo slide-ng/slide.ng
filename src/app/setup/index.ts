@@ -3,7 +3,7 @@
 import { EnvironmentProviders, Provider, provideEnvironmentInitializer } from '@angular/core';
 import { CODE_RUNNERS, CodeRunnerFn } from '../code/runners';
 import type { Shortcut, ShortcutActions } from '../lib/shortcuts';
-import { SHORTCUTS_SETUP } from '../lib/shortcuts';
+import { SHORTCUTS_FILES } from '../lib/shortcuts';
 import {
   CONTEXT_MENU_SETUP,
   ContextMenuSetup,
@@ -24,16 +24,11 @@ export const mainProviders = (files: (() => Providers)[]): Providers => files.fl
 export const rootProviders = (files: (() => void)[]): Providers =>
   files.map((f) => provideEnvironmentInitializer(f));
 
-/** `setup/shortcuts.ts`: each gets the actions and the list so far, and returns the list to use. */
+/** `setup/shortcuts.ts`: each gets the actions and the list so far, and returns the list to use. They run after a
+ * SHORTCUTS_SETUP provider (`setup/providers.ts` of a theme), so a deck's file adds to the theme's keys. */
 export const shortcutsProviders = (
   files: ((actions: ShortcutActions, list: Shortcut[]) => Shortcut[])[],
-): Providers => [
-  {
-    provide: SHORTCUTS_SETUP,
-    useValue: (actions: ShortcutActions, list: Shortcut[]) =>
-      files.reduce((all, f) => f(actions, all), list),
-  },
-];
+): Providers => [{ provide: SHORTCUTS_FILES, useValue: files }];
 
 /** `setup/context-menu.ts`: each gets the entries so far and returns the list to use. */
 export const contextMenuProviders = (files: ContextMenuSetup[]): Providers => [

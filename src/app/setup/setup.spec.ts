@@ -1,7 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { describe, expect, it } from 'vitest';
 import { CODE_RUNNERS } from '../code/runners';
-import { SHORTCUTS_SETUP, Shortcut, ShortcutActions } from '../lib/shortcuts';
+import {
+  SHORTCUTS_FILES,
+  SHORTCUTS_SETUP,
+  Shortcut,
+  ShortcutActions,
+  resolveShortcuts,
+} from '../lib/shortcuts';
 import {
   CONTEXT_MENU_SETUP,
   ContextMenuItem,
@@ -25,8 +31,25 @@ describe('setup providers', () => {
         (_a, list) => list.filter((s) => s.name !== 'x').concat(key('b')),
       ]),
     });
-    const result = TestBed.inject(SHORTCUTS_SETUP)(none, [key('x'), key('y')]);
+    const result = TestBed.inject(SHORTCUTS_FILES).reduce(
+      (all, f) => f(none, all),
+      [key('x'), key('y')],
+    );
     expect(result.map((s) => s.name)).toEqual(['y', 'a', 'b']);
+  });
+
+  it("adds the setup files to a theme's SHORTCUTS_SETUP instead of replacing it", () => {
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: SHORTCUTS_SETUP,
+          useValue: (_a: ShortcutActions, l: Shortcut[]) => [...l, key('theme')],
+        },
+        ...shortcutsProviders([(_a, list) => [...list, key('deck')]]),
+      ],
+    });
+    const names = TestBed.runInInjectionContext(() => resolveShortcuts(none)).map((s) => s.name);
+    expect(names.slice(-2)).toEqual(['theme', 'deck']);
   });
 
   it('chains context menu setups', () => {
