@@ -46,6 +46,11 @@
               {
                 "glob": "**/*",
                 "input": "src/slides/generated/public"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/slides/generated/local-assets",
+                "output": "_local"
               }
             ],
             "styles": [

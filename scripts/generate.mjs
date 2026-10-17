@@ -14,6 +14,7 @@ import { coalesce } from './lib/coalesce.mjs';
 import { offerInstall } from './lib/install-root.mjs';
 import { parseDeck } from './lib/parse-deck.mjs';
 import { RootNotFoundError } from './lib/roots.mjs';
+import { copyLocalAssets } from './lib/local-assets.mjs';
 import { checkToolDir } from './lib/tool-dir.mjs';
 import { ROOT_FOLDERS } from './lib/roots.mjs';
 import { slideName, slideSource } from './lib/emit.mjs';
@@ -157,6 +158,7 @@ async function generate() {
         'uno.css',
         'features.css',
         'remote-assets',
+        'local-assets',
         'fonts',
         'roots',
         'roots.json',
@@ -166,7 +168,9 @@ async function generate() {
   );
   for (const f of readdirSync(OUT)) if (!wanted.has(f)) rmSync(OUT + f, { recursive: true });
   resetMonacoWriteTargets();
+  deck.localAssets = new Set();
   deck.slides.forEach((s, i) => write(`${OUT}${slideName(i + 1)}.ts`, slideSource(s, i + 1, deck)));
+  copyLocalAssets(deck.root, deck.localAssets, `${OUT}local-assets`);
   writeMonacoTargets(deck.root);
   write(`${OUT}index.ts`, indexSource(deck));
   // The dev server shows a generator error in the page (dev/problem-banner.ts); a good run clears it.

@@ -1,5 +1,5 @@
 // Writes the TypeScript source of one generated slide component.
-import { dirname, relative } from 'node:path';
+import { dirname, join, relative } from 'node:path';
 import { COMPONENTS, LAYOUTS } from './registry.mjs';
 import { layoutName } from './layouts.mjs';
 import { extractStyles, scopeCss } from './scoped-style.mjs';
@@ -12,6 +12,7 @@ import { assertNoRenamedNames } from './renamed.mjs';
 import { commonPipes } from './pipes.mjs';
 import { commonDirectives } from './angular-imports.mjs';
 import { setWarnSlide } from './code/highlighter.mjs';
+import { localAssets } from './local-assets.mjs';
 
 const pad = (no) => String(no).padStart(3, '0');
 export const slideName = (no) => `slide-${pad(no)}`;
@@ -157,7 +158,18 @@ export function slideSource(slide, no, deck = {}) {
   const aliases = (deck.slides ?? []).map((sl) => sl.frontmatter?.routeAlias).filter(Boolean);
   const html = safeLinks(
     keepSpaces(
-      rebaseHtml(slideLinks(layer('slide-bottom') + layout + layer('slide-top'), aliases), base),
+      rebaseHtml(
+        localAssets(
+          slideLinks(layer('slide-bottom') + layout + layer('slide-top'), aliases),
+          {
+            file: slide.file ?? slide.source?.filepath,
+            root: deck.root,
+            publics: (deck.roots ?? []).map((r) => join(r.dir, 'public')),
+          },
+          (deck.localAssets ??= new Set()),
+        ),
+        base,
+      ),
     ),
     no,
   );
