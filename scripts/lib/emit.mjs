@@ -136,6 +136,20 @@ export function slideSource(slide, no, deck = {}) {
       console.warn(
         `[slides] slide ${no}: the drag position "${m[1]}" is not in this slide's dragPos; it starts where the layout puts it`,
       );
+  // UnoCSS here has no variant groups and no `--uno:` directive (docs/SYNTAX.md): say so instead of dropping the styles.
+  if (/\sclass="[^"]*[\w-]:\(/.test(markup))
+    console.warn(
+      `[slides] slide ${no}: variant groups such as hover:(a b) are not supported; write hover:a hover:b`,
+    );
+  if (/--uno(?:css)?:/.test(css))
+    console.warn(
+      `[slides] slide ${no}: --uno: in a <style> is not supported; put the utility classes on the element instead`,
+    );
+  // Vue's `<template #name>` slot is an inert HTML <template> here: its content never shows.
+  if (/<template\s+(?:#|v-slot)/.test(markup))
+    console.warn(
+      `[slides] slide ${no}: <template #...> is Vue's slot syntax and shows nothing here; use <div at="1"> children in <slide-ng-switch> and <div dark> / <div light> in <slide-ng-light-or-dark>`,
+    );
   // Angular removes <script> elements from templates without a word; say so, and where code goes instead.
   if (/<script[\s>]/i.test(markup))
     console.warn(

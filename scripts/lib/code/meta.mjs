@@ -2,19 +2,63 @@
 //   ```ts [title] {2,3|5|all} {lines:true,maxHeight:'100px'}
 // The ranges and the options are two separate braces, as in Slidev.
 const INFO =
-  /^([\w'#+-]+)?(?:[ \t]*|[ \t][ \w\t'-]*)(?:\[([^\]]*)\])?[ \t]*(?:\{([\w,|\-*]+)\})?[ \t]*(\{[^}]*\})?(.*)$/;
+  /^([\w'#+-]+)?(?:[ \t]*|[ \t][ \w\t'-]*)(?:\[([^\]]*)\])?[ \t]*(?:\{([\w,|\-*]+)\})?[ \t]*(\{(?:[^{}]|\{[^{}]*\})*\})?(.*)$/;
 
-// "{lines:true, maxHeight:'100px'}" -> { lines: true, maxHeight: '100px' }
-// Only simple values: true, false, numbers, quoted text, or a bare word (height:200px).
+// "{lines:true, maxHeight:'100px', sequence: {mirrorActors: false}}" -> { lines: true, maxHeight: '100px', sequence: { ... } }
+// Values: true, false, numbers, quoted text, a bare word (height:200px), and objects and lists of these (Mermaid's options).
 export function parseOptions(text = '') {
-  const out = {};
-  for (const [, key, raw] of text.matchAll(/([\w$-]+)\s*:\s*('[^']*'|"[^"]*"|[^,}]+)/g)) {
+  let i = 0;
+  const space = () => {
+    while (i < text.length && /\s/.test(text[i])) i++;
+  };
+  const scalar = (raw) => {
     const v = raw.trim();
-    if (v === 'true' || v === 'false') out[key] = v === 'true';
-    else if (v !== '' && !isNaN(+v)) out[key] = +v;
-    else out[key] = v.replace(/^(['"])(.*)\1$/, '$2');
-  }
-  return out;
+    if (v === 'true' || v === 'false') return v === 'true';
+    if (v !== '' && !isNaN(+v)) return +v;
+    return v.replace(/^(['"])(.*)\1$/, '$2');
+  };
+  const value = () => {
+    space();
+    if (text[i] === '{') return object();
+    if (text[i] === '[') {
+      const list = [];
+      i++;
+      for (space(); i < text.length && text[i] !== ']'; space()) {
+        list.push(value());
+        space();
+        if (text[i] === ',') i++;
+      }
+      i++;
+      return list;
+    }
+    const quoted = /^('[^']*'|"[^"]*")/.exec(text.slice(i));
+    const raw = quoted ? quoted[1] : /^[^,}\]]*/.exec(text.slice(i))[0];
+    i += raw.length;
+    return scalar(raw);
+  };
+  const object = () => {
+    const out = {};
+    i++; // {
+    for (space(); i < text.length && text[i] !== '}'; space()) {
+      const key = /^[\w$-]+/.exec(text.slice(i))?.[0];
+      if (!key) {
+        i++; // skip what is not a key
+        continue;
+      }
+      i += key.length;
+      space();
+      if (text[i] === ':') i++;
+      out[key] = value();
+      space();
+      if (text[i] === ',') i++;
+    }
+    i++; // }
+    return out;
+  };
+  const body = text.trim();
+  if (!body) return {};
+  text = body.startsWith('{') ? body : `{${body}}`; // the braces may be left out
+  return object();
 }
 
 // "2-3|5|all" -> ["2-3", "5", "all"]; no ranges -> []
@@ -42,7 +86,7 @@ export function parseInfo(info) {
 export const cleanTitle = (title) => title.replace(/~([^~]+)~/g, '').trim();
 
 // "{monaco}", "{monaco-diff}", "{monaco-run}" right after the language.
-const MONACO = /^([\w'-]+)?\s*\{(monaco[\w-]*)\}\s*(\{[^}]*\})?(.*)$/;
+const MONACO = /^([\w'-]+)?\s*\{(monaco[\w-]*)\}\s*(\{(?:[^{}]|\{[^{}]*\})*\})?(.*)$/;
 export function parseMonacoInfo(info) {
   const m = MONACO.exec(info.trim());
   return m ? { lang: m[1] ?? '', kind: m[2], options: parseOptions(m[3]) } : null;

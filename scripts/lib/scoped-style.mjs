@@ -2,8 +2,8 @@
 // return the CSS separately; emit.mjs puts it into the slide component, scoped to that slide.
 export function extractStyles(markdown) {
   const css = [];
-  // Splitting with a capture group puts the code fences at the odd positions.
-  const parts = markdown.split(/(^```.*\n[\s\S]*?^```$)/gm);
+  // Splitting with a capture group puts the code (fences, also indented in a list, and inline code) at the odd positions.
+  const parts = markdown.split(/(^[ \t]*```.*\n[\s\S]*?^[ \t]*```[ \t]*$|`[^`\n]+`)/gm);
   const text = parts
     .map((part, i) =>
       i % 2

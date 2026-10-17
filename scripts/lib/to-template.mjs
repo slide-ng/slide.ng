@@ -47,10 +47,17 @@ export function toTemplate(markdown, ctx = {}) {
   let { markdown: md, fences } = extractFences(markdown, ctx);
   const inlines = [];
   // In a table row, `\|` is how a cell writes a pipe, also inside code (as in GitHub's tables).
-  md = md.replace(/(`+)(.+?)\1/g, (_, __, code, at, all) => {
+  md = md.replace(/(?<!\\)(`+)(.+?)\1/g, (_, __, code, at, all) => {
     const row = /^[ \t]*\|/.test(all.slice(all.lastIndexOf('\n', at) + 1));
     return `NGCODE${inlines.push(row ? code.replace(/\\\|/g, '|') : code) - 1}X`;
   });
+
+  // A type in prose, `Promise<void>` or `Map<string, number>`, is text, not a tag (Angular would stop at `</p>`): a word right
+  // before `<` and a type name inside mark it.
+  md = md.replace(
+    /(\w)<((?:void|string|number|boolean|any|unknown|never|null|undefined|object|[A-Z]\w*)(?:\[\])?(?:\s*,\s*[\w[\]]+)*)>/g,
+    '$1&lt;$2&gt;',
+  );
 
   // Math is cut out too, so markdown does not read the `_` and `*` in formulas.
   const math = extractMath(md);

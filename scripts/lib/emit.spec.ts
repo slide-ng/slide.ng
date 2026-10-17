@@ -260,6 +260,12 @@ describe('slideSource: drag positions and renamed names', () => {
     expect(warn.mock.calls[0][0]).toContain('"circle" is not in this slide\'s dragPos');
     warn.mockRestore();
   });
+  it('warns about a Vue slot template', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    slideSource(slide({}, '<slide-ng-switch><template #1>a</template></slide-ng-switch>'), 2);
+    expect(warn.mock.calls[0][0]).toContain("Vue's slot syntax");
+    warn.mockRestore();
+  });
   it('lists every renamed name of a slide at once', () => {
     expect(() =>
       slideSource(slide({}, '<v-clicks>\n\n- a\n\n</v-clicks>\n\n<div v-click>b</div>'), 2),

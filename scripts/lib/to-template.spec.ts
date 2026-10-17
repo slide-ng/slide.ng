@@ -86,6 +86,12 @@ describe('toTemplate: code is literal', () => {
       "<p>Show {{ '{' }}&#123; name &#125;&#125; literally.</p>\n",
     );
   });
+  it('reads a type in prose as text and an escaped backtick as a backtick', () => {
+    expect(toTemplate('It returns Promise<void> or Map<string, number>.')).toContain(
+      'Promise&lt;void&gt; or Map&lt;string, number&gt;',
+    );
+    expect(toTemplate('Escaped \\`not code\\` here')).toBe('<p>Escaped `not code` here</p>\n');
+  });
   it('draws a code fence inside a list item', () => {
     const html = toTemplate('- A shell:\n\n  ```bash\n  npm ci\n  ```\n- next');
     expect(html).toContain('<pre');

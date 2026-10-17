@@ -35,6 +35,16 @@ describe('options', () => {
   it('keeps a comma inside quotes', () => {
     expect(parseOptions("{title:'a, b'}")).toEqual({ title: 'a, b' });
   });
+  it('reads nested objects and lists, as Mermaid options use them', () => {
+    expect(parseOptions('{sequence: {mirrorActors: false}, scale: 0.7, ids: [1, 2]}')).toEqual({
+      sequence: { mirrorActors: false },
+      scale: 0.7,
+      ids: [1, 2],
+    });
+    expect(parseInfo('mermaid {sequence: {mirrorActors: false}}').options).toEqual({
+      sequence: { mirrorActors: false },
+    });
+  });
 });
 
 describe('titles and monaco info', () => {
