@@ -64,8 +64,8 @@ const FAVICON_TYPES = {
   '.gif': 'image/gif',
 };
 
-// A short plain description from the markdown of `info`.
-function describe(info) {
+// A short plain description from the markdown of `info` (the page's description and the PDF's subject).
+export function describe(info) {
   return String(info)
     .replace(/[#*_`>]/g, '')
     .replace(/\s+/g, ' ')

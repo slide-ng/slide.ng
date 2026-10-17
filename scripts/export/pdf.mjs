@@ -1,6 +1,7 @@
 // PDF output: page.pdf of the print page, merged (per-slide mode), titled, with an optional outline.
 import { PDFDocument } from '@cantoo/pdf-lib';
 import { addOutline, outlineTree } from './outline.mjs';
+import { describe } from '../lib/head.mjs';
 
 /** One PDF buffer of the loaded print page, with the paper as big as one slide. */
 export function pagePdf(page, { width, height }) {
@@ -18,7 +19,7 @@ function setProperties(pdf, headmatter) {
   pdf.setProducer('slide.ng');
   pdf.setCreator('slide.ng');
   if (headmatter.title) pdf.setTitle(String(headmatter.title));
-  if (headmatter.info) pdf.setSubject(String(headmatter.info));
+  if (headmatter.info) pdf.setSubject(describe(headmatter.info));
   if (headmatter.author) pdf.setAuthor(String(headmatter.author));
   const keywords = headmatter.keywords;
   if (keywords)
