@@ -23,6 +23,48 @@ Commands:
 Every flag is described in docs/CLI.md (https://github.com/slide-ng/slide.ng/blob/main/docs/CLI.md).
 `;
 
+// `slide-ng <command> --help`: that command's flags (all of them are described in docs/CLI.md).
+const COMMAND_HELP = {
+  dev: `slide-ng dev [slides.md]  start the dev server
+  --port, -p <n>        port (default 4230)
+  --open, -o            open the browser
+  --remote[=password]   listen on the network; always with a password
+  --bind <address>      the address to listen on with --remote (default 0.0.0.0)
+  --log <level>         error, warn, info (default) or silent
+  --force, -f           clear the Angular build cache first
+  --theme, -t <name>    use this theme instead of the headmatter's`,
+  build: `slide-ng build [slides.md]  make a static site
+  --out, -o <dir>       output folder (default dist)
+  --base </path/>       the path the site is served from
+  --offline             a folder that opens from disk (not with --base)
+  --download            also make the PDF and offer it in the bar
+  --without-notes       leave the speaker notes out
+  --theme, -t <name>    use this theme instead of the headmatter's
+  --executable-path, --no-sandbox, --allow-local, --timeout   Chromium for the PDF and the Open Graph picture`,
+  export: `slide-ng export [slides.md]  make a PDF, PNG, PPTX or Markdown file
+  --format <f>          pdf (default), png, pptx or md
+  --output, -o <file>   the file (a folder for png)
+  --range <1,3-5>       slides to export
+  --with-clicks, -c     one page per click step
+  --dark                dark mode
+  --per-slide, --with-toc, --scale <n>, --omit-background
+  --timeout <ms>, --wait <ms>, --wait-until <state>
+  --dist <dir> | --url <address>   export a build or a running server instead of building
+  --base, --theme, -t, --executable-path, --no-sandbox, --allow-local`,
+  'export-notes': `slide-ng export-notes [slides.md]  make a PDF of the speaker notes
+  --output, -o <file>, --range <1,3-5>, and the Chromium flags of export`,
+  format: 'slide-ng format [slides.md ...]  tidy the markdown files in place',
+  theme: `slide-ng theme eject [slides.md]  copy the theme into the deck's folder
+  --dir <name>          the folder (default theme)
+  --theme <name>        eject this theme instead of the headmatter's`,
+  create: `slide-ng create <dir>  start a new deck
+  --force, -f           add the missing files to a folder that is not empty`,
+  mcp: 'slide-ng mcp [slides.md]  start the MCP server on stdio',
+  skills: `slide-ng skills install  copy the agent skill into the project
+  --dir <folder>        where (default .agents/skills)
+  --force, -f           replace an existing copy`,
+};
+
 const COMMANDS = {
   dev: async (args) => (await import('../scripts/cli/dev.mjs')).devCommand(args),
   build: async (args) => (await import('../scripts/cli/build.mjs')).buildCommand(args),
@@ -47,7 +89,11 @@ try {
     args.includes('-h') ||
     process.argv[2] === '--help'
   )
-    console.log(HELP);
+    console.log(
+      COMMAND_HELP[command] && process.argv[2] === command
+        ? `${COMMAND_HELP[command]}\n\nEvery flag is described in docs/CLI.md.`
+        : HELP,
+    );
   else if (!COMMANDS[command])
     throw new Error(`Unknown command "${command}". Run slide-ng --help for the list.`);
   else await COMMANDS[command](args);

@@ -2,7 +2,7 @@
 
 `slide-ng [command] [slides.md] [flags]`. Without a command it runs `dev`. Without a file it uses `slides.md` in the current folder.
 Flags take `--name value` or `--name=value`; a boolean flag also takes `--no-name`. An unknown flag is an error, so a typo is never ignored.
-`slide-ng --version` prints the version, `slide-ng --help` the list of commands.
+`slide-ng --version` prints the version, `slide-ng --help` the list of commands, `slide-ng <command> --help` that command's flags.
 
 ## dev (default)
 
