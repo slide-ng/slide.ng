@@ -44,8 +44,14 @@ export async function readSlide(ctx, no) {
   return sourceOf(text, slide);
 }
 
-/** The side editor saved: replace the slide's lines. */
-export async function writeSlide(ctx, no, raw) {
+/**
+ * The side editor saved: replace the slide's lines. `base` is the slide's text as the editor last read it; when the file
+ * changed since (another editor, git, the MCP server inserted a slide before it), slide `no` may be another slide now, so
+ * nothing is written (409).
+ */
+export async function writeSlide(ctx, no, raw, base) {
   const { slide, file, text } = await locate(ctx, no);
+  if (typeof base === 'string' && sourceOf(text, slide) !== base)
+    throw new HttpError(409, `slide ${no} changed in the file since the editor read it`);
   await save(ctx, file, replaceSource(text, slide, raw));
 }

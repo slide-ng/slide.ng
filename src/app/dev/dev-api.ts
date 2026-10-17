@@ -60,8 +60,13 @@ export class DevApi {
 
   /** POST or PUT a JSON body. Resolves true when the server accepted it. */
   async send(method: 'POST' | 'PUT', path: string, body: unknown): Promise<boolean> {
+    return (await this.request(method, path, body)) === 200;
+  }
+
+  /** The same, with the HTTP status (0 when the request could not be made). */
+  async request(method: 'POST' | 'PUT', path: string, body: unknown): Promise<number> {
     const token = await this.token();
-    if (!token) return false;
+    if (!token) return 0;
     try {
       const res = await fetch(`${API}${path}`, {
         method,
@@ -69,9 +74,9 @@ export class DevApi {
         body: JSON.stringify(body),
         headers: { 'content-type': 'application/json', 'x-slide-ng-token': token },
       });
-      return res.ok;
+      return res.status;
     } catch {
-      return false;
+      return 0;
     }
   }
 

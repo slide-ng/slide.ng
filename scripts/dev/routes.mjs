@@ -76,9 +76,9 @@ export function createHandler(ctx) {
     if ((m = /^\/slides\/(\d+)\/source$/.exec(path))) {
       if (method === 'GET') return json(res, 200, { raw: await readSlide(ctx, number(m[1])) });
       if (method === 'PUT') {
-        const { raw } = await body(req, MAX_FILE);
+        const { raw, base } = await body(req, MAX_FILE * 2);
         if (typeof raw !== 'string') throw new HttpError(400, 'raw must be text');
-        await serial(() => writeSlide(ctx, number(m[1]), raw));
+        await serial(() => writeSlide(ctx, number(m[1]), raw, base));
         return json(res, 200, { ok: true });
       }
     }

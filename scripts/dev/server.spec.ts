@@ -200,6 +200,19 @@ describe('writes to slides.md', () => {
     expect(readFileSync(join(root, 'slides.md'), 'utf8')).toContain('edited');
     writeFileSync(join(root, 'slides.md'), SLIDES);
   });
+  it('refuses a save when the slide changed in the file since the editor read it', async () => {
+    const base = (await call('GET', '/__slide-ng/slides/2/source')).json.raw;
+    const r = await call('PUT', '/__slide-ng/slides/2/source', {
+      raw: '\n# Two\n\nmine',
+      base: base + 'changed elsewhere',
+    });
+    expect(r.status).toBe(409);
+    expect(readFileSync(join(root, 'slides.md'), 'utf8')).not.toContain('mine');
+    expect(
+      (await call('PUT', '/__slide-ng/slides/2/source', { raw: '\n# Two\n\nmine', base })).status,
+    ).toBe(200);
+    writeFileSync(join(root, 'slides.md'), SLIDES);
+  });
 });
 
 describe('{monaco-write}', () => {
