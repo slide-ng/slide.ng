@@ -49,7 +49,8 @@ export class SlideNgMotion implements OnInit, OnDestroy {
   }
 
   private phase(): Phase {
-    const current = this.nav?.no() ?? this.slideNo;
+    // In print every slide is drawn at once, so the slide being presented says nothing about this one.
+    const current = this.context === 'print' ? this.slideNo : (this.nav?.no() ?? this.slideNo);
     if (this.slideNo < current) return 'leave';
     if (this.slideNo > current) return 'initial';
     const info = this.click?.info();
@@ -62,10 +63,11 @@ export class SlideNgMotion implements OnInit, OnDestroy {
     const variants = this.all;
     const keys = touchedKeys(variants);
     const live = ['slide', 'presenter'].includes(this.context);
-    // Thumbnails and print show the end state, nothing moves there.
-    const mixed = live
-      ? mixVariants(variants, this.phase(), this.clicks.current())
-      : mixVariants(variants, 'enter', 'all');
+    // Print shows the state at the page's click (with --with-clicks a page per click) without moving; thumbnails show the end.
+    const mixed =
+      live || this.context === 'print'
+        ? mixVariants(variants, this.phase(), this.clicks.current())
+        : mixVariants(variants, 'enter', 'all');
     const css = toStyle(mixed, keys);
     if (live && !this.started) {
       // Start from `initial` without animating, so that `enter` has something to move from.
