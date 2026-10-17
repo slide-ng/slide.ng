@@ -33,7 +33,7 @@ export function selectorTest(selector) {
   const parts = selector.split(',').flatMap((part) => {
     const [, tag, attrs] = /^\s*([\w-]*)((?:\[[^\]]+\])*)/.exec(part);
     const name = /\[([\w-]+)/.exec(attrs)?.[1];
-    if (tag && name) return [`<${escape(tag)}\\s[^>]*?${attr(name)}`];
+    if (tag && name) return [`<${escape(tag)}(?=\\s)[^>]*?${attr(name)}`]; // the attribute may come first
     if (tag) return [`<${escape(tag)}[\\s>/]`];
     return name ? [attr(name)] : [];
   });

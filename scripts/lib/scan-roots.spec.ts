@@ -37,6 +37,8 @@ describe('selectorTest', () => {
   it('matches a structural use, a tag with an attribute and a list', () => {
     expect(selectorTest('[repeatTimes]').test('<li *repeatTimes="3; let n">')).toBe(true);
     expect(selectorTest('button[appRipple]').test('<button class="a" appRipple>')).toBe(true);
+    expect(selectorTest('button[appRipple]').test('<button appRipple>')).toBe(true);
+    expect(selectorTest('ng-template[uiTab]').test('<ng-template uiTab="Install">')).toBe(true);
     expect(selectorTest('button[appRipple]').test('<a appRipple>')).toBe(false);
     expect(selectorTest('[appAutofocus], [focus-me]').test('<input focus-me>')).toBe(true);
     expect(selectorTest('my-card, my-panel').test('<my-panel>')).toBe(true);
