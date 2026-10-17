@@ -12,6 +12,7 @@ import { rewriteDirectives } from './directives.mjs';
 import { markAlerts } from './alerts.mjs';
 import { extractFootnotes, finishFootnotes } from './footnotes.mjs';
 import { rewriteIcons } from './icons.mjs';
+import { applyAttrSugar } from './attr-sugar.mjs';
 
 export { escapeCode, protect };
 
@@ -52,7 +53,7 @@ export function toTemplate(markdown, ctx = {}) {
   md = md.replace(/\{\{[\s\S]*?\}\}/g, (m) => keep(m.replace(/\\\|/g, '|')));
 
   // 3. Markdown -> HTML, then make the remaining braces and @ harmless.
-  let html = protect(markAlerts(marked.parse(md, { async: false })));
+  let html = protect(applyAttrSugar(markAlerts(marked.parse(md, { async: false }))));
   html = finishFootnotes(html, footnotes.notes, (note) =>
     protect(marked.parseInline(note, { async: false })),
   );
