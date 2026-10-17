@@ -1,5 +1,5 @@
 import { LAYOUTS, layoutName } from './layouts.mjs';
-import { slideSource } from './emit.mjs';
+import { keepSpaces, slideSource } from './emit.mjs';
 import { indexSource } from './index-source.mjs';
 import { parseDeck } from './parse-deck.mjs';
 import { initHighlighter } from './code/highlighter.mjs';
@@ -210,5 +210,19 @@ describe('slideSource: built-in components are imported when the slide uses them
   });
   it('does not mix <slide-ng-transform> up with the longer names or other words', () => {
     expect(imports('plain text about a transformation')).toBe('DefaultLayout');
+  });
+});
+
+describe('keepSpaces', () => {
+  it('keeps a space between two tags on one line, like Vue', () => {
+    expect(keepSpaces('<p><strong>bold</strong> <em>italic</em></p>')).toBe(
+      '<p><strong>bold</strong>&ngsp;<em>italic</em></p>',
+    );
+  });
+  it('leaves line breaks between blocks and code samples alone', () => {
+    expect(keepSpaces('<h1>a</h1>\n<p>b</p>')).toBe('<h1>a</h1>\n<p>b</p>');
+    expect(keepSpaces('<pre><span>a</span> <span>b</span></pre>')).toBe(
+      '<pre><span>a</span> <span>b</span></pre>',
+    );
   });
 });

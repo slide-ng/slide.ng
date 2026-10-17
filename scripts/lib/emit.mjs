@@ -13,6 +13,16 @@ import { commonPipes } from './pipes.mjs';
 const pad = (no) => String(no).padStart(3, '0');
 export const slideName = (no) => `slide-${pad(no)}`;
 export const slideClass = (no) => `Slide${pad(no)}`;
+
+// Angular drops text that is only whitespace, so `**bold** *italic*` read "bolditalic". Like Vue's `condense`, a space
+// between two tags on one line is kept (`&ngsp;` is Angular's kept space); a line break between blocks still goes.
+// Code samples are left alone (Angular keeps whitespace inside <pre> itself).
+export function keepSpaces(html) {
+  return html
+    .split(/(<pre[\s>][\s\S]*?<\/pre>)/)
+    .map((part, i) => (i % 2 ? part : part.replace(/>([ \t]+)</g, '>&ngsp;<')))
+    .join('');
+}
 export { layoutName };
 
 // What a transformer in setup/transformers.ts is told about the slide.
@@ -65,7 +75,7 @@ export function slideSource(slide, no, deck = {}) {
     deck.layers?.includes(name) ? `<app-slide-layer name="${name}"></app-slide-layer>` : '';
   const layout = `${openTag(def, slide.frontmatter)}${body(markdown, def, no, { file: slide.file, root: deck.root, roots: deck.roots?.map((r) => r.dir), allowOutsideRoot: deck.allowOutsideRoot, headmatter: deck.headmatter, codeblocks: deck.transformers?.codeblocks, slide: slideInfo(slide, no) }, layoutKey)}</${def.tag}>`;
   const base = deck.assetBase ?? '/'; // where the deck is served from in a build; `/public` files get it in front
-  const html = rebaseHtml(layer('slide-bottom') + layout + layer('slide-top'), base);
+  const html = keepSpaces(rebaseHtml(layer('slide-bottom') + layout + layer('slide-top'), base));
 
   // Look for components outside code samples only (code is just text).
   const markup = html
