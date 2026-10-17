@@ -10,3 +10,5 @@ A drafting-table theme: navy paper with a two-step grid, white lines, amber "pen
 Use it with `theme: ./path/to/theme-blueprint`.
 
 The theme paints the slide background on `.slidev-layout`, and `layers/global-bottom` is drawn under the slide (as in Slidev), so put a footer in `layers/global-top` instead.
+
+It is dark by default (`colorSchema: dark` in `theme.json`). With `colorSchema: light` or `auto` it has a light "whiteprint" palette: pale paper with blue lines.

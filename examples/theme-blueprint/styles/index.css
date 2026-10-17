@@ -1,5 +1,18 @@
 /* blueprint: navy drafting paper with a grid, white lines, amber pencil marks. */
-:root,
+:root {
+  /* light: a whiteprint (pale paper, blue lines), used when a deck sets colorSchema light or auto */
+  --bp-bg: #f3f7fb;
+  --bp-line: rgba(15, 44, 76, 0.07);
+  --bp-line-strong: rgba(15, 44, 76, 0.16);
+  --bp-text: #0f2c4c;
+  --bp-muted: #4d6a86;
+  --bp-cyan: #1d6fa5;
+  --bp-amber: #b86b00;
+  --slidev-theme-primary: #b86b00;
+  --slidev-code-background: #e6eef6;
+  --slidev-code-foreground: #0f2c4c;
+  --slidev-code-radius: 0;
+}
 html.dark {
   --bp-bg: #0f2c4c;
   --bp-line: rgba(255, 255, 255, 0.07);

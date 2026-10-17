@@ -6,7 +6,8 @@
     "fonts": {
       "sans": "IBM Plex Sans",
       "mono": "IBM Plex Mono"
-    }
+    },
+    "themeColor": "#0f2c4c"
   },
   "layouts": {
     "cover": {
