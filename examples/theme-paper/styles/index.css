@@ -75,6 +75,7 @@ html.dark {
   margin-bottom: 1.2rem;
 }
 .paper-cover h1 + p {
+  opacity: 1; /* the core dims `h1 + p`; the theme's colour is muted already */
   font-size: 1.35rem;
   color: var(--paper-muted);
   font-style: italic;

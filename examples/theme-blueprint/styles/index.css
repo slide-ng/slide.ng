@@ -41,7 +41,8 @@ html.dark {
 .slidev-layout strong {
   color: var(--bp-amber);
 }
-.slidev-layout ul li::marker {
+/* not on task-list items, which have their checkbox */
+.slidev-layout ul li:not(:has(> input[type='checkbox']))::marker {
   color: var(--bp-amber);
   content: '+ ';
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
@@ -98,6 +99,7 @@ html.dark {
   line-height: 1.1;
 }
 .bp-cover h1 + p {
+  opacity: 1; /* the core dims `h1 + p`; the theme's colour is muted already */
   color: var(--bp-muted);
   font-size: 1.2rem;
 }
@@ -175,4 +177,11 @@ html.dark {
 /* the closing slide in the theme's colours instead of black */
 .slidev-layout.end {
   color: var(--bp-muted);
+}
+
+/* letter spacing breaks the joining of Arabic letters */
+[dir='rtl'] .slidev-layout h1,
+[dir='rtl'] .slidev-layout h2,
+[dir='rtl'] .slidev-layout h3 {
+  letter-spacing: normal;
 }
