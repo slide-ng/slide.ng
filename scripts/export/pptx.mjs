@@ -1,6 +1,7 @@
 // `--format pptx`: a PowerPoint file with one picture per slide (no editable text; that is not supported) and the notes.
 import { writeFile } from 'node:fs/promises';
 import PptxGenJS from 'pptxgenjs';
+import { describe } from '../lib/head.mjs';
 
 export async function writePptx(file, { pictures, slides, headmatter, width, height }) {
   const pptx = new PptxGenJS();
@@ -9,7 +10,7 @@ export async function writePptx(file, { pictures, slides, headmatter, width, hei
   pptx.layout = `${width}x${height}`;
   if (headmatter.author) pptx.author = String(headmatter.author);
   if (headmatter.title) pptx.title = String(headmatter.title);
-  if (headmatter.info) pptx.subject = String(headmatter.info);
+  if (headmatter.info) pptx.subject = describe(headmatter.info); // plain text, as in the PDF
 
   for (const p of pictures) {
     const slide = pptx.addSlide();

@@ -54,7 +54,8 @@ export async function parseDeck(file = 'slides.md', sources, options = {}) {
   const defaults = headmatter.defaults ?? {};
 
   const slides = data.slides.map((s) => ({
-    title: s.title,
+    // A `title:` on the slide that imports this one (`src:`) wins over the imported slide's own title.
+    title: s.frontmatter?.title != null ? String(s.frontmatter.title) : s.title,
     // `level` in the frontmatter, or in the headmatter's `defaults`, wins over the heading's level
     level:
       (s.frontmatter?.level ?? defaults.level) != null

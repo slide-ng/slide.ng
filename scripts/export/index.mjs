@@ -31,7 +31,8 @@ export async function exportSlides({
   log = console.log,
 }) {
   const total = deck.slides.length;
-  const pages = parseRangeString(total, options.range);
+  // Slidev's parser returns 0 for `0`; only real slides count.
+  const pages = parseRangeString(total, options.range).filter((n) => n >= 1 && n <= total);
   if (!pages.length)
     throw new Error(
       `export: the range "${options.range}" matches no slide (the deck has ${total})`,
@@ -121,7 +122,8 @@ export async function exportNotes({ options, served, routerMode, outBase, log = 
     );
     const page = await context.newPage();
     await page.emulateMedia({ media: 'screen' });
-    await page.goto(printUrl({ ...served, routerMode, query: '', path: 'presenter/print' }), {
+    const query = options.range ? new URLSearchParams({ range: options.range }).toString() : '';
+    await page.goto(printUrl({ ...served, routerMode, query, path: 'presenter/print' }), {
       waitUntil: options.waitUntil,
       timeout: options.timeout,
     });

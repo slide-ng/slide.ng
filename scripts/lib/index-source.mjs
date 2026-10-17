@@ -8,11 +8,21 @@ import { downloadTarget } from '../export/filename.mjs';
 import { pwaEnabled } from '../build/pwa.mjs';
 import { titleHtml } from './math.mjs';
 
+// A heading's markdown as text for the tab title, the outline and the overview: `[a](b)` is `a`, `code` and **b** lose their marks.
+export function plainTitle(title) {
+  return String(title)
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/`([^`]*)`/g, '$1')
+    .replace(/(\*\*|\*|~~)(\S(?:.*?\S)?)\1/g, '$2')
+    .replace(/(?<!\w)(__|_)(\S(?:.*?\S)?)\1(?!\w)/g, '$2')
+    .trim();
+}
+
 // What the app needs to know about one slide, besides its component.
 function metaOf(slide, index) {
   const f = slide.frontmatter;
   return {
-    title: slide.title ?? null,
+    title: slide.title == null ? null : plainTitle(slide.title),
     titleHtml: titleHtml(slide.title), // only when the title has $math$
     level: slide.level ?? null,
     layout: slide.layout ?? layoutName(f, index),

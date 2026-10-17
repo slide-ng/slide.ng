@@ -126,6 +126,15 @@ describe('parseDeck: src imports', () => {
     return parseDeck(join(dir, 'slides.md'));
   };
 
+  it('takes the title set on the importing slide', async () => {
+    writeFileSync(join(dir, 'pages', 'titled.md'), '---\ntitle: Part one\n---\n\n# Heading\n');
+    writeFileSync(
+      join(dir, 'slides.md'),
+      '# First\n\n---\nsrc: ./pages/titled.md\ntitle: Part one again\n---\n',
+    );
+    const { slides } = await parseDeck(join(dir, 'slides.md'));
+    expect(slides[1].title).toBe('Part one again');
+  });
   it('replaces the slide by the slides of the imported file', async () => {
     const { slides, files } = await main('./pages/extra.md');
     expect(slides.map((s) => s.title)).toEqual([

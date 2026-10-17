@@ -2,6 +2,7 @@
 import { PDFDocument } from '@cantoo/pdf-lib';
 import { addOutline, outlineTree } from './outline.mjs';
 import { describe } from '../lib/head.mjs';
+import { plainTitle } from '../lib/index-source.mjs';
 
 /** One PDF buffer of the loaded print page, with the paper as big as one slide. */
 export function pagePdf(page, { width, height }) {
@@ -55,7 +56,7 @@ export function tocEntries(slides, pages) {
   });
   return slides
     .map((s, i) => ({
-      title: s.title,
+      title: s.title == null ? s.title : plainTitle(s.title),
       level: s.level,
       hide: s.frontmatter?.hideInToc,
       page: firstPage.get(i + 1),
