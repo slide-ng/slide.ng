@@ -5,15 +5,20 @@ export async function run({ t, open }) {
     'a twoslash block has hover popups with real types',
     (await page.locator('.twoslash-hover').count()) >= 4,
   );
-  const persisted = await page
-    .locator('.twoslash-query-persisted .twoslash-popup-code')
-    .allInnerTexts();
+  const queries = page.locator('.twoslash-query-line');
+  const persisted = await queries.locator('.twoslash-popup-code').allInnerTexts();
   t.ok(
     'the ^? query is shown without hovering, with the inferred type',
     persisted.length === 2 &&
       persisted[0].includes('count: number') &&
       persisted[1].includes('x: number'),
     persisted.join('|'),
+  );
+  t.ok(
+    'each ^? query takes a line of its own instead of covering the code',
+    (await queries.evaluateAll((l) => l.map((e) => e.getBoundingClientRect().height))).every(
+      (h) => h > 10,
+    ),
   );
   const hidden = page
     .locator('.twoslash-hover:not(.twoslash-query-persisted) .twoslash-popup-container')

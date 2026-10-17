@@ -56,8 +56,10 @@ export async function initHighlighter({
   if (useTwoslash) {
     const { transformerTwoslash } = await import('@shikijs/twoslash');
     // Only blocks with `twoslash` after the language are processed (explicitTrigger), as in Slidev.
+    // `^?` queries get a line of their own: as popups they lay over the next lines of code.
     twoslash = transformerTwoslash({
       explicitTrigger: true,
+      rendererRich: { queryRendering: 'line' },
       twoslashOptions: {
         compilerOptions: { ignoreDeprecations: '6.0' },
         handbookOptions: { noErrorValidation: true },
