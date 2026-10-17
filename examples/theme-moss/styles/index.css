@@ -12,7 +12,8 @@ html.dark {
   --slidev-code-foreground: #e9e4d6;
   --slidev-code-radius: 10px;
 }
-.slidev-layout {
+/* :where() keeps this at zero specificity, so a slide's `class: bg-...` or a layout's utility classes win */
+:where(.slidev-layout) {
   background: var(--moss-bg);
   color: var(--moss-text);
 }

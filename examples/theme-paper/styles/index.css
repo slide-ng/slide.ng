@@ -11,7 +11,8 @@ html.dark {
   --slidev-code-foreground: #1d1b18;
   --slidev-code-radius: 2px;
 }
-.slidev-layout {
+/* :where() keeps this at zero specificity, so a slide's `class: bg-...` or a layout's utility classes win */
+:where(.slidev-layout) {
   background: var(--paper-bg);
   color: var(--paper-ink);
 }
@@ -64,6 +65,11 @@ html.dark {
   font-size: 0.75rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+}
+/* A cover with a background picture: the core dims the picture; the masthead, rules and subtitle follow the white title */
+.paper-cover.paper-photo {
+  --paper-ink: #fff;
+  --paper-muted: rgba(255, 255, 255, 0.85);
 }
 .paper-cover-body {
   align-self: center;

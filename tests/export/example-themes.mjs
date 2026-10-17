@@ -112,6 +112,16 @@ layout: end
     .locator(cover[name])
     .evaluate((e) => getComputedStyle(e).backgroundImage);
   t.ok(`${name}: the cover shows a background picture`, image.includes('bg.png'), image);
+  if (name === 'paper') {
+    const sub = await page
+      .locator('.paper-cover h1 + p')
+      .evaluate((e) => getComputedStyle(e).color);
+    t.ok(
+      'paper: on a cover picture the subtitle is light, not the paper ink',
+      sub.startsWith('rgba(255, 255, 255'),
+      sub,
+    );
+  }
   const coverText = await page.locator(cover[name]).innerText();
   if (name === 'paper')
     t.ok('paper: issue reaches the masthead', coverText.toLowerCase().includes('issue 7'));
