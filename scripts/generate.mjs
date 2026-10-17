@@ -182,7 +182,11 @@ async function generate() {
     ),
   );
   console.log(`[slides] generated ${deck.slides.length} slides`);
-  return { files: [...deck.files, ...snippetFiles], folders: rootFolders(deck.roots) };
+  // A file a {monaco-write} editor saves to is not watched: the editor shows it already, and a regeneration on each save would
+  // take the focus from the editor while the speaker types.
+  const written = new Set(Object.values(monacoWriteTargets()).map((p) => resolve(deck.root, p)));
+  const snippets = [...snippetFiles].filter((f) => !written.has(f));
+  return { files: [...deck.files, ...snippets], folders: rootFolders(deck.roots) };
 }
 
 // What to watch for the roots: a theme or addon folder as a whole, and only the known folders of the deck's own folder

@@ -209,7 +209,13 @@ export class MonacoEditor {
     // also one Monaco does not know (the editor then shows plain text).
     const modelLang = this.model?.getLanguageId() ?? '';
     const custom = this.runners[this.lang()] ?? this.runners[modelLang];
-    if (custom) return custom(code);
+    // A runner that throws shows its error like the built-in one does, instead of "Running..." for ever.
+    if (custom)
+      try {
+        return await custom(code);
+      } catch (e) {
+        return { lines: [], error: e instanceof Error ? e.message : String(e) };
+      }
     if (modelLang !== 'javascript' && modelLang !== 'typescript')
       return {
         lines: [],

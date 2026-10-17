@@ -19,7 +19,7 @@ export const resetMonacoWriteTargets = () => {
 function writeIdFor(fence, ctx) {
   if (!fence.file || fence.partial) {
     console.warn(
-      '[slides] {monaco-write} needs a whole file: use `<<< ./file.ts {monaco-write}` (not a #region), the editor is shown without saving',
+      `[slides] ${ctx.slide ? `slide ${ctx.slide.no}: ` : ''}{monaco-write} needs a whole file: use \`<<< ./file.ts {monaco-write}\` (not a #region), the editor is shown without saving`,
     );
     return undefined;
   }
