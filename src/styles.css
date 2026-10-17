@@ -13,6 +13,7 @@ body {
   height: 100%;
   margin: 0;
   overflow: hidden;
+  overscroll-behavior: none; /* a sideways swipe is not "back" in the history */
   background: var(--slidev-slide-container-background);
   font-family: ui-sans-serif, system-ui, sans-serif;
 }
@@ -22,6 +23,8 @@ body {
   position: fixed;
   inset: 0;
   background: var(--slidev-slide-container-background);
+  /* A sideways swipe moves through the clicks (deck.ts); the browser keeps vertical panning and pinch zoom. */
+  touch-action: pan-y pinch-zoom;
 }
 .slide-show {
   position: absolute;

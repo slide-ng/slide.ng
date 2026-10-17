@@ -28,7 +28,12 @@ import { documentTitle } from './page-title';
 // inside `<app-slide-show>...</app-slide-show>` (drawing layer, laser pointer) is drawn on top, in canvas coordinates.
 @Component({
   selector: 'app-slide-show',
-  host: { id: 'slide-container', class: 'slide-show', '(pointerdown)': 'hostClick($event)' },
+  host: {
+    id: 'slide-container',
+    class: 'slide-show',
+    '(pointerdown)': 'hostClick($event)',
+    '(click)': 'hostTap($event)',
+  },
   imports: [NotFoundLayout, SlideLayer],
   template: `
     <div
@@ -117,7 +122,14 @@ export class SlideShow {
   }
 
   // Clicking the dark area beside the slide goes forward (right half) or back (left half), like Slidev.
+  // A finger counts when it is lifted without moving (a click): on pointerdown, the start of a swipe would already move.
   protected hostClick(e: PointerEvent) {
+    if (e.pointerType !== 'touch') this.besideSlide(e);
+  }
+  protected hostTap(e: MouseEvent) {
+    if ((e as PointerEvent).pointerType === 'touch') this.besideSlide(e);
+  }
+  private besideSlide(e: MouseEvent) {
     if (this.context() !== 'slide' || e.button !== 0 || e.target !== this.self) return;
     if (e.pageX / window.innerWidth > 0.5) this.nav.next();
     else this.nav.prev();

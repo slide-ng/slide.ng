@@ -48,7 +48,10 @@ html.dark .slidev-presenter .grid-section {
 @media (min-aspect-ratio: 1/1) {
   .grid-container.layout1 {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) var(--slidev-presenter-notes-width);
-    grid-template-rows: minmax(0, 1fr) minmax(0, var(--slidev-presenter-notes-row-size)) min-content;
+    /* On a low screen (a phone on its side) the notes take at most half, so the next slide keeps the rest. */
+    grid-template-rows:
+      minmax(0, 1fr) minmax(0, min(var(--slidev-presenter-notes-row-size), 50%))
+      min-content;
     grid-template-areas: 'main main next' 'main main note' 'bottom bottom bottom';
   }
 }

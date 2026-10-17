@@ -44,22 +44,28 @@ export async function run({ t, open, press }) {
   await page.close();
 
   page = await open('/1');
-  const swipe = (from, to) =>
+  const swipe = (from, to, vertical = false) =>
     page.evaluate(
-      ([a, b]) => {
+      ([a, b, up]) => {
         const stage = document.querySelector('.stage');
-        const event = (type, x) =>
-          new PointerEvent(type, {
-            pointerType: 'touch',
-            clientX: x,
-            clientY: 300,
-            bubbles: true,
-            pointerId: 1,
+        const at = (v) =>
+          new Touch({
+            identifier: 1,
+            target: stage,
+            clientX: up ? 400 : v,
+            clientY: up ? v : 300,
           });
-        stage.dispatchEvent(event('pointerdown', a));
-        stage.dispatchEvent(event('pointerup', b));
+        const event = (type, v) =>
+          new TouchEvent(type, {
+            touches: type === 'touchend' ? [] : [at(v)],
+            changedTouches: [at(v)],
+            bubbles: true,
+          });
+        stage.dispatchEvent(event('touchstart', a));
+        stage.dispatchEvent(event('touchmove', b));
+        stage.dispatchEvent(event('touchend', b));
       },
-      [from, to],
+      [from, to, vertical],
     );
   await swipe(600, 560); // too short
   await page.waitForTimeout(200);
@@ -70,6 +76,9 @@ export async function run({ t, open, press }) {
   await swipe(300, 600);
   await page.waitForFunction(() => location.pathname === '/1');
   t.ok('touch: a swipe to the right goes back', true);
+  await swipe(600, 150, true);
+  await page.waitForFunction(() => location.pathname === '/2');
+  t.ok('touch: a swipe up goes to the next slide', true);
   await page.close();
 
   // Headmatter `presenter: false`: no presenter page, no button, no menu entry.
