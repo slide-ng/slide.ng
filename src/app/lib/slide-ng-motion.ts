@@ -1,4 +1,4 @@
-// A small substitute for Slidev's slide-ng-motion (which uses @vueuse/motion). Moves an element
+// A small substitute for Slidev's v-motion (which uses @vueuse/motion). Moves an element
 // between variants with CSS transitions:
 //   <div slide-ng-motion :initial="{ x: -80 }" :enter="{ x: 0 }" :click-1="{ y: 30 }" :leave="{ x: 80 }">
 // The generator turns the `:name="..."` attributes into one `[slide-ng-motion]` object.

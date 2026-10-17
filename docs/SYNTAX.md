@@ -548,6 +548,8 @@ inject `SLIDE_NO` to know which slide a component is in.
 
 Use [UnoCSS](https://unocss.dev) utility classes (Tailwind-like names) in HTML and in `class:`
 frontmatter. The CSS for the classes you use is built automatically.
+Responsive prefixes (`md:`, `lg:`) follow the browser window, not the slide, which keeps its own size and is scaled: the same slide
+can show another column count on a phone, in the presenter preview or in the PDF. Use plain classes for the slide's layout.
 
 ## Presenter, notes and timer
 
@@ -575,7 +577,7 @@ Drawings are per slide, shared between windows, and kept in the browser. Headmat
 ---
 drawings:
   enabled: true # false, or dev / build to allow it only while developing / only in the built deck
-  persist: true # while `npm start` runs, save .slide-ng/drawings/<slide>.svg; builds show those files
+  persist: true # while the dev server runs (`slide-ng dev`), save .slide-ng/drawings/<slide>.svg; builds show those files
   presenterOnly: false
   syncAll: true # false: viewers' drawings stay on their own screen
 ---
@@ -610,7 +612,7 @@ dragPos:
 ```
 
 Click an element to select it: corner handles resize (Shift keeps the shape), the round handle above rotates (Shift snaps to 15 degrees), arrow keys move it 1 px (Shift: 10 px).
-While `npm start` runs, the new place is written back into slides.md (a name is written to `dragPos`). A built deck keeps a move only until the page closes.
+While the dev server runs (`slide-ng dev`, or `npm start` in this repository), the new place is written back into slides.md (a name is written to `dragPos`). A built deck keeps a move only until the page closes.
 Put the element directly in the slide (not inside a positioned wrapper), as in Slidev.
 
 ## Size, zoom, layers and routing
@@ -629,7 +631,7 @@ Layers: add any of `layers/global-top.ts`, `global-bottom.ts`, `slide-top.ts`, `
 
 ## Dev-only extras and remote use
 
-While `npm start` runs: the **edit** button in the bar opens a side editor with the current slide's markdown (saved as you type), slide-ng-drag and drawings are written to files, and `{monaco-write}` saves.
+While the dev server runs (`slide-ng dev`, or `npm start` in this repository): the **edit** button in the bar opens a side editor with the current slide's markdown (saved as you type), slide-ng-drag and drawings are written to files, and `{monaco-write}` saves.
 A static build has none of this and makes no requests.
 
 ```sh

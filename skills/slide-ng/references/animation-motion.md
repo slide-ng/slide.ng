@@ -5,7 +5,7 @@ description: slide-ng-motion, a small CSS-transition version of Slidev's
 
 # slide-ng-motion
 
-Moves an element between named states with CSS transitions. A small substitute for Slidev's `slide-ng-motion`: no spring physics, no presets.
+Moves an element between named states with CSS transitions. A small substitute for Slidev's `v-motion`: no spring physics, no presets.
 
 ```md
 <div slide-ng-motion

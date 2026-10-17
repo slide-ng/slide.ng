@@ -28,6 +28,11 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ### Fixed
 
+- Build: a `public/` file with `#` or a space in its name broke the offline worker's install; `remoteAssets` never downloaded pictures named in the frontmatter (`image:`, `background:`); a quoted `url('/a b.png')` did not get the base; a slide `<style>` with `url(/...)` in an offline folder now warns.
+- Export: `export-notes --range` was ignored and the notes PDF had a dark frame; `--range 0` waited for 30 seconds; the PPTX subject and the PDF outline kept raw markdown (titles are plain text everywhere now).
+- App: the iframe layouts' page was not white in a dark PDF and did not get the deck's base; `<slide-ng-video timestamp>` started at 0; after clicking a checkbox the arrow keys did nothing (Escape now also leaves a text field).
+- Dev server: live reload stopped after an editor saved by renaming a new file over the old one, and edits of `<<<` snippet files were not seen.
+- Themes: a `title:` on an importing slide lost to the imported slide's title; a `theme.json` layout entry without `props` dropped the built-in inputs, and unknown `theme.json` keys are reported; `theme eject` copied the `background` and `frame` helpers (`frame` became a layout) and ignored `SLIDE_NG_THEME`; frontmatter lists and objects reach layout inputs as values.
 - A code fence inside a list item became stray backticks; a tag with bindings at the start of a line (`<span [title]>`) lost its paragraph and ran into the next one; `{{` inside `$inline math$` showed a placeholder.
 - `---` straight followed by a heading and text is read as frontmatter (as in Slidev): a warning now says the text is lost; a last slide written that way no longer shows a stray rule, and `slide-ng format` no longer turns it into an empty slide (it refuses to write when the slide count would change). `defaults: { level }` reaches the table of contents, and errors on slide 1 name line 1 instead of 0.
 - A tag with bindings or a `#ref` written over several lines, or a multi-line `@let`, was shown as text; a wrapper tag with bindings turned the lines inside it into paragraphs (so `ng-content select` missed them, and some decks failed with NG5002).

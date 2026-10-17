@@ -205,28 +205,30 @@ Component rules (also in `core-custom-components.md`): `components/` only, one f
 
 ## 4. Global layers
 
-`global-top.vue` becomes `layers/global-top.ts` with a **default export**. `$slidev.nav.currentPage` and `.total` become `inject(Nav)` and `nav.no()`, `nav.total`. `v-if` becomes `@if`, `:style` becomes `[style.width.%]`. A `watch([currentPage, clicks], ...)` becomes an `effect` that reads `nav.no()` and `nav.clicks()`. Window listeners go in the constructor and are removed with `DestroyRef`. Layers let clicks through; set `pointer-events: auto` on elements that need the mouse.
+`global-top.vue` becomes `layers/global-top.ts` with a **default export**. `$slidev.nav.currentPage` becomes `inject(SLIDE_NO)` (the number of the slide the layer is drawn on, right in the PDF and the overview too; `Nav.no()` stays the presented slide there) and `.total` becomes `inject(Nav).total`. `v-if` becomes `@if`, `:style` becomes `[style.width.%]`. A `watch([currentPage, clicks], ...)` becomes an `effect` that reads `nav.no()` and `nav.clicks()`. Window listeners go in the constructor and are removed with `DestroyRef`. Layers let clicks through; set `pointer-events: auto` on elements that need the mouse.
 
 <!-- verify-file: layers/global-bottom.ts -->
 
 ```ts
 import { Component, inject } from '@angular/core';
 import { Nav } from 'slide-ng/lib/nav';
+import { SLIDE_NO } from 'slide-ng/lib/slide-context';
 
 @Component({
   selector: 'deck-footer',
   template: `
-    @if (nav.no() > 1 && nav.no() < nav.total) {
+    @if (no > 1 && no < nav.total) {
       <div class="fixed bottom-2 left-0 right-0 px-8 flex justify-between text-sm op60">
         <span>my talk</span>
-        <span>{{ nav.no() }} / {{ nav.total }}</span>
-        <div class="absolute bottom-0 left-0 h-0.5 bg-red-500" [style.width.%]="(nav.no() / nav.total) * 100"></div>
+        <span>{{ no }} / {{ nav.total }}</span>
+        <div class="absolute bottom-0 left-0 h-0.5 bg-red-500" [style.width.%]="(no / nav.total) * 100"></div>
       </div>
     }
   `,
 })
 export default class DeckFooter {
   nav = inject(Nav);
+  no = inject(SLIDE_NO);
 }
 ```
 
@@ -289,7 +291,7 @@ Compare with screenshots, one per slide and per click state:
 ## Pitfalls
 
 - **`$clicks` in markdown.** There is no global. Add a `click-state` component (step 3) and read it through `#ref`. In a component inject `ClicksContext` (this slide) or `Nav` (the shown slide).
-- **A literal `{{ x }}` in HTML.** `v-pre` has no equivalent: `ngNonBindable` still fails the build with `NG5002` on the closing `}}`. Write the braces as entities: `&#123;&#123;` and `&#125;&#125;`. Inside code fences and inline code it is plain text, no change needed.
+- **A literal `{{ x }}` in HTML.** Use Angular's `ngNonBindable` where Slidev uses `v-pre` (`<span ngNonBindable>{{ x }}</span>`), or write the braces as `\{\{` or `&#123;&#123;` in text. Inside code fences and inline code it is plain text, no change needed.
 - **Relative imports from components.** The `components/` folder is copied into the generated app, so `import x from '../stats.json'` points nowhere (`Could not resolve`). Put data next to the component and import `./stats.json`, or import from the `slide-ng/` alias. Only the folders `layouts`, `components`, `layers`, `styles`, `public`, `setup` are copied.
 - **A component class named like a built-in** (`Counter`) silently replaces it. Use another name.
 - **`:class` with a static `class`.** `class="bento" [class]="'s' + n"` merges both; `[class.hot]="cond"` toggles one class. Angular templates have no `Math`: compute in the component.
@@ -300,3 +302,6 @@ Compare with screenshots, one per slide and per click state:
 - **The imported deck is not the deck.** `src:` and `<<<` paths, `disabled: true` and `defaults` work unchanged; a file that is never referenced is not built.
 - **The dev console prints `NG0913`** for big images. It is Angular's own dev hint about image size, not an error.
 - **Do not edit `scripts/lib/registry.mjs` or `src/app`** to add a component; use `components/`.
+- **Template slots.** Slidev's `<template #1>` children of `<v-switch>` and `<template #dark>` of `<LightOrDark>` render nothing here, without a warning. Write `<div at="1">` children for `<slide-ng-switch>` and `<div dark>` / `<div light>` for `<slide-ng-light-or-dark>`.
+- **`@click="$slidev.nav.next"`.** There is no `$slidev`. Put a small component in `components/` that injects `Nav` and calls `nav.next()` from a button, or inject `Nav` in an existing one.
+- **The theme.** Keep `theme:` only for a theme that exists for slide.ng: a Slidev theme name such as `seriph` is looked up as `@slide-ng/theme-seriph` and stops the build when that is not installed. Use `default`, a folder, or a published slide.ng theme.

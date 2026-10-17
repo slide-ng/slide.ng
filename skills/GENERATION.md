@@ -127,54 +127,54 @@ setup file, a theme file) next to the samples of the same page. Fragments that c
       "sources": {
         "README.md": "892d9be8ccbebcdf48c47c696d0c6ad4cf15f0608903c03b64e3d76d74cdc67c",
         "bin/slide-ng.mjs": "dad71f7a2d634db30a8a6b485e316e6dbb99f2da76e17d415da70f1e986978c1",
-        "docs/PARITY.md": "1ec59fbd6eb7d4c69ff667fb8c020c14fabd482d0efe959b11025f9c378608d6",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/PARITY.md": "c28ede2c876038ca8b82a7291f5540e250272de084e1cd5f3e4ef77e9ef537fd",
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "828a7ecdf98132c31588c4910498c4ea45abcaf674dadc3cea84705270d527b7"
+      "hash": "01348428f4af8249109d88c092da2bb96d1767771bc4b46230c1ac771d146b8c"
     },
     "references/animation-click-lists.md": {
       "sources": {
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "b8c4f34246f4a1d4a5ef8df1158f2f1ae6262e4f5682050f0bfff28e9e27c752"
+      "hash": "b5967e6209dd4bbd6da0489fa38bece1ca1950c0ec6e265a8b4097b8839aec4b"
     },
     "references/animation-click-marker.md": {
       "sources": {
-        "docs/PARITY.md": "1ec59fbd6eb7d4c69ff667fb8c020c14fabd482d0efe959b11025f9c378608d6",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/PARITY.md": "c28ede2c876038ca8b82a7291f5540e250272de084e1cd5f3e4ef77e9ef537fd",
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "125efd6b16c7809f3276b1586acf42e8968662e9c9978e8549e113758b48170f"
+      "hash": "19ea7b8fdc9951b374ca1450353f020ac33286a60b94c0594c8054c25ea249a6"
     },
     "references/animation-clicks.md": {
       "sources": {
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "b8c4f34246f4a1d4a5ef8df1158f2f1ae6262e4f5682050f0bfff28e9e27c752"
+      "hash": "b5967e6209dd4bbd6da0489fa38bece1ca1950c0ec6e265a8b4097b8839aec4b"
     },
     "references/animation-drawing.md": {
       "sources": {
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "b8c4f34246f4a1d4a5ef8df1158f2f1ae6262e4f5682050f0bfff28e9e27c752"
+      "hash": "b5967e6209dd4bbd6da0489fa38bece1ca1950c0ec6e265a8b4097b8839aec4b"
     },
     "references/animation-marks.md": {
       "sources": {
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "b8c4f34246f4a1d4a5ef8df1158f2f1ae6262e4f5682050f0bfff28e9e27c752"
+      "hash": "b5967e6209dd4bbd6da0489fa38bece1ca1950c0ec6e265a8b4097b8839aec4b"
     },
     "references/animation-motion.md": {
       "sources": {
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "b8c4f34246f4a1d4a5ef8df1158f2f1ae6262e4f5682050f0bfff28e9e27c752"
+      "hash": "b5967e6209dd4bbd6da0489fa38bece1ca1950c0ec6e265a8b4097b8839aec4b"
     },
     "references/animation-transitions.md": {
       "sources": {
-        "docs/PARITY.md": "1ec59fbd6eb7d4c69ff667fb8c020c14fabd482d0efe959b11025f9c378608d6",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/PARITY.md": "c28ede2c876038ca8b82a7291f5540e250272de084e1cd5f3e4ef77e9ef537fd",
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "125efd6b16c7809f3276b1586acf42e8968662e9c9978e8549e113758b48170f"
+      "hash": "19ea7b8fdc9951b374ca1450353f020ac33286a60b94c0594c8054c25ea249a6"
     },
     "references/build-og-image.md": {
       "sources": {
@@ -185,9 +185,9 @@ setup file, a theme file) next to the samples of the same page. Fragments that c
     "references/build-pdf-download.md": {
       "sources": {
         "docs/HOSTING.md": "2862f026f1dfa8e4fb663e433b39275b79a100865e8413dfa46be4c2f1efd5b7",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "0d043d822daa016d9f59704ca7d8f97308a054d0a1fc27d6145d089a337edb0e"
+      "hash": "4709b5b4fad472a4a87c77101aa77aa053101448e6494c11501a70f3c4a00140"
     },
     "references/build-remote-assets.md": {
       "sources": {
@@ -198,9 +198,9 @@ setup file, a theme file) next to the samples of the same page. Fragments that c
     "references/build-seo-meta.md": {
       "sources": {
         "docs/HOSTING.md": "2862f026f1dfa8e4fb663e433b39275b79a100865e8413dfa46be4c2f1efd5b7",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "0d043d822daa016d9f59704ca7d8f97308a054d0a1fc27d6145d089a337edb0e"
+      "hash": "4709b5b4fad472a4a87c77101aa77aa053101448e6494c11501a70f3c4a00140"
     },
     "references/build-spa.md": {
       "sources": {
@@ -211,80 +211,80 @@ setup file, a theme file) next to the samples of the same page. Fragments that c
     },
     "references/code-groups.md": {
       "sources": {
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "b8c4f34246f4a1d4a5ef8df1158f2f1ae6262e4f5682050f0bfff28e9e27c752"
+      "hash": "b5967e6209dd4bbd6da0489fa38bece1ca1950c0ec6e265a8b4097b8839aec4b"
     },
     "references/code-highlighting.md": {
       "sources": {
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "b8c4f34246f4a1d4a5ef8df1158f2f1ae6262e4f5682050f0bfff28e9e27c752"
+      "hash": "b5967e6209dd4bbd6da0489fa38bece1ca1950c0ec6e265a8b4097b8839aec4b"
     },
     "references/code-import-snippet.md": {
       "sources": {
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "b8c4f34246f4a1d4a5ef8df1158f2f1ae6262e4f5682050f0bfff28e9e27c752"
+      "hash": "b5967e6209dd4bbd6da0489fa38bece1ca1950c0ec6e265a8b4097b8839aec4b"
     },
     "references/code-line-highlighting.md": {
       "sources": {
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "b8c4f34246f4a1d4a5ef8df1158f2f1ae6262e4f5682050f0bfff28e9e27c752"
+      "hash": "b5967e6209dd4bbd6da0489fa38bece1ca1950c0ec6e265a8b4097b8839aec4b"
     },
     "references/code-line-numbers.md": {
       "sources": {
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "b8c4f34246f4a1d4a5ef8df1158f2f1ae6262e4f5682050f0bfff28e9e27c752"
+      "hash": "b5967e6209dd4bbd6da0489fa38bece1ca1950c0ec6e265a8b4097b8839aec4b"
     },
     "references/code-magic-move.md": {
       "sources": {
-        "docs/PARITY.md": "1ec59fbd6eb7d4c69ff667fb8c020c14fabd482d0efe959b11025f9c378608d6",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/PARITY.md": "c28ede2c876038ca8b82a7291f5540e250272de084e1cd5f3e4ef77e9ef537fd",
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "125efd6b16c7809f3276b1586acf42e8968662e9c9978e8549e113758b48170f"
+      "hash": "19ea7b8fdc9951b374ca1450353f020ac33286a60b94c0594c8054c25ea249a6"
     },
     "references/code-max-height.md": {
       "sources": {
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "b8c4f34246f4a1d4a5ef8df1158f2f1ae6262e4f5682050f0bfff28e9e27c752"
+      "hash": "b5967e6209dd4bbd6da0489fa38bece1ca1950c0ec6e265a8b4097b8839aec4b"
     },
     "references/code-monaco-run.md": {
       "sources": {
         "docs/SETUP.md": "3f4f1a813d07e396e6cdc47f072eff78f4c487610088b8b715f39b75fe545797",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "0cffc94d98674c44ae94617adee44d27b6098eb6678f5baaf3f836019beb2a6a"
+      "hash": "a9c77ecf8fc1f18ff4d650aea896072c6f6496424c087afaa447ecd1623bd3e8"
     },
     "references/code-monaco-write.md": {
       "sources": {
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "b8c4f34246f4a1d4a5ef8df1158f2f1ae6262e4f5682050f0bfff28e9e27c752"
+      "hash": "b5967e6209dd4bbd6da0489fa38bece1ca1950c0ec6e265a8b4097b8839aec4b"
     },
     "references/code-monaco.md": {
       "sources": {
         "docs/SETUP.md": "3f4f1a813d07e396e6cdc47f072eff78f4c487610088b8b715f39b75fe545797",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "0cffc94d98674c44ae94617adee44d27b6098eb6678f5baaf3f836019beb2a6a"
+      "hash": "a9c77ecf8fc1f18ff4d650aea896072c6f6496424c087afaa447ecd1623bd3e8"
     },
     "references/code-twoslash.md": {
       "sources": {
-        "docs/PARITY.md": "1ec59fbd6eb7d4c69ff667fb8c020c14fabd482d0efe959b11025f9c378608d6",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/PARITY.md": "c28ede2c876038ca8b82a7291f5540e250272de084e1cd5f3e4ef77e9ef537fd",
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "125efd6b16c7809f3276b1586acf42e8968662e9c9978e8549e113758b48170f"
+      "hash": "19ea7b8fdc9951b374ca1450353f020ac33286a60b94c0594c8054c25ea249a6"
     },
     "references/core-angular-syntax.md": {
       "sources": {
-        "docs/PARITY.md": "1ec59fbd6eb7d4c69ff667fb8c020c14fabd482d0efe959b11025f9c378608d6",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/PARITY.md": "c28ede2c876038ca8b82a7291f5540e250272de084e1cd5f3e4ef77e9ef537fd",
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "125efd6b16c7809f3276b1586acf42e8968662e9c9978e8549e113758b48170f"
+      "hash": "19ea7b8fdc9951b374ca1450353f020ac33286a60b94c0594c8054c25ea249a6"
     },
     "references/core-cli.md": {
       "sources": {
@@ -296,120 +296,120 @@ setup file, a theme file) next to the samples of the same page. Fragments that c
     },
     "references/core-components.md": {
       "sources": {
-        "docs/PARITY.md": "1ec59fbd6eb7d4c69ff667fb8c020c14fabd482d0efe959b11025f9c378608d6",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/PARITY.md": "c28ede2c876038ca8b82a7291f5540e250272de084e1cd5f3e4ef77e9ef537fd",
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "125efd6b16c7809f3276b1586acf42e8968662e9c9978e8549e113758b48170f"
+      "hash": "19ea7b8fdc9951b374ca1450353f020ac33286a60b94c0594c8054c25ea249a6"
     },
     "references/core-custom-components.md": {
       "sources": {
-        "docs/PARITY.md": "1ec59fbd6eb7d4c69ff667fb8c020c14fabd482d0efe959b11025f9c378608d6",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269",
-        "docs/THEMES.md": "9fbef7fdf01292aa75c21c749ef5f48c789657ce79e155e4ff2830b11d2e75c3",
-        "docs/WRITING-A-THEME.md": "db1be1095eb72729087bd6fc3cf62a1be835f8d84dac8572ccec124bcc6c9b3c"
+        "docs/PARITY.md": "c28ede2c876038ca8b82a7291f5540e250272de084e1cd5f3e4ef77e9ef537fd",
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121",
+        "docs/THEMES.md": "d25aaae92c03f4ca37e9b7f843656f8768a223ffc37f2e53dbd4a8ed412be86b",
+        "docs/WRITING-A-THEME.md": "fa6d25e4674c70c99d0bce6ac54284cdbec23fd6f87203d58b28664be876d9ff"
       },
-      "hash": "19a4885ba9f306ae57c078b57539c68a9ef31ab4f6823ec2df790aa5b6e18d49"
+      "hash": "13d9ef3803511f0a69f4475dddb5ff356848040c65d5b5124787ca6e089dc41a"
     },
     "references/core-fonts.md": {
       "sources": {
         "docs/HOSTING.md": "2862f026f1dfa8e4fb663e433b39275b79a100865e8413dfa46be4c2f1efd5b7",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269",
-        "docs/THEMES.md": "9fbef7fdf01292aa75c21c749ef5f48c789657ce79e155e4ff2830b11d2e75c3"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121",
+        "docs/THEMES.md": "d25aaae92c03f4ca37e9b7f843656f8768a223ffc37f2e53dbd4a8ed412be86b"
       },
-      "hash": "f682845dd56cbc781a7aff416cc78a91e558b8509252a452490b3de96b3a10a9"
+      "hash": "5a337c033637f1b5b549289195c38606915aff3483d655a6379acdefe28e9af9"
     },
     "references/core-frontmatter.md": {
       "sources": {
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "b8c4f34246f4a1d4a5ef8df1158f2f1ae6262e4f5682050f0bfff28e9e27c752"
+      "hash": "b5967e6209dd4bbd6da0489fa38bece1ca1950c0ec6e265a8b4097b8839aec4b"
     },
     "references/core-headmatter.md": {
       "sources": {
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "b8c4f34246f4a1d4a5ef8df1158f2f1ae6262e4f5682050f0bfff28e9e27c752"
+      "hash": "b5967e6209dd4bbd6da0489fa38bece1ca1950c0ec6e265a8b4097b8839aec4b"
     },
     "references/core-icons.md": {
       "sources": {
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "b8c4f34246f4a1d4a5ef8df1158f2f1ae6262e4f5682050f0bfff28e9e27c752"
+      "hash": "b5967e6209dd4bbd6da0489fa38bece1ca1950c0ec6e265a8b4097b8839aec4b"
     },
     "references/core-import-slides.md": {
       "sources": {
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "b8c4f34246f4a1d4a5ef8df1158f2f1ae6262e4f5682050f0bfff28e9e27c752"
+      "hash": "b5967e6209dd4bbd6da0489fa38bece1ca1950c0ec6e265a8b4097b8839aec4b"
     },
     "references/core-injection.md": {
       "sources": {
         "docs/ARCHITECTURE.md": "a18b0d7796a3a1c9f516191222ee846c81bed1889b2f2165662a0f3ae18cfb26",
-        "docs/PARITY.md": "1ec59fbd6eb7d4c69ff667fb8c020c14fabd482d0efe959b11025f9c378608d6"
+        "docs/PARITY.md": "c28ede2c876038ca8b82a7291f5540e250272de084e1cd5f3e4ef77e9ef537fd"
       },
-      "hash": "7e534bf91c61ea7550a505770c2e1a27d7aaa69b52a64a4633555e85f6761887"
+      "hash": "0285e5c22ae8f262b47179ef2321b773888fe544a60a813ee8a1a116811859c0"
     },
     "references/core-markdown-extras.md": {
       "sources": {
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "b8c4f34246f4a1d4a5ef8df1158f2f1ae6262e4f5682050f0bfff28e9e27c752"
+      "hash": "b5967e6209dd4bbd6da0489fa38bece1ca1950c0ec6e265a8b4097b8839aec4b"
     },
     "references/core-slidev-differences.md": {
       "sources": {
-        "docs/PARITY.md": "1ec59fbd6eb7d4c69ff667fb8c020c14fabd482d0efe959b11025f9c378608d6",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/PARITY.md": "c28ede2c876038ca8b82a7291f5540e250272de084e1cd5f3e4ef77e9ef537fd",
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "125efd6b16c7809f3276b1586acf42e8968662e9c9978e8549e113758b48170f"
+      "hash": "19ea7b8fdc9951b374ca1450353f020ac33286a60b94c0594c8054c25ea249a6"
     },
     "references/core-styling.md": {
       "sources": {
-        "docs/PARITY.md": "1ec59fbd6eb7d4c69ff667fb8c020c14fabd482d0efe959b11025f9c378608d6",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/PARITY.md": "c28ede2c876038ca8b82a7291f5540e250272de084e1cd5f3e4ef77e9ef537fd",
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "125efd6b16c7809f3276b1586acf42e8968662e9c9978e8549e113758b48170f"
+      "hash": "19ea7b8fdc9951b374ca1450353f020ac33286a60b94c0594c8054c25ea249a6"
     },
     "references/core-syntax.md": {
       "sources": {
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "b8c4f34246f4a1d4a5ef8df1158f2f1ae6262e4f5682050f0bfff28e9e27c752"
+      "hash": "b5967e6209dd4bbd6da0489fa38bece1ca1950c0ec6e265a8b4097b8839aec4b"
     },
     "references/core-ui-shortcuts.md": {
       "sources": {
-        "docs/PARITY.md": "1ec59fbd6eb7d4c69ff667fb8c020c14fabd482d0efe959b11025f9c378608d6",
+        "docs/PARITY.md": "c28ede2c876038ca8b82a7291f5540e250272de084e1cd5f3e4ef77e9ef537fd",
         "docs/SETUP.md": "3f4f1a813d07e396e6cdc47f072eff78f4c487610088b8b715f39b75fe545797",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "c16e6011230b8247883230ded965500f5a725e641e8af740e55d19a8c768a406"
+      "hash": "c0ac6e59f555ff7feba74ebe7ce60342f1148f0518e4c0243d25e5735bf498a7"
     },
     "references/diagram-latex.md": {
       "sources": {
         "docs/SETUP.md": "3f4f1a813d07e396e6cdc47f072eff78f4c487610088b8b715f39b75fe545797",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "0cffc94d98674c44ae94617adee44d27b6098eb6678f5baaf3f836019beb2a6a"
+      "hash": "a9c77ecf8fc1f18ff4d650aea896072c6f6496424c087afaa447ecd1623bd3e8"
     },
     "references/diagram-mermaid.md": {
       "sources": {
         "docs/SETUP.md": "3f4f1a813d07e396e6cdc47f072eff78f4c487610088b8b715f39b75fe545797",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "0cffc94d98674c44ae94617adee44d27b6098eb6678f5baaf3f836019beb2a6a"
+      "hash": "a9c77ecf8fc1f18ff4d650aea896072c6f6496424c087afaa447ecd1623bd3e8"
     },
     "references/diagram-plantuml.md": {
       "sources": {
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "b8c4f34246f4a1d4a5ef8df1158f2f1ae6262e4f5682050f0bfff28e9e27c752"
+      "hash": "b5967e6209dd4bbd6da0489fa38bece1ca1950c0ec6e265a8b4097b8839aec4b"
     },
     "references/export-formats.md": {
       "sources": {
         "README.md": "892d9be8ccbebcdf48c47c696d0c6ad4cf15f0608903c03b64e3d76d74cdc67c",
         "docs/STATUS.md": "51b6478f043976c2a995dbffeb6805b6ae87eadae3430cc2dd91cb57f7ddcd51",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "2a0c5c8792f7c8bc56b66aab44f15b55bfe46de31723ba603a69a19a150053a0"
+      "hash": "053f71fbbcd3dcc84b0903428a00f498c8f0a18bc80229878f2bb9b92c11c75e"
     },
     "references/export-notes.md": {
       "sources": {
@@ -421,76 +421,76 @@ setup file, a theme file) next to the samples of the same page. Fragments that c
     "references/export-options.md": {
       "sources": {
         "README.md": "892d9be8ccbebcdf48c47c696d0c6ad4cf15f0608903c03b64e3d76d74cdc67c",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "52663d663d1e7558b182b86d6cfb4a88062d9dca2e7829936e6ec9c8cdf33e80"
+      "hash": "699c82676dc4fe777348d3001e8b8111d0b1cb225f6a451cc543b4d132eeca1d"
     },
     "references/export-print-route.md": {
       "sources": {
         "docs/STATUS.md": "51b6478f043976c2a995dbffeb6805b6ae87eadae3430cc2dd91cb57f7ddcd51",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "2855cd21a7a71b3da35d8da82e865aecd0b2276128736ffe01a201e5ed9654c5"
+      "hash": "79be23d61151a507e08e09de95d8d7edea47f78a05615928a8260d1f17943aa1"
     },
     "references/layout-builtin.md": {
       "sources": {
-        "docs/PARITY.md": "1ec59fbd6eb7d4c69ff667fb8c020c14fabd482d0efe959b11025f9c378608d6",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/PARITY.md": "c28ede2c876038ca8b82a7291f5540e250272de084e1cd5f3e4ef77e9ef537fd",
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "125efd6b16c7809f3276b1586acf42e8968662e9c9978e8549e113758b48170f"
+      "hash": "19ea7b8fdc9951b374ca1450353f020ac33286a60b94c0594c8054c25ea249a6"
     },
     "references/layout-canvas-size.md": {
       "sources": {
         "docs/ARCHITECTURE.md": "a18b0d7796a3a1c9f516191222ee846c81bed1889b2f2165662a0f3ae18cfb26",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "0d2a2ccbae1f8a7c8b0d974fd68de22dc62cd447d9f34cf433c8be856b92d859"
+      "hash": "2479c08f307c9132662012099df55edda9372b78693f651ddad187a479beb470"
     },
     "references/layout-custom.md": {
       "sources": {
-        "docs/THEMES.md": "9fbef7fdf01292aa75c21c749ef5f48c789657ce79e155e4ff2830b11d2e75c3",
-        "docs/WRITING-A-THEME.md": "db1be1095eb72729087bd6fc3cf62a1be835f8d84dac8572ccec124bcc6c9b3c"
+        "docs/THEMES.md": "d25aaae92c03f4ca37e9b7f843656f8768a223ffc37f2e53dbd4a8ed412be86b",
+        "docs/WRITING-A-THEME.md": "fa6d25e4674c70c99d0bce6ac54284cdbec23fd6f87203d58b28664be876d9ff"
       },
-      "hash": "c23a79c8fd201298db3682b3edcda7cd4fe7f81add2c566097b29c5f2c10f450"
+      "hash": "b4f3ab937bb76acbaa8870d14edb23b7c2009da1e08bbcb411fe81a4c1af4505"
     },
     "references/layout-draggable.md": {
       "sources": {
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "b8c4f34246f4a1d4a5ef8df1158f2f1ae6262e4f5682050f0bfff28e9e27c752"
+      "hash": "b5967e6209dd4bbd6da0489fa38bece1ca1950c0ec6e265a8b4097b8839aec4b"
     },
     "references/layout-global-layers.md": {
       "sources": {
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269",
-        "docs/THEMES.md": "9fbef7fdf01292aa75c21c749ef5f48c789657ce79e155e4ff2830b11d2e75c3"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121",
+        "docs/THEMES.md": "d25aaae92c03f4ca37e9b7f843656f8768a223ffc37f2e53dbd4a8ed412be86b"
       },
-      "hash": "28263a7cde1cdb69a383def4e7ff8c010946d9518ed9d4739500241de8c39383"
+      "hash": "a7d536b86d954f780f5ee566305715d59a65aca761c2e145d3d8169d71ae85e6"
     },
     "references/layout-slots.md": {
       "sources": {
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "b8c4f34246f4a1d4a5ef8df1158f2f1ae6262e4f5682050f0bfff28e9e27c752"
+      "hash": "b5967e6209dd4bbd6da0489fa38bece1ca1950c0ec6e265a8b4097b8839aec4b"
     },
     "references/layout-transform.md": {
       "sources": {
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "b8c4f34246f4a1d4a5ef8df1158f2f1ae6262e4f5682050f0bfff28e9e27c752"
+      "hash": "b5967e6209dd4bbd6da0489fa38bece1ca1950c0ec6e265a8b4097b8839aec4b"
     },
     "references/layout-zoom.md": {
       "sources": {
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "b8c4f34246f4a1d4a5ef8df1158f2f1ae6262e4f5682050f0bfff28e9e27c752"
+      "hash": "b5967e6209dd4bbd6da0489fa38bece1ca1950c0ec6e265a8b4097b8839aec4b"
     },
     "references/mcp-server.md": {
       "sources": {
-        "docs/PARITY.md": "1ec59fbd6eb7d4c69ff667fb8c020c14fabd482d0efe959b11025f9c378608d6",
+        "docs/PARITY.md": "c28ede2c876038ca8b82a7291f5540e250272de084e1cd5f3e4ef77e9ef537fd",
         "docs/STATUS.md": "51b6478f043976c2a995dbffeb6805b6ae87eadae3430cc2dd91cb57f7ddcd51",
         "scripts/mcp/index.mjs": "89cb1ddb27da3be95f9d6148ee2cb9b6e74cc106198e5ad7ea96ce4dd9572cb8"
       },
-      "hash": "11cd530713d317aa2ca3cdad608c9c7e5ae959fcd7756d7bb938661fa9b745d8"
+      "hash": "0fb74029ab38c0334a280054eec5e11425d40894bc6a2e3ca6f10d34f2a1b296"
     },
     "references/mcp-tools.md": {
       "sources": {
@@ -500,85 +500,85 @@ setup file, a theme file) next to the samples of the same page. Fragments that c
     },
     "references/not-supported.md": {
       "sources": {
-        "docs/PARITY.md": "1ec59fbd6eb7d4c69ff667fb8c020c14fabd482d0efe959b11025f9c378608d6",
+        "docs/PARITY.md": "c28ede2c876038ca8b82a7291f5540e250272de084e1cd5f3e4ef77e9ef537fd",
         "docs/STATUS.md": "51b6478f043976c2a995dbffeb6805b6ae87eadae3430cc2dd91cb57f7ddcd51"
       },
-      "hash": "8908bc234681e49fd1c1a9c9331f8b436c44ef4d5489905e0008bdf966b03eed"
+      "hash": "02301b68a8dbd90b1bdd162c3c0149316850d69d731b870cbf3f3f7be7513106"
     },
     "references/offline-checklist.md": {
       "sources": {
-        "docs/OFFLINE.md": "ff3db51fb25be37ae198b978a019bc7a9c4ef9a4168c268a3f8cda1bfe9c3a9e"
+        "docs/OFFLINE.md": "024335a4d200c9377325ffd9f19df2fe14a781dfe16d2ad5b6a67005d59efa4a"
       },
-      "hash": "652664c0a00e80cd9c7a36ad47ff0015d2ddba54dc8bb61a3c83e0e0c4518def"
+      "hash": "fde946348793760b74935703b81e14c72f4102f245f70fa09e698165ef709047"
     },
     "references/offline-folder.md": {
       "sources": {
         "docs/HOSTING.md": "2862f026f1dfa8e4fb663e433b39275b79a100865e8413dfa46be4c2f1efd5b7",
-        "docs/OFFLINE.md": "ff3db51fb25be37ae198b978a019bc7a9c4ef9a4168c268a3f8cda1bfe9c3a9e"
+        "docs/OFFLINE.md": "024335a4d200c9377325ffd9f19df2fe14a781dfe16d2ad5b6a67005d59efa4a"
       },
-      "hash": "4da40fe9d395b9b54036a9084edbf08592861945b8258c55cbe69c85c7e96869"
+      "hash": "2f799888540b1e84b05ac091cf0d3fd5af12cecf8928e3a8a7e9038c47680f47"
     },
     "references/offline-pwa.md": {
       "sources": {
         "docs/HOSTING.md": "2862f026f1dfa8e4fb663e433b39275b79a100865e8413dfa46be4c2f1efd5b7",
-        "docs/OFFLINE.md": "ff3db51fb25be37ae198b978a019bc7a9c4ef9a4168c268a3f8cda1bfe9c3a9e"
+        "docs/OFFLINE.md": "024335a4d200c9377325ffd9f19df2fe14a781dfe16d2ad5b6a67005d59efa4a"
       },
-      "hash": "4da40fe9d395b9b54036a9084edbf08592861945b8258c55cbe69c85c7e96869"
+      "hash": "2f799888540b1e84b05ac091cf0d3fd5af12cecf8928e3a8a7e9038c47680f47"
     },
     "references/presenter-dev-editor.md": {
       "sources": {
-        "docs/PARITY.md": "1ec59fbd6eb7d4c69ff667fb8c020c14fabd482d0efe959b11025f9c378608d6",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/PARITY.md": "c28ede2c876038ca8b82a7291f5540e250272de084e1cd5f3e4ef77e9ef537fd",
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "125efd6b16c7809f3276b1586acf42e8968662e9c9978e8549e113758b48170f"
+      "hash": "19ea7b8fdc9951b374ca1450353f020ac33286a60b94c0594c8054c25ea249a6"
     },
     "references/presenter-notes.md": {
       "sources": {
-        "docs/PARITY.md": "1ec59fbd6eb7d4c69ff667fb8c020c14fabd482d0efe959b11025f9c378608d6",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/PARITY.md": "c28ede2c876038ca8b82a7291f5540e250272de084e1cd5f3e4ef77e9ef537fd",
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "125efd6b16c7809f3276b1586acf42e8968662e9c9978e8549e113758b48170f"
+      "hash": "19ea7b8fdc9951b374ca1450353f020ac33286a60b94c0594c8054c25ea249a6"
     },
     "references/presenter-recording.md": {
       "sources": {
-        "docs/PARITY.md": "1ec59fbd6eb7d4c69ff667fb8c020c14fabd482d0efe959b11025f9c378608d6",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/PARITY.md": "c28ede2c876038ca8b82a7291f5540e250272de084e1cd5f3e4ef77e9ef537fd",
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "125efd6b16c7809f3276b1586acf42e8968662e9c9978e8549e113758b48170f"
+      "hash": "19ea7b8fdc9951b374ca1450353f020ac33286a60b94c0594c8054c25ea249a6"
     },
     "references/presenter-remote.md": {
       "sources": {
         "README.md": "892d9be8ccbebcdf48c47c696d0c6ad4cf15f0608903c03b64e3d76d74cdc67c",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "52663d663d1e7558b182b86d6cfb4a88062d9dca2e7829936e6ec9c8cdf33e80"
+      "hash": "699c82676dc4fe777348d3001e8b8111d0b1cb225f6a451cc543b4d132eeca1d"
     },
     "references/presenter-switches.md": {
       "sources": {
-        "docs/PARITY.md": "1ec59fbd6eb7d4c69ff667fb8c020c14fabd482d0efe959b11025f9c378608d6",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/PARITY.md": "c28ede2c876038ca8b82a7291f5540e250272de084e1cd5f3e4ef77e9ef537fd",
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "125efd6b16c7809f3276b1586acf42e8968662e9c9978e8549e113758b48170f"
+      "hash": "19ea7b8fdc9951b374ca1450353f020ac33286a60b94c0594c8054c25ea249a6"
     },
     "references/presenter-timer.md": {
       "sources": {
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "b8c4f34246f4a1d4a5ef8df1158f2f1ae6262e4f5682050f0bfff28e9e27c752"
+      "hash": "b5967e6209dd4bbd6da0489fa38bece1ca1950c0ec6e265a8b4097b8839aec4b"
     },
     "references/port-a-slidev-deck.md": {
       "sources": {
-        "docs/PARITY.md": "1ec59fbd6eb7d4c69ff667fb8c020c14fabd482d0efe959b11025f9c378608d6",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/PARITY.md": "c28ede2c876038ca8b82a7291f5540e250272de084e1cd5f3e4ef77e9ef537fd",
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "125efd6b16c7809f3276b1586acf42e8968662e9c9978e8549e113758b48170f"
+      "hash": "19ea7b8fdc9951b374ca1450353f020ac33286a60b94c0594c8054c25ea249a6"
     },
     "references/presenter-view.md": {
       "sources": {
-        "docs/OFFLINE.md": "ff3db51fb25be37ae198b978a019bc7a9c4ef9a4168c268a3f8cda1bfe9c3a9e",
-        "docs/SYNTAX.md": "522e67e6ded110e80bf1e3539ad7a0097e1dc89d7781396c9f09c9e054eec269"
+        "docs/OFFLINE.md": "024335a4d200c9377325ffd9f19df2fe14a781dfe16d2ad5b6a67005d59efa4a",
+        "docs/SYNTAX.md": "36ded823c3effb5fe35578b13d47085af780e896302cf12ee092248451d2a121"
       },
-      "hash": "abceeb7511c5ae548495cf2ea34d5fe90569592f37d71504ac0053a49c000055"
+      "hash": "d9643ef2621d96a4601d3c28fbc86a579a66b03aaaf8151740c8d89b8f41cef4"
     },
     "references/setup-code-runners.md": {
       "sources": {
@@ -649,35 +649,35 @@ setup file, a theme file) next to the samples of the same page. Fragments that c
     "references/theme-eject.md": {
       "sources": {
         "README.md": "892d9be8ccbebcdf48c47c696d0c6ad4cf15f0608903c03b64e3d76d74cdc67c",
-        "docs/THEMES.md": "9fbef7fdf01292aa75c21c749ef5f48c789657ce79e155e4ff2830b11d2e75c3"
+        "docs/THEMES.md": "d25aaae92c03f4ca37e9b7f843656f8768a223ffc37f2e53dbd4a8ed412be86b"
       },
-      "hash": "74720291954609b58760812d102f5424ae4e13b415408e64401d044f83bb1b88"
+      "hash": "ffb296918889eee2d0e5f0bf5efb42f565673b5e305ff5981d039710605d89ec"
     },
     "references/theme-official.md": {
       "sources": {
         "README.md": "892d9be8ccbebcdf48c47c696d0c6ad4cf15f0608903c03b64e3d76d74cdc67c",
-        "docs/THEMES.md": "9fbef7fdf01292aa75c21c749ef5f48c789657ce79e155e4ff2830b11d2e75c3"
+        "docs/THEMES.md": "d25aaae92c03f4ca37e9b7f843656f8768a223ffc37f2e53dbd4a8ed412be86b"
       },
-      "hash": "74720291954609b58760812d102f5424ae4e13b415408e64401d044f83bb1b88"
+      "hash": "ffb296918889eee2d0e5f0bf5efb42f565673b5e305ff5981d039710605d89ec"
     },
     "references/theme-structure.md": {
       "sources": {
-        "docs/THEMES.md": "9fbef7fdf01292aa75c21c749ef5f48c789657ce79e155e4ff2830b11d2e75c3"
+        "docs/THEMES.md": "d25aaae92c03f4ca37e9b7f843656f8768a223ffc37f2e53dbd4a8ed412be86b"
       },
-      "hash": "dffb317a272fef559e710d8c8a1022c2a8707d47e77d1ab94debdb64d7c93b39"
+      "hash": "d5c203d828461c07e7c3d4734fd1129481c1bd1745ff32a2844dd8026396f4a2"
     },
     "references/theme-use.md": {
       "sources": {
-        "docs/THEMES.md": "9fbef7fdf01292aa75c21c749ef5f48c789657ce79e155e4ff2830b11d2e75c3"
+        "docs/THEMES.md": "d25aaae92c03f4ca37e9b7f843656f8768a223ffc37f2e53dbd4a8ed412be86b"
       },
-      "hash": "dffb317a272fef559e710d8c8a1022c2a8707d47e77d1ab94debdb64d7c93b39"
+      "hash": "d5c203d828461c07e7c3d4734fd1129481c1bd1745ff32a2844dd8026396f4a2"
     },
     "references/theme-write.md": {
       "sources": {
-        "docs/THEMES.md": "9fbef7fdf01292aa75c21c749ef5f48c789657ce79e155e4ff2830b11d2e75c3",
-        "docs/WRITING-A-THEME.md": "db1be1095eb72729087bd6fc3cf62a1be835f8d84dac8572ccec124bcc6c9b3c"
+        "docs/THEMES.md": "d25aaae92c03f4ca37e9b7f843656f8768a223ffc37f2e53dbd4a8ed412be86b",
+        "docs/WRITING-A-THEME.md": "fa6d25e4674c70c99d0bce6ac54284cdbec23fd6f87203d58b28664be876d9ff"
       },
-      "hash": "c23a79c8fd201298db3682b3edcda7cd4fe7f81add2c566097b29c5f2c10f450"
+      "hash": "b4f3ab937bb76acbaa8870d14edb23b7c2009da1e08bbcb411fe81a4c1af4505"
     }
   }
 }

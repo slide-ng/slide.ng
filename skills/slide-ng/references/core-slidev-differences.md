@@ -25,7 +25,7 @@ slide.ng reads the same `slides.md` shape (Slidev's own parser splits slides and
 | `@slidev/theme-x`, Vue themes and addons                       | `@slide-ng/theme-x`; Slidev themes cannot be used                                        |
 | `comark: true` / MDC syntax                                    | not parsed; delete the key (a deck without MDC syntax is unaffected)                     |
 | `$clicks`, `$slidev.nav` in markdown                           | no global; a component with `inject(ClicksContext)` or `inject(Nav)` and a `#ref`        |
-| `v-pre` on an element with a literal `{{ }}`                   | `ngNonBindable` still fails the build (NG5002); write `&#123;&#123;` and `&#125;&#125;`  |
+| `v-pre` on an element with a literal `{{ }}`                   | `ngNonBindable` on the element, or `&#123;&#123;` / `\{\{` in text                       |
 | UnoCSS attributify (`flex="~" p="2"`), variant groups, `prose` | not installed; use classes                                                               |
 | smart quotes, `--`, `...` made by markdown-it                  | not converted; type the characters. Raw HTML is never converted in either                |
 | `<carbon:x />` is an `<svg>`                                   | it is a `<span class="i-carbon:x">`; CSS for `span` now matches icons                    |

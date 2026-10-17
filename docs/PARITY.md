@@ -259,7 +259,7 @@ browser exporter page and `overviewSnapshots`. (The VS Code extension is a separ
 5. **Animations**: custom transition objects, `clickAnimation`, `preloadImages`, slide `preload` and the slide hooks (`onSlideEnter`, `onSlideLeave`) do not exist; `slide-ng-motion` has no motion presets.
 6. **Touch**: swipe navigation works; pinch zoom and touch handling for drawing and `slide-ng-drag` were not tried on a real device.
 7. **UI**: `selectable`, `themeConfig`, `TitleRenderer` and `notesAutoRuby` are not there.
-8. **Syntax**: MDC/Comark syntax is not parsed. The markdown inside a slide is converted with `marked`, so the markdown-it typographer (smart quotes, `--`, `...`) does not run, and `v-pre` has no equivalent (write `&#123;&#123;` for a literal `{{`). UnoCSS attributify, variant groups and the typography preset (`prose`) are not installed.
+8. **Syntax**: MDC/Comark syntax is not parsed. The markdown inside a slide is converted with `marked`, so the markdown-it typographer (smart quotes, `--`, `...`) does not run, and `v-pre` is Angular's `ngNonBindable` (or write `&#123;&#123;` for a literal `{{`). UnoCSS attributify, variant groups and the typography preset (`prose`) are not installed.
 9. **CLI**: dev `--base`, `--tunnel`, build `--router-mode`, `--inspect`; the dev server's default port differs (4230).
 10. **Recording and PWA**: no separate camera file and no mp4 or mkv; the PWA part is done (its first visit must be online, like Slidev's; `build --offline` is the answer for talks with no network).
 11. **Size**: the first load of a deck with Monaco and KaTeX is about 850 kB (budget raised to 1.5 MB warning, 3 MB error).
