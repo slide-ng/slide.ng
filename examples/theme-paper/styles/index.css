@@ -19,7 +19,7 @@ html.dark {
 .slidev-layout h1,
 .slidev-layout h2,
 .slidev-layout h3 {
-  font-family: 'Fraunces', ui-serif, Georgia, serif;
+  font-family: var(--slidev-font-serif, 'Fraunces', ui-serif, Georgia, serif);
   font-weight: 600;
   letter-spacing: -0.01em;
 }
@@ -85,7 +85,7 @@ html.dark {
   font-size: 1.35rem;
   color: var(--paper-muted);
   font-style: italic;
-  font-family: 'Fraunces', ui-serif, Georgia, serif;
+  font-family: var(--slidev-font-serif, 'Fraunces', ui-serif, Georgia, serif);
 }
 .paper-rule {
   height: 6px;
@@ -100,7 +100,7 @@ html.dark {
   justify-content: center;
 }
 .paper-section-no {
-  font-family: 'Fraunces', ui-serif, Georgia, serif;
+  font-family: var(--slidev-font-serif, 'Fraunces', ui-serif, Georgia, serif);
   font-size: 6rem;
   line-height: 1;
   color: var(--paper-accent);
@@ -131,7 +131,7 @@ html.dark {
   border-bottom: 1px solid var(--paper-ink);
 }
 .paper-pull-text {
-  font-family: 'Fraunces', ui-serif, Georgia, serif;
+  font-family: var(--slidev-font-serif, 'Fraunces', ui-serif, Georgia, serif);
   font-size: 1.6rem;
   line-height: 1.3;
 }
