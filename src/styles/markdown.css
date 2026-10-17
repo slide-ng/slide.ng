@@ -58,10 +58,13 @@ li > input[type='checkbox'] {
   font-size: 0.7em;
   margin-left: 1px;
 }
-.footnotes {
-  margin-top: 1.5em;
-  padding-top: 0.5em;
+.footnotes-sep {
+  margin: 1.5em 0 0;
+  border: 0;
   border-top: 1px solid #8884;
+}
+.footnotes {
+  padding-top: 0.5em;
   font-size: 0.75em;
   opacity: 0.75;
 }

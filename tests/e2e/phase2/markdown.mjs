@@ -42,7 +42,7 @@ export async function run({ t, open }) {
   );
   t.ok(
     'footnote references are numbered',
-    (await page.locator('sup.footnote-ref').allInnerTexts()).join() === '1,2',
+    (await page.locator('sup.footnote-ref').allInnerTexts()).join() === '[1],[2]',
   );
   t.ok(
     'footnotes are listed at the bottom, braces and code intact',

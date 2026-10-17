@@ -27,8 +27,9 @@ export function extractFootnotes(markdown) {
  * @param {string} html @param {string[]} notes @param {(note: string) => string} inline
  */
 export function finishFootnotes(html, notes, inline) {
-  html = html.replace(/NGFOOT(\d+)X/g, '<sup class="footnote-ref">$1</sup>');
+  // The class names and the `[1]` are markdown-it-footnote's (Slidev's), so CSS written for them applies.
+  html = html.replace(/NGFOOT(\d+)X/g, '<sup class="footnote-ref">[$1]</sup>');
   if (!notes.length) return html;
-  const items = notes.map((n) => `<li>${inline(n)}</li>`).join('');
-  return `${html}\n<section class="footnotes"><ol>${items}</ol></section>`;
+  const items = notes.map((n) => `<li class="footnote-item">${inline(n)}</li>`).join('');
+  return `${html}\n<hr class="footnotes-sep" /><section class="footnotes"><ol class="footnotes-list">${items}</ol></section>`;
 }
