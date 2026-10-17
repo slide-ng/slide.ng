@@ -252,10 +252,9 @@
   border: 0;
 }
 
-/* In a right-to-left deck (htmlAttrs dir: rtl) code and math still read left to right. */
+/* In a right-to-left deck (htmlAttrs dir: rtl) code still reads left to right (math: see featureCss in generate.mjs). */
 .slidev-layout pre,
-.slidev-layout code,
-.slidev-layout .katex {
+.slidev-layout code {
   direction: ltr;
   unicode-bidi: isolate;
 }
