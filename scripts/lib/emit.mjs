@@ -10,6 +10,7 @@ import { tagDragSites } from './drag-sites.mjs';
 import { rebaseCss, rebaseHtml } from './asset-paths.mjs';
 import { assertNoRenamedNames } from './renamed.mjs';
 import { commonPipes } from './pipes.mjs';
+import { commonDirectives } from './angular-imports.mjs';
 
 const pad = (no) => String(no).padStart(3, '0');
 export const slideName = (no) => `slide-${pad(no)}`;
@@ -109,10 +110,10 @@ export function slideSource(slide, no, deck = {}) {
     no,
   );
 
-  // Look for components outside code samples only (code is just text).
+  // Look for components outside code samples only (code is just text). A `<code>` written in HTML is live Angular.
   const markup = html
     .replace(/<pre[\s\S]*?<\/pre>/g, '')
-    .replace(/<code(?:\s[^>]*)?>[\s\S]*?<\/code>/g, '');
+    .replace(/<code ngNonBindable>[\s\S]*?<\/code>/g, '');
   assertNoRenamedNames(
     markup,
     no,
@@ -125,6 +126,10 @@ export function slideSource(slide, no, deck = {}) {
     );
   const used = (deck.components ?? COMPONENTS).filter((c) => c.test.test(markup));
   const pipes = commonPipes(markup);
+  const directives = commonDirectives(markup);
+  const fromAngular = { ...directives };
+  if (pipes.length)
+    fromAngular['@angular/common'] = [...(directives['@angular/common'] ?? []), ...pipes];
   const imports = [def, ...used];
   const importLines = [
     ...new Set(
@@ -132,7 +137,9 @@ export function slideSource(slide, no, deck = {}) {
         (c) => `import { ${c.className} } from '${c.importPath ?? `../../app/${c.file}`}';`,
       ),
     ),
-    ...(pipes.length ? [`import { ${pipes.join(', ')} } from '@angular/common';`] : []),
+    ...Object.entries(fromAngular).map(
+      ([pkg, names]) => `import { ${names.join(', ')} } from '${pkg}';`,
+    ),
   ];
 
   const { clicksStart, clicks } = slide.frontmatter;
@@ -153,7 +160,7 @@ ${importLines.join('\n')}
 
 @Component({
   selector: '${slideName(no)}',
-  imports: [${[...imports.map((c) => c.className), ...pipes].join(', ')}],
+  imports: [${[...imports.map((c) => c.className), ...Object.values(fromAngular).flat()].join(', ')}],
   providers: [${providers.join(', ')}],
   template: ${JSON.stringify(html)},${styles ? `\n  styles: [${JSON.stringify(styles)}],\n  encapsulation: ViewEncapsulation.None,` : ''}
 })

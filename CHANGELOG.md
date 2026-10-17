@@ -9,6 +9,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - Three example themes: `examples/theme-paper` (light, editorial), `examples/theme-moss` (dark, green and clay) and `examples/theme-blueprint` (navy drafting grid, with a light "whiteprint" palette), each with a cover and a section layout, a component and a README.
 - `docs/CLI.md`, every command and flag; `slide-ng --version`; `slide-ng <command> --help` lists that command's flags.
 - Angular's common pipes (`number`, `currency`, `date`, ...) and a deck's own pipes in `components/` work in slides; `@angular/forms` is included for slide components.
+- Angular's common directives (`*ngTemplateOutlet`, `[ngClass]`, `*ngIf`, ...) and the forms directives (`[(ngModel)]`, `[formGroup]`, ...) work in slides, imported only where used.
 - `## Title {#id .class}` on headings and `{width=120}` after a picture.
 - `themeColor` in the headmatter (or a theme's `theme.json`) colours the installed app; a downloaded PDF is kept by the offline worker.
 - `$math$` in a slide title is drawn in `<slide-ng-toc>`; `console.table` and `console.group` in `{monaco-run}`; a code runner may return its result directly.
@@ -27,6 +28,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ### Fixed
 
+- A directive in `components/` with a selector like `button[appRipple]`, a list (`[a], [b]`) or used as `*structural` was never imported; a pipe inside a `<code>` written in HTML was not imported; `{#id}` on a heading could land on an earlier heading; `\|` in code in a table cell kept its backslash.
 - PDF export: diagrams taller than the slide were lost, persisted drawings were missing, global layers showed slide 1 on every page, a Mermaid syntax error added a page, `\begin{align}` numbers stayed at (1), and the subject held raw markdown.
 - Generator: `$first`/`$last` in bindings became math, `@keyframes` in a slide `<style>` did nothing, the space between two inline elements was dropped, `\|` in `{{ }}` in a table broke the build, a deck's own `theme.json` was ignored, and Twoslash `^?` popups covered the code.
 - App: clicks inside a component were numbered after the slide's later clicks, view transitions with a shared `view-transition-name` were skipped, Monaco ignored the dark mode, `slide-ng-mark` was drawn too low when a web font arrived late, a `maxHeight` code block scrolled the page and the overview, auto-fit text overlapped, a scaled Mermaid diagram ran off the slide, code and math were mirrored in right-to-left decks, an `iframe` page was dark in a dark deck's PDF, `{monaco-diff}` logged an error when left, and the table of contents marked the wrong slide in print.

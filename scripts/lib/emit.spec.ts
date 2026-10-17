@@ -208,6 +208,18 @@ describe('slideSource: built-in components are imported when the slide uses them
     expect(imports('<span [slide-ng-mark]="{ at: 2 }">x</span>')).toContain('SlideNgMark');
     expect(imports('<div slide-ng-motion :enter="{ x: 0 }">x</div>')).toContain('SlideNgMotion');
   });
+  it('imports common directives and pipes from @angular/common in one line', () => {
+    const src = slideSource(
+      slide({}, '<ng-container *ngTemplateOutlet="t" />\n\n{{ 0.5 | percent }}'),
+      2,
+    );
+    expect(src).toContain("import { NgTemplateOutlet, PercentPipe } from '@angular/common';");
+    expect(src).toContain('imports: [DefaultLayout, NgTemplateOutlet, PercentPipe]');
+  });
+  it('reads a <code> written in HTML as live markup, and markdown code as text', () => {
+    expect(imports("<code>{{ 'a' | uppercase }}</code>")).toContain('UpperCasePipe');
+    expect(imports("`{{ 'a' | uppercase }}`")).toBe('DefaultLayout');
+  });
   it('does not mix <slide-ng-transform> up with the longer names or other words', () => {
     expect(imports('plain text about a transformation')).toBe('DefaultLayout');
   });

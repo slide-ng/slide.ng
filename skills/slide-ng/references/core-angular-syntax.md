@@ -19,9 +19,9 @@ slide.ng is **not Vue**. Each slide becomes a standalone Angular component, comp
 | template reference | `<app-counter #c />` then `{{ c.n() }}` | `ref="c"`                                       |
 | format a value     | `{{ price \| currency }}`               | Vue filters                                     |
 
-A slide has no component class: an event handler cannot assign a slide field (`(click)="x = 1"` does not compile). Call a method or set a signal of a template reference instead. Angular's common pipes (`number`, `currency`, `percent`, `date`, `json`, `uppercase`, `lowercase`, `titlecase`, `slice`, `keyvalue`, `async`, `i18nPlural`, `i18nSelect`) work and are imported only where used.
+A slide has no component class: an event handler cannot assign a slide field (`(click)="x = 1"` does not compile). Call a method or set a signal of a template reference instead. Angular's common pipes (`number`, `currency`, `percent`, `date`, `json`, `uppercase`, `lowercase`, `titlecase`, `slice`, `keyvalue`, `async`, `i18nPlural`, `i18nSelect`) work and are imported only where used, and so do the common directives (`*ngTemplateOutlet`, `[ngClass]`, `[ngStyle]`, `*ngIf`, `*ngFor`, `[ngSwitch]`) and the forms directives (`[(ngModel)]`, `[formGroup]`, `formControlName`).
 
-Only the slide.ng directives exist (all start with `slide-ng-`): `slide-ng-click`, `slide-ng-after`, `slide-ng-click-hide`, `slide-ng-mark`, `slide-ng-motion`, `slide-ng-drag`. They are Angular attribute directives. Others (`v-if`, `v-for`, `v-model`, `v-html`, `v-bind`) are plain unknown attributes: no error, and they do nothing.
+Besides those, only the slide.ng directives exist (all start with `slide-ng-`): `slide-ng-click`, `slide-ng-after`, `slide-ng-click-hide`, `slide-ng-mark`, `slide-ng-motion`, `slide-ng-drag`. They are Angular attribute directives. Others (`v-if`, `v-for`, `v-model`, `v-html`, `v-bind`) are plain unknown attributes: no error, and they do nothing.
 
 <!-- verify -->
 

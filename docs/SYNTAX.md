@@ -491,6 +491,11 @@ Rules, so the markdown converter does not break your Angular code:
 - `{{ ... }}` is passed through untouched.
 - Angular's common pipes (`number`, `currency`, `percent`, `date`, `json`, `uppercase`, `lowercase`, `titlecase`, `slice`, `keyvalue`,
   `async`, `i18nPlural`, `i18nSelect`) work in a slide's expressions: `{{ 1234.5 | number }}`. They are imported only by the slides that use them.
+- So do Angular's common directives (`*ngTemplateOutlet`, `[ngClass]`, `[ngStyle]`, `*ngIf`, `*ngFor`, `[ngSwitch]`, `[ngPlural]`,
+  `ngComponentOutlet`) and the forms directives (`[(ngModel)]` imports `FormsModule`; `[formGroup]`, `formControlName` and the like
+  import `ReactiveFormsModule`). A `<ng-template #t>` in a slide is drawn with `<ng-container *ngTemplateOutlet="t; context: { $implicit: 1 }" />`.
+- A directive in `components/` is imported when the slide uses its selector: a tag, an attribute (also as `*structural`), a tag with an
+  attribute (`button[appRipple]`) or a list of these.
 - A single `{`, `}` or `@` in normal text (like an email address) is safe: it is escaped for you.
 - Slides have no component class of their own. To share state between parts of a slide use template
   references (`<app-counter #c />` then `{{ c.n() }}`) or `@let`.
