@@ -85,7 +85,10 @@ const problems = [];
 const watch = (page) => {
   page.on('console', (m) => {
     const problem = consoleProblem(m);
-    if (problem) problems.push(problem.slice(0, 300));
+    // Chrome fetches the tab's icon itself, past the service worker, so with the network off that request can fail
+    // (it is not the deck's: every other file comes from the worker, which the checks above prove).
+    if (problem && !/ERR_INTERNET_DISCONNECTED \(\S*\/favicon\.ico\)$/.test(problem))
+      problems.push(problem.slice(0, 300));
   });
   page.on('pageerror', (e) => problems.push(String(e).slice(0, 200)));
 };
