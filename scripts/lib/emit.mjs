@@ -8,6 +8,7 @@ import { toTemplate } from './to-template.mjs';
 import { tagDragSites } from './drag-sites.mjs';
 import { rebaseCss, rebaseHtml } from './asset-paths.mjs';
 import { assertNoRenamedNames } from './renamed.mjs';
+import { commonPipes } from './pipes.mjs';
 
 const pad = (no) => String(no).padStart(3, '0');
 export const slideName = (no) => `slide-${pad(no)}`;
@@ -76,6 +77,7 @@ export function slideSource(slide, no, deck = {}) {
     (deck.components ?? []).flatMap((c) => (c.selector ? [c.selector] : [])),
   );
   const used = (deck.components ?? COMPONENTS).filter((c) => c.test.test(markup));
+  const pipes = commonPipes(markup);
   const imports = [def, ...used];
   const importLines = [
     ...new Set(
@@ -83,6 +85,7 @@ export function slideSource(slide, no, deck = {}) {
         (c) => `import { ${c.className} } from '${c.importPath ?? `../../app/${c.file}`}';`,
       ),
     ),
+    ...(pipes.length ? [`import { ${pipes.join(', ')} } from '@angular/common';`] : []),
   ];
 
   const { clicksStart, clicks } = slide.frontmatter;
@@ -99,7 +102,7 @@ ${importLines.join('\n')}
 
 @Component({
   selector: '${slideName(no)}',
-  imports: [${imports.map((c) => c.className).join(', ')}],
+  imports: [${[...imports.map((c) => c.className), ...pipes].join(', ')}],
   providers: [${providers.join(', ')}],
   template: ${JSON.stringify(html)},${styles ? `\n  styles: [${JSON.stringify(styles)}],\n  encapsulation: ViewEncapsulation.None,` : ''}
 })
