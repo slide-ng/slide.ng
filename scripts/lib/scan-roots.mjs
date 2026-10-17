@@ -4,6 +4,7 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { COMPONENTS, LAYOUTS } from './registry.mjs';
+import { pipeNames } from './pipes.mjs';
 
 // `@Component({ ... selector: 'x' ... }) export class Name` (also @Directive).
 const DECLARATION =
@@ -12,6 +13,14 @@ const DECLARATION =
 /** `[{ selector, className }]` for every component or directive declared in some source text. */
 export function declarations(source) {
   return [...source.matchAll(DECLARATION)].map((m) => ({ selector: m[1], className: m[2] }));
+}
+
+// `@Pipe({ name: 'initials' }) export class InitialsPipe`
+const PIPE = /@Pipe\(\{[\s\S]*?name:\s*['"]([^'"]+)['"][\s\S]*?\}\)\s*export\s+class\s+(\w+)/g;
+
+/** `[{ name, className }]` for every pipe declared in some source text. */
+export function pipeDeclarations(source) {
+  return [...source.matchAll(PIPE)].map((m) => ({ name: m[1], className: m[2] }));
 }
 
 /** The text a slide must contain for this selector to be in use: `<my-tag` for a tag, ` my-thing` for `[my-thing]`. */
@@ -64,7 +73,18 @@ export function scanRoots(roots) {
       };
     }
     for (const file of tsFilesIn(join(root.dir, 'components'))) {
-      for (const d of declarations(readFileSync(join(root.dir, 'components', file), 'utf8'))) {
+      const text = readFileSync(join(root.dir, 'components', file), 'utf8');
+      // A pipe is in use when a slide's expressions name it (`{{ x | initials }}`).
+      for (const p of pipeDeclarations(text)) {
+        const known = components.findIndex((c) => c.className === p.className);
+        if (known >= 0) components.splice(known, 1);
+        components.push({
+          className: p.className,
+          importPath: `./roots/${root.id}/components/${file.slice(0, -3)}`,
+          test: { test: (markup) => pipeNames(markup).has(p.name) },
+        });
+      }
+      for (const d of declarations(text)) {
         const known = components.findIndex((c) => c.className === d.className);
         if (known >= 0) components.splice(known, 1); // same class name: the later root replaces it
         components.push({

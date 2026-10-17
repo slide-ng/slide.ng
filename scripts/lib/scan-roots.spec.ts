@@ -96,4 +96,14 @@ describe('scanRoots', () => {
     expect(problems[0]).toContain('broken.ts');
     expect(problems.join()).not.toContain('helper.ts');
   });
+  it('adds pipes, in use when a slide names them in an expression', () => {
+    const r = root('deck', {
+      'components/initials.pipe.ts':
+        "@Pipe({ name: 'initials' }) export class InitialsPipe { transform(v: string) { return v; } }",
+    });
+    const pipe = scanRoots([r]).components.find((c: any) => c.className === 'InitialsPipe');
+    expect(pipe.importPath).toBe('./roots/deck/components/initials.pipe');
+    expect(pipe.test.test("<p>{{ 'Ada Lovelace' | initials }}</p>")).toBe(true);
+    expect(pipe.test.test('<td>a | initials</td>')).toBe(false);
+  });
 });

@@ -17,17 +17,25 @@ const PIPES = {
   uppercase: 'UpperCasePipe',
 };
 
-/** The class names of the common pipes used in a slide's template, sorted. */
-export function commonPipes(template) {
+/** The names of all pipes used in a template's Angular expressions (`{{ x | initials }}` gives `initials`). */
+export function pipeNames(template) {
   const expressions = [
     ...template.matchAll(/\{\{([\s\S]*?)\}\}/g),
     ...template.matchAll(/\s[[(*][^\s=]*="([^"]*)"/g),
-    ...template.matchAll(/@(?:if|for|switch|case|let|defer)\b([^{\n]*)/g),
+    ...template.matchAll(/\s[[(*][^\s=]*='([^']*)'/g),
+    ...template.matchAll(/@(?:if|else|for|switch|case|let|defer)\b([^\n]*)/g),
   ].map((m) => m[1]);
   const found = new Set();
   for (const e of expressions)
     // `||` is a logical or, not a pipe
-    for (const m of e.matchAll(/(?<!\|)\|(?!\|)\s*([A-Za-z]\w*)/g))
-      if (Object.hasOwn(PIPES, m[1])) found.add(PIPES[m[1]]);
-  return [...found].sort();
+    for (const m of e.matchAll(/(?<!\|)\|(?!\|)\s*([A-Za-z]\w*)/g)) found.add(m[1]);
+  return found;
+}
+
+/** The class names of the common pipes used in a slide's template, sorted. */
+export function commonPipes(template) {
+  return [...pipeNames(template)]
+    .filter((name) => Object.hasOwn(PIPES, name))
+    .map((name) => PIPES[name])
+    .sort();
 }

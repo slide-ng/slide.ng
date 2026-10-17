@@ -48,7 +48,8 @@ export function toTemplate(markdown, ctx = {}) {
     (_, ws, tag) => ws + hide(tag),
   );
   md = md.replace(new RegExp(ANGULAR_TAG, 'g'), keep); // tag inside a paragraph
-  md = md.replace(/\{\{[\s\S]*?\}\}/g, keep); // {{ interpolation }}
+  // {{ interpolation }}; `\|` (how a table cell writes a pipe) is a plain `|` for Angular
+  md = md.replace(/\{\{[\s\S]*?\}\}/g, (m) => keep(m.replace(/\\\|/g, '|')));
 
   // 3. Markdown -> HTML, then make the remaining braces and @ harmless.
   let html = protect(markAlerts(marked.parse(md, { async: false })));
