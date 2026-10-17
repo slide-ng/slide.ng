@@ -442,3 +442,15 @@ Source: an independent review of the repository (nine findings). Each fix has a 
 2. **Clean break, no aliases.** Nothing was published, so there is no shim and no deprecation period. The generator refuses a slide that still uses an old name and says what to write instead (`scripts/lib/renamed.mjs`, tested in `renamed.spec.ts`). That is an error message, not an alias: the old name never works. The check skips an old name that the deck's own components declare as a selector, and it does not look into code samples.
 3. **What did not change:** layout names and the `sn-*` tags they use, headmatter and frontmatter keys, CSS classes (`slidev-*`), `$clicks`-style variables, the `::code-group` markdown block, the `drag-site` and `mark-mods` attributes that the generator writes for the runtime, and the internal `app-*` components. `<slide-ng-total>` replaces `<slides-total>`, and `slide-ng-magic-move` replaces `shiki-magic-move`, because the prefix goes in front of the name without a repeated word.
 4. **Hyphenated attribute selectors such as `[slide-ng-click]` are legal in Angular** and compile under AOT (checked with `ng build`). The class names follow the files: `SlideNgClick`, `SlideNgMark`, `SlideNgDrag` and so on.
+
+## Made while testing for 1.0.0 (thirty real decks)
+
+1. **`@angular/forms` is a dependency.** Slide components that use `ReactiveFormsModule` or `FormsModule` did not build, and installing
+   the package in the deck loaded a second copy of `@angular/core` (a blank page). It is part of Angular, at the same version as `@angular/core`,
+   and only the decks that import it pay for it. `@angular/animations` is not added: it is deprecated, and Angular's own `animate.enter` /
+   `animate.leave` work in slides.
+2. **Pipes in a deck's `components/` are imported like components**, by the pipe's `name` used in a slide's expressions (`{{ x | initials }}`),
+   and Angular's common pipes are imported when a slide uses them.
+3. **A slide's frontmatter with broken YAML stops the build** with the file, line and slide, like a broken headmatter; it used to lose keys silently.
+4. **`download: true` in the headmatter makes the PDF when it can**: without a working Chromium the build warns and the button stays disabled.
+   `--download` keeps failing, because it asks for the PDF explicitly.

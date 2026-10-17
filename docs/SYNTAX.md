@@ -525,6 +525,14 @@ Slides write `<hello-box title="Note">text</hello-box>`. The generator reads the
 `.ts` files directly in `components/` are scanned. Import slide.ng services with the alias `slide-ng/` (`src/app/`), for example
 `import { Nav } from 'slide-ng/lib/nav'`. (The built-in components are registered in `scripts/lib/registry.mjs`; a deck does not need that.)
 
+A pipe in `components/` (`@Pipe({ name: 'initials' }) export class InitialsPipe`) is imported into every slide whose expressions use it
+(`{{ name | initials }}`). Components can import `@angular/common`, `@angular/forms` and `@angular/router`, which come with slide.ng;
+do not install another copy of an `@angular/*` package in the deck (two copies of Angular give a blank page). `@angular/animations` is
+not included: use Angular's `animate.enter` / `animate.leave` or CSS.
+
+In the PDF and in the overview every slide is drawn at once, so `Nav.no()` is the slide being presented, not the slide being drawn:
+inject `SLIDE_NO` to know which slide a component is in.
+
 ## Styling
 
 Use [UnoCSS](https://unocss.dev) utility classes (Tailwind-like names) in HTML and in `class:`
@@ -663,7 +671,7 @@ A build (`slide-ng build`) writes files of `public/` that slides name with a lea
 
 `export:` takes `format`, `range`, `withClicks`, `dark`, `timeout`, `wait`, `waitUntil`, `withToc`, `perSlide`, `scale` and `omitBackground`. It cannot name an output folder or
 a browser program: a deck may come from someone else, so those only come from the command line or the environment.
-In an exported PDF a slide that has clicks shows its last state, unless `--with-clicks` makes a page for every click step. `slide-ng-render-when context="print"` shows content only on paper.
+In an exported PDF a slide that has clicks shows its last state, unless `--with-clicks` makes a page for every click step. A `@defer` block that waits (`on timer`, `on viewport`) may still show its placeholder when the page is captured: give `export` a `--wait`. `slide-ng-render-when context="print"` shows content only on paper.
 
 ## Themes and addons
 

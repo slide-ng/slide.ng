@@ -7,13 +7,13 @@ description: Slidev's $nav, $clicks, $page replaced by Angular injection in comp
 
 There is no global `$slidev`, `$nav`, `$clicks` or `$page` in markdown. A component injects what it needs.
 
-| Slidev                                             | slide.ng (import from `slide-ng/...`)                                                                                                                         |
-| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `$nav`, `$page`, `$slidev.nav`                     | `Nav` from `slide-ng/lib/nav`: `no()` current slide, `total`, `clicks()`, `clicksTotal()`, `next()`, `prev()`, `nextSlide()`, `prevSlide()`, `go(no, clicks)` |
-| `$clicks`, `$slidev.nav.clicks`                    | `ClicksContext` from `slide-ng/lib/clicks`: `current()`, `total()` signals (one per slide)                                                                    |
-| `$renderContext`                                   | `RENDER_CONTEXT` from `slide-ng/lib/slide-context`: `'slide'`, `'presenter'`, `'previewNext'`, `'print'`, `'overview'`                                        |
-| slide number of this slide                         | `SLIDE_NO` from `slide-ng/lib/slide-context`                                                                                                                  |
-| `onSlideEnter`, `onSlideLeave`, `useIsSlideActive` | missing: use `effect()` on `Nav.no()` and `SLIDE_NO`                                                                                                          |
+| Slidev                                             | slide.ng (import from `slide-ng/...`)                                                                                                                                                        |
+| -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `$nav`, `$page`, `$slidev.nav`                     | `Nav` from `slide-ng/lib/nav`: `no()` current slide, `total`, `clicks()`, `clicksTotal()`, `next()`, `prev()`, `nextSlide()`, `prevSlide()`, `go(no, clicks)`                                |
+| `$clicks`, `$slidev.nav.clicks`                    | `ClicksContext` from `slide-ng/lib/clicks`: `current()`, `total()` signals (one per slide)                                                                                                   |
+| `$renderContext`                                   | `RENDER_CONTEXT` from `slide-ng/lib/slide-context`: `'slide'`, `'presenter'`, `'previewNext'`, `'print'`, `'overview'`                                                                       |
+| slide number of this slide                         | `SLIDE_NO` from `slide-ng/lib/slide-context`                                                                                                                                                 |
+| `onSlideEnter`, `onSlideLeave`, `useIsSlideActive` | missing: use `effect()` on `Nav.no()` and `SLIDE_NO`. In the PDF and the overview every slide is drawn at once and `Nav.no()` stays the presented slide, so show content by `SLIDE_NO` there |
 
 In markdown itself use `<slide-ng-current-no />`, `<slide-ng-total />` and `<slide-ng-render-when>`.
 

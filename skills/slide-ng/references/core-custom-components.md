@@ -19,6 +19,8 @@ Rules:
 - A component with the same class name as a built-in one replaces it. Layouts go in `layouts/` (see `layout-custom.md`).
 - Do not add components to `src/app` or `scripts/lib/registry.mjs`; that is how the built-ins are registered inside the slide.ng repository. For a deck, use `components/`.
 - Import slide.ng services with the alias `slide-ng/` (it means `src/app/`), for example `import { Nav } from 'slide-ng/lib/nav'`. Do not use `../`.
+- A pipe in `components/` (`@Pipe({ name: 'initials' })`) is imported into the slides whose expressions use it: `{{ name | initials }}`.
+- Components can import `@angular/common`, `@angular/forms` and `@angular/router` (they come with slide.ng). Never install another `@angular/*` package in the deck: two copies of Angular give a blank page. `@angular/animations` is not included; use `animate.enter`/`animate.leave` or CSS.
 
 <!-- verify-file: components/hello-box.ts -->
 
