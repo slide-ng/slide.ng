@@ -70,6 +70,8 @@ export class SlideNgMark implements OnInit, OnDestroy {
       place();
       this.ctx.track(this, this.el, place);
     }
+    // rough-notation measures the element once: wait for the web fonts, or a late font moves the text from under the mark.
+    await document.fonts?.ready;
     const { annotate } = await import('rough-notation');
     if (this.gone) return;
     const { at: _at, delay: _d, opacity: _o, ...config } = this.options;
