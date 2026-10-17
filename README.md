@@ -15,12 +15,18 @@ Presentations written in markdown, with real Angular template syntax inside. Ins
 You need Node 22.22.3 or newer.
 
 ```sh
+npx @slide-ng/core create my-talk
+cd my-talk
 npm install
-npm start    # dev server at http://localhost:4230
-npm run build
+npm run dev     # dev server at http://localhost:4230
+npm run build   # a static site in dist/
+npm run export  # a PDF
 ```
 
-Other commands (`create`, `build`, `export`, `format`, `mcp`, ...) are run with `node bin/slide-ng.mjs <command>`; every command and flag is in [docs/CLI.md](docs/CLI.md). Everything is documented at [slide-ng.dev](https://slide-ng.dev) and in [docs/](docs/).
+Every command and flag is in [docs/CLI.md](docs/CLI.md). Everything is documented at [slide-ng.dev](https://slide-ng.dev) and in [docs/](docs/).
+
+To work on slide.ng itself, clone this repository and run `npm install` and `npm start` (the example deck); other commands are run with
+`node bin/slide-ng.mjs <command>`. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Features
 

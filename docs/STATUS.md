@@ -94,7 +94,7 @@ one can be written. The decisions are in DECISIONS.md ("Made while testing for 1
 
 ## NOT VERIFIED
 
-- **A real `npm install slide-ng` from a registry** and a publish: the package is private; the scaffold test links this repository into the new deck's `node_modules`.
+- **A real install from the registry**: `@slide-ng/core` 0.1.0 is on npm, but the scaffold test links this repository into the new deck's `node_modules`, and a new deck asks for `^0.1.0`, so it gets the published 0.1.0, not this repository's changes, until the next version is published.
 - `dev --open` opening a real browser window: the flag is passed to `ng serve --open` and parsed in a unit test only.
 - `CODE_RUNNERS` (a theme replacing how `{monaco-run}` runs code): written, documented, no test.
 - Addons end to end: resolution and merge order are unit-tested, but no deck was built with an addon.
@@ -116,4 +116,3 @@ Run with `CHROME_PATH` set and `VSCODE_CWD` unset (the icon generator skips loca
 - Fixed on the Mac: a blank last page in PDF export (Chrome), `--out` through a symbolic link such as `/var` bypassing the current-folder guard, three dev-test races (`localhost` vs `127.0.0.1`, typed text coloured, a refused huge upload reset by the server).
 - `npm audit`: 6 high (`braces`, `chokidar`, `image-size` through `pptxgenjs`, `@slidev/types`, `vite-plugin-static-copy`), 0 critical. `pdf-lib` was replaced by the maintained fork `@cantoo/pdf-lib`.
 - Docker image: builds and serves. PDF export in the container needs `SLIDE_NG_NO_SANDBOX=1` (owner decision). A deck bind-mounted read-write fails on Docker Desktop for Mac; mount it `:ro`.
-- Starter: `npm install` fails until `slide-ng` is on npm.

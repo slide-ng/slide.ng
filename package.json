@@ -41,7 +41,13 @@
     "CHANGELOG.md",
     "docs",
     "!**/*.spec.ts",
-    "!src/slides/generated"
+    "!src/slides/generated",
+    "!docs/screenshots",
+    "!docs/contributing",
+    "!scripts/resign-history.sh",
+    "!scripts/commit-message.mjs",
+    "!scripts/check-skills-drift.mjs",
+    "!scripts/update-skills-hash.mjs"
   ],
   "engines": {
     "node": ">=22.22.3"
