@@ -28,6 +28,7 @@ What the flag does:
 - Web fonts (`fonts:`) are downloaded into the folder, unless the deck says `fonts: { selfHost: false }`.
 - Monaco's workers are stored as text in `workers.js` and started from blobs, because Chromium refuses `new Worker('file://...')`.
 - Files of `public/` written with a leading slash in slides (`![](/photo.png)`) are found next to the page. (A build with `--base /talk/` now puts `/talk/` in front of them as well.)
+- Not in a slide's `<style>`: `url(/photo.png)` there cannot be rewritten (the Angular build would try to bundle a relative address), so it looks for the file at the disk root and the build warns. Use an inline `style="background-image: url(/photo.png)"` or an `<img>`, which are rewritten.
 
 Things to know:
 

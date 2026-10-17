@@ -12,7 +12,15 @@ export const rebase = (path, base) => (base === './' ? path.slice(1) : base + pa
 
 // Attributes that hold one address, and CSS `url(...)`.
 const ATTRIBUTE = new RegExp(`(\\s(?:src|poster)=)(["'])${ROOT}([^"']*)\\2`, 'g');
-const CSS_URL = new RegExp(`(url\\(\\s*)(["']?)${ROOT}([^)"'\\s]*)\\2(\\s*\\))`, 'g');
+// A quoted address may hold spaces (`url('/team photo.png')`), an unquoted one may not.
+const CSS_URL = new RegExp(
+  `(url\\(\\s*)(?:(["'])${ROOT}([^"']*)\\2|()${ROOT}([^)"'\\s]*))(\\s*\\))`,
+  'g',
+);
+const cssUrl = (base) => (_, open, quote, quoted, bare, rest, close) =>
+  `${open}${quote ?? ''}${rebase(`/${quoted ?? rest}`, base)}${quote ?? ''}${close}`;
+/** Whether some CSS names a `public/` file with a root address (`url(/x.png)`). */
+export const hasRootUrl = (css) => new RegExp(CSS_URL.source).test(css);
 
 /**
  * Puts the base in front of root-relative addresses in a slide's HTML: `src` and `poster` attributes and `url()` in inline styles.
@@ -30,11 +38,7 @@ export function rebaseHtml(html, base) {
               ATTRIBUTE,
               (_, name, quote, rest) => `${name}${quote}${rebase(`/${rest}`, base)}${quote}`,
             )
-            .replace(
-              CSS_URL,
-              (_, open, quote, rest, close) =>
-                `${open}${quote}${rebase(`/${rest}`, base)}${quote}${close}`,
-            ),
+            .replace(CSS_URL, cssUrl(base)),
     )
     .join('');
 }
@@ -45,8 +49,5 @@ export function rebaseHtml(html, base) {
  */
 export function rebaseCss(css, base) {
   if (base === '/' || base === './') return css;
-  return css.replace(
-    CSS_URL,
-    (_, open, quote, rest, close) => `${open}${quote}${rebase(`/${rest}`, base)}${quote}${close}`,
-  );
+  return css.replace(CSS_URL, cssUrl(base));
 }

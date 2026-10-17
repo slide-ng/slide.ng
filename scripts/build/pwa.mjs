@@ -67,11 +67,14 @@ export function manifestJson(headmatter, iconFiles = []) {
   };
 }
 
+// A file name is an address in the worker: `plan #1.png` must be `plan%20%231.png`, or the `#` cuts it and the install fails.
+const encodePath = (file) => file.split('/').map(encodeURIComponent).join('/');
+
 /** The text of the service worker. `files` are relative to the folder the worker sits in; `version` names the cache. */
 export function serviceWorkerSource(files, version) {
   return `// Written by slide-ng build (pwa). Stores every file of the deck, then answers from the store.
 const CACHE = 'slide-ng-${version}';
-const FILES = ${JSON.stringify(files)};
+const FILES = ${JSON.stringify(files.map(encodePath))};
 
 self.addEventListener('install', (event) => {
   // Relative addresses are relative to this file, so the deck can live under any base path.

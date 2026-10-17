@@ -103,6 +103,14 @@ describe('bundleRemoteAssets', () => {
     expect(slides[0].frontmatter.image).toBe(`remote-assets/${file}`);
     expect(warnings).toEqual([]);
   });
+  it('downloads a picture named only in the frontmatter', async () => {
+    const folder = join(mkdtempSync(join(tmpdir(), 'slide-ng-remote-')), 'remote-assets');
+    const slides = [
+      { content: '# Hi', frontmatter: { background: 'https://x.test/ok.png' }, note: null },
+    ];
+    expect(await bundleRemoteAssets(slides, folder, () => {}, fakeFetch as never)).toBe(1);
+    expect(slides[0].frontmatter.background).toMatch(/^remote-assets\//);
+  });
   it('leaves non-images and failures alone, with a warning', async () => {
     const folder = join(mkdtempSync(join(tmpdir(), 'slide-ng-remote-')), 'remote-assets');
     const slides = [

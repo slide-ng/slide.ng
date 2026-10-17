@@ -118,8 +118,15 @@ export async function bundleRemoteAssets(
   fetchImpl,
   options = {},
 ) {
+  // The frontmatter as `key: value` lines (what the frontmatter pattern reads), and as JSON for a url() in other values.
+  const keys = (f) =>
+    Object.entries(f ?? {})
+      .filter(([, v]) => typeof v === 'string')
+      .map(([k, v]) => `${k}: ${v}`)
+      .join('\n');
   const texts = slides.map(
-    (s) => `${s.content}\n${JSON.stringify(s.frontmatter).replace(/\\"/g, '"')}`,
+    (s) =>
+      `${s.content}\n${keys(s.frontmatter)}\n${JSON.stringify(s.frontmatter).replace(/\\"/g, '"')}`,
   );
   const urls = [...new Set(texts.flatMap(findRemoteImages))];
   emptyFolder(folder);

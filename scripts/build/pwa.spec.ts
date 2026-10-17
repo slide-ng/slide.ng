@@ -50,6 +50,11 @@ describe('serviceWorkerSource', () => {
     expect(text).toContain('["index.html","a/b.js"]');
     expect(() => new Function(text)).not.toThrow(); // it is valid JavaScript
   });
+  it('writes file names as addresses, so a space or # does not break the install', () => {
+    expect(serviceWorkerSource(['img dir/plan #1.png'], 'v1')).toContain(
+      '["img%20dir/plan%20%231.png"]',
+    );
+  });
 });
 
 describe('writePwa', () => {
