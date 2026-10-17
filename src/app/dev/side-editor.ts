@@ -1,12 +1,24 @@
-import { Component, DestroyRef, computed, effect, inject, signal, untracked } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  Injector,
+  afterNextRender,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+  viewChild,
+} from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Nav } from '../lib/nav';
 import { DevApi } from './dev-api';
 import type { Highlight } from './editor-highlight';
 import { loadHighlighter } from './load-highlighter';
-import { SideEditorState } from './side-editor-state';
+import { SideEditorState, saveCaret, takeCaret } from './side-editor-state';
 
-type Status = 'loading' | 'saved' | 'saving' | 'error';
+type Status = 'loading' | 'saved' | 'saving' | 'error' | 'conflict';
 const SAVE_DELAY = 600;
 // How often an open editor looks at the file for changes made elsewhere (another editor, git, the MCP server).
 const WATCH_EVERY = 2000;
@@ -28,7 +40,7 @@ const WATCH_EVERY = 2000;
           <span
             id="editor-status"
             class="op60 ml-auto"
-            [class.color-red-500]="status() === 'error'"
+            [class.color-red-500]="status() === 'error' || status() === 'conflict'"
             >{{ label() }}</span
           >
           <button
@@ -60,6 +72,7 @@ const WATCH_EVERY = 2000;
               </div>
             }
             <textarea
+              #area
               id="editor-text"
               aria-label="Markdown of this slide"
               spellcheck="false"
@@ -69,6 +82,8 @@ const WATCH_EVERY = 2000;
               [disabled]="status() === 'loading'"
               (input)="edit($any($event.target).value)"
               (keydown)="keydown($event)"
+              (keyup)="remember()"
+              (click)="remember()"
             ></textarea>
           </div>
         </div>
@@ -91,11 +106,19 @@ export class SideEditor {
   protected status = signal<Status>('loading');
   private timer?: ReturnType<typeof setTimeout>;
   private loadedNo = 0;
+  private base = ''; // the slide's text as the file had it when it was last read or saved here
+  private area = viewChild<ElementRef<HTMLTextAreaElement>>('area');
+  private injector = inject(Injector);
 
   protected label = () =>
-    ({ loading: 'Loading...', saved: 'Saved', saving: 'Saving...', error: 'Could not save' })[
-      this.status()
-    ];
+    ({
+      loading: 'Loading...',
+      saved: 'Saved',
+      saving: 'Saving...',
+      error: 'Could not save',
+      // The slide changed in the file (another editor, git): the text here is kept, not written over the other change.
+      conflict: 'Changed in the file, not saved: copy your text and reopen the slide',
+    })[this.status()];
 
   constructor() {
     // Show the text of whichever slide is on screen. A change not saved yet goes out first.
@@ -149,6 +172,7 @@ export class SideEditor {
       this.text() !== shown
     )
       return;
+    this.base = got.raw;
     if (got.raw !== shown) this.text.set(got.raw);
   }
 
@@ -158,11 +182,37 @@ export class SideEditor {
     const got = await this.api.get<{ raw: string }>(`/slides/${no}/source`);
     if (this.nav.no() !== no) return; // moved on while waiting
     this.loadedNo = no;
+    this.base = got?.raw ?? '';
     this.text.set(got?.raw ?? '');
     this.status.set(got ? 'saved' : 'error');
+    // After a reload caused by typing here: the caret, the scroll position and the focus come back.
+    const caret = takeCaret(no);
+    if (caret)
+      afterNextRender(
+        () => {
+          const area = this.area()?.nativeElement;
+          if (!area) return;
+          area.focus();
+          area.setSelectionRange(caret.start, caret.end);
+          area.closest('.overflow-auto')?.scrollTo({ top: caret.scroll });
+        },
+        { injector: this.injector },
+      );
+  }
+
+  protected remember() {
+    const area = this.area()?.nativeElement;
+    if (area)
+      saveCaret({
+        no: this.loadedNo,
+        start: area.selectionStart,
+        end: area.selectionEnd,
+        scroll: area.closest('.overflow-auto')?.scrollTop ?? 0,
+      });
   }
 
   protected edit(value: string) {
+    this.remember();
     this.text.set(value);
     this.status.set('saving');
     clearTimeout(this.timer);
@@ -173,7 +223,12 @@ export class SideEditor {
     if (this.timer === undefined) return;
     clearTimeout(this.timer);
     this.timer = undefined;
-    const ok = await this.api.send('PUT', `/slides/${this.loadedNo}/source`, { raw: this.text() });
-    this.status.set(ok ? 'saved' : 'error');
+    const raw = this.text();
+    const status = await this.api.request('PUT', `/slides/${this.loadedNo}/source`, {
+      raw,
+      base: this.base,
+    });
+    if (status === 200) this.base = raw;
+    this.status.set(status === 200 ? 'saved' : status === 409 ? 'conflict' : 'error');
   }
 }
