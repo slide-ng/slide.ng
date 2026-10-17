@@ -31,9 +31,20 @@ export const sourceOf = (text, slide) =>
 export const replaceSource = (text, slide, raw) =>
   withEol(text, (t) => {
     let body = raw.replace(/\r\n/g, '\n');
-    if (slide.start > 0 && slide.contentStart === slide.start && !/^(\n|---)/.test(body))
-      body = `\n${body}`;
-    return { text: spliceLines(t, slide.start, slide.end, body) };
+    let from = slide.start;
+    if (slide.start > 0) {
+      const hadFrontmatter = slide.contentStart > slide.start;
+      const hasFrontmatter = /^---[ \t]*\n[\s\S]*?\n---[ \t]*(\n|$)/.test(body);
+      // A slide that gains frontmatter: the `---` above it becomes the block's first line (no second separator).
+      if (!hadFrontmatter && hasFrontmatter) from = slide.start - 1;
+      // A slide that loses it keeps a separator, with a blank line so the text below is not read as frontmatter.
+      else if (hadFrontmatter && !hasFrontmatter) body = `---\n\n${body.replace(/^\n+/, '')}`;
+      else if (!hadFrontmatter && !/^(\n|---)/.test(body)) body = `\n${body}`;
+    }
+    // One blank line before the next slide's `---`, as `slide-ng format` writes it.
+    const lines = t.split('\n');
+    if (slide.end < lines.length && !body.endsWith('\n')) body = `${body}\n`;
+    return { text: spliceLines(t, from, slide.end, body) };
   });
 
 /** Set `path` (like ['dragPos', 'name']) in the slide's frontmatter, adding the block when the slide has none. */

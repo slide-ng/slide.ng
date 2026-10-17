@@ -169,11 +169,13 @@ export const TOOLS = [
         frontmatter && Object.keys(frontmatter).length
           ? `---\n${stringify(frontmatter)}---\n`
           : '---\n';
+      // Markdown that brings its own frontmatter block (as get_slide gives it) is used as it is.
+      const own = !frontmatter && /^---[ \t]*\n[\s\S]*?\n---[ \t]*(\n|$)/.test(markdown.trim());
       const text = insertSlide(
         readFileSync(ctx.entry, 'utf8'),
         deck.slides.map((s) => s.source),
         after,
-        `${head}\n${markdown.trim()}`,
+        own ? markdown.trim() : `${head}\n${markdown.trim()}`,
       );
       const check = await load(ctx, { [ctx.entry]: text });
       const expected = deck.slides.map(fingerprint);

@@ -113,6 +113,26 @@ describe('sourceOf and replaceSource', () => {
     const r = replaceSource(md, slides[2], '# Three, edited');
     expect(r.text).toContain('---\n\n# Three, edited');
   });
+  it('lets a slide without frontmatter gain one, and one with frontmatter lose it, still one slide each', async () => {
+    const gained = replaceSource(
+      md,
+      slides[2],
+      '---\nlayout: center\n---\n\n# Three, centred',
+    ).text;
+    const g = await parse(gained, '/x/slides.md');
+    expect(g.slides.length).toBe(3);
+    expect(g.slides[2].frontmatter).toEqual({ layout: 'center' });
+    const lost = replaceSource(md, slides[1], '# Two, plain').text;
+    const l = await parse(lost, '/x/slides.md');
+    expect(l.slides.length).toBe(3);
+    expect(l.slides[1].frontmatter).toEqual({});
+    expect(l.slides[1].content.trim()).toBe('# Two, plain');
+  });
+  it('keeps a blank line before the next slide', () => {
+    expect(replaceSource(md, slides[0], '---\ntitle: T\n---\n\n# One!').text).toContain(
+      '# One!\n\n---',
+    );
+  });
   it('can make a slide longer or shorter without touching the others', () => {
     const r = replaceSource(md, slides[0], '# One');
     expect(r.text.startsWith('# One\n')).toBe(true);
