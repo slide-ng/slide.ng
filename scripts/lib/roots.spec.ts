@@ -226,6 +226,16 @@ describe('mergeHeadmatter', () => {
     });
     expect(merged).toMatchObject({ fonts: { sans: 'PT Serif', mono: 'Fira Code' } });
   });
+  it('keeps the mode of a theme made for one mode', () => {
+    expect(
+      mergeHeadmatter([root({ colorSchema: 'light' })], { colorSchema: 'auto' }),
+    ).toMatchObject({
+      colorSchema: 'light',
+    });
+    expect(mergeHeadmatter([root({})], { colorSchema: 'dark' })).toMatchObject({
+      colorSchema: 'dark',
+    });
+  });
   it('merges defaults key by key', () => {
     const merged = mergeHeadmatter([root({ defaults: { layout: 'center', class: 'a' } })], {
       defaults: { class: 'b' },

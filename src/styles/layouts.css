@@ -130,7 +130,8 @@
   font-size: 0.75rem;
   font-family: var(--slidev-code-font-family);
 }
-.slidev-layout :not(pre) > code {
+/* (Not the code in a Twoslash popup, which is a code sample shown at the block's size and weight) */
+.slidev-layout :not(pre) > code:not(.twoslash-popup-code) {
   /* Slidev's values (client/styles/code.css) */
   font-size: 0.9em;
   font-weight: 300;

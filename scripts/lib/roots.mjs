@@ -214,5 +214,17 @@ export function mergeHeadmatter(roots, headmatter) {
     defaults = { ...defaults, ...(d && typeof d === 'object' ? d : {}) };
   }
   if (Object.keys(defaults).length) merged.defaults = defaults;
+  // A theme made for one mode (`colorSchema: light` or `dark` in its theme.json) has no colours for the other, so it keeps
+  // its mode, as in Slidev; a deck that asks for `auto` is told why its toggle is gone.
+  const fixed = roots
+    .map((r) => r.manifest.headmatter.colorSchema)
+    .findLast((c) => c === 'light' || c === 'dark');
+  if (fixed && merged.colorSchema !== fixed) {
+    if (headmatter.colorSchema !== undefined)
+      warnOnce(
+        `[slides] colorSchema: ${headmatter.colorSchema} is not used: the theme only has ${fixed} colours, so the deck stays ${fixed}`,
+      );
+    merged.colorSchema = fixed;
+  }
   return merged;
 }

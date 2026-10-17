@@ -63,7 +63,8 @@ export default { shortcuts: { 'my-muted': 'op60 text-sm' } };
 
 `theme.json` can set headmatter defaults under `"headmatter"`, such as `"colorSchema": "dark"` or the fonts
 (`{ "headmatter": { "colorSchema": "dark", "fonts": { "sans": "Titillium Web", "mono": "Fira Code" } } }`; the fonts are loaded from the
-provider and merged with the deck's own `fonts`). Keys outside `"name"`, `"headmatter"` and `"layouts"` are not read. Pictures go in `public/`.
+provider and merged with the deck's own `fonts`). A `colorSchema` of `light` or `dark` says the theme has colours for that mode only:
+decks that use it keep that mode. Leave it out when the theme styles both. Keys outside `"name"`, `"headmatter"` and `"layouts"` are not read. Pictures go in `public/`.
 
 Dark mode is the class `dark` on `<html>`: write `html.dark .my-quote { ... }` for the dark palette. The core styles dim the paragraph
 right after a heading (`h1 + p`, a subtitle); set its `opacity` in your CSS if your theme should not.

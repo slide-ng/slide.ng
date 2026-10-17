@@ -114,7 +114,8 @@ import { SHORTCUTS_SETUP } from 'slide-ng/lib/shortcuts';
 }
 ```
 
-- `headmatter`: defaults for the deck. The deck's own headmatter wins. `defaults:` (the frontmatter every slide starts from) and the objects `fonts`, `drawings`, `htmlAttrs`
+- `headmatter`: defaults for the deck. The deck's own headmatter wins, except `colorSchema`: a theme that sets `light` or `dark` has
+  colours for that mode only, so the deck keeps it (as in Slidev; the generator says so when the deck asks for another). `defaults:` (the frontmatter every slide starts from) and the objects `fonts`, `drawings`, `htmlAttrs`
   and `themeConfig` are merged key by key, as in Slidev.
 - `layouts.<name>`: `props` are the frontmatter keys that become inputs, `slots` are the names accepted after `::name::`,
   `classProp: true` sends the slide's `class` to the input `contentClass` instead of the tag.
