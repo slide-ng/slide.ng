@@ -506,6 +506,20 @@ try {
     followed,
     await viewer.locator('#hud').innerText(),
   );
+  // Without the password (the prompt is dismissed) the presenter page sends you to the slides, as in Slidev.
+  const outsider = await browser.newContext({ viewport: { width: 1000, height: 600 } });
+  const stranger = await outsider.newPage();
+  stranger.on('dialog', (d) => d.dismiss());
+  await stranger.goto(`${rbase}/presenter/1`);
+  await stranger
+    .waitForFunction(() => !location.pathname.startsWith('/presenter'), null, { timeout: 30000 })
+    .catch(() => {});
+  t.ok(
+    '--remote: without the password /presenter goes to the slides (no notes)',
+    !new URL(stranger.url()).pathname.startsWith('/presenter'),
+    stranger.url(),
+  );
+  await outsider.close();
   await a.close();
   await b.close();
   stop();
