@@ -52,6 +52,14 @@ export function keepSpaces(html) {
   return outsidePre(html, (part) => part.replace(/>([ \t]+)</g, '>&ngsp;<'));
 }
 
+// Browsers (and Vue) read the old entities without `;` (`Option&ltA>`, `&copy 2024`); Angular shows them as text. The common
+// ones get their `;`, unless the letters go on to a longer entity (`&ltimes;`).
+export function closeEntities(html) {
+  return outsidePre(html, (part) =>
+    part.replace(/&(lt|gt|amp|quot|copy|reg|nbsp)(?![a-zA-Z0-9]*;)/g, '&$1;'),
+  );
+}
+
 // Runs `fn` on the parts of `html` outside <pre> blocks. A <pre> may hold another (a Twoslash popup inside the code), so the
 // blocks are counted, not matched up to the first </pre>.
 function outsidePre(html, fn) {
@@ -157,18 +165,20 @@ export function slideSource(slide, no, deck = {}) {
   const base = deck.assetBase ?? '/'; // where the deck is served from in a build; `/public` files get it in front
   const aliases = (deck.slides ?? []).map((sl) => sl.frontmatter?.routeAlias).filter(Boolean);
   const html = safeLinks(
-    keepSpaces(
-      rebaseHtml(
-        localAssets(
-          slideLinks(layer('slide-bottom') + layout + layer('slide-top'), aliases),
-          {
-            file: slide.file ?? slide.source?.filepath,
-            root: deck.root,
-            publics: (deck.roots ?? []).map((r) => join(r.dir, 'public')),
-          },
-          (deck.localAssets ??= new Set()),
+    closeEntities(
+      keepSpaces(
+        rebaseHtml(
+          localAssets(
+            slideLinks(layer('slide-bottom') + layout + layer('slide-top'), aliases),
+            {
+              file: slide.file ?? slide.source?.filepath,
+              root: deck.root,
+              publics: (deck.roots ?? []).map((r) => join(r.dir, 'public')),
+            },
+            (deck.localAssets ??= new Set()),
+          ),
+          base,
         ),
-        base,
       ),
     ),
     no,

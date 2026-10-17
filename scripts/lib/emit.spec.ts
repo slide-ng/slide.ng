@@ -1,5 +1,6 @@
 import { LAYOUTS, layoutName } from './layouts.mjs';
 import {
+  closeEntities,
   keepSpaces,
   safeLinks,
   slideLinks,
@@ -328,6 +329,15 @@ describe('slideLinks', () => {
       '<slide-ng-link to="pricing">p</slide-ng-link>',
     );
     expect(slideLinks('<a href="/about">a</a>')).toBe('<a href="/about">a</a>');
+  });
+});
+
+describe('closeEntities', () => {
+  it('closes the old entities without ;, outside code', () => {
+    expect(closeEntities('<p>Option&ltA> &copy 2024 &lt; &ltimes;</p>')).toBe(
+      '<p>Option&lt;A> &copy; 2024 &lt; &ltimes;</p>',
+    );
+    expect(closeEntities('<pre>&amp</pre>')).toBe('<pre>&amp</pre>');
   });
 });
 
