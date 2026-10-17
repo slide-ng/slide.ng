@@ -72,6 +72,7 @@
     "@angular/compiler": "^22.2.0",
     "@angular/compiler-cli": "^22.2.0",
     "@angular/core": "^22.2.0",
+    "@angular/forms": "^22.2.3",
     "@angular/platform-browser": "^22.2.0",
     "@angular/router": "^22.2.0",
     "@cantoo/pdf-lib": "^2.11.1",
