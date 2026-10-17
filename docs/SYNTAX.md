@@ -601,7 +601,7 @@ The same controls as Slidev, in the same order: Invert, Brightness, Contrast, Sa
 <div slide-ng-drag="square">named: numbers in the frontmatter</div>
 <div slide-ng-drag>starts where it is and can be moved</div>
 <slide-ng-drag pos="100,200,300,_">height follows the content</slide-ng-drag>
-<slide-ng-drag-arrow pos="100,100,300,200" color="red" [width]="3" />
+<slide-ng-drag-arrow pos="100,100,200,100" color="red" [width]="3" /> <!-- from (100,100), 200 right and 100 down -->
 ```
 
 ```md

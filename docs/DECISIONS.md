@@ -454,3 +454,12 @@ Source: an independent review of the repository (nine findings). Each fix has a 
 3. **A slide's frontmatter with broken YAML stops the build** with the file, line and slide, like a broken headmatter; it used to lose keys silently.
 4. **`download: true` in the headmatter makes the PDF when it can**: without a working Chromium the build warns and the button stays disabled.
    `--download` keeps failing, because it asks for the PDF explicitly.
+5. **Build budgets are guards, not limits: 6 MB warning, 100 MB error for the first load; 64 kB / 1 MB for a component's styles.** Every
+   slide is in the first bundle and highlighted code compiles to a lot of markup, so a 70-slide workshop with a code block per slide is
+   over 3 MB and failed to build. A deck is opened once and kept; the warning still says when a deck is large.
+6. **`ngNonBindable` or `\{\{` for a literal `{{`.** Angular decodes `&#123;&#123;` back to `{{` and reads an interpolation, so the generator
+   writes the first brace of an escaped pair as `{{ '{' }}`.
+7. **Angular's common and forms directives are imported by the slides that use them**, as the pipes are; the rest of `@angular/common`
+   and `@angular/forms` stays out of the bundle.
+8. **`<slide-ng-drag-arrow pos>` is `x,y,width,height`, as Slidev's `v-drag-arrow`** (from (x, y) to (x + width, y + height), sizes may be
+   negative). It was `x1,y1,x2,y2`, which drew a ported Slidev arrow somewhere else.
