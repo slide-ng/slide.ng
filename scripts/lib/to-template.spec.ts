@@ -72,6 +72,12 @@ describe('toTemplate: code is literal', () => {
     expect(html).toContain('<code ngNonBindable>&#123;&#123; x &#125;&#125;</code>');
     expect(html).toContain('<code ngNonBindable>&#64;if</code>');
   });
+  it('reads \\| in inline code of a table cell as a pipe, and keeps it elsewhere', () => {
+    expect(toTemplate('| a | b |\n|---|---|\n| `x \\| y` | 1 |')).toContain(
+      '<code ngNonBindable>x | y</code>',
+    );
+    expect(toTemplate('Escape it as `a \\| b`.')).toContain('<code ngNonBindable>a \\| b</code>');
+  });
 });
 
 describe('toTemplate: highlighted code', () => {

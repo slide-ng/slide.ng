@@ -29,7 +29,11 @@ export function toTemplate(markdown, ctx = {}) {
   // 1. Code fences and inline code are plain text: set them aside first.
   let { markdown: md, fences } = extractFences(markdown, ctx);
   const inlines = [];
-  md = md.replace(/(`+)(.+?)\1/g, (_, __, code) => `NGCODE${inlines.push(code) - 1}X`);
+  // In a table row, `\|` is how a cell writes a pipe, also inside code (as in GitHub's tables).
+  md = md.replace(/(`+)(.+?)\1/g, (_, __, code, at, all) => {
+    const row = /^[ \t]*\|/.test(all.slice(all.lastIndexOf('\n', at) + 1));
+    return `NGCODE${inlines.push(row ? code.replace(/\\\|/g, '|') : code) - 1}X`;
+  });
 
   // Math is cut out too, so markdown does not read the `_` and `*` in formulas.
   const math = extractMath(md);
