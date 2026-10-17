@@ -1,7 +1,8 @@
 import { Component, computed, input } from '@angular/core';
+import { background } from 'slide-ng/layouts/background';
 
 // Replaces the built-in `cover` layout: a left-aligned title with a thin accent line under it.
-// `background` is still read from the frontmatter (theme.json does not change the inputs of a layout that is replaced).
+// `background` (a colour or an image) is read from the frontmatter like the built-in cover's.
 @Component({
   selector: 'minimal-cover',
   host: { class: 'slidev-layout minimal-cover', '[style]': 'style()' },
@@ -10,5 +11,5 @@ import { Component, computed, input } from '@angular/core';
 })
 export class MinimalCover {
   background = input('');
-  style = computed(() => (this.background() ? `background:${this.background()}` : ''));
+  style = computed(() => background(this.background(), true)); // a colour, or an image dimmed for the title
 }

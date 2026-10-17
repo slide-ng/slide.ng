@@ -171,3 +171,8 @@ html.dark {
   border-bottom: 1px dashed var(--bp-line-strong);
   padding-bottom: 0.2rem;
 }
+
+/* the closing slide in the theme's colours instead of black */
+.slidev-layout.end {
+  color: var(--bp-muted);
+}

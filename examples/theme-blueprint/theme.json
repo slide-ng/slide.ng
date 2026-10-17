@@ -3,6 +3,14 @@
   "headmatter": {
     "colorSchema": "dark",
     "transition": "fade",
-    "fonts": { "sans": "IBM Plex Sans", "mono": "IBM Plex Mono" }
+    "fonts": {
+      "sans": "IBM Plex Sans",
+      "mono": "IBM Plex Mono"
+    }
+  },
+  "layouts": {
+    "cover": {
+      "props": ["background", "sheet"]
+    }
   }
 }

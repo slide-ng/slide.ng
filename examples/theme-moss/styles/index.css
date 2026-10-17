@@ -106,3 +106,9 @@ html.dark {
   font-size: 0.85rem;
   color: var(--moss-muted);
 }
+
+/* the closing slide in the theme's colours instead of black */
+.slidev-layout.end {
+  background: var(--moss-bg);
+  color: var(--moss-muted);
+}

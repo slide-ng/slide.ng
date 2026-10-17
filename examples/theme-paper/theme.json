@@ -3,6 +3,18 @@
   "headmatter": {
     "colorSchema": "light",
     "transition": "fade",
-    "fonts": { "sans": "Source Sans 3", "serif": "Fraunces", "mono": "JetBrains Mono" }
+    "fonts": {
+      "sans": "Source Sans 3",
+      "serif": "Fraunces",
+      "mono": "JetBrains Mono"
+    }
+  },
+  "layouts": {
+    "cover": {
+      "props": ["background", "issue", "date"]
+    },
+    "section": {
+      "props": ["no"]
+    }
   }
 }

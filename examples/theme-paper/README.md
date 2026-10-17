@@ -8,3 +8,5 @@ An editorial theme: warm paper, ink-black serif headlines (Fraunces), Source San
 - `styles/index.css`: the palette, and restyled `fact` and `quote` layouts.
 
 Use it with `theme: ./path/to/theme-paper`. The fonts are loaded from Google Fonts (`fonts:` in `theme.json`); set `fonts: { provider: none }` to use local fonts only.
+
+The theme paints the slide background on `.slidev-layout`, and `layers/global-bottom` is drawn under the slide (as in Slidev), so put a footer in `layers/global-top` instead.

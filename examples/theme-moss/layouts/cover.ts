@@ -1,4 +1,5 @@
 import { Component, computed, input } from '@angular/core';
+import { background } from 'slide-ng/layouts/background';
 
 // Replaces `cover`: the title sits low on the left, over a soft forest-floor light.
 @Component({
@@ -8,5 +9,5 @@ import { Component, computed, input } from '@angular/core';
 })
 export class MossCover {
   background = input('');
-  style = computed(() => (this.background() ? `background:${this.background()}` : ''));
+  style = computed(() => background(this.background(), true)); // a colour, or an image dimmed for the title
 }

@@ -1,4 +1,5 @@
 import { Component, computed, input } from '@angular/core';
+import { background } from 'slide-ng/layouts/background';
 
 // Replaces `cover`: a title block with corner marks and a drawing-sheet label, like a plan's title box.
 @Component({
@@ -14,5 +15,5 @@ import { Component, computed, input } from '@angular/core';
 export class BlueprintCover {
   background = input('');
   sheet = input('SHEET 01');
-  style = computed(() => (this.background() ? `background:${this.background()}` : ''));
+  style = computed(() => background(this.background(), true)); // a colour, or an image dimmed for the title
 }

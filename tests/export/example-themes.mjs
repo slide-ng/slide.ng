@@ -31,7 +31,15 @@ const section = { paper: 'paper-section', moss: 'moss-section', blueprint: 'bp-s
 
 for (const [name, markup, background, dark] of themes) {
   const dir = join(scratch, name);
-  mkdirSync(dir, { recursive: true });
+  mkdirSync(join(dir, 'public'), { recursive: true });
+  // a 1x1 picture for the cover's background
+  writeFileSync(
+    join(dir, 'public', 'bg.png'),
+    Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+      'base64',
+    ),
+  );
   // provider none: no network in the test
   writeFileSync(
     join(dir, 'slides.md'),
@@ -40,6 +48,9 @@ title: ${name} deck
 theme: ${resolve(`examples/theme-${name}`)}
 fonts:
   provider: none
+background: /bg.png
+issue: Issue 7
+sheet: SHEET 42
 ---
 
 # The ${name} theme
@@ -48,6 +59,7 @@ A subtitle
 
 ---
 layout: section
+no: '02'
 ---
 
 # Part one
@@ -88,8 +100,18 @@ ${markup}
     `${name}: colorSchema from theme.json`,
     (await page.evaluate(() => document.documentElement.classList.contains('dark'))) === dark,
   );
+  const image = await page
+    .locator(cover[name])
+    .evaluate((e) => getComputedStyle(e).backgroundImage);
+  t.ok(`${name}: the cover shows a background picture`, image.includes('bg.png'), image);
+  const coverText = await page.locator(cover[name]).innerText();
+  if (name === 'paper')
+    t.ok('paper: issue reaches the masthead', coverText.toLowerCase().includes('issue 7'));
+  if (name === 'blueprint') t.ok('blueprint: the sheet label', coverText.includes('SHEET 42'));
   await open(2);
   t.ok(`${name}: the theme's section layout`, (await page.locator(section[name]).count()) === 1);
+  if (name === 'paper')
+    t.ok('paper: the chapter mark', (await page.locator('.paper-section-no').innerText()) === '02');
   await open(3);
   t.ok(`${name}: the theme's component`, (await page.locator(component[name]).count()) === 1);
   const bg = await page

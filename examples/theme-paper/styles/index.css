@@ -135,3 +135,9 @@ html.dark {
   text-transform: uppercase;
   color: var(--paper-accent);
 }
+
+/* the closing slide in the theme's colours instead of black */
+.slidev-layout.end {
+  background: var(--paper-bg);
+  color: var(--paper-ink);
+}
