@@ -5,6 +5,10 @@ presenter: false
 fonts:
   mono: Courier New
   provider: none
+themeConfig:
+  primary: '#c0392b'
+  label: Plum
+  sizes: [1, 2]
 ---
 
 # Math, code and text
@@ -46,3 +50,11 @@ const x = 1
 ```python {monaco-run}
 print(1 + 1)
 ```
+
+---
+
+# Theme config
+
+<p id="tc-text" class="text-primary">Coloured by themeConfig.primary</p>
+<p id="tc-label">{{ themeConfig['label'] }}</p>
+<p id="tc-sizes">{{ themeConfig['sizes'] }}</p>

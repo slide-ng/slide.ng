@@ -4,6 +4,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { fontsCss } from './fonts.mjs';
+import { themeConfigCss } from './theme-config.mjs';
 import { findLayerFiles, layersSource } from './layers.mjs';
 import { scanRoots } from './scan-roots.mjs';
 import { syncRoots } from './sync-roots.mjs';
@@ -77,7 +78,10 @@ function warnApply(roots) {
   }
 }
 
-/** `src/slides/generated/theme.css`: the deck's `fonts`, then the style sheets of the roots (`styles/index.css`), weakest first. */
+/**
+ * `src/slides/generated/theme.css`: the deck's `fonts`, then the style sheets of the roots (`styles/index.css`), weakest first, then
+ * the `themeConfig` variables (lib/theme-config.mjs).
+ */
 /** @param {{ id: string, dir: string }[]} roots @param {Record<string, any>} [headmatter] @param {string | null} [fontFaces] */
 export function themeCss(roots, headmatter = {}, fontFaces = null) {
   warnApply(roots);
@@ -85,7 +89,9 @@ export function themeCss(roots, headmatter = {}, fontFaces = null) {
     .filter((r) => existsSync(join(r.dir, 'styles', 'index.css')))
     .map((r) => `@import './roots/${r.id}/styles/index.css';`);
   // An @import must come before the rules, so the font @import is written first and the font rules after the roots' imports.
-  const lines = fontsCss(headmatter, fontFaces).split('\n').filter(Boolean);
+  const lines = (fontsCss(headmatter, fontFaces) + themeConfigCss(headmatter.themeConfig))
+    .split('\n')
+    .filter(Boolean);
   const text = [
     ...lines.filter((l) => l.startsWith('@import')),
     ...imports,
