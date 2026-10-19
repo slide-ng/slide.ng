@@ -17,9 +17,10 @@ const UNCALLED = new RegExp(
   `\\$(?:${SIGNALS.join('|')})\\b(?!\\s*\\()|\\$(?:slidev\\.)?nav\\.(?:${NAV_SIGNALS.join('|')})\\b(?!\\s*\\()`,
   'g',
 );
-// Where Angular reads expressions: interpolations, bindings and control flow.
+// Where Angular reads expressions: interpolations, bindings and control flow (the whole condition, up to the
+// block's `{`, so a call such as `$clicks()` inside it does not end the scan).
 const EXPRESSIONS =
-  /\{\{([\s\S]*?)\}\}|\s[[(*][\w.-]+[\])]?="([^"]*)"|@(?:if|else if|switch|case|for)\s*\(([^)]*)\)/g;
+  /\{\{([\s\S]*?)\}\}|\s[[(*][\w.-]+[\])]?="([^"]*)"|@(?:if|else if|switch|case|for)\s*\(([^{]*)\)\s*\{/g;
 
 /** The uncalled signals of the global context in `markup` (code samples already removed), each once. */
 export function uncalledGlobals(markup) {
