@@ -1,10 +1,11 @@
 // The MCP server on the dev server, at `/__mcp` (Slidev 52.17+), with the streamable HTTP transport of the SDK, stateless:
 // every request gets a fresh server. Same tools as `slide-ng mcp`, plus `get_info` and `goto_slide` (scripts/mcp/dev-tools.mjs).
-// It keeps the companion's rules: the Host and Origin checks, the password with --remote (the login cookie, or
-// `Authorization: Bearer <password>` for a program, limited like the login), edits inside the deck folder only.
+// It keeps the companion's rules: the Host and Origin checks, the password with --remote (as
+// `Authorization: Bearer <password>`, limited like the login; the login cookie is only sent to /__slide-ng),
+// edits inside the deck folder only.
 // `mcp: false` in the headmatter turns it off.
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import { check, clientAddress, hasAuthCookie, readBody, safeEqual } from './auth.mjs';
+import { check, clientAddress, readBody, safeEqual } from './auth.mjs';
 import { HttpError } from './http-error.mjs';
 import { MAX_FILE } from './monaco-write.mjs';
 import { createMcpServer } from '../mcp/index.mjs';
@@ -18,7 +19,7 @@ export const MCP_PATH = '/__mcp';
 export function mcpDenied(req, ctx) {
   const denied = check(req, ctx, { needToken: false, needLogin: false });
   if (denied) return denied;
-  if (!ctx.password || hasAuthCookie(req, ctx)) return null;
+  if (!ctx.password) return null;
   const client = clientAddress(req);
   if (ctx.loginGuard.wait(client) > 0)
     return { status: 429, error: 'too many wrong passwords, try again later' };
