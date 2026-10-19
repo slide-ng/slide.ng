@@ -6,6 +6,7 @@ export async function run({ t, open, press, hud, windowGroup }) {
   await viewer.waitForTimeout(400);
 
   const openMenu = async (page) => {
+    if (await page.locator('#sync-menu').count()) return; // already open: a click would close it
     await page.locator('nav').first().hover();
     await page.locator('#nav-sync').click();
     await page.waitForSelector('#sync-menu');
@@ -43,6 +44,7 @@ export async function run({ t, open, press, hud, windowGroup }) {
     .evaluateAll((l) => l.map((e) => (e.classList.contains('op30') ? 'off' : 'on')).join());
   t.ok('the button shows send off and receive on', arrows === 'off,on', arrows);
   await viewer.mouse.click(5, 5); // outside: closes the menu
+  await viewer.waitForTimeout(200);
   t.ok('a click outside closes the menu', (await viewer.locator('#sync-menu').count()) === 0);
   await press(presenter, 'ArrowRight', 500);
   t.ok(
