@@ -470,6 +470,53 @@ Carbon, Material Design Icons (`mdi`) and Phosphor (`ph`) are installed. To add 
 `npm i -D @iconify-json/<set>` (for example `@iconify-json/tabler`), then write `<tabler-bell />`. Nothing else is configured; only the icons you use end up in the CSS.
 Colour and size come from the text: `text-red-500`, `text-3xl`.
 
+### ng-icons
+
+[ng-icons](https://github.com/ng-icons/ng-icons) draws an icon as an inline SVG from an Angular component, so you can set its size, colour and stroke width.
+It needs no change to slide.ng: install it in the deck, give it the icons you want, and wrap its component once.
+
+```sh
+npm i @ng-icons/core @ng-icons/lucide
+```
+
+```ts
+// setup/main.ts: the icons the deck uses
+import { provideIcons } from '@ng-icons/core';
+import { lucideRocket, lucideHeart } from '@ng-icons/lucide';
+
+export default () => [provideIcons({ lucideRocket, lucideHeart })];
+```
+
+```ts
+// components/deck-icon.ts: slides find components in this folder
+import { Component, input } from '@angular/core';
+import { NgIcon } from '@ng-icons/core';
+
+@Component({
+  selector: 'deck-icon',
+  imports: [NgIcon],
+  template: `<ng-icon
+    [name]="name()"
+    [size]="size()"
+    [color]="color()"
+    [strokeWidth]="strokeWidth()"
+  />`,
+})
+export class DeckIcon {
+  name = input.required<string>();
+  size = input('1.5rem');
+  color = input('currentColor');
+  strokeWidth = input('2');
+}
+```
+
+```md
+<deck-icon name="lucideRocket" size="64" color="#e5541a" /> <deck-icon name="lucideHeart" strokeWidth="1" />
+```
+
+Why the wrapper: slides only find components that are written in `components/`, so re-exporting `NgIcon` from there is not enough. Every icon you write must be listed in `provideIcons`.
+Needs Angular 22 or later, which slide.ng already uses. The SVGs are part of the build, so offline and PDF export work.
+
 ## Angular in markdown
 
 Normal Angular template syntax works:

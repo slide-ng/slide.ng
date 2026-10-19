@@ -92,7 +92,8 @@ const title = (page, selector) => page.locator(selector).first().getAttribute('t
   await page.locator('#nav-info').click();
   t.ok(
     'info: the credit is translated around the bold name',
-    (await page.locator('#info-credit').innerText()).trim() === 'xx slide.ng xx-credit',
+    (await page.locator('#info-credit').innerText()).replace(/\s+/g, ' ').trim() ===
+      'xx slide.ng xx-credit',
     await page.locator('#info-credit').innerText(),
   );
   await page.close();
