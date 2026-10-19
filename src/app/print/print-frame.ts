@@ -28,10 +28,10 @@ import { SlideLayer } from '../lib/slide-layer';
     '[style.height.px]': 'height',
   },
   template: `
-    <app-slide-layer name="global-bottom" [no]="no()" />
+    <app-slide-layer name="global-bottom" [no]="no()" [at]="step()" />
     <ng-container #host />
     <app-drawing-preview [no]="no()" />
-    <app-slide-layer name="global-top" [no]="no()" />
+    <app-slide-layer name="global-top" [no]="no()" [at]="step()" />
     <app-deck-progress-bar [no]="no()" [at]="step()" />
   `,
 })

@@ -1,7 +1,7 @@
 import { Component, Injector, computed, inject, input } from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
 import { LAYERS } from '../../slides/generated/layers';
-import { SLIDE_NO } from './slide-context';
+import { LAYER_STEP, SLIDE_NO } from './slide-context';
 
 // Shows one of the deck's layer components (src/app/layers/*.ts): `global-top` and `global-bottom` once
 // over or under all slides, `slide-top` and `slide-bottom` inside every slide. The layer covers the slide
@@ -19,12 +19,20 @@ export class SlideLayer {
   /** The slide a global layer is drawn with (the presented one, or a printed page's), so `SLIDE_NO` and
    *  `<slide-ng-current-no />` work in a footer. A slide layer is inside its slide and already has it. */
   no = input<number>();
+  /** The click of that slide when it is not the live one (a print page, the next-step preview). */
+  at = input<{ current: number; total: number } | null>(null);
   protected component = computed(() => LAYERS[this.name()]);
   private parent = inject(Injector);
   protected injector = computed(() => {
     const no = this.no();
     return no == null
       ? this.parent
-      : Injector.create({ providers: [{ provide: SLIDE_NO, useValue: no }], parent: this.parent });
+      : Injector.create({
+          providers: [
+            { provide: SLIDE_NO, useValue: no },
+            { provide: LAYER_STEP, useValue: this.at },
+          ],
+          parent: this.parent,
+        });
   });
 }

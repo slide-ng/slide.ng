@@ -8,3 +8,9 @@ export const SLIDE_NO = new InjectionToken<number>('SLIDE_NO', { factory: () => 
 export const RENDER_CONTEXT = new InjectionToken<RenderContext>('RENDER_CONTEXT', {
   factory: () => 'slide',
 });
+
+// The click of the frame a global layer is drawn with (a print page, the next-step preview), for a
+// `<slide-ng-progress-bar>` in that layer. Not given on the live slide, where `Nav` has the click.
+export const LAYER_STEP = new InjectionToken<() => { current: number; total: number } | null>(
+  'LAYER_STEP',
+);

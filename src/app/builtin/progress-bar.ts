@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { ClicksContext } from '../lib/clicks';
 import { Nav } from '../lib/nav';
-import { SLIDE_NO } from '../lib/slide-context';
+import { LAYER_STEP, SLIDE_NO } from '../lib/slide-context';
 import { Timer } from '../presenter/timer';
 
 // <slide-ng-progress-bar />: a thin bar along the edge of the slide that shows how far through the deck we are,
@@ -89,6 +89,7 @@ export class SlideProgressBar {
 
   private slideNo = inject(SLIDE_NO);
   private slideClicks = inject(ClicksContext, { optional: true });
+  private layerStep = inject(LAYER_STEP, { optional: true });
   private nav = inject(Nav, { optional: true });
   private injector = inject(Injector);
   private total = this.nav?.total ?? 1;
@@ -99,6 +100,9 @@ export class SlideProgressBar {
     // Inside a slide (or a slide layer) the slide's own clicks; in a global layer those of the slide on screen.
     if (this.slideClicks)
       return { current: this.slideClicks.current(), total: this.slideClicks.total() };
+    // In a global layer of a print page or the next-step preview, the click of that frame.
+    const layer = this.layerStep?.();
+    if (layer && this.current() === this.slideNo) return layer;
     if (this.nav && this.nav.no() === this.current())
       return { current: this.nav.clicks(), total: this.nav.clicksTotal() };
     return { current: 0, total: 0 };
