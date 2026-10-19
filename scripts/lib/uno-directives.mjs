@@ -25,7 +25,7 @@ export async function unknownUtilities(css, uno) {
   const plain = css.replace(/\/\*[\s\S]*?\*\//g, ''); // a comment may mention @apply
   const names = [
     ...plain.matchAll(/(?:@apply\s|--(?:uno|at-apply|uno-apply)\s*:)\s*([^;}]+)/g),
-  ].flatMap((m) => m[1].replace(/['"]/g, '').trim().split(/\s+/));
+  ].flatMap((m) => expandVariantGroup(m[1].replace(/['"]/g, '')).trim().split(/\s+/)); // as the transformer reads it
   const unknown = [];
   for (const name of new Set(names)) if (!(await uno.parseToken(name))) unknown.push(name);
   return unknown;

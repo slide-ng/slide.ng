@@ -54,6 +54,10 @@ describe('unknownUtilities', () => {
     const css = '/* uses @apply; */ .a { @apply p-4 nope-xyz; } .b { --uno: "m-2 also-nope"; }';
     expect(await unknownUtilities(css, await uno())).toEqual(['nope-xyz', 'also-nope']);
   });
+  it('reads a variant group as its utilities, as the transformer does', async () => {
+    const css = '.a { @apply hover:(bg-red-500 text-white) p-2; }';
+    expect(await unknownUtilities(css, await uno())).toEqual([]);
+  });
 });
 
 describe('slideStyleDirectives', () => {
