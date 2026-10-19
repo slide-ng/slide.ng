@@ -1,4 +1,6 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
+import { UiTextKey } from '../i18n/en';
+import { UI_TEXT, UiTextParams, uiText } from '../i18n/ui-text';
 
 /** Which pieces of interface are open. Plain signals; the components read and flip them. */
 @Injectable()
@@ -17,6 +19,12 @@ export class Ui {
   /** Overview: the highlighted slide (1-based) and how many cards fit in a row (for up/down). */
   readonly overviewPage = signal(1);
   readonly overviewColumns = signal(1);
+  private dictionary = inject(UI_TEXT);
+
+  /** A text of the interface in the deck's language, for TypeScript (templates use the `t` pipe). */
+  text(key: UiTextKey, params?: UiTextParams): string {
+    return uiText(this.dictionary, key, params);
+  }
 
   toggleOverview() {
     this.overview.update((v) => !v);
