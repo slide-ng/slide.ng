@@ -12,7 +12,7 @@ command line as a package, themes and addons, an example theme, the MCP server a
 3. **Static build** `slide-ng build`: `--base`, `--out`, `--download`, `--without-notes`, `--theme`; `404.html`, `_redirects`, hash or history routing, `remoteAssets`, size budgets, docs/HOSTING.md.
 4. **Head and SEO**: `title`, `titleTemplate`, `info`, `author`, `keywords`, `favicon`, `lang`, `htmlAttrs`, `seoMeta`, Open Graph picture (`auto` makes a screenshot of slide 1).
 5. **Offline mode** (`pwa: true`): manifest, install icons (192, 512, maskable 512), service worker and an "Available offline" / "Offline" label, tested in Chromium with the server stopped.
-6. **Command line as a package**: `bin/slide-ng.mjs` with `dev` (default), `build`, `export`, `export-notes`, `format`, `theme eject`, `mcp`, `create`; flags `--port --open --remote --bind --log --force --base (build) --theme`;
+6. **Command line as a package**: `bin/slide-ng.mjs` with `dev` (default, with the terminal keys `r o e q c` and a QR code for `--remote`), `build`, `export`, `export-notes`, `format`, `theme eject`, `mcp`, `create`; flags `--port --open --remote --bind --log --force --base (build) --theme`;
    `npm start` runs the same code. Single package with a `template/` folder (DECISIONS.md 11). `create my-deck` was run, and the new deck was formatted and built (the repository stands in for `npm install slide-ng`, see below).
 7. **Themes and addons**: `theme:`, `addons:`, `--theme`, folders in the deck, layouts, components, layers, styles, public, UnoCSS settings, default headmatter, the `setup/` hooks (docs/SETUP.md), `theme eject`,
    `examples/theme-minimal` (docs/THEMES.md, docs/WRITING-A-THEME.md). The example theme changes the rendered output and its component is used from slides (browser test).
@@ -95,7 +95,7 @@ one can be written. The decisions are in DECISIONS.md ("Made while testing for 1
 ## NOT VERIFIED
 
 - **A real install from the registry**: `@slide-ng/core` 1.0.0 is on npm and a new deck asks for `^1.0.0`; the scaffold test still links this repository into the new deck's `node_modules`, so it checks this checkout, not the registry copy.
-- `dev --open` opening a real browser window: the flag is passed to `ng serve --open` and parsed in a unit test only.
+- `dev --open` opening a real browser window: the flag is passed to `ng serve --open` and parsed in a unit test only. The terminal keys are tested with a fake terminal; `o` and `e` were not seen opening a real browser or editor, `r` was not tried by hand, and the QR code was not scanned with a phone.
 - `CODE_RUNNERS` (a theme replacing how `{monaco-run}` runs code): written, documented, no test.
 - Addons end to end: resolution and merge order are unit-tested, but no deck was built with an addon.
 - `theme eject` of a package is tested with the fake `@slide-ng/theme-demo`, not with a package from a registry.

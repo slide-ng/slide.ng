@@ -30,6 +30,8 @@ description: The slide-ng command, its subcommands, flags and how to check that 
 | `create`         | `<folder>`, `--force`/`-f`                                                                                                                                                                                                                                                                                      |
 | `skills install` | `--dir <folder>` (default `.agents/skills`; the skill goes in `<dir>/slide-ng`), `--force`/`-f`                                                                                                                                                                                                                 |
 
+In a terminal, `dev` reads keys: `r` restart, `o` open the browser, `e` open the entry in `$EDITOR` (else `code`), `q` quit, `c` (with `--remote`) a QR code of the private address, password included.
+
 An unknown flag is an error. `--tunnel` and dev `--base` are refused with a message; `build --router-mode` does not exist (use `routerMode` in the headmatter).
 
 ## Rules for agents

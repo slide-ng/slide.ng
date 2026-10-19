@@ -1,4 +1,4 @@
-import { remoteLines } from './remote-info.mjs';
+import { remoteLines, remoteQrLines } from './remote-info.mjs';
 
 describe('remoteLines', () => {
   it('shows a private address with the password', () => {
@@ -37,6 +37,27 @@ describe('remoteLines', () => {
   it('says so when there is no network address', () => {
     expect(remoteLines({ port: 1, password: 'x', addresses: [] }).join('\n')).toContain(
       '<your address>',
+    );
+  });
+});
+
+describe('remoteQrLines', () => {
+  it('draws a QR code of the private address, password included, for each address', () => {
+    const lines = remoteQrLines({
+      port: 4230,
+      password: 'a b',
+      addresses: ['10.0.0.2', '10.0.0.3'],
+    });
+    const text = lines.join('\n');
+    expect(text).toContain('http://10.0.0.2:4230/?password=a%20b');
+    expect(text).toContain('http://10.0.0.3:4230/?password=a%20b');
+    const code = lines[2].split('\n');
+    expect(code.length).toBeGreaterThan(10);
+    expect(code.every((row) => /^[ ▀▄█]+$/.test(row))).toBe(true);
+  });
+  it('says so when there is no address', () => {
+    expect(remoteQrLines({ port: 1, password: 'x', addresses: [] })[0]).toContain(
+      'no network address',
     );
   });
 });

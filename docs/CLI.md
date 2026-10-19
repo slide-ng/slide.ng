@@ -20,6 +20,18 @@ Starts the dev server: the deck at `http://localhost:4230`, the presenter at `/p
 
 `--tunnel` and `--base` are refused with a message (`--base` is for `build`).
 
+On a terminal the dev server also reads keys, as Slidev's does, and prints a line that lists them:
+
+| key | what it does                                                                                         |
+| --- | ---------------------------------------------------------------------------------------------------- |
+| `r` | restart: stops the generator, the companion server and the Angular dev server, and starts them again |
+| `o` | open `http://localhost:<port>/` in the default browser                                               |
+| `e` | open the entry file in `$VISUAL`, `$EDITOR` (flags allowed, such as `code -w`) or else `code`        |
+| `q` | quit (Ctrl+C too)                                                                                    |
+| `c` | with `--remote`: print a QR code of the private slide show for each address, so a phone can open it  |
+
+The QR code holds the password, like the private address it encodes: do not show it to people who should not edit the deck.
+
 ## build
 
 Makes a static site in `dist/`. Hosting is described in [HOSTING.md](HOSTING.md), the offline folder in [OFFLINE.md](OFFLINE.md).

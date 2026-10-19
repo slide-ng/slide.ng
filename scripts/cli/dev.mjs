@@ -3,6 +3,7 @@
 //   2. the companion server (scripts/dev/server.mjs): writes slides.md and drawings, passes sync messages
 //   3. the Angular dev server, which sends `/__slide-ng/*` to the companion (proxy.conf.mjs)
 //   slide-ng [dev] [slides.md] [--port 4230] [--open] [--remote[=password]] [--bind 0.0.0.0] [--log info] [--force]
+// On a terminal it also reads keys: r restart, o open, e edit, q quit, c QR code (dev-keys.mjs).
 import { spawn, spawnSync } from 'node:child_process';
 import { createServer } from 'node:net';
 import { hostname, networkInterfaces } from 'node:os';
@@ -14,7 +15,8 @@ import { ngBinary, prepareApp } from './app-root.mjs';
 import { applyThemeFlag, parseFlags } from './flags.mjs';
 import { packageRoot } from './package-root.mjs';
 import { askPassword } from './prompt.mjs';
-import { remoteLines } from './remote-info.mjs';
+import { editorCommand, keyHint, listenForKeys, openCommand, startProgram } from './dev-keys.mjs';
+import { remoteLines, remoteQrLines } from './remote-info.mjs';
 import { withSlideSources } from './runtime.mjs';
 import { watchChildren } from './watch-children.mjs';
 
@@ -114,43 +116,52 @@ export async function devCommand(argv) {
 
   // With --log error or silent the children's normal output is dropped; their errors still show.
   const quiet = plan.log === 'error' || plan.log === 'silent';
-  const stdio = quiet ? ['ignore', 'ignore', 'inherit'] : 'inherit';
+  // No stdin for them: the terminal's keys are read here (dev-keys.mjs).
+  const stdio = quiet ? ['ignore', 'ignore', 'inherit'] : ['ignore', 'inherit', 'inherit'];
   const ngArgs = [ngBinary(), 'serve', '--port', String(plan.port)];
   if (plan.host) ngArgs.push('--host', plan.host);
   if (plan.open) ngArgs.push('--open');
-  const children = [
-    spawn(process.execPath, [generate, '--watch'], { cwd: appRoot, env, stdio }),
-    spawn(process.execPath, [join(packageRoot, 'scripts/dev/server.mjs')], {
-      cwd: appRoot,
-      env,
-      stdio,
-    }),
-    angularServer(ngArgs, { appRoot, env, quiet }),
-  ];
-  const stopAll = () => children.forEach((c) => c.kill());
-  watchChildren(
-    [
-      { name: 'the slide generator', child: children[0] },
-      { name: 'the companion server', child: children[1] },
-      { name: 'the Angular dev server', child: children[2] },
-    ],
-    (code) => process.exit(code),
-  );
+  // The three processes; `r` in the terminal stops them and starts them again (watchChildren is told first, so the
+  // stop does not end the command).
+  let running;
+  const startAll = () => {
+    const children = [
+      spawn(process.execPath, [generate, '--watch'], { cwd: appRoot, env, stdio }),
+      spawn(process.execPath, [join(packageRoot, 'scripts/dev/server.mjs')], {
+        cwd: appRoot,
+        env,
+        stdio,
+      }),
+      angularServer(ngArgs, { appRoot, env, quiet }),
+    ];
+    const watcher = watchChildren(
+      [
+        { name: 'the slide generator', child: children[0] },
+        { name: 'the companion server', child: children[1] },
+        { name: 'the Angular dev server', child: children[2] },
+      ],
+      (code) => process.exit(code),
+    );
+    running = { children, watcher };
+  };
+  const stopAll = () => running.children.forEach((c) => c.kill());
+  startAll();
   for (const sig of ['SIGINT', 'SIGTERM'])
     process.on(sig, () => {
       stopAll();
       process.exit(0);
     });
 
-  if (plan.remote) {
-    // With --bind to one address, that is the only one that answers; list the others only for 0.0.0.0.
-    const addresses =
-      plan.host && plan.host !== '0.0.0.0'
-        ? [plan.host]
-        : Object.values(networkInterfaces())
-            .flat()
-            .filter((i) => i && i.family === 'IPv4' && !i.internal)
-            .map((i) => i.address);
+  // With --bind to one address, that is the only one that answers; list the others only for 0.0.0.0.
+  const addresses = !plan.remote
+    ? []
+    : plan.host && plan.host !== '0.0.0.0'
+      ? [plan.host]
+      : Object.values(networkInterfaces())
+          .flat()
+          .filter((i) => i && i.family === 'IPv4' && !i.internal)
+          .map((i) => i.address);
+  if (plan.remote)
     console.log(
       remoteLines({
         port: plan.port,
@@ -160,8 +171,62 @@ export async function devCommand(argv) {
         addresses,
       }).join('\n'),
     );
+
+  if (process.stdin.isTTY) {
+    const quit = () => {
+      stopAll();
+      process.exit(0);
+    };
+    const keys = listenForKeys(
+      process.stdin,
+      {
+        interrupt: quit,
+        quit,
+        restart: async () => {
+          console.log('[slide.ng] restarting...');
+          running.watcher.stop();
+          await Promise.all(running.children.map(stopChild));
+          startAll();
+        },
+        open: () =>
+          startProgram(openCommand(`http://localhost:${plan.port}/`), {
+            done: (error) =>
+              error && console.error(`[slide.ng] could not open a browser: ${error.message}`),
+          }),
+        edit: () => {
+          // The editor may be one that runs in this terminal (vim, nano): it gets the keys until it ends.
+          keys.pause();
+          startProgram(editorCommand(plan.entry), {
+            inherit: true,
+            done: (error) => {
+              keys.resume();
+              if (error)
+                console.error(
+                  `[slide.ng] could not start the editor (${error.message}); set EDITOR, or install the code command`,
+                );
+            },
+          });
+        },
+        qrcode: () =>
+          console.log(
+            plan.remote
+              ? remoteQrLines({ port: plan.port, password: plan.password, addresses }).join('\n')
+              : '[slide.ng] the QR code is for --remote (start with slide-ng --remote)',
+          ),
+      },
+      (error) => console.error(`[slide.ng] ${error instanceof Error ? error.message : error}`),
+    );
+    if (plan.log !== 'silent') console.log(keyHint(plan.remote));
   }
 }
+
+// Kills a child process and resolves once it has ended.
+const stopChild = (child) =>
+  new Promise((done) => {
+    if (child.exitCode !== null || child.signalCode !== null) return done();
+    child.once('exit', () => done());
+    child.kill();
+  });
 
 // The Angular dev server, with its errors pointing at the deck's files (slides.md line, the author's own components/ file)
 // instead of the generated copies, as the build does (runtime.mjs). Its colours stay when the terminal has them.

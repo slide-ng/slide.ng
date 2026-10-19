@@ -2,6 +2,7 @@
 /**
  * @param {{ name: string, child: import('node:events').EventEmitter & { kill(): void } }[]} parts
  * @param {(code: number) => void} finish called once, with the exit code for the command
+ * @returns {{ stop(): void }} `stop` lets the processes end without ending the command (a restart)
  */
 export function watchChildren(parts, finish, log = console.error) {
   let done = false;
@@ -23,4 +24,9 @@ export function watchChildren(parts, finish, log = console.error) {
       );
     });
   }
+  return {
+    stop() {
+      done = true;
+    },
+  };
 }
