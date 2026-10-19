@@ -359,6 +359,67 @@ try {
       (await page.locator('.stage').evaluate((e) => getComputedStyle(e).right)) === '0px',
   );
 
+  // ---- presenter: edit the notes in place, and the side editor in the notes pane
+  await page.goto(`${base}/presenter/1`);
+  await page.waitForFunction(
+    () => /clicks \d+\/\d+/.test(document.querySelector('#hud')?.innerText ?? ''),
+    null,
+    { timeout: 60000 },
+  );
+  await page.waitForSelector('#notes-edit', { timeout: 15000 });
+  await page.locator('#notes-edit').click();
+  await page.waitForFunction(() => !document.querySelector('#note-editor')?.disabled, null, {
+    timeout: 15000,
+  });
+  t.ok(
+    'Edit Notes turns the notes into an empty text box for a slide without notes',
+    (await page.locator('#note-editor').inputValue()) === '',
+  );
+  await page.locator('#note-editor').click();
+  await page.keyboard.type('Edited in the presenter.\n[click] After the click.');
+  t.ok(
+    'typing a note saves it as the slide note in the markdown file',
+    await waitForFile((s) =>
+      s.includes('First slide.\n\n<!--\nEdited in the presenter.\n[click] After the click.\n-->'),
+    ),
+  );
+  t.ok(
+    'only the note is written: the slide and the other slides are untouched',
+    read().includes('# One\n\nFirst slide.') &&
+      read().includes('# Two') &&
+      read().includes('# Three'),
+  );
+  // The note is part of the generated deck: wait for the rebuild, then leave editing.
+  await page.waitForFunction(
+    () => document.querySelector('#note-editor')?.value.includes('After the click.'),
+    null,
+    { timeout: 30000 },
+  );
+  await sleep(2500);
+  await page.waitForSelector('#note-editor', { timeout: 30000 });
+  await page.locator('#note-editor').press('Escape');
+  await page.waitForSelector('.slidev-note-click-mark', { timeout: 30000 });
+  t.ok(
+    'after editing the notes show the new text with a working click marker',
+    (await page.locator('.grid-section.note .slidev-note').innerText()).includes(
+      'Edited in the presenter.',
+    ) && (await page.locator('.slidev-note-click-mark').count()) === 1,
+  );
+  await page.locator('#nav-editor').click();
+  await page.waitForFunction(
+    () => document.querySelector('.grid-section.note #editor-text')?.value.includes('# One'),
+    null,
+    { timeout: 15000 },
+  );
+  t.ok('the presenter bar opens the side editor in the notes pane', true);
+  await page.locator('#editor-close').click();
+  await page.waitForTimeout(300);
+  t.ok(
+    'closing it brings the notes back',
+    (await page.locator('#side-editor').count()) === 0 &&
+      (await page.locator('.grid-section.note .slidev-note').count()) === 1,
+  );
+
   // ---- {monaco-write}
   await page.locator('#nav-drawing').click({ force: true }); // toolbar off, so the drawing layer lets clicks through
   await page.goto(`${base}/3`);

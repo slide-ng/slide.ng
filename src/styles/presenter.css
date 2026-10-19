@@ -66,6 +66,46 @@ html.dark .slidev-presenter .grid-section {
   grid-template-areas: 'note next' 'main next' 'bottom bottom';
 }
 
+/* The drag handles on the notes pane's borders (presenter/pane-resizers.ts, Slidev's notes resizers): 12 px wide, a thin line. */
+.pane-resizer {
+  position: absolute;
+  z-index: 10;
+  touch-action: none;
+}
+.pane-resizer::before {
+  content: '';
+  position: absolute;
+  background-color: currentColor;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.pane-resizer:hover::before,
+.pane-resizer:active::before {
+  opacity: 0.3;
+}
+.pane-resizer-col {
+  width: 12px;
+  transform: translateX(-50%);
+  cursor: col-resize;
+}
+.pane-resizer-col::before {
+  left: 50%;
+  top: 0;
+  width: 1px;
+  height: 100%;
+}
+.pane-resizer-row {
+  height: 12px;
+  transform: translateY(-50%);
+  cursor: row-resize;
+}
+.pane-resizer-row::before {
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+}
+
 /* Speaker notes: click markers and the dimming of the parts that are not current. */
 .slidev-note :first-child {
   margin-top: 0;

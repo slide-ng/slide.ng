@@ -628,6 +628,8 @@ can show another column count on a phone, in the presenter preview or in the PDF
 Open `/presenter` (or press the presenter button) for the presenter page: current slide, next step, notes with click markers, a clicks slider and the timer.
 The audience page (`/3`) in another window or on another device follows it; `/notes` shows only the notes and follows too.
 In notes, `[click]` marks where the next click starts and `[click:3]` moves three clicks on (counted from the marker before it, as in Slidev); double click a marker to jump there. The layout button cycles three arrangements.
+Drag the borders of the notes pane to change its width and height; each layout keeps its own sizes in the browser (240 to 720 px wide, at most 70% of the page; at least 160 px high, at most 75%). Layout 1 on a tall, narrow screen has no handles.
+In dev, **Edit Notes** (the pencil next to the font size buttons) turns the notes into a text box: what you type is saved as the slide's note in the markdown (only the note, half a second after you stop; Ctrl/Cmd+S at once). Escape, a click outside or the pencil ends editing, and the click markers work again. The bar's editor button shows the side editor in the notes pane. Neither is in a build.
 Windows of one browser follow each other with no server; other devices need the dev server (see Remote below).
 
 ```md
@@ -703,7 +705,7 @@ Layers: add any of `layers/global-top.ts`, `global-bottom.ts`, `slide-top.ts`, `
 
 ## Dev-only extras and remote use
 
-While the dev server runs (`slide-ng dev`, or `npm start` in this repository): the **edit** button in the bar opens a side editor with the current slide's markdown (saved as you type), slide-ng-drag and drawings are written to files, and `{monaco-write}` saves.
+While the dev server runs (`slide-ng dev`, or `npm start` in this repository): the **edit** button in the bar opens a side editor with the current slide's markdown (saved as you type; on the presenter page it takes the notes pane), the presenter's notes can be edited in place, slide-ng-drag and drawings are written to files, and `{monaco-write}` saves.
 A static build has none of this and makes no requests.
 
 ```sh

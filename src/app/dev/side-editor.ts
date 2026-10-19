@@ -4,9 +4,11 @@ import {
   ElementRef,
   Injector,
   afterNextRender,
+  booleanAttribute,
   computed,
   effect,
   inject,
+  input,
   signal,
   untracked,
   viewChild,
@@ -32,8 +34,11 @@ const WATCH_EVERY = 2000;
     @if (state.open() && state.available()) {
       <aside
         id="side-editor"
-        class="fixed right-0 top-0 bottom-0 z-nav flex flex-col bg-main text-main border-l border-main"
-        [style.width.px]="state.width"
+        class="flex flex-col bg-main text-main"
+        [class]="
+          docked() ? 'h-full w-full' : 'fixed right-0 top-0 bottom-0 z-nav border-l border-main'
+        "
+        [style.width.px]="docked() ? null : state.width"
       >
         <div class="flex items-center gap-2 px-3 py-1 border-b border-main text-sm">
           <span class="font-bold">Slide {{ nav.no() }}</span>
@@ -92,6 +97,8 @@ const WATCH_EVERY = 2000;
   `,
 })
 export class SideEditor {
+  /** In a pane of the presenter page instead of fixed on the right of the deck page. */
+  docked = input(false, { transform: booleanAttribute });
   protected nav = inject(Nav);
   protected state = inject(SideEditorState);
   private api = inject(DevApi);

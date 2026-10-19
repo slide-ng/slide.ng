@@ -8,15 +8,20 @@ import { DevApi } from './dev-api';
 export class SideEditorState {
   /** Remembered in the browser, because a rebuild after an edit can reload the page. */
   readonly open = storedSignal('slide-ng-editor-open', false);
-  /** True once the companion server accepted us. A static build never gets there. */
+  /** True once the companion server accepted us and the deck allows the editor. A static build never gets there. */
   readonly available = signal(false);
+  /** The companion server accepted us, so slides can be written (the presenter's notes editor), whatever `editor` says. */
+  readonly canWrite = signal(false);
   /** The page keeps this much room free on the right while the editor is open. */
   readonly width = 420;
 
   constructor() {
     const api = inject(DevApi);
-    if (api.enabled && editorEnabled())
-      void api.token().then((token) => this.available.set(!!token));
+    if (api.enabled)
+      void api.token().then((token) => {
+        this.canWrite.set(!!token);
+        this.available.set(!!token && editorEnabled());
+      });
   }
 
   toggle() {
@@ -30,6 +35,8 @@ const CARET = 'slide-ng-editor-caret';
 const FRESH_MS = 15_000;
 export interface EditorCaret {
   no: number;
+  /** The whole slide (side editor) or only its note (presenter's notes editor). */
+  field?: 'source' | 'note';
   start: number;
   end: number;
   scroll: number;
@@ -42,10 +49,11 @@ export function saveCaret(caret: Omit<EditorCaret, 'at'>) {
     // no storage: the caret is simply not restored
   }
 }
-export function takeCaret(no: number): EditorCaret | null {
+export function takeCaret(no: number, field: 'source' | 'note' = 'source'): EditorCaret | null {
   try {
     const c = JSON.parse(sessionStorage.getItem(CARET) ?? 'null') as EditorCaret | null;
-    if (!c || c.no !== no || Date.now() - c.at > FRESH_MS) return null;
+    if (!c || c.no !== no || (c.field ?? 'source') !== field || Date.now() - c.at > FRESH_MS)
+      return null;
     return c;
   } catch {
     return null;

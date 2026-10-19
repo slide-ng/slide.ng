@@ -37,6 +37,7 @@ const only = process.argv[2];
 for (const topic of [
   'sync',
   'presenter',
+  'panes',
   'laser',
   'drawing',
   'camera',

@@ -134,17 +134,18 @@ import { Settings } from './settings';
           <button icon-btn id="nav-presenter" title="Presenter Mode" (click)="nav.enterPresenter()">
             <div class="i-carbon:user-speaker"></div>
           </button>
-          @if (editor.available()) {
-            <button
-              icon-btn
-              id="nav-editor"
-              [title]="editor.open() ? 'Hide editor' : 'Show editor'"
-              [active]="editor.open()"
-              (click)="editor.toggle()"
-            >
-              <div class="i-carbon:text-annotation-toggle"></div>
-            </button>
-          }
+        }
+        <!-- On the presenter page the editor takes the place of the notes (as in Slidev) -->
+        @if (editor.available()) {
+          <button
+            icon-btn
+            id="nav-editor"
+            [title]="editor.open() ? 'Hide editor' : 'Show editor'"
+            [active]="editor.open()"
+            (click)="editor.toggle()"
+          >
+            <div class="i-carbon:text-annotation-toggle"></div>
+          </button>
         }
 
         @if (download.wanted) {
