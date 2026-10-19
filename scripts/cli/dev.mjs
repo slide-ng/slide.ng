@@ -173,6 +173,7 @@ export async function devCommand(argv) {
     );
 
   if (process.stdin.isTTY) {
+    let restarting = false;
     const quit = () => {
       stopAll();
       process.exit(0);
@@ -183,10 +184,13 @@ export async function devCommand(argv) {
         interrupt: quit,
         quit,
         restart: async () => {
+          if (restarting) return; // a second r while the processes stop
+          restarting = true;
           console.log('[slide.ng] restarting...');
           running.watcher.stop();
           await Promise.all(running.children.map(stopChild));
           startAll();
+          restarting = false;
         },
         open: () =>
           startProgram(openCommand(`http://localhost:${plan.port}/`), {
