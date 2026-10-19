@@ -12,6 +12,8 @@ import {
 } from './shared-state';
 import { SYNC_TRANSPORTS } from './transport';
 
+const DIRECTIONS_KEY = 'slidev-sync-directions';
+
 export interface SyncDirections {
   viewerSend: boolean;
   viewerReceive: boolean;
@@ -28,7 +30,7 @@ export class SyncState {
   readonly shared = signal<SharedState>(initialShared());
   readonly drawings = signal<DrawingsState>({});
   /** Slidev's "sync mode" menu: which way navigation may travel for viewers and presenters. */
-  readonly directions = storedSignal<SyncDirections>('slidev-sync-directions', {
+  readonly directions = storedSignal<SyncDirections>(DIRECTIONS_KEY, {
     viewerSend: true,
     viewerReceive: true,
     presenterSend: true,
@@ -40,6 +42,16 @@ export class SyncState {
 
   constructor() {
     for (const t of this.transports) t.listen((channel, data) => this.receive(channel, data));
+    // The sync mode chosen in another window of this browser (the presenter's or a viewer's menu) applies here too,
+    // and this window must not write its old copy back over it (Slidev's useLocalStorage listens the same way).
+    window.addEventListener('storage', (e) => {
+      if (e.key !== DIRECTIONS_KEY || !e.newValue) return;
+      try {
+        this.directions.update((d) => ({ ...d, ...JSON.parse(e.newValue!) }));
+      } catch {
+        // not JSON: keep ours
+      }
+    });
   }
 
   /** Change the shared state here and tell the others. */

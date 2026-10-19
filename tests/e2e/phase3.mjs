@@ -36,6 +36,7 @@ const layoutCtx = makeContext(`http://localhost:${layoutServer.port}`, browser, 
 const only = process.argv[2];
 for (const topic of [
   'sync',
+  'sync-mode',
   'presenter',
   'laser',
   'drawing',

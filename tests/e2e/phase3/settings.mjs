@@ -65,11 +65,12 @@ export async function run({ t, open }) {
     'nav-drawing',
     'nav-play',
     'nav-layout',
+    'nav-sync',
     'nav-settings',
     'nav-counter',
   ];
   t.ok(
-    'dock order: schema, recording, cursor, drawing, mode, layout, settings, counter',
+    'dock order: schema, recording, cursor, drawing, mode, layout, sync, settings, counter',
     order.every((id, i) => dock.indexOf(id) > (i ? dock.indexOf(order[i - 1]) : -1)),
     dock.join(),
   );
