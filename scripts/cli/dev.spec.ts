@@ -15,6 +15,10 @@ describe('devPlan', () => {
     expect(plan.entry.endsWith('slides.md')).toBe(true);
     expect(plan.host).toBeUndefined();
   });
+  it('reads --lang', () => {
+    expect(devPlan(['--lang', 'tr']).lang).toBe('tr');
+    expect(devPlan([]).lang).toBeUndefined();
+  });
   it('reads --theme and its alias', () => {
     expect(devPlan(['--theme', './t']).theme).toBe('./t');
     expect(devPlan(['-t', 'x']).theme).toBe('x');

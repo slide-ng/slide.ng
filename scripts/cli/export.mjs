@@ -5,13 +5,14 @@ import { outputBase } from '../export/filename.mjs';
 import { EXPORT_FLAGS, resolveExportOptions } from '../export/options.mjs';
 import { serveDirectory } from '../export/static-server.mjs';
 import { parseDeck } from '../lib/parse-deck.mjs';
-import { applyThemeFlag, parseFlags } from './flags.mjs';
+import { applyLangFlag, applyThemeFlag, parseFlags } from './flags.mjs';
 import { checkToolDir, removeInside } from '../lib/tool-dir.mjs';
 import { buildDeck } from './runtime.mjs';
 
 export async function exportCommand(argv, { notes = false } = {}) {
   const { flags, positionals } = parseFlags(argv, EXPORT_FLAGS);
   applyThemeFlag(flags);
+  applyLangFlag(flags);
   const entry = resolve(positionals[0] ?? 'slides.md');
   checkToolDir(dirname(entry)); // before anything is written or removed under .slide-ng
   const deck = await parseDeck(entry);

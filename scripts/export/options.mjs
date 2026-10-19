@@ -20,6 +20,7 @@ export const EXPORT_FLAGS = {
   url: { type: 'string' }, // export a running server (the dev server) instead
   base: { type: 'string' },
   theme: { type: 'string', alias: 't' },
+  lang: { type: 'string' },
 };
 
 export const FORMATS = ['pdf', 'png', 'pptx', 'md'];

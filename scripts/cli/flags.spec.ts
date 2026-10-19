@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseFlags } from './flags.mjs';
+import { applyLangFlag, parseFlags } from './flags.mjs';
 
 const spec = {
   port: { type: 'number', alias: 'p' },
@@ -41,5 +41,19 @@ describe('parseFlags', () => {
     expect(() => parseFlags(['-z'], spec)).toThrow('Unknown flag -z');
     expect(() => parseFlags(['--format'], spec)).toThrow('needs a value');
     expect(() => parseFlags(['--port', 'abc'], spec)).toThrow('must be a number');
+  });
+});
+
+describe('applyLangFlag', () => {
+  it('sets the language for the generator, spelled the usual way, and refuses what is not a tag', () => {
+    const before = process.env['SLIDE_NG_LANG'];
+    try {
+      applyLangFlag({ lang: 'pt_br' });
+      expect(process.env['SLIDE_NG_LANG']).toBe('pt-BR');
+      expect(() => applyLangFlag({ lang: '../tr' })).toThrow(/--lang must be a language tag/);
+    } finally {
+      if (before === undefined) delete process.env['SLIDE_NG_LANG'];
+      else process.env['SLIDE_NG_LANG'] = before;
+    }
   });
 });

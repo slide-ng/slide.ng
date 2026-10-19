@@ -13,7 +13,7 @@ import { downloadTarget } from '../export/filename.mjs';
 import { resolveExportOptions } from '../export/options.mjs';
 import { serveDirectory } from '../export/static-server.mjs';
 import { parseDeck } from '../lib/parse-deck.mjs';
-import { applyThemeFlag, parseFlags } from './flags.mjs';
+import { applyLangFlag, applyThemeFlag, parseFlags } from './flags.mjs';
 import { checkClaimable, publishDirectory } from './safe-dir.mjs';
 import { checkToolDir, removeInside } from '../lib/tool-dir.mjs';
 import { buildDeck } from './runtime.mjs';
@@ -29,6 +29,7 @@ export const BUILD_FLAGS = {
   'allow-local': { type: 'boolean' },
   timeout: { type: 'number' },
   theme: { type: 'string', alias: 't' },
+  lang: { type: 'string' },
 };
 
 /** `/talk`, `talk/` and `/talk/` all become `/talk/`. Only plain path pieces are allowed (it goes into the page). */
@@ -43,6 +44,7 @@ export function normalizeBase(base = '/') {
 export async function buildCommand(argv) {
   const { flags, positionals } = parseFlags(argv, BUILD_FLAGS);
   applyThemeFlag(flags);
+  applyLangFlag(flags);
   const entry = resolve(positionals[0] ?? 'slides.md');
   const root = dirname(entry);
   checkToolDir(root); // before anything is written or removed under .slide-ng
