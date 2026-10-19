@@ -263,3 +263,16 @@ A claim[^1] and another[^second].
 [^second]: The second one, with `{{ x }}` in it.
 
 <carbon-apps id="i1" /> <mdi-account-circle id="i2" class="text-red-500" /> <ph-star-fill id="i3" />
+
+---
+
+# More built-in props
+
+<slide-ng-switch id="sw-unmount" unmount transition="fade">
+<div at="1" id="swu1">unmount one</div>
+<div at="2" id="swu2">unmount two</div>
+</slide-ng-switch>
+
+<div id="rw-spacer" style="height: 2000px"></div>
+
+<slide-ng-render-when id="rw-visible" context="visible"><p id="rw-shown">seen</p><p fallback id="rw-fallback">not seen yet</p></slide-ng-render-when>

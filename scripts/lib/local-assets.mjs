@@ -14,7 +14,8 @@ import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 
 export const LOCAL_FOLDER = '_local';
 
-const RELATIVE = /(\s(?:src|poster|href|data)=)(["'])(\.{1,2}\/[^"'#?]+)([#?][^"']*)?\2/g;
+const RELATIVE =
+  /(\s(?:src|poster|printPoster|href|data)=)(["'])(\.{1,2}\/[^"'#?]+)([#?][^"']*)?\2/g;
 
 /**
  * Rewrites the relative addresses of `html` that name a file of the deck's folder. `ctx.file` is the markdown file of the slide,

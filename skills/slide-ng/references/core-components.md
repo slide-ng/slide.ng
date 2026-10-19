@@ -27,6 +27,10 @@ Use them as lower-case tags. Nothing to import.
 | `slide-ng-mark`, `slide-ng-motion`                                                                                                                                                     | see `animation-marks.md`, `animation-motion.md`                                                                                                                                      |
 | `<slide-ng-code-group>`, `<slide-ng-mermaid>`, `<slide-ng-plant-uml>`, `<slide-ng-monaco>`, `<slide-ng-magic-move>`, `<slide-ng-katex-block-wrapper>`, `<slide-ng-code-block-wrapper>` | written by the generator from fences and math; use the markdown forms                                                                                                                |
 
+- `<slide-ng-switch unmount transition="fade">`: `unmount` takes hidden children out of the page, `transition` animates (slide transition names; bare is a fade). `tag` and `childTag` are not used.
+- `<slide-ng-video printPoster="/still.png" printTimestamp="last">`: in print, export and the overview, the poster or the frame at that second (`last`: the end).
+- `<slide-ng-render-when context="visible">`: only while the element is on screen (in a list too, as in Slidev).
+
 Not there: `PoweredBySlidev`. `Youtube` is partial.
 
 Table of contents levels: a slide whose level is higher than the one before becomes its child (`# A`, `## A.1`, `## A.2`, `# B`). A slide without a title, or with `hideInToc`, is left out.
@@ -65,6 +69,10 @@ Title of slide 1: <slide-ng-title-renderer no="1" />. This slide: <slide-ng-titl
 <div light>Light mode text</div>
 </slide-ng-light-or-dark>
 
+<slide-ng-render-when context="visible">
+<p>On screen.</p>
+</slide-ng-render-when>
+
 <slide-ng-render-when context="print">
 <p>Only on paper.</p>
 <div fallback>Not on paper.</div>
@@ -76,7 +84,7 @@ Title of slide 1: <slide-ng-title-renderer no="1" />. This slide: <slide-ng-titl
 
 <slide-ng-youtube id="luoMHjh-XcQ" width="560" height="315" />
 
-<slide-ng-video controls>
+<slide-ng-video controls printTimestamp="last">
   <source src="/video.mp4" type="video/mp4">
 </slide-ng-video>
 ```

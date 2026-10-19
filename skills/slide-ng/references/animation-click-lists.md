@@ -28,7 +28,7 @@ description: slide-ng-clicks, slide-ng-switch and slide-ng-click-gap
 <slide-ng-click-gap size="2" />
 ```
 
-- `<slide-ng-switch>`: one child per click. A number lasts until the next child starts; `3-5` is explicit.
+- `<slide-ng-switch>`: one child per click. A number lasts until the next child starts; `3-5` is explicit. `unmount` takes hidden children out of the page; `transition="fade"` (or a slide transition name) animates the change.
 - `<slide-ng-click-gap size="2" />` leaves two clicks empty.
 
 <!-- verify -->
@@ -48,7 +48,7 @@ title: Click lists
 
 </slide-ng-clicks>
 
-<slide-ng-switch>
+<slide-ng-switch unmount transition="fade">
   <div at="1">one</div>
   <div at="2">two</div>
   <div at="3-5">three to five</div>

@@ -20,6 +20,8 @@ First slide
 <slide-ng-render-when context="print"><p id="only-print">printing</p></slide-ng-render-when>
 <slide-ng-render-when context="slide"><p id="only-slide">on screen</p></slide-ng-render-when>
 
+<slide-ng-video id="pv" poster="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACwAAAAAAQABAAACAkQBADs=" printPoster="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="></slide-ng-video>
+
 <!-- note two [click] with a click -->
 
 ---

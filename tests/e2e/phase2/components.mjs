@@ -134,4 +134,47 @@ export async function run({ t, open, press, hud }) {
     await calls(),
   );
   await page.close();
+
+  // slide-ng-switch unmount and transition, slide-ng-render-when visible
+  page = await open('/17');
+  const inPage = (id) => page.evaluate((i) => !!document.getElementById(i), id);
+  t.ok(
+    'slide-ng-switch unmount: children that are not shown are out of the page',
+    !(await inPage('swu1')) && !(await inPage('swu2')),
+  );
+  await press(page, 'ArrowRight', 50);
+  const fading = await page.evaluate(() =>
+    document
+      .getElementById('swu1')
+      ?.getAnimations()
+      .some((a) => a.playState === 'running'),
+  );
+  t.ok('slide-ng-switch transition: the shown child fades in', fading === true, String(fading));
+  await page.waitForTimeout(800);
+  await press(page, 'ArrowRight', 800);
+  t.ok(
+    'slide-ng-switch unmount swaps children on the next click',
+    !(await inPage('swu1')) && (await inPage('swu2')),
+  );
+  await press(page, 'ArrowLeft', 800);
+  t.ok(
+    'slide-ng-switch unmount: going back puts the first child back in place',
+    (await inPage('swu1')) &&
+      !(await inPage('swu2')) &&
+      (await page.evaluate(() => document.getElementById('swu1').parentElement.id)) ===
+        'sw-unmount',
+  );
+  t.ok(
+    'slide-ng-render-when visible shows the fallback while the element is off screen',
+    (await page.locator('#rw-fallback').count()) === 1 &&
+      (await page.locator('#rw-shown').count()) === 0,
+  );
+  await page.evaluate(() => (document.getElementById('rw-spacer').style.height = '0'));
+  await page.waitForSelector('#rw-shown', { timeout: 3000 }).catch(() => undefined);
+  t.ok(
+    'slide-ng-render-when visible on screen shows its content',
+    (await page.locator('#rw-shown').count()) === 1 &&
+      (await page.locator('#rw-fallback').count()) === 0,
+  );
+  await page.close();
 }
