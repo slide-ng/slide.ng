@@ -70,12 +70,18 @@ describe('rewriteDirectives: click animation presets', () => {
     const tag = '<div\n  slide-ng-click="2"   class="a">';
     expect(rewriteDirectives(tag)).toBe(tag);
   });
-  it('warns about .hide and keeps the other presets', () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    expect(rewriteDirectives('<div slide-ng-click.hide.fade>')).toBe(
-      '<div click-anim="fade" slide-ng-click>',
+  it('turns .hide into the slide-ng-click-hide flag and keeps the other presets', () => {
+    expect(rewriteDirectives('<div slide-ng-click.hide="2">')).toBe(
+      '<div slide-ng-click="2" slide-ng-click-hide>',
     );
-    expect(warn.mock.calls[0][0]).toContain('slide-ng-click-hide');
-    warn.mockRestore();
+    expect(rewriteDirectives('<div slide-ng-click.hide.fade>')).toBe(
+      '<div click-anim="fade" slide-ng-click slide-ng-click-hide>',
+    );
+    expect(rewriteDirectives('<li slide-ng-after.hide>')).toBe(
+      '<li slide-ng-after slide-ng-click-hide>',
+    );
+    expect(rewriteDirectives('<li slide-ng-click-hide.hide="3">')).toBe(
+      '<li slide-ng-click-hide="3">',
+    );
   });
 });

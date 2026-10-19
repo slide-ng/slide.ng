@@ -31,7 +31,7 @@ Two forms because of how Angular reads attributes:
 - `slide-ng-click="3"` and `slide-ng-click="+2"` are plain text that slide.ng turns into a number or a relative step.
 - `[slide-ng-click]="[2, 4]"` is an Angular binding: use it for ranges and for any computed value.
 
-Do not write the Vue forms (`v-click`, `<v-click>`): the old names stop the build with a `renamed to slide-ng-click` message, `<slide-ng-click>` as a tag is a build error, and `slide-ng-click.hide` only prints a warning. Use `slide-ng-click-hide`.
+Do not write the Vue forms (`v-click`, `<v-click>`): the old names stop the build with a `renamed to slide-ng-click` message, and `<slide-ng-click>` as a tag is a build error. `slide-ng-click.hide` is the same as `slide-ng-click slide-ng-click-hide`: shown first, hidden at its click.
 
 Click animation presets (how a hidden element looks): `clickAnimation: up` in the headmatter or a slide's frontmatter (the slide wins), or modifiers that win over both: `slide-ng-click.fade.right="2"`, `slide-ng-after.scale`, `slide-ng-click.none`, `<slide-ng-clicks animation="fade up">`. Presets: `fade` (0.5 opacity while hidden), `fade-in`, `up`, `down`, `left`, `right` (20px), `scale` (0.9), `none` (no transition). A custom preset is CSS on `.slidev-vclick-anim-<name>.slidev-vclick-hidden`.
 

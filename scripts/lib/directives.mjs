@@ -40,15 +40,14 @@ export function rewriteDirectives(html) {
   });
 }
 
-// `slide-ng-click.fade.right="2"` -> the directive and its click animation presets. `.hide` is not a preset (Slidev's
-// `v-click.hide`); here that is `slide-ng-click-hide`.
+// `slide-ng-click.fade.right="2"` -> the directive and its click animation presets. `.hide` is not a preset: like
+// Slidev's `v-click.hide` it shows the element first and hides it at its click, which is the `slide-ng-click-hide` flag.
 function clickAttrs(directive, modifiers, a) {
   const mods = modifiers.split('.').filter(Boolean);
-  if (mods.includes('hide'))
-    console.warn(`[slide.ng] ${directive}.hide is not supported, use slide-ng-click-hide`);
   const presets = mods.filter((m) => m !== 'hide');
   const out = presets.length ? [`click-anim="${presets.join('.')}"`] : [];
   out.push(a.value == null ? directive : `${directive}=${a.quote}${a.value}${a.quote}`);
+  if (mods.includes('hide') && directive !== 'slide-ng-click-hide') out.push('slide-ng-click-hide');
   return out;
 }
 

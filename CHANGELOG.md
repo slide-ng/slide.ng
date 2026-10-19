@@ -12,7 +12,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ### Changed
 
-- `slide-ng-click.hide` prints a warning (use `slide-ng-click-hide`); it was dropped without a word.
+- `slide-ng-click.hide` and `slide-ng-after.hide` show the element first and hide it at its click, as `v-click.hide` does in Slidev (the `slide-ng-click-hide` flag); before, `.hide` was dropped without a word.
 
 ## [1.0.0] - 2026-10-18
 
