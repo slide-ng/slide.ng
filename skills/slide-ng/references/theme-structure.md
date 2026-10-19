@@ -22,9 +22,11 @@ The deck's folder is only searched for the folders below, never copied whole.
 | `styles/index.css`  | CSS after the app's styles                                                  |
 | `public/`           | files served from the site root; merged, later root wins on a name          |
 | `setup/*.ts`        | setup hooks, see `setup-overview.md`                                        |
+| `index.html`        | its `<head>` part goes into the page head, its `<body>` part after the app  |
 | `uno.config.mjs`    | UnoCSS settings, merged                                                     |
 | `theme.json`        | name, default headmatter, layout inputs                                     |
 
 - Theme code is copied into the app before compiling, hence the `slide-ng/` alias.
+- `index.html` is for tags the headmatter has no key for (analytics, a `<meta>`, a font link). Parts of every root are joined in root order and copied as they are; its scripts run in dev, builds, offline folders and exports. No `<script type="module" src>` in an offline folder.
 - Symbolic links are never copied. In dev the folders of themes and addons are watched.
 - Missing: a `snippets/` convention (write the real snippet path), `setup/routes.ts`, all Vue and Vite files.

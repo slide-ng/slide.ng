@@ -88,6 +88,11 @@ pwa: true
 <!-- a note that must be gone from the build -->
 `,
 );
+// The deck's own index.html: its head and body are merged into the page (like Slidev).
+writeFileSync(
+  join(deckDir, 'index.html'),
+  `<head>\n  <meta name="deck-index" content="from the deck">\n</head>\n<body>\n  <script>window.__deckIndex = 'ran';</script>\n</body>\n`,
+);
 const site = join(scratch, 'site-a');
 await cli(
   [
@@ -135,6 +140,11 @@ has(
 has('<meta name="twitter:card" content="summary_large_image">', 'twitter:card');
 has('<link rel="icon" href="favicon.ico" type="image/x-icon">', 'favicon');
 has('<link rel="manifest" href="manifest.webmanifest">', 'manifest link');
+t.ok(
+  "index.html: the deck's index.html head goes into the head, its body after the app",
+  /<meta name="deck-index" content="from the deck">[\s\S]*<\/head>/.test(html) &&
+    /<\/app-root>\s*<script>window.__deckIndex = 'ran';<\/script>/.test(html),
+);
 const ogSize = readFileSync(join(site, 'og-image.png'));
 t.ok(
   'og-image.png is a screenshot of slide 1 (1470x828)',
@@ -247,6 +257,10 @@ t.ok(
   'a /public picture written as /favicon.ico gets the base in front (/talk/favicon.ico) and loads',
   pub.src === '/talk/favicon.ico' && pub.ok,
   JSON.stringify(pub),
+);
+t.ok(
+  "the script of the deck's index.html body ran",
+  (await page.evaluate(() => window.__deckIndex)) === 'ran',
 );
 t.ok(
   'the lang and attributes are on <html>',

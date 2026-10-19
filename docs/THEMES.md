@@ -76,6 +76,7 @@ folders listed below; the rest of it (your markdown, `node_modules`, ...) is nev
 | `public/`            | Files served from the site root (`/logo.png`). Merged; the later root wins on the same name.                                                                                       |
 | `setup/*.ts`         | Setup hooks: `shiki`, `katex`, `transformers`, `preparser`, `mermaid`, `monaco`, `code-runners`, `shortcuts`, `context-menu`, `main`, `root`. Written out in [SETUP.md](SETUP.md). |
 | `setup/providers.ts` | Angular providers (default export: an array; `setup/main.ts` is the newer way). See "Setup hooks".                                                                                 |
+| `index.html`         | Merged into the page, as in Slidev: the inside of its `<head>` goes into the page's head, the inside of its `<body>` after the app. In root order. See below.                      |
 | `uno.config.mjs`     | UnoCSS settings (default export). Merged into the app's: `presets`, `rules`, `safelist`, `variants` are added; `shortcuts` and `theme` are merged key by key.                      |
 | `theme.json`         | Name, default headmatter and layout inputs. See below.                                                                                                                             |
 
@@ -92,6 +93,26 @@ use `theme.json`. Text, numbers and booleans arrive as text, as for any HTML att
 
 Every exported component with a selector in `components/` is available. A component is imported into a slide only when the slide's
 markup contains `<selector`. Giving a component the same class name as a built-in one replaces it.
+
+### `index.html`
+
+An `index.html` next to `slides.md` (or at the top of a theme or addon) is how a deck adds tags that the headmatter has no key for:
+analytics, an extra font, a `<meta>`. Only what is inside its `<head>` and `<body>` is used, so it does not need to be a whole page:
+
+```html
+<head>
+  <meta name="robots" content="noindex" />
+  <script defer data-domain="talk.example" src="https://plausible.io/js/script.js"></script>
+</head>
+<body>
+  <noscript>This deck needs JavaScript.</noscript>
+</body>
+```
+
+The parts of every root are added in root order (theme, addons, deck), after the tags made from the headmatter. The file is the
+deck's own code, like `components/`: it is copied as it is, not escaped, and its scripts run in `dev`, in a build, in an offline folder
+and in an export. In dev a change to the file regenerates the page. In an offline folder (`build --offline`) a
+`<script type="module" src>` is not supported (the folder runs classic scripts only); use a plain `<script>`.
 
 ### Importing from the app
 

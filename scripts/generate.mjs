@@ -32,6 +32,7 @@ import { applyRoots } from './lib/theme-files.mjs';
 import { monacoWriteTargets, resetMonacoWriteTargets } from './lib/code/monaco.mjs';
 import { applyOffline, buildOptions, wantsRemoteAssets } from './lib/build-options.mjs';
 import { headParts, renderIndexHtml } from './lib/head.mjs';
+import { injectIndexHtml, rootIndexHtml } from './lib/index-html.mjs';
 import { bundleRemoteAssets, emptyFolder } from './lib/remote-assets.mjs';
 import { bundleFonts, wantsFontFiles } from './lib/font-bundle.mjs';
 import { ogImageAddress, ogImagePlan } from './build/og-image.mjs';
@@ -77,14 +78,16 @@ function writeMonacoTargets(root) {
   write(file, JSON.stringify(targets, null, 2) + '\n');
 }
 
-// The page itself (src/index.html is the template): title, description, social tags, favicon, manifest link.
+// The page itself (src/index.html is the template): title, description, social tags, favicon, manifest link, then the
+// `index.html` of each root (lib/index-html.mjs).
 function writeIndexHtml(deck, base) {
   const warn = (m) => console.warn(`[slides] ${m}`);
   const plan = ogImagePlan(deck.headmatter, deck.root);
   const ogImage =
     plan.kind === 'file' || plan.kind === 'auto' ? ogImageAddress(deck.headmatter, base) : null;
   const parts = headParts(deck.headmatter, { ogImage, pwa: pwaEnabled(deck.headmatter), warn });
-  write(`${OUT}index.html`, renderIndexHtml(readFileSync('src/index.html', 'utf8'), parts, warn));
+  const page = renderIndexHtml(readFileSync('src/index.html', 'utf8'), parts, warn);
+  write(`${OUT}index.html`, injectIndexHtml(page, rootIndexHtml(deck.roots)));
 }
 
 // A missing theme or addon: in a terminal the first run offers to install it (like Slidev); otherwise the error stops the run.
@@ -190,7 +193,9 @@ async function generate() {
   // take the focus from the editor while the speaker types.
   const written = new Set(Object.values(monacoWriteTargets()).map((p) => resolve(deck.root, p)));
   const snippets = [...snippetFiles].filter((f) => !written.has(f));
-  return { files: [...deck.files, ...snippets], folders: rootFolders(deck.roots) };
+  // The deck's index.html is watched even before it exists, so that adding one shows up (themes are watched whole).
+  const indexFile = join(deck.root, 'index.html');
+  return { files: [...deck.files, ...snippets, indexFile], folders: rootFolders(deck.roots) };
 }
 
 // What to watch for the roots: a theme or addon folder as a whole, and only the known folders of the deck's own folder

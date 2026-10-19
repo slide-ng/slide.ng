@@ -2,7 +2,14 @@ import { writeTargetProblem } from './monaco-targets.mjs';
 
 describe('writeTargetProblem', () => {
   it('allows plain snippet files inside the deck', () => {
-    for (const p of ['demo.ts', 'snippets/a.py', 'code/x.json', 'notes.md', 'a/b/c.css'])
+    for (const p of [
+      'demo.ts',
+      'snippets/index.html',
+      'snippets/a.py',
+      'code/x.json',
+      'notes.md',
+      'a/b/c.css',
+    ])
       expect(writeTargetProblem(p)).toBeNull();
   });
   it('denies code the tools load or run', () => {
@@ -12,6 +19,8 @@ describe('writeTargetProblem', () => {
       'layouts/mine.ts',
       'components/c.ts',
       'theme/index.css',
+      'index.html',
+      'INDEX.HTML',
       'uno.config.ts',
       'vite.config.js',
     ])
