@@ -116,17 +116,17 @@ Angular control flow works.
 
 ## Layouts
 
-| Feature          | Description                              | Reference                                                  |
-| ---------------- | ---------------------------------------- | ---------------------------------------------------------- |
-| Built-in layouts | 21 layouts and props                     | [layout-builtin](references/layout-builtin.md)             |
-| Slots            | `::right::`                              | [layout-slots](references/layout-slots.md)                 |
-| Custom layouts   | `layouts/*.ts`                           | [layout-custom](references/layout-custom.md)               |
-| Canvas size      | `canvasWidth`, `aspectRatio`             | [layout-canvas-size](references/layout-canvas-size.md)     |
-| Zoom             | `zoom`                                   | [layout-zoom](references/layout-zoom.md)                   |
-| Transform        | `<slide-ng-transform>`                   | [layout-transform](references/layout-transform.md)         |
-| Draggable        | `slide-ng-drag`                          | [layout-draggable](references/layout-draggable.md)         |
-| Layers           | `global-top`, `slide-bottom`, ...        | [layout-global-layers](references/layout-global-layers.md) |
-| Progress bar     | `progressBar`, `<slide-ng-progress-bar>` | [layout-progress-bar](references/layout-progress-bar.md)   |
+| Feature          | Description                       | Reference                                                  |
+| ---------------- | --------------------------------- | ---------------------------------------------------------- |
+| Built-in layouts | 21 layouts and props              | [layout-builtin](references/layout-builtin.md)             |
+| Slots            | `::right::`                       | [layout-slots](references/layout-slots.md)                 |
+| Custom layouts   | `layouts/*.ts`                    | [layout-custom](references/layout-custom.md)               |
+| Canvas size      | `canvasWidth`, `aspectRatio`      | [layout-canvas-size](references/layout-canvas-size.md)     |
+| Zoom             | `zoom`                            | [layout-zoom](references/layout-zoom.md)                   |
+| Transform        | `<slide-ng-transform>`            | [layout-transform](references/layout-transform.md)         |
+| Draggable        | `slide-ng-drag`                   | [layout-draggable](references/layout-draggable.md)         |
+| Layers           | `global-top`, `slide-bottom`, ... | [layout-global-layers](references/layout-global-layers.md) |
+| Progress bar     | `progressBar`                     | [layout-progress-bar](references/layout-progress-bar.md)   |
 
 ## Animation
 
