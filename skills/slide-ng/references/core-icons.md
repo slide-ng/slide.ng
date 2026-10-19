@@ -17,6 +17,7 @@ Any icon of an installed [Iconify](https://iconify.design) set is a tag `<set-na
 - Colour and size come from the text classes: `text-red-500`, `text-3xl`.
 - Write the dash form `<carbon-apps />`. The colon form `<carbon:apps />` is not a tag here; the colon belongs to the class form `i-carbon:apps`.
 - An icon name of a set that is not installed draws nothing.
+- ng-icons (inline SVG with size, colour and stroke width): `npm i @ng-icons/core @ng-icons/lucide`, list the icons in `setup/main.ts` with `provideIcons({ lucideRocket })`, wrap `NgIcon` once in `components/deck-icon.ts` (re-exporting `NgIcon` from `components/` is not enough), then write `<deck-icon name="lucideRocket" size="64" />`. Every icon that is used must be listed in `provideIcons`.
 
 <!-- verify -->
 
