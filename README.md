@@ -41,6 +41,7 @@ To work on slide.ng itself, clone this repository and run `npm install` and `npm
 - Code with Shiki, Magic Move, Twoslash and Monaco, plus KaTeX and Mermaid.
 - Export to PDF, PNG, PPTX and Markdown; static and offline builds.
 - Themes and addons, an MCP server and an agent skill.
+- The interface in the deck's language: English by default, Turkish built in, one JSON file for any other.
 
 Status and gaps: [docs/STATUS.md](docs/STATUS.md).
 

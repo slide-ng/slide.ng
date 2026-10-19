@@ -484,3 +484,25 @@ Source: an independent review of the repository (nine findings). Each fix has a 
 16. **A relative picture next to `slides.md` is copied into the build** (`/_local/...`) when `public/` does not have it. Slidev decks
     write `./images/x.png` because Vite bundles it; failing silently with a 404 made those decks look broken. Files outside the deck's
     folder are never copied.
+
+## The interface in other languages (issue #1)
+
+1. **A pipe, an injection token and `LOCALE_ID`, no library.** English lives in `src/app/i18n/en.ts` as a typed object, so a mistyped key
+   does not compile. The generator writes the translations of the deck's language into `generated/ui-text.ts` as plain data and the app
+   puts them over English (`UI_TEXT`); templates use the pure `t` pipe. Plain data works offline and in an export, and needs no request
+   when the page opens. Angular's own i18n (`i18n` attributes, `$localize`, one build per locale) is not used: it would change how every
+   slide is compiled, and slides are not the app's text.
+2. **`lang` decides the interface language too, and `uiLang` overrides it.** Most decks are in one language; a separate key would make
+   them write it twice. Unknown languages and missing keys fall back to English; only an explicit `uiLang` with no file warns.
+3. **Translations are a root folder, `locales/<lang>.json`, merged key by key** like the other root folders (built-in, theme, addons, deck).
+   Flat keys with `{name}` placeholders, so a translator needs no code. The generator checks each file against `en.ts`; a bad key stays
+   English instead of stopping the build, a file that is not JSON stops it like a broken `theme.json`.
+4. **Turkish ships with 1.x** (`src/app/i18n/locales/tr.json`), complete, to prove the mechanism on a real language. A built-in
+   translation must have every key; a deck's or a theme's may have only some.
+5. **`lang` is also `LOCALE_ID`**, and only that locale's data is imported (`registerLocaleData` in the generated file), so a German deck
+   does not carry the data of every language. Angular has no data for a tag such as `xx`: the pipes stay English and the generator says so.
+6. **`ar`, `he`, `fa` and `ur` set `dir="rtl"`** unless `htmlAttrs.dir` is given. The bar, menus and presenter use logical CSS (`start`,
+   `end`, `ms-*`) so they mirror, and the previous and next arrows are flipped. The keys stay as they are (right is next).
+7. **One deck in several languages is one entry file per language** sharing slides with `src:`, plus `--lang` to set `lang` for a run.
+   Switching the language while presenting was not built: it needs both languages in every slide, and short decks can use `@if` on their own.
+8. **The date on the notes PDF follows `LOCALE_ID`** instead of the browser's language, so a Turkish deck prints a Turkish date everywhere.

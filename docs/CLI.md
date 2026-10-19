@@ -17,6 +17,7 @@ Starts the dev server: the deck at `http://localhost:4230`, the presenter at `/p
 | `--log`               | `error`, `warn`, `info` (default) or `silent`                                                                                                           |
 | `--force`, `-f`       | clear the Angular build cache first                                                                                                                     |
 | `--theme`, `-t`       | use this theme (a name or a folder) instead of the headmatter's                                                                                         |
+| `--lang`              | use this language (`tr`, `pt-BR`) instead of the headmatter's `lang`: the interface, the locale of dates and numbers, `<html lang>`                     |
 
 `--tunnel` and `--base` are refused with a message (`--base` is for `build`).
 
@@ -32,6 +33,7 @@ Makes a static site in `dist/`. Hosting is described in [HOSTING.md](HOSTING.md)
 | `--download`        | also export a PDF and offer it in the bar (like headmatter `download: true`)                |
 | `--without-notes`   | leave the speaker notes out of the site                                                     |
 | `--theme`, `-t`     | use this theme instead of the headmatter's                                                  |
+| `--lang`            | use this language instead of the headmatter's `lang` (one deck in several languages)        |
 | `--executable-path` | the Chromium to use for the PDF and the Open Graph picture (or `CHROME_PATH`)               |
 | `--no-sandbox`      | run that Chromium without its sandbox (root or containers, trusted decks only)              |
 | `--allow-local`     | let that page reach loopback and private addresses                                          |
@@ -57,6 +59,7 @@ Makes a PDF (default), PNG files, a PPTX or a Markdown file. It builds the deck 
 | `--url`                                              | export a running server (such as the dev server)                                           |
 | `--base`                                             | the base the build at `--dist` was made with                                               |
 | `--theme`, `-t`                                      | use this theme instead of the headmatter's                                                 |
+| `--lang`                                             | use this language instead of the headmatter's `lang`                                       |
 | `--executable-path`, `--no-sandbox`, `--allow-local` | as for `build`                                                                             |
 
 The headmatter's `export:` block sets the same options (`withClicks`, `perSlide`, ...); the command line wins. `output`,
@@ -99,3 +102,4 @@ See [AGENT-SKILL.md](AGENT-SKILL.md).
 | `SLIDE_NG_NO_SANDBOX` | `1` is the same as `--no-sandbox`                              |
 | `SLIDE_NG_PASSWORD`   | the password for `dev --remote`                                |
 | `SLIDE_NG_THEME`      | the same as `--theme`                                          |
+| `SLIDE_NG_LANG`       | the same as `--lang`                                           |

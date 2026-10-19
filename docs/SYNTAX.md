@@ -53,6 +53,7 @@ In the headmatter (the frontmatter of the first slide) you can also set:
 | `defaults`                                                                       | frontmatter that every slide starts from, e.g. `defaults: { layout: center }`; a slide's own keys win |
 | `theme`, `addons`                                                                | the look of the deck: a folder, a package name, or `default`; see "Themes and addons" below           |
 | `titleTemplate`, `author`, `keywords`, `favicon`, `lang`, `htmlAttrs`, `seoMeta` | the page's `<head>`, see "The page, export and build" below                                           |
+| `lang`, `uiLang`                                                                 | the language of the slides and of the interface, see "Translating the interface" below                |
 | `download`, `exportFilename`, `export`, `remoteAssets`, `pwa`                    | export and build settings, see below                                                                  |
 | `codeCopy`, `magicMoveCopy`                                                      | `false` hides the copy button on every code block, or only on Magic Move blocks                       |
 | `contextMenu`, `presenter`                                                       | `true` (default), `false`, `dev` or `build`: the right-click menu, and the presenter page and button  |
@@ -680,7 +681,7 @@ info:
   ## About this talk
 author: Ada
 keywords: [angular, slides] # a list or a comma separated text
-lang: en # <html lang>
+lang: en # <html lang>, the interface language and the locale of dates and numbers (see Translating the interface)
 favicon: /favicon.ico # a file of public/, or a web address
 htmlAttrs: { data-theme: x } # more attributes on <html>
 seoMeta: # Open Graph and Twitter tags (ogTitle, ogDescription, ogImage, ogUrl, twitterCard, ...)
@@ -761,3 +762,43 @@ export default (actions: ShortcutActions, list: Shortcut[]): Shortcut[] => [
 Dark mode follows the system until the user presses `d` or the sun/moon button; the choice is kept in the browser
 (`localStorage`, key `slidev-color-schema`). `colorSchema: light` or `dark` in the headmatter fixes it and hides the button.
 Dark styles for your own markup: UnoCSS `dark:` classes work (`dark:text-white`).
+
+## Translating the interface
+
+The interface (the bar and its tooltips, the settings menu, the overview, the goto box, the presenter, the info dialog, the menus) is in
+English. The headmatter's `lang` picks its language too, and slide.ng comes with Turkish:
+
+```md
+---
+lang: tr # <html lang="tr">, the interface in Turkish, dates and numbers written the Turkish way
+uiLang: en # optional: the interface in another language than the slides
+---
+```
+
+For another language, put `locales/<lang>.json` next to `slides.md` (or in a theme or addon) with the keys you translate. The keys and
+their English text are listed in [UI-STRINGS.md](UI-STRINGS.md); keep the `{name}` placeholders.
+
+```json
+{ "nav.next": "Nächste Folie", "presenter.noNotes": "Keine Notizen für Folie {no}." }
+```
+
+A key that no file translates stays English, and so does a language without a file. The files of the built-in translations, the theme,
+the addons and the deck are put over each other key by key, the deck last; `de.json` is read before `de-AT.json`. The generator warns about
+a key that does not exist and about a lost placeholder.
+
+`lang` also sets Angular's `LOCALE_ID`, so `{{ price | currency: 'EUR' }}`, `{{ day | date }}` and `{{ n | number }}` in slides are
+written for that language (only that locale's data goes into the build). A right-to-left language (`ar`, `he`, `fa`, `ur`) sets `dir="rtl"`
+on the page, unless `htmlAttrs.dir` says otherwise, and the bar, the menus and the presenter are mirrored.
+
+### One deck in several languages
+
+Write one entry file per language, and import the slides that are the same in every language with `src:`:
+
+```text
+slides.md        lang: en
+slides.tr.md     lang: tr; its own translated slides, and `src: ./pages/demo.md` for a shared one
+pages/demo.md
+```
+
+Build each into its own folder: `slide-ng build slides.md --out dist/en` and `slide-ng build slides.tr.md --out dist/tr`. `--lang tr`
+(for `dev`, `build` and `export`) sets `lang` for one run without changing the file.

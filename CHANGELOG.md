@@ -4,6 +4,17 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+### Added
+
+- The interface can be translated: `lang` (or `uiLang`) picks the language, and `locales/<lang>.json` in the deck, a theme or an addon translates it key by key (docs/UI-STRINGS.md). Turkish is built in (`lang: tr`).
+- `lang` sets Angular's `LOCALE_ID`, so the `date`, `number` and `currency` pipes in slides format for the deck's language.
+- `ar`, `he`, `fa` and `ur` set `dir="rtl"` (unless `htmlAttrs.dir` is given); the bar, menus and presenter mirror.
+- `--lang` for `dev`, `build` and `export`, and a recipe for one deck in several languages.
+
+### Changed
+
+- The date on the notes PDF is written in the deck's language instead of the browser's.
+
 ## [1.0.0] - 2026-10-18
 
 ### Added
