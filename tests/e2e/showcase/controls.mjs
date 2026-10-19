@@ -30,7 +30,6 @@ export async function run({ t, open, press, pathOf, style, base, browser, proble
         'Go to previous slide',
         'Go to next slide',
         'Show slide overview',
-        'Switch to dark mode theme',
         'Show drawing toolbar',
         'Presenter Mode',
         'Show info',

@@ -81,11 +81,12 @@ Short notes on choices made, and why. Newest at the bottom.
     The result is easy to test (`getAnimations()`) and needs no CSS. The setting of the earlier slide of the pair is used, like Slidev. Default: none.
 15. **The bar at the bottom left shows on hover or focus** (CSS only, as in Slidev's play page). There is no idle timer: Slidev has none either.
     The user's wish for "auto-hide when idle" is met by the bar being hidden until the mouse goes to that corner.
-16. **Dark mode** uses Slidev's storage key (`slidev-color-schema`) and values (`auto`, `light`, `dark`), the `dark` class on `<html>`, and hides the
-    toggle when `colorSchema` is fixed in the headmatter. There is no inline script against a flash of the wrong colour on load.
+16. **Dark mode** uses Slidev's storage key (`slidev-color-schema`) and values (`auto`, `light`, `dark`) and the `dark` class on `<html>`. The `d` key
+    toggles it unless `colorSchema` is fixed in the headmatter. There is no button in the bar and no entry in the settings menu: a theme that wants one
+    draws its own (`<slide-ng-light-or-dark>`). There is no inline script against a flash of the wrong colour on load.
 17. **Overview thumbnails are real slide components** inside `@defer (on viewport)`, which is the lazy rendering. No image snapshots.
 18. **Goto searches with a plain "number starts with / title contains" test**, not Fuse.js (one less dependency).
-19. **The settings menu has Slidev's controls in Slidev's order** (filters, cursor style, slide scale, wake lock, hide idle cursor); the dark mode switch, camera options and PDF entry stay below a divider.
+19. **The settings menu has Slidev's controls in Slidev's order** (filters, cursor style, slide scale, wake lock, hide idle cursor); the camera options and PDF entry stay below a divider.
 20. **An address that is not a number and not a `routeAlias` shows the `404` layout**; numbers still clamp to the first and last slide (as in phase 0).
     The `error` layout exists but nothing shows it yet.
 21. **Icons from `@iconify-json/carbon` through UnoCSS `preset-icons`**, built into the CSS file by the generator (only used icons are included).
