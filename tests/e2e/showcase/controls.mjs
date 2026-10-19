@@ -144,13 +144,12 @@ export async function run({ t, open, press, pathOf, style, base, browser, proble
   const light = await style(page, '.canvas', 'backgroundColor');
   await page.mouse.move(40, 700);
   await page.waitForTimeout(400);
-  await page.locator('#nav-dark').click();
+  t.ok('the bar has no dark mode button', (await page.locator('#nav-dark').count()) === 0);
+  await press(page, 'd');
   await page.waitForTimeout(200);
   t.ok(
-    'dark button turns dark mode on',
-    (await isDark()) &&
-      (await style(page, '.canvas', 'backgroundColor')) !== light &&
-      (await page.locator('#nav-dark').getAttribute('title')) === 'Switch to light mode theme',
+    'd turns dark mode on',
+    (await isDark()) && (await style(page, '.canvas', 'backgroundColor')) !== light,
   );
   await page.reload();
   await page.waitForFunction(() =>

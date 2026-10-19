@@ -615,7 +615,7 @@ The presenter page has a **Screen Mirror** switch that shows a shared window ins
 
 ## Settings menu
 
-The same controls as Slidev, in the same order: Invert, Brightness, Contrast, Saturation, Sepia and Hue Rotate (slider and number box, Slidev's ranges and defaults; remembered under `slidev-viewer-css-filter`), Cursor Style (Cursor or Laser, `slidev-cursor-style`), Slide Scale (Fit or 1:1, not on the presenter page), Wake Lock (headmatter `wakeLock: true` starts it on; only where the browser supports it) and Hide Idle Cursor (not on the presenter page). The laser dot follows the pointer on the main page too. Below a divider: Show Presenter Cursor (presenter page), Dark Mode (only when `colorSchema` is `auto`), camera options and "Download as PDF".
+The same controls as Slidev, in the same order: Invert, Brightness, Contrast, Saturation, Sepia and Hue Rotate (slider and number box, Slidev's ranges and defaults; remembered under `slidev-viewer-css-filter`), Cursor Style (Cursor or Laser, `slidev-cursor-style`), Slide Scale (Fit or 1:1, not on the presenter page), Wake Lock (headmatter `wakeLock: true` starts it on; only where the browser supports it) and Hide Idle Cursor (not on the presenter page). The laser dot follows the pointer on the main page too. Below a divider: Show Presenter Cursor (presenter page), camera options and "Download as PDF".
 "Download as PDF" appears with `download: true` and is enabled only when the build made the PDF (`slide-ng build` with `download: true` or `--download`, see HOSTING.md).
 
 ## Moving things: `slide-ng-drag`
@@ -742,7 +742,7 @@ A package name that is not installed stops the run with the command that install
 | `g`                          | go to a slide: type a number or part of a title, Enter   |
 | Escape                       | close the overview, dialogs and menus                    |
 
-The bar at the bottom left (fullscreen, previous, next, overview, dark mode, drawing, presenter mode, info, settings, counter)
+The bar at the bottom left (fullscreen, previous, next, overview, drawing, presenter mode, info, settings, counter)
 shows when the mouse is there. Drawing, presenter mode, camera and recording (when `record` is on) and the dev-only editor button are live. Right click opens a menu with the same actions;
 hold Shift while right clicking for the browser's own menu. Click the dark area beside the slide: right half = next, left half = previous.
 
@@ -758,6 +758,6 @@ export default (actions: ShortcutActions, list: Shortcut[]): Shortcut[] => [
 ];
 ```
 
-Dark mode follows the system until the user presses `d` or the sun/moon button; the choice is kept in the browser
-(`localStorage`, key `slidev-color-schema`). `colorSchema: light` or `dark` in the headmatter fixes it and hides the button.
+Dark mode follows the system until the user presses `d`; the choice is kept in the browser
+(`localStorage`, key `slidev-color-schema`). `colorSchema: light` or `dark` in the headmatter fixes it.
 Dark styles for your own markup: UnoCSS `dark:` classes work (`dark:text-white`).

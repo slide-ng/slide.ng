@@ -1,5 +1,4 @@
 import { Component, inject } from '@angular/core';
-import { Dark } from '../lib/dark';
 import { Download } from '../lib/download';
 import { Nav } from '../lib/nav';
 import { Ui } from '../lib/ui-state';
@@ -79,21 +78,6 @@ import { SegmentControl } from './segment-control';
           </span>
         </label>
       }
-      @if (!dark.isFixed) {
-        <div class="h-1px op5 bg-current w-full my-2"></div>
-        <label class="slidev-form-item">
-          <span class="slidev-form-title">Dark Mode</span>
-          <span class="slidev-checkbox">
-            <i class="i-carbon:checkmark" [class.op0]="!dark.isDark()"></i>
-            <input
-              type="checkbox"
-              id="settings-dark"
-              [checked]="dark.isDark()"
-              (change)="dark.toggle()"
-            />
-          </span>
-        </label>
-      }
       @if (devices.available) {
         <div class="h-1px op5 bg-current w-full my-2"></div>
         <app-devices-selectors />
@@ -121,7 +105,6 @@ import { SegmentControl } from './segment-control';
 })
 export class Settings {
   protected ui = inject(Ui);
-  protected dark = inject(Dark);
   protected nav = inject(Nav);
   protected prefs = inject(PresenterPrefs);
   protected wake = inject(WakeLock);

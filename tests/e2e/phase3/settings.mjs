@@ -9,7 +9,6 @@ export async function run({ t, open }) {
   await menu();
   const ids = await page.locator('#settings-menu [id]').evaluateAll((l) => l.map((e) => e.id));
   for (const id of [
-    'settings-dark',
     'filter-invert',
     'filter-brightness',
     'filter-contrast',
@@ -58,7 +57,6 @@ export async function run({ t, open }) {
   // the dock follows Slidev's order
   const dock = await page.locator('nav [id^=nav-]').evaluateAll((l) => l.map((e) => e.id));
   const order = [
-    'nav-dark',
     'nav-camera',
     'nav-record',
     'nav-cursor',
@@ -69,23 +67,9 @@ export async function run({ t, open }) {
     'nav-counter',
   ];
   t.ok(
-    'dock order: schema, recording, cursor, drawing, mode, layout, settings, counter',
+    'dock order: recording, cursor, drawing, mode, layout, settings, counter',
     order.every((id, i) => dock.indexOf(id) > (i ? dock.indexOf(order[i - 1]) : -1)),
     dock.join(),
-  );
-
-  // dark mode
-  await page.locator('#settings-dark').check();
-  await page.waitForTimeout(200);
-  t.ok(
-    'Dark Mode switches the page',
-    await page.evaluate(() => document.documentElement.classList.contains('dark')),
-  );
-  await page.locator('#settings-dark').uncheck();
-  await page.waitForTimeout(200);
-  t.ok(
-    'and back',
-    !(await page.evaluate(() => document.documentElement.classList.contains('dark'))),
   );
 
   // filters

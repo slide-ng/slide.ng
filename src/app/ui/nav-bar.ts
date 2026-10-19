@@ -1,6 +1,5 @@
 import { Component, ElementRef, computed, inject, input } from '@angular/core';
 import { Drawings } from '../drawing/drawings';
-import { Dark } from '../lib/dark';
 import { Download } from '../lib/download';
 import { Fullscreen } from '../lib/fullscreen';
 import { Filters, defaultFilters } from '../lib/filters';
@@ -61,16 +60,6 @@ import { Settings } from './settings';
         >
           <div class="i-carbon:apps"></div>
         </button>
-        @if (!dark.isFixed) {
-          <button
-            icon-btn
-            id="nav-dark"
-            [title]="dark.isDark() ? 'Switch to light mode theme' : 'Switch to dark mode theme'"
-            (click)="dark.toggle()"
-          >
-            <div [class]="dark.isDark() ? 'i-carbon-moon' : 'i-carbon-sun'"></div>
-          </button>
-        }
 
         <div class="w-1px opacity-10 bg-current m-1 lg:m-2"></div>
 
@@ -229,7 +218,6 @@ export class NavBar {
   protected editor = inject(SideEditorState);
   protected prefs = inject(PresenterPrefs);
   protected ui = inject(Ui);
-  protected dark = inject(Dark);
   protected fullscreen = inject(Fullscreen);
   protected download = inject(Download);
   private view = inject(ViewPrefs);
