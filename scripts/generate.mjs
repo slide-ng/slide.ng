@@ -30,7 +30,7 @@ import { applyPreTransformers } from './lib/setup/pre-transform.mjs';
 import { readDrawings } from './lib/drawings.mjs';
 import { applyRoots } from './lib/theme-files.mjs';
 import { monacoWriteTargets, resetMonacoWriteTargets } from './lib/code/monaco.mjs';
-import { applyOffline, buildOptions, wantsRemoteAssets } from './lib/build-options.mjs';
+import { applyOffline, buildOptions, modeSwitch, wantsRemoteAssets } from './lib/build-options.mjs';
 import { headParts, renderIndexHtml } from './lib/head.mjs';
 import { bundleRemoteAssets, emptyFolder } from './lib/remote-assets.mjs';
 import { bundleFonts, wantsFontFiles } from './lib/font-bundle.mjs';
@@ -113,6 +113,9 @@ async function generate() {
     });
   if (build.offline) applyOffline(deck.headmatter);
   deck.assetBase = build.building ? build.base : '/';
+  // `monaco` and `twoslash` may be on in one mode only; off, `{monaco}` blocks are plain code and Twoslash does not run.
+  deck.monaco = modeSwitch(deck.headmatter.monaco, build.dev);
+  const twoslash = modeSwitch(deck.headmatter.twoslash, build.dev);
   mkdirSync(OUT, { recursive: true });
   // Remote pictures are fetched into the build only for a production build with `remoteAssets: true`.
   if (wantsRemoteAssets(deck.headmatter, build.building, build.offline)) {
@@ -139,7 +142,7 @@ async function generate() {
   setKatexOptions(await katexOptions(deck.roots));
   deck.transformers = await transformersSetup(deck.roots);
   await applyPreTransformers(deck.slides, deck.transformers.pre, deck.headmatter);
-  const features = detectFeatures(deck.slides);
+  const features = detectFeatures(deck.slides, { monaco: deck.monaco, twoslash });
   await initHighlighter({
     langs: features.langs,
     headmatter: deck.headmatter,

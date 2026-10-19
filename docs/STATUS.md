@@ -104,6 +104,7 @@ one can be written. The decisions are in DECISIONS.md ("Made while testing for 1
 - Hosting on GitHub Pages or Netlify (the files they read are written and the local static server was used).
 - The offline mode and the offline folder in browsers other than Chromium (Firefox treats each `file://` page as its own origin; window sync from a folder is probably broken there), and an update of a deck that is already cached.
 - Real Google Fonts for `fonts.selfHost` (only a local fake provider was used), camera, microphone, screen share and recording from `file://`, an offline folder on a network share or a USB stick, and Chromium-based browsers other than the bundled one.
+- The `dev` and `build` values of `monaco` and `twoslash` in a real `slide-ng dev` session (the switch and the plain-code output are unit-tested).
 - The real screen-share picker, recording quality, the wake lock, `--remote` from a second physical device and over a real LAN, touch input (all as in phase 3).
 - Everything under the phase 1 and 2 NOT VERIFIED lists.
 

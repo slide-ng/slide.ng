@@ -2,7 +2,8 @@
 // slides, their storage or the network origin, and sends what the code logs back with postMessage.
 // This is plain JavaScript in a string on purpose: it is a separate page, not part of the app.
 
-export function frameHtml(js: string, id: string): string {
+// `strict` puts "use strict" first in the code's function (headmatter `monacoRunUseStrict`, on unless it is false, as in Slidev).
+export function frameHtml(js: string, id: string, strict = true): string {
   // `<` is escaped so the code cannot close the <script> tag early.
   const safe = (v: string) => JSON.stringify(v).replace(/</g, '\\u003c');
   return `<!doctype html><script>
@@ -47,7 +48,7 @@ const sandboxConsole = {
 
 (async () => {
   try {
-    await new Function('console', 'return (async () => {' + ${safe(js)} + '\\n})()')(sandboxConsole);
+    await new Function('console', 'return (async () => {' + ${strict ? `'"use strict";' + ` : ''}${safe(js)} + '\\n})()')(sandboxConsole);
   } catch (e) {
     send({ error: String(e) });
   }

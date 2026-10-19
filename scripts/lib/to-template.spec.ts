@@ -165,6 +165,24 @@ describe('toTemplate: highlighted code', () => {
   });
 });
 
+describe('toTemplate: monaco: false', () => {
+  it('makes {monaco}, {monaco-diff} and {monaco-run} blocks plain highlighted code', () => {
+    for (const kind of ['monaco', 'monaco-diff', 'monaco-run']) {
+      const html = toTemplate(`\`\`\`ts {${kind}} {lines:true}\nlet a = 1;\n\`\`\``, {
+        monaco: false,
+      });
+      expect(html).not.toContain('<slide-ng-monaco');
+      expect(html).toContain('<slide-ng-code-block-wrapper lines="true">');
+      expect(text(html)).toContain('let a = 1;');
+    }
+  });
+  it('keeps the editor when the switch is on', () => {
+    expect(toTemplate('```ts {monaco}\nlet a;\n```', { monaco: true })).toContain(
+      '<slide-ng-monaco',
+    );
+  });
+});
+
 describe('toTemplate: twoslash', () => {
   it('adds type popups only to a block marked twoslash, and the result is safe for Angular', async () => {
     await initHighlighter({ langs: ['ts'], twoslash: true });

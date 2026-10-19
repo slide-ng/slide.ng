@@ -13,6 +13,7 @@ console.log('runs on a click and the result appears');
 
 - An editor and a **Run** result below it. `autorun` is `true`, `false` or `'once'`; `showOutputAt:'+1'` shows the output after a click.
 - The code runs in a sandboxed frame with no access to the slides, and stops after 5 seconds. TypeScript is turned into JavaScript for you. `import` is not supported.
+- The code runs in strict mode; headmatter `monacoRunUseStrict: false` turns that off.
 - Another language: `setup/code-runners.ts`, see `setup-code-runners.md`. The runner gets the text only.
 
 <!-- verify -->

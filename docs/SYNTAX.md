@@ -57,6 +57,9 @@ In the headmatter (the frontmatter of the first slide) you can also set:
 | `codeCopy`, `magicMoveCopy`                                                      | `false` hides the copy button on every code block, or only on Magic Move blocks                       |
 | `contextMenu`, `presenter`                                                       | `true` (default), `false`, `dev` or `build`: the right-click menu, and the presenter page and button  |
 | `editor`                                                                         | `false` hides the side editor (dev server only)                                                       |
+| `monaco`, `twoslash`                                                             | `true` (default), `false`, `dev` or `build`: off, `{monaco}` blocks are plain code; Twoslash not run  |
+| `wakeLock`                                                                       | `true` (default), `false`, `dev` or `build`: the wake lock of the settings menu, on until turned off  |
+| `monacoRunUseStrict`                                                             | `false` runs `{monaco-run}` code without `"use strict"` (on by default, as in Slidev)                 |
 
 Other keys are kept in the slide's metadata and ignored, unless a theme or a component reads them.
 
@@ -388,6 +391,9 @@ console.log('runs on a click and the result appears');
 
 Keys typed in an editor do not trigger slide shortcuts.
 
+`monaco: false` in the headmatter turns every `{monaco}`, `{monaco-diff}`, `{monaco-run}` and `{monaco-write}` block into a plain highlighted block;
+`monaco: dev` keeps the editors for `slide-ng dev` only, `monaco: build` for builds and exports only.
+
 ## Twoslash
 
 Add `twoslash` after the language and hover the code to see types (worked out while generating, so no TypeScript reaches the browser):
@@ -400,6 +406,7 @@ const count = Math.max(1, 2);
 ````
 
 `//    ^?` shows the type of the word above the `^`, on a line of its own. A TypeScript error in the block is shown under its line (add `// @errors: <code>` to expect it), and the types still work.
+`twoslash: false` in the headmatter shows the blocks without types; `dev` or `build` runs Twoslash in that mode only (a build and an export count as `build`).
 
 ## Marks and motion
 

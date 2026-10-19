@@ -4,6 +4,7 @@
 //   SLIDE_NG_DOWNLOAD=1       --download: the nav bar offers the PDF even if the headmatter does not say so
 //   SLIDE_NG_WITHOUT_NOTES=1  --without-notes: speaker notes are left out of the build
 //   SLIDE_NG_OFFLINE=1        --offline: a folder that opens from disk (base ./, hash routing, no service worker)
+//   SLIDE_NG_DEV=1            set by `slide-ng dev`: the generator works for the dev server (a `dev` switch is on)
 export function buildOptions(env = process.env) {
   return {
     building: env.SLIDE_NG_BUILD === '1',
@@ -11,6 +12,7 @@ export function buildOptions(env = process.env) {
     base: env.SLIDE_NG_BASE || '/',
     download: env.SLIDE_NG_DOWNLOAD === '1',
     withoutNotes: env.SLIDE_NG_WITHOUT_NOTES === '1',
+    dev: env.SLIDE_NG_DEV === '1',
   };
 }
 
@@ -28,4 +30,15 @@ export function applyOffline(headmatter) {
 export function wantsRemoteAssets(headmatter, building, offline = false) {
   const v = headmatter.remoteAssets;
   return building && v !== false && (v === true || v === 'build' || offline);
+}
+
+/**
+ * A headmatter switch that may name a mode (`monaco`, `twoslash`): `true`, `false`, `dev` or `build`; not set means on.
+ * The same rule as the app's `readSwitch` (src/app/lib/switches.ts): anything but `slide-ng dev` (a build, an export) is `build`.
+ */
+export function modeSwitch(value, dev) {
+  if (value === true || value === false) return value;
+  if (value === 'dev') return dev;
+  if (value === 'build') return !dev;
+  return true;
 }

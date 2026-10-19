@@ -39,7 +39,7 @@ const joinLines = (md) =>
     .replace(MULTILINE_TAG, (_, ws, name, attrs, end) => `${ws}<${name} ${oneLine(attrs)}${end}`)
     .replace(MULTILINE_LET, (_, ws, body) => `${ws}@let ${oneLine(body)};`);
 
-/** @param {string} markdown @param {{ file?: string, root?: string, headmatter?: any }} [ctx] file, root: where snippet paths start; headmatter: deck-wide code settings */
+/** @param {string} markdown @param {{ file?: string, root?: string, headmatter?: any, monaco?: boolean }} [ctx] file, root: where snippet paths start; headmatter: deck-wide code settings; monaco: false makes editor blocks plain code */
 export function toTemplate(markdown, ctx = {}) {
   const kept = []; // Angular syntax we put back at the end
   const keep = (s) => `NGKEEP${kept.push(s) - 1}X`;

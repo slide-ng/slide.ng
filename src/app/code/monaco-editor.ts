@@ -20,6 +20,7 @@ import { CodeRunner } from './code-runner';
 import { MONACO_SETUP } from '../setup/tokens';
 import { runJs } from './monaco/run-js';
 import { CODE_RUNNERS } from './runners';
+import { HEADMATTER } from '../../slides/generated';
 import { unpack } from './unpack';
 import type * as Monaco from 'monaco-editor';
 
@@ -248,6 +249,6 @@ export class MonacoEditor {
         out.outputFiles.find((f) => f.name.endsWith('.js') || f.name.endsWith('.mjs'))?.text ??
         code;
     }
-    return runJs(js.replace('export {};', ''));
+    return runJs(js.replace('export {};', ''), HEADMATTER['monacoRunUseStrict'] !== false);
   };
 }

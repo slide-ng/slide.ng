@@ -1,4 +1,4 @@
-import { detectLangs, hasMagicMove, hasMath } from './features.mjs';
+import { detectFeatures, detectLangs, hasMagicMove, hasMath } from './features.mjs';
 
 describe('detectLangs', () => {
   it('reads indented and tilde fences', () => {
@@ -27,5 +27,22 @@ describe('detect twoslash', () => {
     const { hasTwoslash } = await import('./features.mjs');
     expect(hasTwoslash('```ts twoslash\nx\n```')).toBe(true);
     expect(hasTwoslash('```ts\nconst twoslash = 1\n```')).toBe(false);
+  });
+});
+
+describe('detectFeatures with the mode switches', () => {
+  const slides = [{ content: '```ts {monaco}\nx\n```\n\n```ts twoslash\ny\n```' }];
+  it('counts Monaco and Twoslash when their switch is on', () => {
+    expect(detectFeatures(slides)).toMatchObject({ monaco: true, twoslash: true });
+  });
+  it('leaves them out when the switch is off for this mode', () => {
+    expect(detectFeatures(slides, { monaco: false, twoslash: false })).toMatchObject({
+      monaco: false,
+      twoslash: false,
+    });
+  });
+  it('a <slide-ng-monaco> tag still needs Monaco', () => {
+    const tag = [{ content: '<slide-ng-monaco packed="x"></slide-ng-monaco>' }];
+    expect(detectFeatures(tag, { monaco: false }).monaco).toBe(true);
   });
 });

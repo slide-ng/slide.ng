@@ -8,6 +8,12 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 - `<slide-ng-title-renderer />` draws a slide's title as HTML, with its inline markdown and `$math$` (Slidev's `<TitleRenderer>`); `no="N"` picks another slide. The table of contents shows the same HTML. Raw HTML in a title is shown as text.
 - `notesAutoRuby: { word: reading }` in the headmatter shows a reading above each listed word in the speaker notes, with `<ruby>` (Slidev's `notesAutoRuby`). Code, tag attributes and existing `<ruby>` are left alone.
+- The headmatter `monaco` and `twoslash` take `true`, `false`, `dev` or `build`, as in Slidev: off for the current mode, `{monaco}` blocks are plain highlighted code and Twoslash does not run. `monacoRunUseStrict: false` runs `{monaco-run}` code without strict mode.
+
+### Changed
+
+- `wakeLock` takes `true`, `false`, `dev` or `build` and is on by default, as in Slidev (it was off unless `wakeLock: true`). Off for the current mode, the settings menu has no wake lock entry.
+- `{monaco-run}` code runs in strict mode (`"use strict"`), as in Slidev.
 
 ## [1.0.0] - 2026-10-18
 

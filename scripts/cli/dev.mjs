@@ -103,6 +103,7 @@ export async function devCommand(argv) {
     ...process.env,
     SLIDES_FILE: plan.entry,
     SLIDE_NG_DEV_PORT: companionPort,
+    SLIDE_NG_DEV: '1',
     SLIDE_NG_TOKEN: randomSecret(),
     SLIDE_NG_REMOTE: plan.remote ? '1' : '0',
     SLIDE_NG_PASSWORD: plan.password,

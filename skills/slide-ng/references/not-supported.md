@@ -27,7 +27,7 @@ If a feature is not listed as present in the other references, assume it is miss
 **Code**
 
 - Monaco type loading (`monacoTypesSource`, `monacoRunAdditionalDeps`), markdown-it plugins, a run context for code runners.
-- Twoslash `dev|build` switch, `shiki.magicMove` options other than duration and copy, the `~icon~` code group titles, `mhchem`.
+- `shiki.magicMove` options other than duration and copy, the `~icon~` code group titles, `mhchem`.
 - `<slide-ng-youtube>` start time and playlists.
 
 **Presenting**
