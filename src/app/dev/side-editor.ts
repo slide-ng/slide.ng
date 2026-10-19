@@ -13,6 +13,8 @@ import {
 } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Nav } from '../lib/nav';
+import { T } from '../i18n/t';
+import { UI_TEXT, uiText } from '../i18n/ui-text';
 import { DevApi } from './dev-api';
 import type { Highlight } from './editor-highlight';
 import { loadHighlighter } from './load-highlighter';
@@ -28,6 +30,7 @@ const WATCH_EVERY = 2000;
 // into slides.md through the dev server (Ctrl/Cmd+S at once); the generator rebuilds and the slide on the left updates.
 @Component({
   selector: 'app-side-editor',
+  imports: [T],
   template: `
     @if (state.open() && state.available()) {
       <aside
@@ -36,7 +39,7 @@ const WATCH_EVERY = 2000;
         [style.width.px]="state.width"
       >
         <div class="flex items-center gap-2 px-3 py-1 border-b border-main text-sm">
-          <span class="font-bold">Slide {{ nav.no() }}</span>
+          <span class="font-bold">{{ 'editor.slide' | t: { no: nav.no() } }}</span>
           <span
             id="editor-status"
             class="op60 ml-auto"
@@ -47,7 +50,7 @@ const WATCH_EVERY = 2000;
             type="button"
             id="editor-close"
             class="px-1"
-            title="Close editor"
+            [title]="'editor.close' | t"
             (click)="state.toggle()"
           >
             <div class="i-carbon:close"></div>
@@ -74,7 +77,7 @@ const WATCH_EVERY = 2000;
             <textarea
               #area
               id="editor-text"
-              aria-label="Markdown of this slide"
+              [attr.aria-label]="'editor.markdown' | t"
               spellcheck="false"
               class="editor-text absolute inset-0 w-full h-full bg-transparent outline-none resize-none overflow-hidden"
               [class.highlighted]="!!html()"
@@ -110,15 +113,21 @@ export class SideEditor {
   private area = viewChild<ElementRef<HTMLTextAreaElement>>('area');
   private injector = inject(Injector);
 
+  private dictionary = inject(UI_TEXT);
+  // `conflict`: the slide changed in the file (another editor, git): the text here is kept, not written over the other change.
   protected label = () =>
-    ({
-      loading: 'Loading...',
-      saved: 'Saved',
-      saving: 'Saving...',
-      error: 'Could not save',
-      // The slide changed in the file (another editor, git): the text here is kept, not written over the other change.
-      conflict: 'Changed in the file, not saved: copy your text and reopen the slide',
-    })[this.status()];
+    uiText(
+      this.dictionary,
+      (
+        {
+          loading: 'editor.loading',
+          saved: 'editor.saved',
+          saving: 'editor.saving',
+          error: 'editor.error',
+          conflict: 'editor.conflict',
+        } as const
+      )[this.status()],
+    );
 
   constructor() {
     // Show the text of whichever slide is on screen. A change not saved yet goes out first.

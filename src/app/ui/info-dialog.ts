@@ -1,6 +1,7 @@
 import { Component, ElementRef, inject, viewChild } from '@angular/core';
 import { HEADMATTER, INFO_HTML } from '../../slides/generated';
 import { focusWhileOpen } from '../lib/dialog-focus';
+import { splitAt } from '../i18n/ui-text';
 import { Ui } from '../lib/ui-state';
 
 // The "info" dialog: the deck's `info:` text from the headmatter (markdown), or its title, plus a credit line.
@@ -24,10 +25,9 @@ import { Ui } from '../lib/ui-state';
           } @else {
             <div class="text-xl font-bold">{{ title }}</div>
           }
-          <div class="flex gap-1 items-center text-sm">
-            <span class="opacity-50 mr-2">Made with</span>
-            <b>slide.ng</b>
-            <span class="opacity-50">, inspired by Slidev</span>
+          <div id="info-credit" class="text-sm">
+            <span class="opacity-50">{{ credit[0] }}</span
+            ><b>slide.ng</b><span class="opacity-50">{{ credit[1] }}</span>
           </div>
         </div>
       </div>
@@ -39,6 +39,8 @@ export class InfoDialog {
   protected infoHtml = INFO_HTML;
   private box = viewChild<ElementRef<HTMLElement>>('box');
   protected title = (HEADMATTER['title'] as string | undefined) ?? 'slide.ng';
+  // The name is bold, so the text is drawn in two parts around it.
+  protected credit = splitAt(this.ui.text('info.credit'), 'name');
 
   constructor() {
     focusWhileOpen(this.ui.info, () => this.box()?.nativeElement);

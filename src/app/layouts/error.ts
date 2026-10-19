@@ -1,9 +1,7 @@
-import { Component, input, isDevMode } from '@angular/core';
+import { Component, inject, input, isDevMode } from '@angular/core';
+import { UI_TEXT, uiText } from '../i18n/ui-text';
 
 // Shown when a slide fails to render. The texts are Slidev's: with a dev server there is a terminal to look at, in a static build only the network.
-export const ERROR_TEXT_DEV =
-  'An error occurred on this slide. Check the terminal for more information.';
-export const ERROR_TEXT_BUILD = 'Failed to fetch this slide. Please check your network connection.';
 @Component({
   selector: 'sn-error',
   host: {
@@ -12,5 +10,5 @@ export const ERROR_TEXT_BUILD = 'Failed to fetch this slide. Please check your n
   template: '{{ message() }}',
 })
 export class ErrorLayout {
-  message = input(isDevMode() ? ERROR_TEXT_DEV : ERROR_TEXT_BUILD);
+  message = input(uiText(inject(UI_TEXT), isDevMode() ? 'slide.errorDev' : 'slide.errorBuild'));
 }

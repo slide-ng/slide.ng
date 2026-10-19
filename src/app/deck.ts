@@ -67,7 +67,7 @@ import { Overview } from './ui/overview';
         ><app-drawing-layer /><app-drag-controls /><app-presenter-cursor
       /></app-slide-show>
       <div
-        class="absolute bottom-0 left-0 p-2 transition duration-300 opacity-0 hover:opacity-100 focus-within:opacity-100"
+        class="absolute bottom-0 start-0 p-2 transition duration-300 opacity-0 hover:opacity-100 focus-within:opacity-100"
         [style.opacity]="portrait() ? 1 : null"
       >
         <app-nav-bar />
@@ -104,7 +104,8 @@ export class Deck {
   protected announcement = computed(() => {
     const no = this.nav.no();
     const title = SLIDES[no - 1]?.title;
-    return `Slide ${no} of ${this.nav.total}${title ? `: ${title}` : ''}`;
+    const total = this.nav.total;
+    return this.ui.text(title ? 'deck.announceTitle' : 'deck.announce', { no, total, title });
   });
   protected editor = inject(SideEditorState);
   protected key = keyHandler(this.nav, this.ui);

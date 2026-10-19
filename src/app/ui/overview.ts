@@ -2,6 +2,7 @@ import { Component, ElementRef, effect, inject, signal, untracked, viewChild } f
 import { focusWhileOpen } from '../lib/dialog-focus';
 import { Nav } from '../lib/nav';
 import { Ui } from '../lib/ui-state';
+import { T } from '../i18n/t';
 import { IconBtn } from './icon-btn';
 import { Thumbnail } from './thumbnail';
 
@@ -9,7 +10,7 @@ import { Thumbnail } from './thumbnail';
 // Click a card to go there. Arrows move the highlight, Enter goes, Escape closes (see shortcuts.ts).
 @Component({
   selector: 'app-overview',
-  imports: [Thumbnail, IconBtn],
+  imports: [Thumbnail, IconBtn, T],
   host: { '(window:resize)': 'measure()', '(window:blur)': 'keepFocus()' },
   template: `
     @if (ui.overview()) {
@@ -18,7 +19,7 @@ import { Thumbnail } from './thumbnail';
         id="overview"
         role="dialog"
         aria-modal="true"
-        aria-label="Slide overview"
+        [attr.aria-label]="'overview.label' | t"
         tabindex="-1"
         class="outline-none fixed inset-0 z-modal bg-main bg-opacity-75! p-16 py-20 overflow-y-auto backdrop-blur-5px select-none text-main"
         (click)="close()"
@@ -31,10 +32,10 @@ import { Thumbnail } from './thumbnail';
             <div class="relative">
               <button
                 type="button"
-                class="overview-card inline-block text-left border rounded overflow-hidden bg-main hover:border-primary transition cursor-pointer"
+                class="overview-card inline-block text-start border rounded overflow-hidden bg-main hover:border-primary transition cursor-pointer"
                 [class]="ui.overviewPage() === $index + 1 ? 'border-primary' : 'border-main'"
                 [attr.data-no]="$index + 1"
-                [attr.aria-label]="'Go to slide ' + ($index + 1)"
+                [attr.aria-label]="'overview.goTo' | t: { no: $index + 1 }"
                 [attr.aria-current]="nav.no() === $index + 1 ? 'true' : null"
                 (click)="go($index + 1, $event)"
               >
@@ -44,20 +45,20 @@ import { Thumbnail } from './thumbnail';
                   <div [style.width.px]="cardWidth" [style.height.px]="(cardWidth * 9) / 16"></div>
                 }
               </button>
-              <div class="absolute top-0 opacity-50" [style.left.px]="cardWidth + 5">
+              <div class="absolute top-0 opacity-50" [style.inset-inline-start.px]="cardWidth + 5">
                 {{ $index + 1 }}
               </div>
             </div>
           }
         </div>
       </div>
-      <div class="fixed top-4 right-4 z-modal text-gray-400">
+      <div class="fixed top-4 end-4 z-modal text-gray-400">
         <button
           #closeButton
           icon-btn
           id="overview-close"
           class="text-2xl"
-          title="Close"
+          [title]="'overview.close' | t"
           (click)="close()"
         >
           <div class="i-carbon:close"></div>

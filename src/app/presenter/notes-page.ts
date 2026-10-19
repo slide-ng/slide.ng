@@ -5,6 +5,8 @@ import { Fullscreen } from '../lib/fullscreen';
 import { storedSignal } from '../lib/stored-signal';
 import { SyncState } from '../sync/sync-state';
 import { IconBtn } from '../ui/icon-btn';
+import { T } from '../i18n/t';
+import { UI_TEXT, uiText } from '../i18n/ui-text';
 import { ClicksSlider } from './clicks-slider';
 import { NoteDisplay } from './note-display';
 import { ProgressBar } from './progress-bar';
@@ -14,7 +16,7 @@ import { TimerBar } from './timer-bar';
 // presenter (page and click come from the shared state) and has no navigation of its own.
 @Component({
   selector: 'app-notes-page',
-  imports: [ProgressBar, TimerBar, NoteDisplay, ClicksSlider, IconBtn],
+  imports: [ProgressBar, TimerBar, NoteDisplay, ClicksSlider, IconBtn, T],
   host: { class: 'block h-full' },
   template: `
     <div class="bg-main text-main h-full flex flex-col">
@@ -33,7 +35,7 @@ import { TimerBar } from './timer-bar';
         <app-note-display
           [html]="html()"
           [clicks]="state().clicks"
-          [placeholder]="'No notes for Slide ' + page() + '.'"
+          [placeholder]="'presenter.noNotes' | t: { no: page() }"
           [autoScroll]="true"
         />
       </div>
@@ -46,13 +48,13 @@ import { TimerBar } from './timer-bar';
       </div>
       <div class="flex-none border-t border-main">
         <div class="flex gap-1 items-center px-6 py-3">
-          <button icon-btn title="Enter fullscreen" (click)="fullscreen.toggle()">
+          <button icon-btn [title]="'nav.fullscreenEnter' | t" (click)="fullscreen.toggle()">
             <div class="i-carbon:maximize"></div>
           </button>
           <button
             icon-btn
             id="notes-bigger"
-            title="Increase font size"
+            [title]="'presenter.fontBigger' | t"
             (click)="fontSize.set(fontSize() + 1)"
           >
             <div class="i-carbon:zoom-in"></div>
@@ -60,7 +62,7 @@ import { TimerBar } from './timer-bar';
           <button
             icon-btn
             id="notes-smaller"
-            title="Decrease font size"
+            [title]="'presenter.fontSmaller' | t"
             (click)="fontSize.set(fontSize() - 1)"
           >
             <div class="i-carbon:zoom-out"></div>
@@ -89,7 +91,8 @@ export class NotesPage {
   protected html = computed(() => SLIDES[this.page() - 1].noteHtml);
 
   constructor() {
-    inject(Title).setTitle(`Notes - ${HEADMATTER['title'] ?? 'slide.ng'}`);
+    const title = String(HEADMATTER['title'] ?? 'slide.ng');
+    inject(Title).setTitle(uiText(inject(UI_TEXT), 'notes.pageTitle', { title }));
     this.sync.sendHello(); // the presenter answers with where it is
   }
 }

@@ -8,6 +8,7 @@ import { Nav } from '../lib/nav';
 import { ViewPrefs } from '../lib/view-prefs';
 import { PresenterPrefs } from '../presenter/prefs';
 import { Ui } from '../lib/ui-state';
+import { T } from '../i18n/t';
 import { IconBtn } from './icon-btn';
 import { SideEditorState } from '../dev/side-editor-state';
 import { RecordingControls } from '../record/recording-controls';
@@ -17,7 +18,7 @@ import { Settings } from './settings';
 // over that corner; the presenter page always shows it (`persist`, no frame around it).
 @Component({
   selector: 'app-nav-bar',
-  imports: [IconBtn, Settings, RecordingControls],
+  imports: [IconBtn, Settings, RecordingControls, T],
   host: { '(document:click)': 'closeSettingsOutside($event)' },
   template: `
     <nav class="flex flex-col" [attr.data-fullscreen]="fullscreen.isFullscreen()">
@@ -28,7 +29,7 @@ import { Settings } from './settings';
         <button
           icon-btn
           id="nav-fullscreen"
-          [title]="fullscreen.isFullscreen() ? 'Close fullscreen' : 'Enter fullscreen'"
+          [title]="(fullscreen.isFullscreen() ? 'nav.fullscreenExit' : 'nav.fullscreenEnter') | t"
           (click)="fullscreen.toggle()"
         >
           <div
@@ -38,25 +39,25 @@ import { Settings } from './settings';
         <button
           icon-btn
           id="nav-prev"
-          title="Go to previous slide"
+          [title]="'nav.prev' | t"
           [disabled]="!nav.hasPrev()"
           (click)="nav.prev()"
         >
-          <div class="i-carbon:arrow-left"></div>
+          <div class="i-carbon:arrow-left rtl-flip"></div>
         </button>
         <button
           icon-btn
           id="nav-next"
-          title="Go to next slide"
+          [title]="'nav.next' | t"
           [disabled]="!nav.hasNext()"
           (click)="nav.next()"
         >
-          <div class="i-carbon:arrow-right"></div>
+          <div class="i-carbon:arrow-right rtl-flip"></div>
         </button>
         <button
           icon-btn
           id="nav-overview"
-          title="Show slide overview"
+          [title]="'nav.overview' | t"
           (click)="ui.toggleOverview()"
         >
           <div class="i-carbon:apps"></div>
@@ -65,7 +66,7 @@ import { Settings } from './settings';
           <button
             icon-btn
             id="nav-dark"
-            [title]="dark.isDark() ? 'Switch to light mode theme' : 'Switch to dark mode theme'"
+            [title]="(dark.isDark() ? 'nav.darkOff' : 'nav.darkOn') | t"
             (click)="dark.toggle()"
           >
             <div [class]="dark.isDark() ? 'i-carbon-moon' : 'i-carbon-sun'"></div>
@@ -82,13 +83,14 @@ import { Settings } from './settings';
             id="nav-cursor"
             [active]="prefs.showCursor()"
             [title]="
-              prefs.cursorStyle() === 'laser'
+              (prefs.cursorStyle() === 'laser'
                 ? prefs.showCursor()
-                  ? 'Disable laser pointer'
-                  : 'Enable laser pointer'
+                  ? 'nav.laserOff'
+                  : 'nav.laserOn'
                 : prefs.showCursor()
-                  ? 'Hide presenter cursor'
-                  : 'Show presenter cursor'
+                  ? 'nav.cursorHide'
+                  : 'nav.cursorShow'
+              ) | t
             "
             (click)="prefs.toggleCursor()"
           >
@@ -110,7 +112,7 @@ import { Settings } from './settings';
             icon-btn
             id="nav-drawing"
             class="relative"
-            [title]="drawings.enabled() ? 'Hide drawing toolbar' : 'Show drawing toolbar'"
+            [title]="(drawings.enabled() ? 'nav.drawingHide' : 'nav.drawingShow') | t"
             [active]="drawings.enabled()"
             (click)="drawings.toggle()"
           >
@@ -127,18 +129,23 @@ import { Settings } from './settings';
         <div class="w-1px opacity-10 bg-current m-1 lg:m-2"></div>
 
         @if (nav.isPresenter) {
-          <button icon-btn id="nav-play" title="Play Mode" (click)="nav.exitPresenter()">
+          <button icon-btn id="nav-play" [title]="'nav.play' | t" (click)="nav.exitPresenter()">
             <div class="i-carbon:presentation-file"></div>
           </button>
         } @else {
-          <button icon-btn id="nav-presenter" title="Presenter Mode" (click)="nav.enterPresenter()">
+          <button
+            icon-btn
+            id="nav-presenter"
+            [title]="'nav.presenter' | t"
+            (click)="nav.enterPresenter()"
+          >
             <div class="i-carbon:user-speaker"></div>
           </button>
           @if (editor.available()) {
             <button
               icon-btn
               id="nav-editor"
-              [title]="editor.open() ? 'Hide editor' : 'Show editor'"
+              [title]="(editor.open() ? 'nav.editorHide' : 'nav.editorShow') | t"
               [active]="editor.open()"
               (click)="editor.toggle()"
             >
@@ -149,14 +156,19 @@ import { Settings } from './settings';
 
         @if (download.wanted) {
           @if (download.available()) {
-            <button icon-btn id="nav-download" title="Download as PDF" (click)="download.save()">
+            <button
+              icon-btn
+              id="nav-download"
+              [title]="'nav.download' | t"
+              (click)="download.save()"
+            >
               <div class="i-carbon:download"></div>
             </button>
           } @else {
             <button
               icon-btn
               id="nav-download"
-              title="Download as PDF (not in this build)"
+              [title]="'nav.downloadMissing' | t"
               [disabled]="true"
             >
               <div class="i-carbon:download"></div>
@@ -165,7 +177,7 @@ import { Settings } from './settings';
         }
 
         @if (!nav.isPresenter) {
-          <button icon-btn id="nav-info" title="Show info" (click)="ui.info.set(!ui.info())">
+          <button icon-btn id="nav-info" [title]="'nav.info' | t" (click)="ui.info.set(!ui.info())">
             <div class="i-carbon:information"></div>
           </button>
         }
@@ -176,7 +188,7 @@ import { Settings } from './settings';
           <button
             icon-btn
             id="nav-layout"
-            title="Toggle Presenter Layout"
+            [title]="'nav.layout' | t"
             class="aspect-ratio-initial flex items-center"
             (click)="prefs.nextLayout()"
           >
@@ -189,7 +201,7 @@ import { Settings } from './settings';
           <button
             icon-btn
             id="nav-settings"
-            title="More Options"
+            [title]="'nav.settings' | t"
             [active]="ui.settings()"
             (click)="ui.settings.set(!ui.settings())"
           >
@@ -197,14 +209,14 @@ import { Settings } from './settings';
             @if (filtered()) {
               <div
                 id="nav-settings-dot"
-                class="w-2 h-2 bg-primary rounded-full absolute top-0.5 right-0.5"
+                class="w-2 h-2 bg-primary rounded-full absolute top-0.5 end-0.5"
               ></div>
             }
           </button>
           @if (ui.settings()) {
             <div
               id="settings-menu"
-              class="bg-main text-main shadow-xl absolute bottom-10 left-0 z-menu py-2 border border-main rounded-md"
+              class="bg-main text-main shadow-xl absolute bottom-10 start-0 z-menu py-2 border border-main rounded-md"
             >
               <app-settings />
             </div>

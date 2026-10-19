@@ -1,15 +1,17 @@
 import { Component, computed, input, output } from '@angular/core';
+import { T } from '../i18n/t';
 
 // A row of cells, one per click of the slide (Slidev's ClicksSlider). Click one to go there.
 @Component({
   selector: 'app-clicks-slider',
+  imports: [T],
   template: `
     <div
       class="flex gap-1 items-center select-none"
-      [title]="'Clicks in this slide: ' + cells().length"
+      [title]="'presenter.clicks' | t: { count: cells().length }"
       [class.op50]="cells().length < 2"
     >
-      <div class="flex items-center font-mono gap-0.2 min-w-16 mr-1">
+      <div class="flex items-center font-mono gap-0.2 min-w-16 me-1">
         <div class="i-carbon:cursor-1 text-sm op50"></div>
         <div class="flex-auto"></div>
         <span
@@ -23,11 +25,11 @@ import { Component, computed, input, output } from '@angular/core';
             type="button"
             class="clicks-cell border-y border-main overflow-hidden relative flex items-center justify-center text-xs"
             [class.cursor-pointer]="!readonly()"
-            [class.border-l]="i === start()"
-            [class.border-r]="i === total()"
+            [class.border-s]="i === start()"
+            [class.border-e]="i === total()"
             [style.width.%]="100 / cells().length"
             [disabled]="readonly()"
-            [attr.aria-label]="'Click ' + i"
+            [attr.aria-label]="'presenter.click' | t: { no: i }"
             [attr.aria-current]="i === current() ? 'step' : null"
             (click)="pick(i)"
           >

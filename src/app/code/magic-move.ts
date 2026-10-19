@@ -17,6 +17,7 @@ import {
 } from '@angular/core';
 import type { KeyedTokensInfo } from '@shikijs/magic-move/types';
 import { CLICKS_MAX, ClickInfo, ClicksContext, RawSingleAt } from '../lib/clicks';
+import { T } from '../i18n/t';
 import { copyText } from './copy';
 import { highlightLines } from './ranges';
 import { unpack } from './unpack';
@@ -34,6 +35,7 @@ export function stepAt(ranges: string[][], clickCount: number, stepCount: number
 
 @Component({
   selector: 'slide-ng-magic-move',
+  imports: [T],
   // While the animation code and the steps load, the host has `data-slide-ng-waitfor` (like the Mermaid block), so an exporter can wait.
   host: {
     class: 'slidev-code-wrapper slidev-code-magic-move relative group',
@@ -50,7 +52,7 @@ export function stepAt(ranges: string[][], clickCount: number, stepCount: number
       <button
         class="slidev-code-copy absolute right-0 transition opacity-0 group-hover:opacity-20 hover:!opacity-100"
         [class]="title() ? 'top-10' : 'top-0'"
-        [attr.title]="copied() ? 'Copied' : 'Copy'"
+        [attr.title]="(copied() ? 'code.copied' : 'code.copy') | t"
         (click)="copy()"
       >
         <span

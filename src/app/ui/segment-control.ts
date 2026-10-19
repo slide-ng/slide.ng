@@ -22,8 +22,8 @@ export function hashHue(name: string): number {
           class="px-2 py-1 text-xs font-mono whitespace-nowrap rounded cursor-pointer"
           [class.op50]="o.value !== value()"
           [attr.aria-pressed]="o.value === value()"
-          [style.color]="o.value === value() ? hsla(o.label, 1) : null"
-          [style.background]="o.value === value() ? hsla(o.label, 0.1) : null"
+          [style.color]="o.value === value() ? hsla(o.hue ?? o.label, 1) : null"
+          [style.background]="o.value === value() ? hsla(o.hue ?? o.label, 0.1) : null"
           (click)="changed.emit(o.value)"
         >
           {{ o.label }}
@@ -34,7 +34,8 @@ export function hashHue(name: string): number {
 })
 export class SegmentControl {
   private dark = inject(Dark);
-  options = input.required<{ id: string; label: string; value: unknown }[]>();
+  /** `hue` is the name the colour is made from (default: the label). */
+  options = input.required<{ id: string; label: string; hue?: string; value: unknown }[]>();
   value = input.required<unknown>();
   changed = output<unknown>();
   private light = computed(() => (this.dark.isDark() ? 60 : 20));

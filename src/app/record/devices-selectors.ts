@@ -1,15 +1,17 @@
 import { Component, inject } from '@angular/core';
+import { T } from '../i18n/t';
 import { Devices } from './devices';
 import { Recorder } from './recorder';
 
 // Settings entries for camera, microphone, mirroring and what the recording captures.
 @Component({
   selector: 'app-devices-selectors',
+  imports: [T],
   template: `
     @if (devices.available) {
       <div class="flex flex-col gap-1 text-sm">
         <label class="flex items-center gap-4">
-          <span class="mr-auto">Camera</span>
+          <span class="me-auto">{{ 'settings.camera' | t }}</span>
           <select
             id="camera-select"
             class="bg-main border border-main rounded max-w-40"
@@ -17,14 +19,14 @@ import { Recorder } from './recorder';
             (change)="devices.cameraId.set($any($event.target).value)"
             (focus)="devices.refresh()"
           >
-            <option value="">Default</option>
+            <option value="">{{ 'settings.defaultDevice' | t }}</option>
             @for (d of devices.cameras(); track d.deviceId) {
-              <option [value]="d.deviceId">{{ d.label || 'Camera' }}</option>
+              <option [value]="d.deviceId">{{ d.label || ('settings.camera' | t) }}</option>
             }
           </select>
         </label>
         <label class="flex items-center gap-4">
-          <span class="mr-auto">Microphone</span>
+          <span class="me-auto">{{ 'settings.microphone' | t }}</span>
           <select
             id="mic-select"
             class="bg-main border border-main rounded max-w-40"
@@ -32,14 +34,14 @@ import { Recorder } from './recorder';
             (change)="devices.micId.set($any($event.target).value)"
             (focus)="devices.refresh()"
           >
-            <option value="">Default</option>
+            <option value="">{{ 'settings.defaultDevice' | t }}</option>
             @for (d of devices.mics(); track d.deviceId) {
-              <option [value]="d.deviceId">{{ d.label || 'Microphone' }}</option>
+              <option [value]="d.deviceId">{{ d.label || ('settings.microphone' | t) }}</option>
             }
           </select>
         </label>
         <label class="flex items-center gap-4 cursor-pointer">
-          <span class="mr-auto">Mirror camera</span>
+          <span class="me-auto">{{ 'settings.mirrorCamera' | t }}</span>
           <input
             type="checkbox"
             id="camera-mirror"
@@ -48,7 +50,7 @@ import { Recorder } from './recorder';
           />
         </label>
         <div class="flex items-center gap-4">
-          <span class="mr-auto">Record</span>
+          <span class="me-auto">{{ 'settings.record' | t }}</span>
           <div class="flex rounded border border-main overflow-hidden">
             <button
               type="button"
@@ -57,7 +59,7 @@ import { Recorder } from './recorder';
               [class.bg-active]="recorder.source() === 'screen'"
               (click)="recorder.source.set('screen')"
             >
-              Screen
+              {{ 'settings.recordScreen' | t }}
             </button>
             <button
               type="button"
@@ -66,7 +68,7 @@ import { Recorder } from './recorder';
               [class.bg-active]="recorder.source() === 'camera'"
               (click)="recorder.source.set('camera')"
             >
-              Camera
+              {{ 'settings.recordCamera' | t }}
             </button>
           </div>
         </div>
