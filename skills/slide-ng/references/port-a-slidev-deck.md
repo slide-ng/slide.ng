@@ -11,17 +11,17 @@ This was done on a real talk (25 slides, 4 Vue components, a global footer layer
 
 List the original folder before you touch anything and decide for each item where it goes. Never modify the original deck.
 
-| Slidev                                               | slide.ng                                                                                                                   |
-| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `slides.md`, headmatter                              | `slides.md`, same shape; fix keys (step 2)                                                                                 |
-| `components/*.vue`                                   | `components/*.ts` standalone components (step 3)                                                                           |
-| `global-top.vue`, `global-bottom.vue`, `slide-*.vue` | `layers/global-top.ts`, ... with a default export (step 4)                                                                 |
-| `style.css`, `styles/index.css`                      | `styles/index.css` (step 5)                                                                                                |
-| `public/`                                            | `public/`, copied as is                                                                                                    |
-| `pages/*.md` (`src:`), `snippets/*.ts` (`<<<`)       | the same paths; both work unchanged                                                                                        |
-| `scripts/`, `package.json` scripts                   | keep the scripts, rename `slidev` to `slide-ng` (step 6)                                                                   |
-| `setup/*.ts`, `layouts/*.vue`, `vite.config.ts`      | `setup/*.ts` and `layouts/*.ts` are rewritten (see `setup-overview.md`, `layout-custom.md`); Vite config has no equivalent |
-| `uno.config.ts`                                      | `uno.config.mjs`                                                                                                           |
+| Slidev                                                                          | slide.ng                                                                                                                   |
+| ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `slides.md`, headmatter                                                         | `slides.md`, same shape; fix keys (step 2)                                                                                 |
+| `components/*.vue`                                                              | `components/*.ts` standalone components (step 3)                                                                           |
+| `global-top.vue`, `global-bottom.vue`, `slide-*.vue`, `custom-nav-controls.vue` | `layers/global-top.ts`, ..., `layers/custom-nav-controls.ts` with a default export (step 4)                                |
+| `style.css`, `styles/index.css`                                                 | `styles/index.css` (step 5)                                                                                                |
+| `public/`                                                                       | `public/`, copied as is                                                                                                    |
+| `pages/*.md` (`src:`), `snippets/*.ts` (`<<<`)                                  | the same paths; both work unchanged                                                                                        |
+| `scripts/`, `package.json` scripts                                              | keep the scripts, rename `slidev` to `slide-ng` (step 6)                                                                   |
+| `setup/*.ts`, `layouts/*.vue`, `vite.config.ts`                                 | `setup/*.ts` and `layouts/*.ts` are rewritten (see `setup-overview.md`, `layout-custom.md`); Vite config has no equivalent |
+| `uno.config.ts`                                                                 | `uno.config.mjs`                                                                                                           |
 
 Search the deck for what will break: `v-`, `<[A-Z]`, `<[a-z-]*:[a-z]` (icons), `\$slidev`, `\$clicks`, `\$nav`, `<script`, `comark`, `mdc`, `--uno`, `flex="`, `border="` (attributify).
 
