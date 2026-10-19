@@ -31,6 +31,7 @@ Makes a static site in `dist/`. Hosting is described in [HOSTING.md](HOSTING.md)
 | `--offline`         | a folder that opens from disk (`file://`), with no server; cannot be combined with `--base` |
 | `--download`        | also export a PDF and offer it in the bar (like headmatter `download: true`)                |
 | `--without-notes`   | leave the speaker notes out of the site                                                     |
+| `--router-mode`     | `history`, `hash` or `memory`: replaces the headmatter's `routerMode` for this build        |
 | `--theme`, `-t`     | use this theme instead of the headmatter's                                                  |
 | `--executable-path` | the Chromium to use for the PDF and the Open Graph picture (or `CHROME_PATH`)               |
 | `--no-sandbox`      | run that Chromium without its sandbox (root or containers, trusted decks only)              |

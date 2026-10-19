@@ -25,12 +25,12 @@ description: The slide-ng command, its subcommands, flags and how to check that 
 | command          | flags                                                                                                                                                                                                                                                                                                           |
 | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `dev`            | `--port`/`-p` (4230), `--open`/`-o`, `--remote[=password]`, `--bind <address>`, `--log error\|warn\|info\|silent`, `--force`/`-f` (clear the build cache), `--theme`/`-t`                                                                                                                                       |
-| `build`          | `--out`/`-o` (`dist`), `--base /talk/`, `--offline`, `--download`, `--without-notes`, `--theme`/`-t`, `--executable-path`, `--no-sandbox`, `--allow-local`, `--timeout`                                                                                                                                         |
+| `build`          | `--out`/`-o` (`dist`), `--base /talk/`, `--offline`, `--download`, `--without-notes`, `--router-mode history\|hash\|memory`, `--theme`/`-t`, `--executable-path`, `--no-sandbox`, `--allow-local`, `--timeout`                                                                                                  |
 | `export`         | `--format pdf\|png\|pptx\|md`, `--output`/`-o`, `--range 1,4-5`, `--with-clicks`/`-c`, `--dark`, `--timeout`, `--wait`, `--wait-until`, `--executable-path`, `--no-sandbox`, `--allow-local`, `--per-slide`, `--scale`, `--omit-background`, `--with-toc`, `--theme`/`-t`, `--dist <folder>`, `--url <address>` |
 | `create`         | `<folder>`, `--force`/`-f`                                                                                                                                                                                                                                                                                      |
 | `skills install` | `--dir <folder>` (default `.agents/skills`; the skill goes in `<dir>/slide-ng`), `--force`/`-f`                                                                                                                                                                                                                 |
 
-An unknown flag is an error. `--tunnel` and dev `--base` are refused with a message; `build --router-mode` does not exist (use `routerMode` in the headmatter).
+An unknown flag is an error. `--tunnel` and dev `--base` are refused with a message.
 
 ## Rules for agents
 

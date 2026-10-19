@@ -694,7 +694,7 @@ Put the element directly in the slide (not inside a positioned wrapper), as in S
 canvasWidth: 980 # default 980, like Slidev
 aspectRatio: 16/9 # or 4/3, 1.6 ...
 zoom: 0.8 # all slides; a slide's own `zoom:` wins
-routerMode: hash # addresses look like /#/3 (default: history)
+routerMode: hash # addresses look like /#/3 (default: history; memory never changes the address)
 ---
 ```
 

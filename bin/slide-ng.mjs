@@ -39,6 +39,7 @@ const COMMAND_HELP = {
   --offline             a folder that opens from disk (not with --base)
   --download            also make the PDF and offer it in the bar
   --without-notes       leave the speaker notes out
+  --router-mode <mode>  history, hash or memory, instead of the headmatter's routerMode
   --theme, -t <name>    use this theme instead of the headmatter's
   --executable-path, --no-sandbox, --allow-local, --timeout   Chromium for the PDF and the Open Graph picture`,
   export: `slide-ng export [slides.md]  make a PDF, PNG, PPTX or Markdown file

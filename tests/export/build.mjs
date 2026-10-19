@@ -401,6 +401,48 @@ t.ok('without pwa there is no badge', (await pageB.locator('#offline-badge').cou
 await pageB.close();
 await servedB.close();
 
+// ---- deck B again with --router-mode memory: the flag wins over `routerMode: hash`, the address never changes
+const siteM = join(scratch, 'site-m');
+await cli(
+  [
+    'build',
+    join(dirB, 'slides.md'),
+    '--router-mode',
+    'memory',
+    '--base',
+    '/m/',
+    '--download',
+    '--out',
+    siteM,
+  ],
+  dirB,
+);
+const pdfM = join(siteM, 'slides-export.pdf');
+t.ok(
+  'memory routing: the PDF of --download still has one page per slide (the print page is read from the address)',
+  existsSync(pdfM) && /Pages:\s+2/.test(execFileSync('pdfinfo', [pdfM], { encoding: 'utf8' })),
+  readdirSync(siteM).join(),
+);
+const servedM = await serveDirectory(siteM, '/m/');
+const pageM = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+await pageM.goto(`${servedM.origin}/m/2`);
+const hudM = () => pageM.locator('#hud').innerText();
+await pageM.waitForFunction(() =>
+  /clicks \d+\/\d+/.test(document.querySelector('#hud')?.innerText ?? ''),
+);
+t.ok('memory routing: a deep link opens slide 1', (await hudM()).startsWith('slide 1/2'));
+await pageM.keyboard.press('ArrowRight');
+await pageM.waitForFunction(() =>
+  (document.querySelector('#hud')?.innerText ?? '').startsWith('slide 2/2'),
+);
+t.ok(
+  'memory routing: moving to slide 2 leaves the address as it was',
+  pageM.url() === `${servedM.origin}/m/2`,
+  pageM.url(),
+);
+await pageM.close();
+await servedM.close();
+
 // ---- refusals: a folder with other files, and a base that is not a plain path
 const precious = join(scratch, 'precious');
 mkdirSync(precious);
@@ -430,6 +472,18 @@ t.ok(
   (await refuse(['build', join(dirB, 'slides.md'), '--base', '/a/../b/'])).includes(
     '--base must be a path',
   ),
+);
+t.ok(
+  '--router-mode takes history, hash or memory only',
+  (await refuse(['build', join(dirB, 'slides.md'), '--router-mode', 'abstract'])).includes(
+    '--router-mode must be one of history, hash, memory',
+  ),
+);
+t.ok(
+  '--offline with --router-mode memory is refused',
+  (
+    await refuse(['build', join(dirB, 'slides.md'), '--offline', '--router-mode', 'memory'])
+  ).includes('cannot take --router-mode memory'),
 );
 t.ok(
   'an unknown flag is refused',

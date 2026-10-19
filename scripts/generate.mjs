@@ -111,6 +111,7 @@ async function generate() {
     deck.slides.forEach((s) => {
       s.note = null;
     });
+  if (build.routerMode) deck.headmatter.routerMode = build.routerMode;
   if (build.offline) applyOffline(deck.headmatter);
   deck.assetBase = build.building ? build.base : '/';
   mkdirSync(OUT, { recursive: true });

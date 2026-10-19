@@ -4,6 +4,7 @@ import { exportNotes, exportSlides, pagesToExport } from '../export/index.mjs';
 import { outputBase } from '../export/filename.mjs';
 import { EXPORT_FLAGS, resolveExportOptions } from '../export/options.mjs';
 import { serveDirectory } from '../export/static-server.mjs';
+import { addressMode } from '../lib/build-options.mjs';
 import { parseDeck } from '../lib/parse-deck.mjs';
 import { applyThemeFlag, parseFlags } from './flags.mjs';
 import { checkToolDir, removeInside } from '../lib/tool-dir.mjs';
@@ -17,7 +18,7 @@ export async function exportCommand(argv, { notes = false } = {}) {
   const deck = await parseDeck(entry);
   const options = resolveExportOptions(flags, deck.headmatter);
   pagesToExport(deck, options.range); // a range that picks no slide fails now, not after the build
-  const routerMode = deck.headmatter.routerMode === 'hash' ? 'hash' : 'history';
+  const routerMode = addressMode(deck.headmatter);
   const base = flags.base ?? '/';
 
   const outBase = outputBase({
@@ -43,7 +44,10 @@ export async function exportCommand(argv, { notes = false } = {}) {
     if (!dist) {
       workDir = join(dirname(entry), '.slide-ng', 'export-build');
       console.log('Building the deck for export...');
-      dist = buildDeck({ entry, workDir, base, quiet: true, folder: 'app-export' });
+      // Export opens pages by address, so a memory-routed deck is built with history routing for it (as Slidev's export mode).
+      const env =
+        deck.headmatter.routerMode === 'memory' ? { SLIDE_NG_ROUTER_MODE: 'history' } : {};
+      dist = buildDeck({ entry, workDir, base, quiet: true, folder: 'app-export', env });
     }
     const server = await serveDirectory(dist, base);
     served = { origin: server.origin, base };

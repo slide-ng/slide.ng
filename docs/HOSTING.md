@@ -40,6 +40,8 @@ The deck lives at `<base>`. Every slide is `<base><number>` (history mode, the d
 
 - **History mode** needs the host to answer unknown paths with `index.html`. That is what `404.html`, `_redirects` and the examples below do.
 - **Hash mode** (`routerMode: hash` in the headmatter) needs nothing from the host: the slide number is after the `#`. Use it on hosts where you cannot change this (a plain file share, some intranets).
+- **Memory mode** (`routerMode: memory`) never changes the address: the deck always opens at slide 1 and a link such as `<base>7` or `<base>presenter/1` opens slide 1 too. Use it for a kiosk or a deck shown inside another page. Only the print pages that export opens are read from the address, so `--download` and the Open Graph picture still work.
+- `slide-ng build --router-mode history|hash|memory` replaces the headmatter's `routerMode` for one build. `--offline` always uses hash mode.
 - `--base` is a path such as `/talk/`, not a full address. All files are found relative to it, so the same build works under any prefix as long as you built it for that prefix.
 
 ## GitHub Pages

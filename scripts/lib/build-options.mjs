@@ -4,6 +4,7 @@
 //   SLIDE_NG_DOWNLOAD=1       --download: the nav bar offers the PDF even if the headmatter does not say so
 //   SLIDE_NG_WITHOUT_NOTES=1  --without-notes: speaker notes are left out of the build
 //   SLIDE_NG_OFFLINE=1        --offline: a folder that opens from disk (base ./, hash routing, no service worker)
+//   SLIDE_NG_ROUTER_MODE=hash --router-mode: replaces the headmatter's `routerMode` (history, hash or memory)
 export function buildOptions(env = process.env) {
   return {
     building: env.SLIDE_NG_BUILD === '1',
@@ -11,7 +12,25 @@ export function buildOptions(env = process.env) {
     base: env.SLIDE_NG_BASE || '/',
     download: env.SLIDE_NG_DOWNLOAD === '1',
     withoutNotes: env.SLIDE_NG_WITHOUT_NOTES === '1',
+    routerMode: env.SLIDE_NG_ROUTER_MODE || null,
   };
+}
+
+export const ROUTER_MODES = ['history', 'hash', 'memory'];
+
+/** `--router-mode`: one of ROUTER_MODES, or undefined when the flag was not given. */
+export function checkRouterMode(mode) {
+  if (mode !== undefined && !ROUTER_MODES.includes(mode))
+    throw new Error(`--router-mode must be one of ${ROUTER_MODES.join(', ')}, got "${mode}"`);
+  return mode;
+}
+
+/**
+ * The router mode the exporter opens a built deck with. Memory routing does not read the address, except for the print
+ * pages the exporter opens (src/app/lib/memory-location.ts), so those are asked for with history addresses, like Slidev.
+ */
+export function addressMode(headmatter) {
+  return headmatter.routerMode === 'hash' ? 'hash' : 'history';
 }
 
 /** What an offline folder needs from the headmatter: hash routing (no server to answer `/3`) and no service worker. Changes it in place. */
