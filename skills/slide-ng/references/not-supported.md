@@ -12,7 +12,7 @@ If a feature is not listed as present in the other references, assume it is miss
 - MDC / Comark syntax (`comark: true`, `mdc: true`): not parsed; the generator warns and the syntax stays text.
 - `:emoji:` shortcodes (type the emoji itself).
 - `<script setup>`, Vue directives other than the slide.ng ones, a Vue-to-Angular converter.
-- `selectable`, `themeConfig`, `PoweredBySlidev`, `notesAutoRuby`.
+- `selectable`, `themeConfig`, `PoweredBySlidev`.
 - Slide hooks `onSlideEnter`, `onSlideLeave`, `useIsSlideActive`.
 - `<slide-ng-click>` as a tag, `.hide` modifiers (use `slide-ng-click-hide`), PascalCase tags, `--uno` in `<style>`.
 - UnoCSS attributify (`flex="~"`), variant groups (`hover:(a b)`), the typography preset (`prose`), `transformerDirectives`. Use plain classes.

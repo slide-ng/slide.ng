@@ -9,7 +9,7 @@ description: Speaker notes and the notes PDF
 - Notes are shown on `/presenter/<n>` and `/notes`.
 - `slide-ng export-notes` makes a PDF of the notes, see `export-notes.md`.
 - `slide-ng build --without-notes` leaves the notes out of the shipped site.
-- Notes auto ruby (`notesAutoRuby`) does not exist.
+- `notesAutoRuby: { word: reading }` in the headmatter wraps each listed word in `<ruby>word<rt>reading</rt></ruby>` in every slide's note HTML (longest words first; code spans, code blocks and tag attributes are left alone).
 
 <!-- verify -->
 

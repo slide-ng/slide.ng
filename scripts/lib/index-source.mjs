@@ -23,7 +23,7 @@ export function plainTitle(title) {
 }
 
 // What the app needs to know about one slide, besides its component.
-function metaOf(slide, index) {
+function metaOf(slide, index, rubyMap) {
   const f = slide.frontmatter;
   return {
     title: slide.title == null ? null : plainTitle(slide.title),
@@ -31,7 +31,7 @@ function metaOf(slide, index) {
     level: slide.level ?? null,
     layout: slide.layout ?? layoutName(f, index),
     note: slide.note ?? null,
-    noteHtml: noteToHtml(slide.note),
+    noteHtml: noteToHtml(slide.note, rubyMap),
     routeAlias: checkRouteAlias(f.routeAlias, index + 1),
     hideInToc: Boolean(f.hideInToc),
     transition: f.transition ?? null,
@@ -40,12 +40,14 @@ function metaOf(slide, index) {
 }
 
 export function indexSource(deck) {
+  // `notesAutoRuby` in the headmatter wraps listed words in <ruby> in the note HTML of every slide.
+  const rubyMap = deck.headmatter?.notesAutoRuby;
   const imports = deck.slides.map(
     (_, i) => `import ${slideClass(i + 1)} from './${slideName(i + 1)}';`,
   );
   const entries = deck.slides.map(
     (s, i) =>
-      `  { ${JSON.stringify(metaOf(s, i)).slice(1, -1)}, component: ${slideClass(i + 1)} },`,
+      `  { ${JSON.stringify(metaOf(s, i, rubyMap)).slice(1, -1)}, component: ${slideClass(i + 1)} },`,
   );
   // `info:` in the headmatter is markdown for the info dialog; we turn it into HTML here.
   const info =
