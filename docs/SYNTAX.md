@@ -211,6 +211,7 @@ Available in every slide without importing anything.
 | `<slide-ng-toc />`                                                                                                                                                                     | table of contents from the slides' `title` and `level`. Options: `columns="2"`, `listClass="..."`, `start="1"`, `listStyle="..."`, `minDepth`, `maxDepth`, `mode="all\|onlyCurrentTree\|onlySiblings"`                    |
 | `<slide-ng-current-no />`                                                                                                                                                              | the number of the slide it is on                                                                                                                                                                                          |
 | `<slide-ng-total />`                                                                                                                                                                   | the number of slides                                                                                                                                                                                                      |
+| `<slide-ng-progress-bar position="top" height="6" color="red" />`                                                                                                                      | a bar that shows how far through the deck the slide is, see Progress bar                                                                                                                                                  |
 | `<slide-ng-title-renderer />`, `no="3"`                                                                                                                                                | a slide's title as HTML (inline markdown and `$math$`); without `no`, the slide it is on                                                                                                                                  |
 | `<slide-ng-link to="3">text</slide-ng-link>`                                                                                                                                           | a link to slide 3, or to a `routeAlias`. (Called `slide-ng-link` because `link` is a built-in HTML tag.)                                                                                                                  |
 | `<slide-ng-light-or-dark>`                                                                                                                                                             | shows `<div dark>...</div>` in dark mode and `<div light>...</div>` in light mode                                                                                                                                         |
@@ -638,6 +639,28 @@ timer: countdown # or stopwatch (default)
 ```
 
 The presenter's mouse is shown on the audience page as a pointer or a red laser dot (settings menu, or the bar button).
+
+## Progress bar
+
+`progressBar` in the headmatter draws a thin bar along the edge of every slide that fills as the deck goes on: empty on the first slide,
+full on the last, and the clicks of a slide fill part of the way to the next one (the clicks of the last slide do not count, as in
+the presenter's bar). It is drawn on the audience page, the presenter's slide and next step, and in print and export.
+`progressBar: true` uses the defaults; an object sets the options:
+
+```md
+---
+progressBar:
+  position: top # or bottom (default)
+  height: 6 # slide pixels, default 4
+  color: '#e11d48' # default: the theme's primary colour
+  track: '#0001' # colour of the empty part, default transparent
+  clicks: false # count whole slides only (default true)
+  minutes: true # show the presenter timer's minutes (left of a countdown, passed on a stopwatch) while it runs
+---
+```
+
+`<slide-ng-progress-bar />` places the same bar yourself, in a slide or a layer, with the same options as attributes;
+`position="inline"` keeps it where it is written instead of on an edge. Not in Slidev, which has the bar on its presenter page only.
 
 ## Drawing
 

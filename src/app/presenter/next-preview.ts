@@ -14,13 +14,14 @@ import { hostSize } from '../lib/element-size';
 import { mountSlide } from '../lib/mount-slide';
 import { Nav } from '../lib/nav';
 import { SlideBase } from '../lib/slide-base';
+import { DeckProgressBar } from '../lib/deck-progress-bar';
 import { SlideLayer } from '../lib/slide-layer';
 
 // The next step as a small picture: the next click of this slide, or the next slide when the
 // clicks are used up. It is the real slide component with its click set to that step.
 @Component({
   selector: 'app-next-preview',
-  imports: [DrawingPreview, SlideLayer],
+  imports: [DrawingPreview, SlideLayer, DeckProgressBar],
   host: { class: 'block relative h-full w-full overflow-hidden' },
   template: `
     @if (frame(); as f) {
@@ -28,7 +29,10 @@ import { SlideLayer } from '../lib/slide-layer';
         <app-slide-layer name="global-bottom" [no]="f.no" /><ng-container #host /><app-slide-layer
           name="global-top"
           [no]="f.no"
-        /><app-drawing-preview [no]="f.no" />
+        /><app-drawing-preview [no]="f.no" /><app-deck-progress-bar
+          [no]="f.no"
+          [at]="{ current: f.clicks, total: f.no === nav.no() ? nav.clicksTotal() : 0 }"
+        />
       </div>
     } @else if (nav.ready()) {
       <div class="h-full flex justify-center items-center">

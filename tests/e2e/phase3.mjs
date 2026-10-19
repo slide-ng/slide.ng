@@ -42,6 +42,7 @@ for (const topic of [
   'camera',
   'settings',
   'drag',
+  'progress',
   'layout',
 ]) {
   if (only && only !== topic) continue;
