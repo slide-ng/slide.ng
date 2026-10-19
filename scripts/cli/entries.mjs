@@ -22,11 +22,13 @@ export function buildTargets(entries, { out, base, offline = false }) {
       throw new Error(
         `${entry}: with several decks each one is built into a folder named after its file, and "${name}" cannot be a folder name in an address; rename the file`,
       );
-    if (seen.has(name))
+    // macOS and Windows file systems ignore case, so Talk and talk are one folder there.
+    const key = name.toLowerCase();
+    if (seen.has(key))
       throw new Error(
-        `${seen.get(name)} and ${entry} would both be built into ${join(out, name)}; rename one of them`,
+        `${seen.get(key)} and ${entry} would both be built into ${join(out, name)}; rename one of them`,
       );
-    seen.set(name, entry);
+    seen.set(key, entry);
     return { entry, out: join(out, name), base: offline ? base : `${base}${name}/` };
   });
 }
@@ -45,10 +47,11 @@ export function checkExportFlags(entries, flags) {
 export function checkDistinctOutputs(entries, outBases) {
   const seen = new Map();
   outBases.forEach((outBase, i) => {
-    if (seen.has(outBase))
+    const key = outBase.toLowerCase(); // one file on a file system that ignores case
+    if (seen.has(key))
       throw new Error(
-        `${seen.get(outBase)} and ${entries[i]} would both be exported to ${outBase}; give one an exportFilename`,
+        `${seen.get(key)} and ${entries[i]} would both be exported to ${outBase}; give one an exportFilename`,
       );
-    seen.set(outBase, entries[i]);
+    seen.set(key, entries[i]);
   });
 }

@@ -38,6 +38,10 @@ describe('buildTargets', () => {
     expect(() => buildTargets([resolve('x/a.md'), resolve('y/a.md')], { out, base: '/' })).toThrow(
       'would both be built into',
     );
+    // One folder on macOS and Windows.
+    expect(() =>
+      buildTargets([resolve('x/Talk.md'), resolve('y/talk.md')], { out, base: '/' }),
+    ).toThrow('would both be built into');
     expect(() =>
       buildTargets([resolve('a.md'), resolve('my talk.md')], { out, base: '/' }),
     ).toThrow('cannot be a folder name');
@@ -54,6 +58,9 @@ describe('export checks', () => {
   it('refuses two decks that would write the same file', () => {
     expect(() => checkDistinctOutputs(['a', 'b'], ['/o/x', '/o/y'])).not.toThrow();
     expect(() => checkDistinctOutputs(['a', 'b'], ['/o/x', '/o/x'])).toThrow(
+      'would both be exported',
+    );
+    expect(() => checkDistinctOutputs(['a', 'b'], ['/o/Talk', '/o/talk'])).toThrow(
       'would both be exported',
     );
   });
