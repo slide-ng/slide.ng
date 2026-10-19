@@ -23,7 +23,7 @@ List the original folder before you touch anything and decide for each item wher
 | `setup/*.ts`, `layouts/*.vue`, `vite.config.ts`      | `setup/*.ts` and `layouts/*.ts` are rewritten (see `setup-overview.md`, `layout-custom.md`); Vite config has no equivalent |
 | `uno.config.ts`                                      | `uno.config.mjs`                                                                                                           |
 
-Search the deck for what will break: `v-`, `<[A-Z]`, `<[a-z-]*:[a-z]` (icons), `\$slidev`, `\$clicks`, `\$nav`, `<script`, `comark`, `mdc`, `--uno`, `flex="`, `border="` (attributify).
+Search the deck for what will break: `v-`, `<[A-Z]`, `<[a-z-]*:[a-z]` (icons), `\$slidev`, `\$clicks`, `\$nav`, `\$page` (they need a call, `$clicks()`), `<script`, `comark`, `mdc`, `--uno`, `flex="`, `border="` (attributify).
 
 Make a folder with `slide-ng create <folder>`, then copy the files over. When the package is not installed, link it: `mkdir -p node_modules/@slide-ng && ln -s <slide.ng checkout> node_modules/@slide-ng/core`.
 
@@ -33,7 +33,7 @@ Make a folder with `slide-ng create <folder>`, then copy the files over. When th
 - Delete `comark: true` and `mdc: true`. If the deck uses no `::name`, `{.class}` or `:::` MDC syntax, nothing changes. If it does, rewrite those bits as HTML.
 - Rename the directives: `v-click` to `slide-ng-click` (also on a component: `<angie-storm slide-ng-click />`), `v-click="4"` to `slide-ng-click="4"`, `v-after`, `v-click.hide`, `v-clicks`, `v-mark`, `v-motion`, `v-drag` as in `core-slidev-differences.md`. A `sed 's/\bv-click\b/slide-ng-click/g'` does the common case.
 - Rename tags: `<carbon:bookmark />` to `<carbon-bookmark />`, `<Toc />` to `<slide-ng-toc />`, your own `<CountUp />` to `<count-up />`.
-- `{{ }}` and `$clicks` in markdown: see the pitfalls below.
+- `{{ }}` and `$clicks` in markdown: `$clicks`, `$page`, `$renderContext` and the values of `$nav` are signals here, so add the call: `{{ $clicks() }}`, `@if ($page() === 2)`, `$nav.currentPage()`. See the pitfalls below.
 - Slide titles, notes, `disabled`, `hide`, `layout`, `class`, `routeAlias` need no change. A slide with a final HTML comment keeps it as its speaker note.
 
 ## 3. Components: Vue to Angular
@@ -48,7 +48,7 @@ A Vue SFC becomes one `.ts` file. The mapping:
 | `watch(source, cb)`, `onMounted`                   | `effect(() => ...)` in the constructor; `afterNextRender`                |
 | `onBeforeUnmount`                                  | `inject(DestroyRef).onDestroy(...)`                                      |
 | `useNav()` of `@slidev/client`                     | `inject(Nav)`: `no()`, `total`, `clicks()` (`core-injection.md`)         |
-| `$clicks`, `useNav().clicks` for this slide        | `inject(ClicksContext).current()`                                        |
+| `$clicks`, `useNav().clicks` for this slide        | `inject(ClicksContext).current()` (`$clicks()` in slide markup)          |
 | the slide's own number (`closest('.slidev-page')`) | `inject(SLIDE_NO)`                                                       |
 | `v-for`, `v-if`, `:class`, `:style`, `@click`      | `@for`, `@if`, `[class.x]="..."`, `[style]="..."`, `(click)="..."`       |
 | `import stats from '../stats.json'`                | `import stats from './stats.json'` with the file inside `components/`    |
@@ -161,7 +161,7 @@ export class CountUp {
 }
 ```
 
-A slide cannot read `$clicks` in markdown. A tiny component that exposes the clicks of its slide replaces it, and a template reference (`#cs`) reads it:
+In markdown, `$clicks()` reads the clicks of the slide. For values computed from it, a tiny component that exposes them and a template reference (`#cs`) work well:
 
 <!-- verify-file: components/click-state.ts -->
 
@@ -281,7 +281,7 @@ Compare with screenshots, one per slide and per click state:
 ## 8. Final checklist
 
 - [ ] `slide-ng build` ends with `Built N slides`; `slide-ng dev` shows no `[slides]` warnings.
-- [ ] No `v-`, `<[A-Z]`, `<x:y`, `$slidev`, `$clicks`, `<script`, `comark` left in `slides.md`.
+- [ ] No `v-`, `<[A-Z]`, `<x:y`, `<script`, `comark` left in `slides.md`; every `$clicks`, `$page`, `$nav.currentPage` is called (no `[slides]` warning).
 - [ ] Every Vue component has a `.ts` twin; each uses `input()` and signals, not `ref`.
 - [ ] Global layers are in `layers/` with a default export.
 - [ ] Screenshots of every slide, initial and all clicks, compared with the original.
@@ -291,7 +291,7 @@ Compare with screenshots, one per slide and per click state:
 
 ## Pitfalls
 
-- **`$clicks` in markdown.** There is no global. Add a `click-state` component (step 3) and read it through `#ref`. In a component inject `ClicksContext` (this slide) or `Nav` (the shown slide).
+- **`$clicks` in markdown.** It is a signal: write `{{ $clicks() }}` and `@if ($clicks() > 2)`; the generator warns about `{{ $clicks }}`. In a component inject `ClicksContext` (this slide) or `Nav` (the shown slide).
 - **A literal `{{ x }}` in HTML.** Use Angular's `ngNonBindable` where Slidev uses `v-pre` (`<span ngNonBindable>{{ x }}</span>`), or write the braces as `\{\{` or `&#123;&#123;` in text. Inside code fences and inline code it is plain text, no change needed.
 - **Relative imports from components.** The `components/` folder is copied into the generated app, so `import x from '../stats.json'` points nowhere (`Could not resolve`). Put data next to the component and import `./stats.json`, or import from the `slide-ng/` alias. Only the folders `layouts`, `components`, `layers`, `styles`, `public`, `setup` are copied.
 - **A component class named like a built-in** (`Counter`) silently replaces it. Use another name.
@@ -304,7 +304,7 @@ Compare with screenshots, one per slide and per click state:
 - **The dev console prints `NG0913`** for big images. It is Angular's own dev hint about image size, not an error.
 - **Do not edit `scripts/lib/registry.mjs` or `src/app`** to add a component; use `components/`.
 - **Template slots.** Slidev's `<template #1>` children of `<v-switch>` and `<template #dark>` of `<LightOrDark>` render nothing here, without a warning. Write `<div at="1">` children for `<slide-ng-switch>` and `<div dark>` / `<div light>` for `<slide-ng-light-or-dark>`.
-- **`@click="$slidev.nav.next"`.** There is no `$slidev`. Put a small component in `components/` that injects `Nav` and calls `nav.next()` from a button, or inject `Nav` in an existing one.
+- **`@click="$slidev.nav.next"`.** Write `(click)="$slidev.nav.next()"` (Angular calls the method in the event binding). `$slidev.configs` and `$slidev.themeConfigs` work as in Slidev.
 - **The theme.** Keep `theme:` only for a theme that exists for slide.ng: a Slidev theme name such as `seriph` is looked up as `@slide-ng/theme-seriph` and stops the build when that is not installed. Use `default`, a folder, or a published slide.ng theme.
 - **Self-closing HTML tags.** Vue accepts `<div />`; Angular stops with NG5002. Write `<div></div>` (components and `<img />`, `<br />` are fine).
 - **Named slots.** A Vue `<template #title>` / `v-slot:title` of your own component becomes an element with an attribute (`<span slot-title>`) and `<ng-content select="[slot-title]" />` in the component. Layout slots are `::name::` lines.

@@ -554,6 +554,35 @@ Rules, so the markdown converter does not break your Angular code:
 - Slides have no component class of their own. To share state between parts of a slide use template
   references (`<app-counter #c />` then `{{ c.n() }}`) or `@let`.
 
+### The global context: `$clicks`, `$page`, `$nav`, `$frontmatter`, `$slidev`
+
+Every slide has Slidev's global context, under the same names. The values that change are Angular signals, so they are called:
+
+| name                   | what it is                                                                                                                         |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `$clicks()`            | the current click of this slide                                                                                                    |
+| `$page()`              | this slide's number (1-based)                                                                                                      |
+| `$renderContext()`     | where the slide is drawn: `slide`, `presenter`, `previewNext`, `print` or `overview`                                               |
+| `$frontmatter`         | this slide's frontmatter: `{{ $frontmatter.title }}`                                                                               |
+| `$nav`                 | the navigation: `currentPage()`, `currentLayout()`, `currentFrontmatter()`, `total`, `clicks()`, `next()`, `prev()`, `go(no)`, ... |
+| `$slidev.nav`          | the same as `$nav`                                                                                                                 |
+| `$slidev.configs`      | the headmatter: `{{ $slidev.configs.title }}`                                                                                      |
+| `$slidev.themeConfigs` | the headmatter's `themeConfig` (merged with the theme's)                                                                           |
+
+```md
+Slide {{ $page() }} of {{ $nav.total }}
+
+@if ($clicks() > 1) {
+Shown from the second click.
+}
+
+<button (click)="$nav.go(1)">Back to the start</button>
+```
+
+Vue reads `$clicks` without the call; here `{{ $clicks }}` would print the signal's function, so the generator warns about the
+uncalled forms (`$clicks`, `$page`, `$renderContext`, `$nav.currentPage`, ...). `{{ clicks.current() }}` is the older spelling of `{{ $clicks() }}`.
+`$page()` is the number of the slide that is drawn, `$nav.currentPage()` the one on screen; they differ in thumbnails and the PDF.
+
 ## Showing code that contains braces
 
 Code fences and inline code are always plain text. Nothing inside them is read as Angular:
