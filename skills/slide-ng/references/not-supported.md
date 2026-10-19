@@ -14,14 +14,14 @@ If a feature is not listed as present in the other references, assume it is miss
 - `<script setup>`, Vue directives other than the slide.ng ones, a Vue-to-Angular converter.
 - `selectable`, `themeConfig`, `PoweredBySlidev`.
 - Slide hooks `onSlideEnter`, `onSlideLeave`, `useIsSlideActive`.
-- `<slide-ng-click>` as a tag, `.hide` modifiers (use `slide-ng-click-hide`), PascalCase tags, `--uno` in `<style>`.
+- `<slide-ng-click>` as a tag, `.hide` modifiers (a warning; use `slide-ng-click-hide`), PascalCase tags, `--uno` in `<style>`.
 - UnoCSS attributify (`flex="~"`), variant groups (`hover:(a b)`), the typography preset (`prose`), `transformerDirectives`. Use plain classes.
 - markdown-it typographer (smart quotes, `--`, `...`) and `v-pre` (use `ngNonBindable`, or `&#123;&#123;` for a literal `{{`).
 - `colorSchema: all`. `routerMode: memory`, `setup/routes.ts`.
 
 **Animation**
 
-- Custom transition objects (Vue `TransitionGroupProps`, class names), `clickAnimation`, `preloadImages`, slide `preload`.
+- Custom transition objects (Vue `TransitionGroupProps`, class names), `preloadImages`, slide `preload`.
 - `slide-ng-motion` presets, springs, `hovered`, `tapped`, `focused`, `visible`, keyframe lists.
 
 **Code**

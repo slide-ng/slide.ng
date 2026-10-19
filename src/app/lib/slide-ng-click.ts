@@ -1,5 +1,6 @@
 // The slide-ng-click directive: <div slide-ng-click>, <div slide-ng-click="3">, <div [slide-ng-click]="[2,4]">,
-// <div slide-ng-after>, <div slide-ng-click-hide>. Port of Slidev's slide-ng-click / slide-ng-after directives.
+// <div slide-ng-after>, <div slide-ng-click-hide>. Port of Slidev's v-click / v-after directives.
+// Presets: `slide-ng-click.fade.right` in markdown becomes `click-anim="fade.right"` (scripts/lib/directives.mjs).
 import {
   Directive,
   ElementRef,
@@ -11,6 +12,7 @@ import {
   signal,
   booleanAttribute,
 } from '@angular/core';
+import { clickAnimationClasses } from './click-animation';
 import { ClickInfo, ClicksContext, RawAt } from './clicks';
 
 /** Works out whether an element is hidden / current / prior (port of Slidev's class logic). */
@@ -43,9 +45,12 @@ export class SlideNgClick implements OnInit, OnDestroy {
   at = input<RawAt>(undefined, { alias: 'slide-ng-click' });
   after = input(false, { alias: 'slide-ng-after', transform: booleanAttribute });
   hide = input(false, { alias: 'slide-ng-click-hide', transform: booleanAttribute });
+  /** Click animation presets of this element, such as `fade.right` (the slide's `clickAnimation` when there are none). */
+  animation = input<string | string[] | undefined>(undefined, { alias: 'click-anim' });
 
   private ctx = inject(ClicksContext);
   private el = inject<ElementRef<Element>>(ElementRef).nativeElement;
+  private animationClasses = clickAnimationClasses();
   info = signal<ClickInfo | null>(null);
   state = stateOf(
     this.ctx,
@@ -62,6 +67,7 @@ export class SlideNgClick implements OnInit, OnDestroy {
   ngOnInit() {
     this.place();
     this.ctx.track(this, this.el, () => this.place());
+    if (this.info()) this.el.classList.add(...this.animationClasses(this.animation()));
   }
 
   private place() {

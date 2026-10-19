@@ -14,6 +14,16 @@ Add the attribute to any HTML element.
 <div [slide-ng-click]="[2, 4]">Shows from click 2 until click 4, then hides</div>
 <div slide-ng-after>Same click as the element before it (a relative +0)</div>
 <div slide-ng-click="2" slide-ng-click-hide>Visible first, hides at click 2</div>
+
+---
+clickAnimation: up
+---
+
+# Presets
+
+<div slide-ng-click>Comes up from below</div>
+<div slide-ng-click.fade.right>Dimmed, then slides in from the left</div>
+<div slide-ng-click.none>No animation</div>
 ```
 
 Two forms because of how Angular reads attributes:
@@ -21,7 +31,9 @@ Two forms because of how Angular reads attributes:
 - `slide-ng-click="3"` and `slide-ng-click="+2"` are plain text that slide.ng turns into a number or a relative step.
 - `[slide-ng-click]="[2, 4]"` is an Angular binding: use it for ranges and for any computed value.
 
-Do not write the Vue forms (`v-click`, `<v-click>`): the old names stop the build with a `renamed to slide-ng-click` message, `<slide-ng-click>` as a tag is a build error, and `slide-ng-click.hide` / `slide-ng-click.hide="2"` are silently ignored. Use `slide-ng-click-hide`.
+Do not write the Vue forms (`v-click`, `<v-click>`): the old names stop the build with a `renamed to slide-ng-click` message, `<slide-ng-click>` as a tag is a build error, and `slide-ng-click.hide` only prints a warning. Use `slide-ng-click-hide`.
+
+Click animation presets (how a hidden element looks): `clickAnimation: up` in the headmatter or a slide's frontmatter (the slide wins), or modifiers that win over both: `slide-ng-click.fade.right="2"`, `slide-ng-after.scale`, `slide-ng-click.none`, `<slide-ng-clicks animation="fade up">`. Presets: `fade` (0.5 opacity while hidden), `fade-in`, `up`, `down`, `left`, `right` (20px), `scale` (0.9), `none` (no transition). A custom preset is CSS on `.slidev-vclick-anim-<name>.slidev-vclick-hidden`.
 
 - Total clicks of a slide = the largest click number its elements ask for. `clicks: N` in the frontmatter fixes it; `clicksStart` sets the first click (default 0).
 - The order of elements in the template is what makes `+1` relative work.

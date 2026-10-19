@@ -106,6 +106,14 @@ export async function run({ t, base, browser, problems }) {
     visible.length === 3 && visible.join() === '0,1,1',
     visible.join(),
   );
+  const moved = await page
+    .locator('#c1')
+    .evaluateAll((l) => l.map((e) => getComputedStyle(e).translate));
+  t.ok(
+    'a click animation preset is drawn at once on paper: .up while hidden, in place when shown',
+    moved.join() === '0px 20px,none,none',
+    moved.join(),
+  );
   await page.close();
 
   page = await printPage('?range=2,4-5');
