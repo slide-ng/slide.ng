@@ -34,7 +34,7 @@ const SAVE_DELAY = 500; // Slidev's NoteEditable waits as long
       [class.italic]="!text()"
       [placeholder]="'No notes for Slide ' + no() + '.'"
       [value]="text()"
-      [disabled]="status() === 'loading'"
+      [disabled]="status() === 'loading' || !loaded()"
       (input)="edit($any($event.target).value)"
       (keydown)="keydown($event)"
       (keyup)="remember()"
@@ -60,6 +60,8 @@ export class NoteEditor {
   private area = viewChild<ElementRef<HTMLTextAreaElement>>('area');
   protected text = signal('');
   protected status = signal<Status>('loading');
+  /** The slide's markdown arrived; without it nothing may be written (the note would replace the whole slide). */
+  protected loaded = signal(false);
   private base = ''; // the slide's markdown as it was last read or saved here
   private loadedNo = 0;
   private timer?: ReturnType<typeof setTimeout>;
@@ -85,11 +87,13 @@ export class NoteEditor {
   private async load(no: number) {
     await this.flush();
     this.status.set('loading');
+    this.loaded.set(false);
     const got = await this.api.get<{ raw: string }>(`/slides/${no}/source`);
     if (this.no() !== no) return;
     this.loadedNo = no;
     this.base = got?.raw ?? '';
     this.text.set(noteOf(this.base));
+    this.loaded.set(!!got);
     this.status.set(got ? 'saved' : 'error');
     afterNextRender(
       () => {
@@ -144,7 +148,7 @@ export class NoteEditor {
   }
 
   private async flush() {
-    if (this.timer === undefined) return;
+    if (this.timer === undefined || !this.loaded()) return;
     clearTimeout(this.timer);
     this.timer = undefined;
     const raw = withNote(this.base, this.text());
