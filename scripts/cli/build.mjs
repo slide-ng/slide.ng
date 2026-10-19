@@ -1,5 +1,6 @@
 // The `build` command: a static copy of the deck that any web server can host.
-//   slide-ng build [slides.md] [--base /talk/] [--out dist] [--download] [--without-notes]
+//   slide-ng build [slides.md..] [--base /talk/] [--out dist] [--download] [--without-notes]
+// Several entries are built one after another into <out>/<name>/ (see entries.mjs).
 import { copyFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { makeOffline } from '../build/offline.mjs';
@@ -16,6 +17,7 @@ import { parseDeck } from '../lib/parse-deck.mjs';
 import { applyThemeFlag, parseFlags } from './flags.mjs';
 import { checkClaimable, publishDirectory } from './safe-dir.mjs';
 import { checkToolDir, removeInside } from '../lib/tool-dir.mjs';
+import { buildTargets, deckEntries } from './entries.mjs';
 import { buildDeck } from './runtime.mjs';
 
 export const BUILD_FLAGS = {
@@ -43,15 +45,25 @@ export function normalizeBase(base = '/') {
 export async function buildCommand(argv) {
   const { flags, positionals } = parseFlags(argv, BUILD_FLAGS);
   applyThemeFlag(flags);
-  const entry = resolve(positionals[0] ?? 'slides.md');
-  const root = dirname(entry);
-  checkToolDir(root); // before anything is written or removed under .slide-ng
+  const entries = deckEntries(positionals);
   const offline = Boolean(flags.offline);
   if (offline && flags.base)
     throw new Error('--offline builds a folder that works at any path, so it cannot take --base');
-  const base = offline ? './' : normalizeBase(flags.base);
-  const out = resolve(flags.out ?? 'dist');
-  checkClaimable(out); // fail now, not after a long build
+  const targets = buildTargets(entries, {
+    out: resolve(flags.out ?? 'dist'),
+    base: offline ? './' : normalizeBase(flags.base),
+    offline,
+  });
+  for (const target of targets) {
+    checkToolDir(dirname(target.entry)); // before anything is written or removed under .slide-ng
+    checkClaimable(target.out); // fail now, not after a long build
+  }
+  // One deck after another, so only one Angular build runs at a time.
+  for (const target of targets) await buildOne({ ...target, flags, offline });
+}
+
+async function buildOne({ entry, out, base, flags, offline }) {
+  const root = dirname(entry);
   const deck = await parseDeck(entry);
   const head = deck.headmatter;
   if (offline) applyOffline(head);

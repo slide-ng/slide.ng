@@ -33,7 +33,7 @@ const COMMAND_HELP = {
   --log <level>         error, warn, info (default) or silent
   --force, -f           clear the Angular build cache first
   --theme, -t <name>    use this theme instead of the headmatter's`,
-  build: `slide-ng build [slides.md]  make a static site
+  build: `slide-ng build [slides.md ...]  make a static site (several decks: one folder each in --out)
   --out, -o <dir>       output folder (default dist)
   --base </path/>       the path the site is served from
   --offline             a folder that opens from disk (not with --base)
@@ -41,17 +41,17 @@ const COMMAND_HELP = {
   --without-notes       leave the speaker notes out
   --theme, -t <name>    use this theme instead of the headmatter's
   --executable-path, --no-sandbox, --allow-local, --timeout   Chromium for the PDF and the Open Graph picture`,
-  export: `slide-ng export [slides.md]  make a PDF, PNG, PPTX or Markdown file
+  export: `slide-ng export [slides.md ...]  make a PDF, PNG, PPTX or Markdown file (one per deck)
   --format <f>          pdf (default), png, pptx or md
-  --output, -o <file>   the file (a folder for png)
+  --output, -o <file>   the file (a folder for png); one deck only
   --range <1,3-5>       slides to export
   --with-clicks, -c     one page per click step
   --dark                dark mode
   --per-slide, --with-toc, --scale <n>, --omit-background
   --timeout <ms>, --wait <ms>, --wait-until <state>
-  --dist <dir> | --url <address>   export a build or a running server instead of building
+  --dist <dir> | --url <address>   export a build or a running server instead of building; one deck only
   --base, --theme, -t, --executable-path, --no-sandbox, --allow-local`,
-  'export-notes': `slide-ng export-notes [slides.md]  make a PDF of the speaker notes
+  'export-notes': `slide-ng export-notes [slides.md ...]  make a PDF of the speaker notes (one per deck)
   --output, -o <file>, --range <1,3-5>, and the Chromium flags of export`,
   format: 'slide-ng format [slides.md ...]  tidy the markdown files in place',
   theme: `slide-ng theme eject [slides.md]  copy the theme into the deck's folder

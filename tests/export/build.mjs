@@ -401,6 +401,48 @@ t.ok('without pwa there is no badge', (await pageB.locator('#offline-badge').cou
 await pageB.close();
 await servedB.close();
 
+// ---- several decks in one run: one folder each under --out, with the base adjusted per deck (like Slidev)
+const multiDir = join(scratch, 'multi');
+mkdirSync(multiDir, { recursive: true });
+for (const name of ['alpha', 'beta'])
+  writeFileSync(join(multiDir, `${name}.md`), `---\ntitle: ${name}\n---\n\n# ${name}\n`);
+const siteMulti = join(scratch, 'site-multi');
+const multiOut = await cli(
+  [
+    'build',
+    join(multiDir, 'alpha.md'),
+    join(multiDir, 'beta.md'),
+    '--base',
+    '/decks/',
+    '--out',
+    siteMulti,
+  ],
+  multiDir,
+);
+t.ok(
+  'build a.md b.md writes <out>/a and <out>/b, each with the base /decks/<name>/',
+  ['alpha', 'beta'].every(
+    (name) =>
+      readFileSync(join(siteMulti, name, 'index.html'), 'utf8').includes(
+        `<base href="/decks/${name}/">`,
+      ) && multiOut.includes(`into ${join(siteMulti, name)} (base /decks/${name}/)`),
+  ),
+  multiOut,
+);
+const servedMulti = await serveDirectory(join(siteMulti, 'beta'), '/decks/beta/');
+const pageMulti = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+await pageMulti.goto(`${servedMulti.origin}/decks/beta/1`);
+await pageMulti.waitForFunction(() =>
+  /clicks \d+\/\d+/.test(document.querySelector('#hud')?.innerText ?? ''),
+);
+t.ok(
+  'the second deck opens under its own base',
+  (await pageMulti.title()).includes('beta'),
+  await pageMulti.title(),
+);
+await pageMulti.close();
+await servedMulti.close();
+
 // ---- refusals: a folder with other files, and a base that is not a plain path
 const precious = join(scratch, 'precious');
 mkdirSync(precious);
@@ -430,6 +472,14 @@ t.ok(
   (await refuse(['build', join(dirB, 'slides.md'), '--base', '/a/../b/'])).includes(
     '--base must be a path',
   ),
+);
+mkdirSync(join(multiDir, 'other'));
+writeFileSync(join(multiDir, 'other', 'alpha.md'), '# other alpha\n');
+t.ok(
+  'two decks with the same file name are refused before anything is built',
+  (
+    await refuse(['build', join(multiDir, 'alpha.md'), join(multiDir, 'other', 'alpha.md')])
+  ).includes('would both be built into'),
 );
 t.ok(
   'an unknown flag is refused',

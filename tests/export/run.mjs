@@ -322,6 +322,42 @@ t.ok(
 );
 execFileSync(process.execPath, ['scripts/generate.mjs'], { stdio: 'ignore' });
 
+// ---- several entries: one file each, built one after another; --output and --dist name one place, so they are refused
+const pairDir = join(scratch, 'pair');
+mkdirSync(pairDir, { recursive: true });
+for (const name of ['first', 'second'])
+  writeFileSync(join(pairDir, `${name}.md`), `# ${name} deck\n\n---\n\n# two\n`);
+const pair = `${join(pairDir, 'first.md')} ${join(pairDir, 'second.md')}`;
+r = slideNg(`export ${pair}`, { entry: null });
+t.ok(
+  'export a.md b.md writes one pdf per deck',
+  pages(join(r.dir, 'first-export.pdf')) === 2 &&
+    text(join(r.dir, 'second-export.pdf')).includes('second deck'),
+  readdirSync(r.dir).join(),
+);
+const refused = (args) => {
+  try {
+    slideNg(args, { entry: null });
+    return '';
+  } catch (e) {
+    return String(e.stderr);
+  }
+};
+t.ok(
+  'export with several entries refuses --output and --dist',
+  refused(`export ${pair} --output one`).includes('--output names one file') &&
+    refused(`export ${pair} ${common}`).includes('--dist names one deck'),
+);
+mkdirSync(join(pairDir, 'again'));
+writeFileSync(join(pairDir, 'again', 'first.md'), '# again\n');
+t.ok(
+  'two entries that would write the same file are refused before the build',
+  refused(`export-notes ${pair} ${join(pairDir, 'again', 'first.md')}`).includes(
+    'would both be exported to',
+  ),
+);
+execFileSync(process.execPath, ['scripts/generate.mjs'], { stdio: 'ignore' });
+
 // ---- a Mermaid diagram taller than the slide is clipped in the PDF, like on screen, not lost
 const tallDir = join(scratch, 'tall');
 mkdirSync(tallDir, { recursive: true });

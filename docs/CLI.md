@@ -22,7 +22,9 @@ Starts the dev server: the deck at `http://localhost:4230`, the presenter at `/p
 
 ## build
 
-Makes a static site in `dist/`. Hosting is described in [HOSTING.md](HOSTING.md), the offline folder in [OFFLINE.md](OFFLINE.md).
+Makes a static site in `dist/`. With several entries (`slide-ng build a.md b.md`) each deck is built, one after another, into
+`<out>/<name>/` and served under `<base><name>/` (`dist/a/` at `/a/`, `dist/b/` at `/b/`), where `<name>` is the file name without
+`.md`, as in Slidev. Two entries with the same file name are refused. Hosting is described in [HOSTING.md](HOSTING.md), the offline folder in [OFFLINE.md](OFFLINE.md).
 
 | flag                | what it does                                                                                |
 | ------------------- | ------------------------------------------------------------------------------------------- |
@@ -40,6 +42,8 @@ Makes a static site in `dist/`. Hosting is described in [HOSTING.md](HOSTING.md)
 ## export
 
 Makes a PDF (default), PNG files, a PPTX or a Markdown file. It builds the deck first, unless `--dist` or `--url` says where it is.
+With several entries (`slide-ng export a.md b.md`) each deck is built and exported in turn, to its own file named as for one deck;
+`--output`, `--dist` and `--url` name one place, so they are refused then, and so are two decks that would get the same file name.
 
 | flag                                                 | what it does                                                                               |
 | ---------------------------------------------------- | ------------------------------------------------------------------------------------------ |
@@ -65,7 +69,7 @@ The headmatter's `export:` block sets the same options (`withClicks`, `perSlide`
 
 ## export-notes
 
-Makes a PDF of the speaker notes. Takes `--output`, `--range` and the Chromium flags of `export`.
+Makes a PDF of the speaker notes. Takes `--output`, `--range` and the Chromium flags of `export`, and several entries as `export` does.
 
 ## format
 

@@ -1,0 +1,54 @@
+// Several decks in one run, like Slidev's `slidev build a.md b.md` and `slidev export a.md b.md`. The decks run one
+// after another (one Angular build at a time keeps memory down); these helpers only decide where each one goes.
+import { basename, join, resolve } from 'node:path';
+
+/** The entry files of a command, resolved; `slides.md` when none is given. */
+export function deckEntries(positionals, fallback = 'slides.md') {
+  return (positionals.length ? positionals : [fallback]).map((p) => resolve(p));
+}
+
+/**
+ * Where each deck of `build` goes. One deck: `out` and `base` as given. Several: `<out>/<name>/` served under
+ * `<base><name>/`, where `<name>` is the file name without `.md` (Slidev's folders). An offline folder keeps `./`.
+ * @param {string[]} entries
+ * @param {{ out: string, base: string, offline?: boolean }} options
+ */
+export function buildTargets(entries, { out, base, offline = false }) {
+  if (entries.length === 1) return [{ entry: entries[0], out, base }];
+  const seen = new Map();
+  return entries.map((entry) => {
+    const name = basename(entry).replace(/\.md$/i, '');
+    if (!/^[\w.~-]+$/.test(name) || /^\.+$/.test(name))
+      throw new Error(
+        `${entry}: with several decks each one is built into a folder named after its file, and "${name}" cannot be a folder name in an address; rename the file`,
+      );
+    if (seen.has(name))
+      throw new Error(
+        `${seen.get(name)} and ${entry} would both be built into ${join(out, name)}; rename one of them`,
+      );
+    seen.set(name, entry);
+    return { entry, out: join(out, name), base: offline ? base : `${base}${name}/` };
+  });
+}
+
+/** Refuses the flags of `export` that name one place, when there are several decks. */
+export function checkExportFlags(entries, flags) {
+  if (entries.length < 2) return;
+  for (const flag of ['output', 'dist', 'url'])
+    if (flags[flag] !== undefined)
+      throw new Error(
+        `--${flag} names one ${flag === 'output' ? 'file' : 'deck'}, so it cannot be used with several entries (each deck is exported to its own file)`,
+      );
+}
+
+/** Refuses two decks whose exports would get the same file name. `outBases` are the paths without extension. */
+export function checkDistinctOutputs(entries, outBases) {
+  const seen = new Map();
+  outBases.forEach((outBase, i) => {
+    if (seen.has(outBase))
+      throw new Error(
+        `${seen.get(outBase)} and ${entries[i]} would both be exported to ${outBase}; give one an exportFilename`,
+      );
+    seen.set(outBase, entries[i]);
+  });
+}

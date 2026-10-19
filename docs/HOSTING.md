@@ -9,6 +9,7 @@ slide-ng build --out public-html     # another output folder
 slide-ng build --download            # also writes the PDF and adds the download button
 slide-ng build --without-notes       # speaker notes are not shipped
 slide-ng build --offline             # a folder that opens from disk, no server (see below and OFFLINE.md)
+slide-ng build a.md b.md --base /x/  # several decks: dist/a at /x/a/, dist/b at /x/b/
 ```
 
 In this repository `npm run build` is the plain Angular build (`dist/slide-ng/browser`); `slide-ng build` is the command meant for publishing.
@@ -19,6 +20,10 @@ The build empties its output folder. To be sure it never wipes something of your
 is new, empty, or has a `.slide-ng-build` file (written by an earlier build). Any other folder with files in it is
 refused with a message. The current folder, your home folder and `/` are always refused. The same rule applies to the
 temporary `.slide-ng/build` folder inside the deck's folder.
+
+With several entries each deck is built in turn into its own folder of `--out`, named after its file without `.md`, and served
+under that name below `--base` (Slidev's multiple builds). Each folder is a whole site with its own `404.html` and `_redirects`;
+a host that serves only one folder per site needs one site per deck, or a rule that sends `/x/a/*` to `/x/a/index.html`.
 
 ## What is in the build
 
