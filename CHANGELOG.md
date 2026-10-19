@@ -4,6 +4,16 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+### Added
+
+- Markdown links to slides move inside the deck, as in Slidev: `[x](5)`, `[x](./5)`, `[x](#/5)` and `[x](./alias)` become `<slide-ng-link>`, like `/5` and `/alias` before (#14).
+- Markdown links to `http(s)` addresses open in a new tab (`target="_blank" rel="noopener"`), on slides and in speaker notes (#14).
+- A link to a slide points at that slide's page on the print page and in an exported PDF, instead of at the address of the local server (#14).
+
+### Changed
+
+- An `<a href="/4">` written as HTML is left as written; only markdown links become slide links (#14).
+
 ## [1.0.0] - 2026-10-18
 
 ### Added

@@ -67,6 +67,36 @@ Count is {{ 1 + 2 }}.
 
 The note is stored in the metadata and shown on the presenter page. See `presenter-notes.md` and `animation-click-marker.md`.
 
+## Links
+
+A markdown link to a slide moves inside the deck, as in Slidev; a link to a web page opens a new tab.
+
+<!-- verify -->
+
+```md
+---
+title: Links
+---
+
+# Start {#start}
+
+[to slide 2](2), [also](/2), [also](./2), [also](#/2), [by alias](/details)
+
+[a heading here](#start) and [the docs](https://example.org)
+
+---
+routeAlias: details
+---
+
+# Details
+```
+
+- Only digits, or `/`, `./`, `#/` followed by a slide number or a `routeAlias`, makes a slide link (`<slide-ng-link>`). Other `/x` and `./x` addresses stay plain links.
+- `#id` scrolls to an element of the slide; `#5` is such an anchor, not slide 5.
+- `http(s)` links get `target="_blank" rel="noopener"`; `mailto:` and others do not.
+- An `<a href>` written as HTML is left as written. Use `<slide-ng-link to="3">` in HTML.
+- In a PDF a slide link points at that slide's page. In speaker notes a slide link stays a plain address.
+
 ## Per-slide style
 
 A `<style>` block in a slide only applies to that slide. See `core-styling.md`.

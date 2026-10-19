@@ -454,6 +454,28 @@ Footnote numbers are not links. A note is one paragraph of inline markdown.
 
 `{#id .class}` at the end of a heading puts an id and classes on it (`## Results {#results .text-red}`), and `{width=120}` or
 `{height=80}` right after a picture sets its size (`![logo](/logo.png){width=120}`). `:emoji:` shortcodes are not converted: type the emoji.
+
+### Links
+
+As in Slidev, a markdown link to a slide moves inside the deck, and a link to a web page opens a new tab:
+
+```md
+[go to slide 5](5), or [5](/5), [5](./5), [5](#/5)
+[pricing](/pricing) to the slide with `routeAlias: pricing`
+[results](#results) to a heading of this slide
+[the docs](https://example.org) in a new tab
+```
+
+- An address of only digits, or `/`, `./` or `#/` followed by a slide number or a `routeAlias`, becomes a `<slide-ng-link>`: a click moves to that
+  slide without loading the page again, with history or hash routing, a base or an offline folder, and Ctrl+click opens it in a new tab. A number
+  past the last slide goes to the last slide. Other addresses that start with `/` or `./` (`/file.pdf`, a name that is no `routeAlias`) stay plain links;
+  Slidev turns those into slide links too.
+- `#id` and `./#id` scroll to that element of the slide. `#5` is such an anchor too: write `5` or `#/5` for slide 5.
+- An `http:` or `https:` address gets `target="_blank" rel="noopener"`. Slidev opens every other link in a new tab; here `mailto:` and the like stay as they are.
+- An `<a>` written as HTML is left as written.
+- On the print page and in an exported PDF a link to a slide points at the first page of that slide, if that slide is in the same file.
+- In speaker notes a web page opens a new tab too; a link to a slide stays a plain address.
+
 A link to a `javascript:` address is replaced by `#` with a warning, because it would run code when clicked.
 
 ## Icons
