@@ -8,6 +8,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 - `<slide-ng-title-renderer />` draws a slide's title as HTML, with its inline markdown and `$math$` (Slidev's `<TitleRenderer>`); `no="N"` picks another slide. The table of contents shows the same HTML. Raw HTML in a title is shown as text.
 - `notesAutoRuby: { word: reading }` in the headmatter shows a reading above each listed word in the speaker notes, with `<ruby>` (Slidev's `notesAutoRuby`). Code, tag attributes and existing `<ruby>` are left alone.
+- Custom slide transitions by name, as in Slidev: a name that is not built in runs Vue's `<name>-enter-from`, `-enter-active`, `-enter-to` (and `leave`) classes, so the deck's CSS animates the slides. The object form (`name`, `enterFromClass` and the other class names, `duration`) is read too.
 
 ## [1.0.0] - 2026-10-18
 

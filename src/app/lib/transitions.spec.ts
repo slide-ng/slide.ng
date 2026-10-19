@@ -1,25 +1,59 @@
-import { animationsFor, pickTransition, resolveTransition } from './transitions';
+import {
+  animationsFor,
+  isClassTransition,
+  pickTransition,
+  resolveTransition,
+  transitionClasses,
+} from './transitions';
+
+const name = (t: { name: string } | null) => t?.name ?? null;
 
 describe('resolveTransition', () => {
   it('turns a one-word name into forward and backward variants', () => {
-    expect(resolveTransition('slide-left', false)).toBe('slide-left');
-    expect(resolveTransition('slide-left', true)).toBe('slide-right');
-    expect(resolveTransition('slide-up', true)).toBe('slide-down');
-    expect(resolveTransition('slide-down', false)).toBe('slide-down');
+    expect(name(resolveTransition('slide-left', false))).toBe('slide-left');
+    expect(name(resolveTransition('slide-left', true))).toBe('slide-right');
+    expect(name(resolveTransition('slide-up', true))).toBe('slide-down');
+    expect(name(resolveTransition('slide-down', false))).toBe('slide-down');
   });
   it('leaves fade and view-transition the same in both directions', () => {
-    expect(resolveTransition('fade', true)).toBe('fade');
-    expect(resolveTransition('view-transition', true)).toBe('view-transition');
+    expect(name(resolveTransition('fade', true))).toBe('fade');
+    expect(name(resolveTransition('view-transition', true))).toBe('view-transition');
   });
   it('accepts "forward | backward" and the object form', () => {
-    expect(resolveTransition('fade | slide-up', false)).toBe('fade');
-    expect(resolveTransition('fade | slide-up', true)).toBe('slide-up');
-    expect(resolveTransition({ name: 'slide-right' }, true)).toBe('slide-left');
+    expect(name(resolveTransition('fade | slide-up', false))).toBe('fade');
+    expect(name(resolveTransition('fade | slide-up', true))).toBe('slide-up');
+    expect(name(resolveTransition({ name: 'slide-right' }, true))).toBe('slide-left');
   });
   it('gives null for nothing', () => {
     expect(resolveTransition(undefined, false)).toBeNull();
     expect(resolveTransition(null, false)).toBeNull();
     expect(resolveTransition({}, false)).toBeNull();
+  });
+  it('keeps the other keys of the object form', () => {
+    expect(resolveTransition({ name: 'zoom | fade', duration: 300 }, false)).toEqual({
+      name: 'zoom',
+      duration: 300,
+    });
+  });
+});
+
+describe('class transitions', () => {
+  it('are used for a name that is not built in, or an object with class names', () => {
+    expect(isClassTransition({ name: 'my-fade' })).toBe(true);
+    expect(isClassTransition({ name: 'fade', enterActiveClass: 'in' })).toBe(true);
+    expect(isClassTransition({ name: 'fade' })).toBe(false);
+    expect(isClassTransition({ name: 'slide-left' })).toBe(false);
+    expect(isClassTransition({ name: 'view-transition' })).toBe(false);
+  });
+  it("have Vue's class names, unless the object names others", () => {
+    expect(transitionClasses({ name: 'zoom', leaveToClass: 'gone' })).toEqual({
+      enterFromClass: 'zoom-enter-from',
+      enterActiveClass: 'zoom-enter-active',
+      enterToClass: 'zoom-enter-to',
+      leaveFromClass: 'zoom-leave-from',
+      leaveActiveClass: 'zoom-leave-active',
+      leaveToClass: 'gone',
+    });
   });
 });
 
@@ -31,12 +65,12 @@ describe('pickTransition', () => {
     { transition: null },
   ];
   it('uses the setting of the earlier slide, in both directions', () => {
-    expect(pickTransition(slides, 2, 3, null)).toBe('slide-left');
-    expect(pickTransition(slides, 3, 2, null)).toBe('slide-right');
-    expect(pickTransition(slides, 3, 4, null)).toBe('fade');
+    expect(name(pickTransition(slides, 2, 3, null))).toBe('slide-left');
+    expect(name(pickTransition(slides, 3, 2, null))).toBe('slide-right');
+    expect(name(pickTransition(slides, 3, 4, null))).toBe('fade');
   });
   it('falls back to the deck default, and to nothing', () => {
-    expect(pickTransition(slides, 1, 2, 'fade')).toBe('fade');
+    expect(name(pickTransition(slides, 1, 2, 'fade'))).toBe('fade');
     expect(pickTransition(slides, 1, 2, null)).toBeNull();
     expect(pickTransition(slides, 2, 2, 'fade')).toBeNull();
   });

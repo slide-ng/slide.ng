@@ -2,7 +2,13 @@ import { ComponentRef, ViewContainerRef } from '@angular/core';
 import { mountSlide } from './mount-slide';
 import { RenderContext } from './slide-context';
 import { SlideBase } from './slide-base';
-import { animationsFor, transitionDuration } from './transitions';
+import { Running, classTransition } from './class-transition';
+import {
+  ResolvedTransition,
+  animationsFor,
+  isClassTransition,
+  transitionDuration,
+} from './transitions';
 
 /**
  * Puts slides on the canvas, one at a time, and plays the transition between two of them.
@@ -12,6 +18,7 @@ export class Stage {
   private current?: ComponentRef<SlideBase>;
   private leaving: ComponentRef<SlideBase>[] = [];
   private pendingSwap?: () => void; // a view transition that has not swapped the slides yet
+  private running: Running[] = []; // class transitions (a custom name) that have not ended
 
   constructor(
     private host: ViewContainerRef,
@@ -27,16 +34,18 @@ export class Stage {
     this.current = undefined;
   }
 
-  /** Shows slide `no`. `transition` is a resolved name (see transitions.ts) or null. */
-  show(no: number, transition: string | null): SlideBase {
+  /** Shows slide `no`. `transition` is resolved for this direction (see transitions.ts) or null. */
+  show(no: number, transition: ResolvedTransition | null): SlideBase {
     this.finish(); // a transition still running is cut short
     const old = this.current;
     if (!old || !transition) old?.destroy();
     this.current = this.mount(this.host, no, this.context);
     this.current.changeDetectorRef.detectChanges(); // draw it now, so an animation can start on real content
 
-    if (old && transition === 'view-transition') this.viewTransition(old, this.current);
-    else if (old && transition) this.animate(old, this.current, transition);
+    if (old && transition?.name === 'view-transition') this.viewTransition(old, this.current);
+    else if (old && transition && isClassTransition(transition))
+      this.classes(old, this.current, transition);
+    else if (old && transition) this.animate(old, this.current, transition.name);
     return this.current.instance;
   }
 
@@ -90,6 +99,26 @@ export class Stage {
     ); // cancelled: finish() cleans
   }
 
+  // A name that is not built in (or an object with class names): the deck's CSS classes do the work, as in Slidev.
+  private classes(
+    old: ComponentRef<SlideBase>,
+    entering: ComponentRef<SlideBase>,
+    transition: ResolvedTransition,
+  ) {
+    this.canvas.dataset['transition'] = transition.name;
+    this.leaving.push(old);
+    const run = classTransition(
+      entering.location.nativeElement,
+      old.location.nativeElement,
+      transition,
+    );
+    this.running.push(run);
+    run.finished.then(() => {
+      this.running = this.running.filter((r) => r !== run);
+      this.cleanUp(old);
+    });
+  }
+
   private cleanUp(old: ComponentRef<SlideBase>) {
     if (!this.leaving.includes(old)) return;
     old.destroy();
@@ -100,6 +129,8 @@ export class Stage {
   // Cut a running transition short: remove the old slides now and stop the animations.
   private finish() {
     this.pendingSwap?.();
+    this.running.forEach((run) => run.cancel());
+    this.running = [];
     this.leaving.forEach((ref) => ref.destroy());
     this.leaving = [];
     delete this.canvas.dataset['transition'];

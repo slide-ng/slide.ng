@@ -46,3 +46,22 @@ const x = 1
 ```python {monaco-run}
 print(1 + 1)
 ```
+
+---
+transition: my-fade
+---
+
+# Before a custom transition
+
+---
+transition:
+  name: grow
+  enterFromClass: grow-start
+  enterActiveClass: grow-run
+---
+
+# After a custom transition
+
+---
+
+# After the object form

@@ -79,6 +79,8 @@ Short notes on choices made, and why. Newest at the bottom.
     that gets the default list. We skipped Slidev's key auto-repeat timer (the browser's own key repeat is used) and typing digits in the overview.
 14. **Transitions use the Web Animations API**, not CSS classes: no `*-enter-active` classes, so themes written for Vue's classes would not apply.
     The result is easy to test (`getAnimations()`) and needs no CSS. The setting of the earlier slide of the pair is used, like Slidev. Default: none.
+    Later, for Slidev's custom transitions, any name that is not built in (or an object that names classes) runs Vue's class sequence (`lib/class-transition.ts`, a port of
+    Vue's `<Transition>` timing: two frames, then the end of the longest CSS transition or animation); the built-in names keep their keyframes.
 15. **The bar at the bottom left shows on hover or focus** (CSS only, as in Slidev's play page). There is no idle timer: Slidev has none either.
     The user's wish for "auto-hide when idle" is met by the bar being hidden until the mouse goes to that corner.
 16. **Dark mode** uses Slidev's storage key (`slidev-color-schema`) and values (`auto`, `light`, `dark`), the `dark` class on `<html>`, and hides the
@@ -343,7 +345,7 @@ The owner decided "do it like Slidev" for every open choice. For each one, Slide
 9. **Cheap leftovers of PARITY.md finished the Slidev way.** `fonts` (`lib/fonts.mjs`, a port of `resolveFonts`: sans, serif, mono, local, weights, italic, fallbacks, provider google, coollabs or none; the fonts are an @import
    from the provider, as Slidev, not copied into the build; since then `fonts.selfHost` copies them, see Offline use 8); the `contextMenu`, `presenter` and `editor` headmatter switches (`true`, `false`, `dev`, `build`; `lib/switches.ts`); touch swipes with Slidev's thresholds
    (`composables/useSwipeControls.ts`: 30% of the width or 75px for clicks, 40% of the height or 200px for slides, off while drawing). Left listed in PARITY.md: `selectable`, `themeConfig`,
-   MDC, slide hooks, custom transition objects, `clickAnimation`, `preloadImages`; `--tunnel` stays refused.
+   MDC, slide hooks, `clickAnimation`, `preloadImages`; `--tunnel` stays refused.
 10. **The official themes live in a separate repository, as npm packages `@slide-ng/theme-<name>`.** Owner decision, like Slidev's `slidevjs/themes` (a monorepo of `packages/theme-*`, each published as
     `@slidev/theme-<name>`). It supersedes the first version of this decision, which put the themes in a `themes/` folder of this package and searched it before `node_modules`. That folder is gone,
     and `themes` is no longer in `package.json#files`. `theme: <name>` now resolves from `node_modules` only, with Slidev's rule and slide.ng's prefixes: `@slide-ng/theme-<name>`, `slide-ng-theme-<name>`, `<name>`
