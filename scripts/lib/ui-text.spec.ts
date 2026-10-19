@@ -104,6 +104,10 @@ describe('locale files', () => {
       expect(warnings).toHaveLength(1);
       expect(warnings[0]).toContain('"nav.bad" is not a key');
       expect(localeFiles([join(dir, 'theme')], 'fr')).toEqual([]);
+      put('deck', 'zh-Hans.json', { 'nav.next': '下一页' });
+      expect(
+        localeFiles([join(dir, 'deck')], 'zh-Hans-CN').map((f: string) => f.slice(dir.length + 1)),
+      ).toEqual([join('deck', 'locales', 'zh-Hans.json')]);
     } finally {
       rmSync(dir, { recursive: true });
     }

@@ -12,9 +12,13 @@ import { angularLocale, baseLang, normalizeLang, uiLangOf } from './lang.mjs';
 export const BUILT_IN_LOCALES = 'src/app/i18n';
 const ENGLISH_FILE = 'src/app/i18n/en.ts';
 
-/** The `locales/` files of `dirs` for a language, weakest first: in each folder `pt.json`, then `pt-BR.json`. */
+/**
+ * The `locales/` files of `dirs` for a language, weakest first: in each folder every prefix of the tag, so `pt.json`
+ * then `pt-BR.json`, or `zh.json`, `zh-Hans.json` then `zh-Hans-CN.json`.
+ */
 export function localeFiles(dirs, lang) {
-  const names = [...new Set([baseLang(lang), lang])].map((n) => `${n}.json`);
+  const parts = lang.split('-');
+  const names = parts.map((_, i) => `${parts.slice(0, i + 1).join('-')}.json`);
   return dirs.flatMap((dir) =>
     names.map((name) => join(dir, 'locales', name)).filter((f) => existsSync(f)),
   );
