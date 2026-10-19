@@ -86,4 +86,25 @@ export async function run({ t, open, press, hud }) {
   const deep = await open('/#/2', { width: 640, height: 480 });
   t.ok('a link with #/2 opens slide 2', (await hud(deep)).startsWith('slide 2/2'), await hud(deep));
   await deep.close();
+
+  // markdown links to a slide move inside the deck with hash routing too, without loading the page again
+  const links = await open('/#/1', { width: 640, height: 480 });
+  await links.evaluate(() => (window.__samePage = true));
+  await links.locator('a', { hasText: 'markdown link to 2' }).click();
+  await links.waitForTimeout(200);
+  t.ok(
+    'a markdown link [x](2) goes to slide 2 with hash routing, in the same page',
+    /\/#\/2(\?|$)/.test(links.url()) &&
+      (await hud(links)).startsWith('slide 2/2') &&
+      (await links.evaluate(() => window.__samePage === true)),
+    links.url(),
+  );
+  await links.locator('a', { hasText: 'markdown link to 1' }).click();
+  await links.waitForTimeout(200);
+  t.ok(
+    'a markdown link [x](#/1) goes back to slide 1',
+    /\/#\/1(\?|$)/.test(links.url()) && (await links.evaluate(() => window.__samePage === true)),
+    links.url(),
+  );
+  await links.close();
 }

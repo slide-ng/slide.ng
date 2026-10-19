@@ -228,6 +228,8 @@ Level 2.
 
 <slide-ng-link to="3" id="c-link">to slide 3</slide-ng-link> and <slide-ng-link to="the-alias" id="c-alias">to the alias</slide-ng-link>
 
+[markdown link to 3](3), [markdown link to the alias](/the-alias) and [a web page](https://example.org)
+
 <div id="c-switch-wrap">
 
 <slide-ng-switch>

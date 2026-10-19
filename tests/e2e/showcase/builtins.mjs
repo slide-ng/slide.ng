@@ -116,6 +116,42 @@ export async function run({ t, open, press, hud, pathOf, style }) {
     pathOf(page) === '/the-alias' && (await hud(page)).startsWith('slide 27/'),
     pathOf(page) + ' ' + (await hud(page)),
   );
+  // Markdown links: `[x](3)` moves inside the deck (the page is not loaded again), a web page opens in a new tab.
+  await page.goto(page.url().replace('/the-alias', '/26').split('?')[0] + '?clicks=0');
+  await page.waitForFunction(() =>
+    /slide 26/.test(document.querySelector('#hud')?.innerText ?? ''),
+  );
+  await page.evaluate(() => (window.__samePage = true));
+  await page.locator('a', { hasText: 'markdown link to 3' }).click();
+  await page.waitForTimeout(200);
+  t.ok(
+    'a markdown link [x](3) goes to slide 3 without loading the page again',
+    pathOf(page) === '/3' &&
+      (await hud(page)).startsWith('slide 3/') &&
+      (await page.evaluate(() => window.__samePage === true)),
+    pathOf(page) + ' ' + (await hud(page)),
+  );
+  await page.goBack();
+  await page.waitForFunction(() =>
+    /slide 26/.test(document.querySelector('#hud')?.innerText ?? ''),
+  );
+  await page.locator('a', { hasText: 'markdown link to the alias' }).click();
+  await page.waitForTimeout(200);
+  t.ok(
+    'a markdown link [x](/alias) goes to the routeAlias slide',
+    pathOf(page) === '/the-alias' && (await page.evaluate(() => window.__samePage === true)),
+    pathOf(page),
+  );
+  await page.goBack();
+  await page.waitForFunction(() =>
+    /slide 26/.test(document.querySelector('#hud')?.innerText ?? ''),
+  );
+  const web = page.locator('a', { hasText: 'a web page' });
+  t.ok(
+    'a markdown link to a web page opens a new tab',
+    (await web.getAttribute('target')) === '_blank' &&
+      (await web.getAttribute('rel')) === 'noopener',
+  );
   await page.close();
 
   page = await open('/3?clicks=0');

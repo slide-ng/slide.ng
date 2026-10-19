@@ -57,6 +57,25 @@ const common = `--dist ${dist}`;
 const pdfInfo = (file) => execFileSync('pdfinfo', [file], { encoding: 'utf8' });
 const pages = (file) => Number(/Pages:\s+(\d+)/.exec(pdfInfo(file))[1]);
 const text = (file) => execFileSync('pdftotext', [file, '-'], { encoding: 'utf8' });
+// The links of a PDF, read back by qpdf: `page:dest` for a link inside the document (dest is a page number), `page:uri`
+// for a web address. Pages count from 1.
+const links = (file) => {
+  const json = JSON.parse(execFileSync('qpdf', ['--json', file], { encoding: 'utf8' }));
+  const value = (ref) => json.qpdf[1][`obj:${ref}`]?.value;
+  const pageNo = (ref) => json.pages.findIndex((p) => p.object === ref) + 1;
+  const catalog = Object.values(json.qpdf[1]).find((o) => o.value?.['/Type'] === '/Catalog');
+  const dests = value(catalog.value['/Dests']) ?? {};
+  return json.pages.flatMap((p, i) =>
+    (value(p.object)['/Annots'] ?? [])
+      .map(value)
+      .filter((a) => a['/Subtype'] === '/Link')
+      .map((a) =>
+        a['/Dest']
+          ? `${i + 1}:${pageNo(dests[a['/Dest']][0])}`
+          : `${i + 1}:${String(a['/A']?.['/URI']).replace(/^u:/, '')}`,
+      ),
+  );
+};
 // Width and height from a PNG's header.
 const pngSize = (file) => {
   const b = readFileSync(file);
@@ -84,12 +103,22 @@ t.ok(
   text(pdf).includes('Moving code') && text(pdf).includes('const'),
 );
 t.ok('the pdf has the click elements that are revealed late', text(pdf).includes('two'));
+t.ok(
+  'a markdown link to a slide points at its page in the pdf, a web page keeps its address',
+  links(pdf).join() === '8:2,8:https://example.org/',
+  links(pdf).join(),
+);
 
 r = slideNg(`export ${common} --with-clicks --output clicks`);
 t.ok(
   '--with-clicks makes a page for every click step (13)',
   pages(join(r.dir, 'clicks.pdf')) === 13,
   String(pages(join(r.dir, 'clicks.pdf'))),
+);
+t.ok(
+  'with clicks a link to a slide points at the first page of that slide',
+  links(join(r.dir, 'clicks.pdf')).join() === '13:2,13:https://example.org/',
+  links(join(r.dir, 'clicks.pdf')).join(),
 );
 
 r = slideNg(`export ${common} --range 2,4-5 --output ranged`);

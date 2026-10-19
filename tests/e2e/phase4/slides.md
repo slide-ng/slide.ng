@@ -72,4 +72,4 @@ const answer = 42
 
 # The end
 
-Done
+Done. [Back to the clicks](2), or [a web page](https://example.org).

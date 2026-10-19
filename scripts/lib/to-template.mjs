@@ -3,7 +3,7 @@
 // The hard part: markdown converters mangle Angular syntax (`@if (x) {`,
 // `[prop]="v"`, `{{ x }}`). So we hide that syntax behind placeholders,
 // run the markdown converter, then put the syntax back untouched.
-import { marked } from 'marked';
+import { Marked } from 'marked';
 import { extractFences } from './fences.mjs';
 import { renderFence } from './code/render-fence.mjs';
 import { escapeCode, protect } from './protect.mjs';
@@ -13,6 +13,7 @@ import { markAlerts } from './alerts.mjs';
 import { extractFootnotes, finishFootnotes } from './footnotes.mjs';
 import { rewriteIcons } from './icons.mjs';
 import { applyAttrSugar } from './attr-sugar.mjs';
+import { linkRenderer } from './links.mjs';
 
 export { escapeCode, protect };
 
@@ -39,12 +40,17 @@ const joinLines = (md) =>
     .replace(MULTILINE_TAG, (_, ws, name, attrs, end) => `${ws}<${name} ${oneLine(attrs)}${end}`)
     .replace(MULTILINE_LET, (_, ws, body) => `${ws}@let ${oneLine(body)};`);
 
-/** @param {string} markdown @param {{ file?: string, root?: string, headmatter?: any }} [ctx] file, root: where snippet paths start; headmatter: deck-wide code settings */
+/**
+ * @param {string} markdown
+ * @param {{ file?: string, root?: string, headmatter?: any, aliases?: string[] }} [ctx] file, root: where snippet paths start;
+ *   headmatter: deck-wide code settings; aliases: the deck's routeAlias names, which links to slides may use
+ */
 export function toTemplate(markdown, ctx = {}) {
   const kept = []; // Angular syntax we put back at the end
   const keep = (s) => `NGKEEP${kept.push(s) - 1}X`;
   // A line that is only an HTML comment is left alone by the markdown converter.
   const hide = (s) => `<!--${keep(s)}-->`;
+  const marked = new Marked({ renderer: linkRenderer({ aliases: ctx.aliases }) });
 
   // 1. Code fences and inline code are plain text: set them aside first.
   let { markdown: md, fences } = extractFences(markdown, ctx);
