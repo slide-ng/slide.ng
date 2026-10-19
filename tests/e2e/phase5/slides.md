@@ -46,3 +46,9 @@ const x = 1
 ```python {monaco-run}
 print(1 + 1)
 ```
+
+---
+
+# Slide hooks
+
+<hook-counter />

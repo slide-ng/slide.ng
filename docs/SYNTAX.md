@@ -610,6 +610,33 @@ error. Attributes are set as written; bind a property with `[prop]="value"`.
 In the PDF and in the overview every slide is drawn at once, so `Nav.no()` is the slide being presented, not the slide being drawn:
 inject `SLIDE_NO` to know which slide a component is in.
 
+Slidev's slide hooks are in `slide-ng/lib/slide-hooks`. Call them in an injection context (a field or the constructor of a component):
+
+- `onSlideEnter((to, from) => ...)` runs once the component is drawn when its slide is the one on screen, and each time the deck comes back to it.
+- `onSlideLeave((to, from) => ...)` runs when another slide is shown after this one.
+- `isSlideActive()` is a signal, true while the slide is the one on screen (Slidev's `useIsSlideActive`).
+
+`to` and `from` are slide numbers (1-based), `from` is `undefined` when no other slide was shown before. The hooks only run on the slide and presenter pages, not in
+thumbnails, the presenter's next slide preview or the PDF. In the PDF `isSlideActive()` is true for every slide, elsewhere it is false. The deck
+removes a slide it leaves, so a component that should remember something across visits keeps it outside the component.
+
+```ts
+import { Component, signal } from '@angular/core';
+import { isSlideActive, onSlideEnter } from 'slide-ng/lib/slide-hooks';
+
+@Component({
+  selector: 'enter-count',
+  template: '{{ active() ? "here" : "away" }}, entered {{ n() }} times',
+})
+export class EnterCount {
+  active = isSlideActive();
+  n = signal(0);
+  constructor() {
+    onSlideEnter(() => this.n.update((v) => v + 1));
+  }
+}
+```
+
 A slide is drawn in every window that shows it: the presenter page and each audience page (they keep the same slide and click). A
 component that only shows things needs nothing more. One that acts (a timer that calls `nav.next()`, a sound, a request) does so in
 every window, so the deck would move twice: act in one window only, for example when `inject(RENDER_CONTEXT)` (from
