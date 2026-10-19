@@ -1,0 +1,208 @@
+# Interface text
+
+Every word of slide.ng's own interface (the bar and its tooltips, the settings menu, the overview, the goto box, the right-click menu,
+the presenter, the info dialog, the drawing toolbar, the offline badge, the copy and run buttons of code blocks) has a key. English is the
+default; `src/app/i18n/en.ts` holds it and is the source of truth for the keys. How to choose a language and add a translation is in
+[SYNTAX.md](SYNTAX.md#translating-the-interface).
+
+## How it works
+
+- **Language.** The headmatter's `uiLang`, else `lang`, picks the interface language (`lang: tr`). Without either it is English.
+- **Translations.** `locales/<lang>.json` in the built-in theme (`src/app/i18n/locales/`), the theme, each addon and the deck's folder,
+  in that order, are put over English key by key, so the deck has the last word. In each folder `pt.json` is read before `pt-BR.json`.
+  A file is flat JSON: `{ "nav.next": "Sonraki slayta git" }`. A missing key, or a language with no file, stays English.
+- **Checks.** The generator warns about a key English does not have, a value that is not text and a placeholder that was lost or added
+  (that key stays English). A file that is not JSON stops the build. `scripts/lib/ui-text.spec.ts` checks every `locales/*.json` of the
+  repository, and `src/app/i18n/templates.spec.ts` fails on English written into a template instead of a key.
+- **Placeholders.** `{no}`, `{total}`, `{title}` and the others are filled in by the app; keep them, in any order the sentence needs.
+  `info.credit` and `menu.nativeHint` are drawn around their placeholder (`{name}` is bold, `{key}` is a key cap).
+- **In code.** The generator writes the merged translations and the locale into `src/slides/generated/ui-text.ts` (plain data, so it
+  works offline and in an export). `app.config.ts` provides it as the `UI_TEXT` injection token and `LOCALE_ID`. Templates use the
+  `t` pipe, `{{ 'nav.next' | t }}` or `{{ 'presenter.noNotes' | t: { no: nav.no() } }}`; TypeScript uses `Ui.text(key, params)` or
+  `uiText(inject(UI_TEXT), key, params)` (all in `src/app/i18n/`). A theme's component can import the pipe from `slide-ng/i18n/t`.
+- **Locale.** `lang` also sets `LOCALE_ID` for the `date`, `number`, `currency` and `percent` pipes, when Angular has data for it
+  (`pt-BR`, else `pt`); only that locale's data is added to the build. `ar`, `he`, `fa` and `ur` set `dir="rtl"` on the page unless
+  `htmlAttrs.dir` is given; the bar, menus, goto box and presenter use logical CSS (`start`, `end`), so they mirror.
+- **Built-in translations.** Turkish (`tr`). A built-in translation must have every key (the unit test checks it).
+
+## Keys
+
+### The bar
+
+| key                   | English                             |
+| --------------------- | ----------------------------------- |
+| `nav.fullscreenEnter` | Enter fullscreen                    |
+| `nav.fullscreenExit`  | Close fullscreen                    |
+| `nav.prev`            | Go to previous slide                |
+| `nav.next`            | Go to next slide                    |
+| `nav.overview`        | Show slide overview                 |
+| `nav.darkOn`          | Switch to dark mode theme           |
+| `nav.darkOff`         | Switch to light mode theme          |
+| `nav.laserOn`         | Enable laser pointer                |
+| `nav.laserOff`        | Disable laser pointer               |
+| `nav.cursorShow`      | Show presenter cursor               |
+| `nav.cursorHide`      | Hide presenter cursor               |
+| `nav.drawingShow`     | Show drawing toolbar                |
+| `nav.drawingHide`     | Hide drawing toolbar                |
+| `nav.play`            | Play Mode                           |
+| `nav.presenter`       | Presenter Mode                      |
+| `nav.editorShow`      | Show editor                         |
+| `nav.editorHide`      | Hide editor                         |
+| `nav.download`        | Download as PDF                     |
+| `nav.downloadMissing` | Download as PDF (not in this build) |
+| `nav.info`            | Show info                           |
+| `nav.layout`          | Toggle Presenter Layout             |
+| `nav.settings`        | More Options                        |
+| `nav.cameraShow`      | Show camera view                    |
+| `nav.cameraHide`      | Hide camera view                    |
+| `nav.recordStart`     | Start recording                     |
+| `nav.recordStop`      | Stop recording                      |
+| `nav.recordPause`     | Pause recording                     |
+| `nav.recordResume`    | Resume recording                    |
+
+### The settings menu
+
+| key                        | English                                        |
+| -------------------------- | ---------------------------------------------- |
+| `settings.invert`          | Invert                                         |
+| `settings.brightness`      | Brightness                                     |
+| `settings.contrast`        | Contrast                                       |
+| `settings.saturation`      | Saturation                                     |
+| `settings.sepia`           | Sepia                                          |
+| `settings.hueRotate`       | Hue Rotate                                     |
+| `settings.filterValue`     | {name} value                                   |
+| `settings.cursorStyle`     | Cursor Style                                   |
+| `settings.cursor`          | Cursor                                         |
+| `settings.laser`           | Laser                                          |
+| `settings.slideScale`      | Slide Scale                                    |
+| `settings.fit`             | Fit                                            |
+| `settings.wakeLock`        | Wake Lock                                      |
+| `settings.hideIdleCursor`  | Hide Idle Cursor                               |
+| `settings.presenterCursor` | Show Presenter Cursor                          |
+| `settings.darkMode`        | Dark Mode                                      |
+| `settings.downloadHint`    | The PDF is added by: slide-ng build --download |
+| `settings.camera`          | Camera                                         |
+| `settings.microphone`      | Microphone                                     |
+| `settings.defaultDevice`   | Default                                        |
+| `settings.mirrorCamera`    | Mirror camera                                  |
+| `settings.record`          | Record                                         |
+| `settings.recordScreen`    | Screen                                         |
+| `settings.recordCamera`    | Camera                                         |
+
+### The overview and the goto dialog
+
+| key                | English          |
+| ------------------ | ---------------- |
+| `overview.label`   | Slide overview   |
+| `overview.goTo`    | Go to slide {no} |
+| `overview.close`   | Close            |
+| `goto.placeholder` | Goto...          |
+| `goto.label`       | Go to slide      |
+| `goto.results`     | Slides           |
+
+### The right-click menu
+
+| key                   | English                                                    |
+| --------------------- | ---------------------------------------------------------- |
+| `menu.label`          | Slide menu                                                 |
+| `menu.prevClick`      | Previous Click                                             |
+| `menu.nextClick`      | Next Click                                                 |
+| `menu.prevSlide`      | Previous Slide                                             |
+| `menu.nextSlide`      | Next Slide                                                 |
+| `menu.presenterEnter` | Enter Presenter Mode                                       |
+| `menu.presenterExit`  | Exit Presenter Mode                                        |
+| `menu.nativeHint`     | Hold {key} and right click to open the native context menu |
+
+### The info dialog and the offline badge
+
+| key               | English                              |
+| ----------------- | ------------------------------------ |
+| `info.credit`     | Made with {name}, inspired by Slidev |
+| `offline.offline` | Offline                              |
+| `offline.ready`   | Available offline                    |
+
+### Pages: what screen readers hear on a new slide, and the tab titles
+
+| key                   | English                        |
+| --------------------- | ------------------------------ |
+| `deck.announce`       | Slide {no} of {total}          |
+| `deck.announceTitle`  | Slide {no} of {total}: {title} |
+| `presenter.pageTitle` | Presenter - {title}            |
+| `notes.pageTitle`     | Notes - {title}                |
+
+### The presenter
+
+| key                      | English                           |
+| ------------------------ | --------------------------------- |
+| `presenter.current`      | Current                           |
+| `presenter.slides`       | Slides                            |
+| `presenter.mirror`       | Screen Mirror                     |
+| `presenter.next`         | Next                              |
+| `presenter.mirrorStart`  | Choose a screen or window to show |
+| `presenter.mirrorStop`   | Stop sharing                      |
+| `presenter.end`          | End of the presentation           |
+| `presenter.noNotes`      | No notes for Slide {no}.          |
+| `presenter.noNotesAtAll` | No notes.                         |
+| `presenter.fontBigger`   | Increase font size                |
+| `presenter.fontSmaller`  | Decrease font size                |
+| `presenter.clicks`       | Clicks in this slide: {count}     |
+| `presenter.click`        | Click {no}                        |
+| `timer.start`            | Start the timer                   |
+| `timer.pause`            | Pause the timer                   |
+| `timer.reset`            | Reset the timer                   |
+
+### The drawing toolbar
+
+| key                  | English                                     |
+| -------------------- | ------------------------------------------- |
+| `drawing.stylus`     | Draw with stylus                            |
+| `drawing.line`       | Draw a line                                 |
+| `drawing.arrow`      | Draw an arrow                               |
+| `drawing.ellipse`    | Draw an ellipse                             |
+| `drawing.rectangle`  | Draw a rectangle                            |
+| `drawing.erase`      | Erase                                       |
+| `drawing.width`      | Adjust stroke width                         |
+| `drawing.widthValue` | Stroke width                                |
+| `drawing.color`      | Brush color: {color}                        |
+| `drawing.red`        | red                                         |
+| `drawing.yellow`     | yellow                                      |
+| `drawing.green`      | green                                       |
+| `drawing.blue`       | blue                                        |
+| `drawing.purple`     | purple                                      |
+| `drawing.white`      | white                                       |
+| `drawing.black`      | black                                       |
+| `drawing.undo`       | Undo                                        |
+| `drawing.redo`       | Redo                                        |
+| `drawing.clear`      | Delete                                      |
+| `drawing.pin`        | Pin drawing                                 |
+| `drawing.unpin`      | Unpin drawing                               |
+| `drawing.close`      | Close the drawing tools                     |
+| `drawing.closeKeep`  | Close the drawing tools (the drawing stays) |
+
+### Inside slides: code blocks, runners, embeds and a slide that fails
+
+| key                   | English                                                                   |
+| --------------------- | ------------------------------------------------------------------------- |
+| `code.running`        | Running...                                                                |
+| `code.idle`           | Click the play button to run the code                                     |
+| `code.run`            | Run code                                                                  |
+| `code.copy`           | Copy                                                                      |
+| `code.copied`         | Copied                                                                    |
+| `embed.tweetFailed`   | Could not load tweet                                                      |
+| `embed.blueskyFailed` | Could not load Bluesky post                                               |
+| `slide.errorDev`      | An error occurred on this slide. Check the terminal for more information. |
+| `slide.errorBuild`    | Failed to fetch this slide. Please check your network connection.         |
+
+### The dev server: the side editor and the banner for a deck that does not read
+
+| key               | English                                                               |
+| ----------------- | --------------------------------------------------------------------- |
+| `editor.slide`    | Slide {no}                                                            |
+| `editor.close`    | Close editor                                                          |
+| `editor.markdown` | Markdown of this slide                                                |
+| `editor.loading`  | Loading...                                                            |
+| `editor.saved`    | Saved                                                                 |
+| `editor.saving`   | Saving...                                                             |
+| `editor.error`    | Could not save                                                        |
+| `editor.conflict` | Changed in the file, not saved: copy your text and reopen the slide   |
+| `editor.problem`  | slides.md could not be read, showing the last good version: {problem} |

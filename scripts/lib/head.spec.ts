@@ -111,4 +111,14 @@ describe('renderIndexHtml', () => {
     expect(html).toContain('<html lang="en" ok="y">');
     expect(warnings.length).toBe(2);
   });
+  it('turns a right-to-left language around, unless htmlAttrs.dir says otherwise', () => {
+    expect(renderIndexHtml(template, headParts({ lang: 'ar' }))).toContain(
+      '<html lang="ar" dir="rtl">',
+    );
+    expect(renderIndexHtml(template, headParts({ lang: 'he-IL' }))).toContain('dir="rtl"');
+    expect(renderIndexHtml(template, headParts({ lang: 'tr' }))).not.toContain('dir=');
+    expect(
+      renderIndexHtml(template, headParts({ lang: 'fa', htmlAttrs: { dir: 'ltr' } })),
+    ).toContain('<html lang="fa" dir="ltr">');
+  });
 });

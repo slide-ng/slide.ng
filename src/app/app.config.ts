@@ -1,5 +1,6 @@
 import {
   ApplicationConfig,
+  LOCALE_ID,
   inject,
   isDevMode,
   provideBrowserGlobalErrorListeners,
@@ -8,6 +9,7 @@ import {
 import { provideRouter, withHashLocation } from '@angular/router';
 import { HEADMATTER } from '../slides/generated';
 import { SETUP_PROVIDERS } from '../slides/generated/setup';
+import { LOCALE, UI_TRANSLATIONS } from '../slides/generated/ui-text';
 import { routes } from './app.routes';
 import { DevApi } from './dev/dev-api';
 import { presenterEnabled } from './lib/switches';
@@ -15,10 +17,14 @@ import { DRAG_SAVER } from './drag/drag-state';
 import { WebSocketTransport } from './dev/ws-transport';
 import { BroadcastTransport } from './sync/broadcast-transport';
 import { SYNC_TRANSPORTS } from './sync/transport';
+import { UI_TEXT, mergeUiText } from './i18n/ui-text';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    // The headmatter's `lang` (or `uiLang`) picks the interface text and the locale of the date, number and currency pipes.
+    { provide: UI_TEXT, useValue: mergeUiText(UI_TRANSLATIONS) },
+    { provide: LOCALE_ID, useValue: LOCALE },
     // Headmatter `presenter: false`: the page is marked so the nav bar hides its presenter button (styles/controls.css).
     provideEnvironmentInitializer(() => {
       if (!presenterEnabled()) document.documentElement.dataset['presenter'] = 'off';
