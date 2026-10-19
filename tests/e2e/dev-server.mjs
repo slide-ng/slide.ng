@@ -3,6 +3,8 @@
 // and {monaco-write} edits are saved to files, bad requests are refused, and `--remote` needs its password.
 import { spawn } from 'node:child_process';
 import { copyFileSync, existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { WebSocket } from 'ws';
 import { launch, reporter } from './browser.mjs';
 
@@ -422,6 +424,57 @@ try {
     (await ws(`?token=${session.token}`, { origin: 'http://evil.example' })) === '403',
   );
   t.ok('WebSocket with the token is accepted', (await ws(`?token=${session.token}`)) === 'open');
+
+  // ---- MCP over HTTP at /__mcp, through the proxy
+  const mcp = await new Client({ name: 'dev-test', version: '1.0.0' });
+  await mcp.connect(new StreamableHTTPClientTransport(new URL(`${base}/__mcp`)));
+  const mcpTools = (await mcp.listTools()).tools.map((x) => x.name);
+  t.ok(
+    'mcp: /__mcp answers through the proxy with the slide tools, get_info and goto_slide',
+    ['list_slides', 'update_slide', 'get_info', 'goto_slide'].every((n) => mcpTools.includes(n)),
+    mcpTools.join(),
+  );
+  const mcpJson = async (name, args = {}) =>
+    JSON.parse((await mcp.callTool({ name, arguments: args })).content[0].text);
+  const info = await mcpJson('get_info');
+  t.ok(
+    'mcp: get_info names the entry, the slide count and the address',
+    info.entry.endsWith('work.md') && info.slides > 2 && info.url === `${base}/`,
+    JSON.stringify(info),
+  );
+  await page.bringToFront();
+  await mcpJson('goto_slide', { no: 3 });
+  t.ok(
+    'mcp: goto_slide moves the open window',
+    await page
+      .waitForFunction(
+        () => /^slide 3\//.test(document.querySelector('#hud')?.innerText ?? ''),
+        null,
+        {
+          timeout: 10000,
+        },
+      )
+      .then(
+        () => true,
+        () => false,
+      ),
+    await page.locator('#hud').innerText(),
+  );
+  await mcp.close();
+  t.ok(
+    'mcp: a foreign Origin is refused',
+    (
+      await fetch(`${base}/__mcp`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          accept: 'application/json, text/event-stream',
+          origin: 'http://evil.example',
+        },
+        body: '{"jsonrpc":"2.0","id":1,"method":"tools/list"}',
+      })
+    ).status === 403,
+  );
   await page.close();
   stop();
   await sleep(2000);
@@ -433,6 +486,21 @@ try {
   stop = startDev(RPORT, ['--remote=secret']);
   await waitFor(rbase);
   t.ok('--remote: no password, no session', (await api(RPORT, '/session')).status === 401);
+  const mcpPost = (headers) =>
+    fetch(`${rbase}/__mcp`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        accept: 'application/json, text/event-stream',
+        ...headers,
+      },
+      body: '{"jsonrpc":"2.0","id":1,"method":"tools/list"}',
+    });
+  t.ok(
+    '--remote: /__mcp needs the password, given as a bearer token',
+    (await mcpPost({})).status === 401 &&
+      (await mcpPost({ authorization: 'Bearer secret' })).status === 200,
+  );
   t.ok(
     '--remote: a wrong password is refused',
     (await api(RPORT, '/login', { method: 'POST', body: { password: 'wrong' } })).status === 401,

@@ -484,3 +484,12 @@ Source: an independent review of the repository (nine findings). Each fix has a 
 16. **A relative picture next to `slides.md` is copied into the build** (`/_local/...`) when `public/` does not have it. Slidev decks
     write `./images/x.png` because Vite bundles it; failing silently with a 404 made those decks look broken. Files outside the deck's
     folder are never copied.
+
+## Made after 1.0.0
+
+1. **MCP over HTTP is stateless and lives in the companion server** (`/__mcp`, proxied like `/__slide-ng`). Each POST gets a new
+   server and transport, so nothing is kept between requests and a restart loses nothing; GET (a server stream) and DELETE (end a
+   session) answer 405. It does not need the session token: a program cannot fetch it, and the token is there against other web pages,
+   which the Origin check already stops (a browser sends Origin on every POST). With `--remote` a program sends the password as a bearer
+   token, counted by the same limit on wrong passwords as the login. `goto_slide` sends two `shared` messages, one as a viewer (presenters
+   follow) and one as a presenter (viewers follow), because a window ignores moves made by its own kind.

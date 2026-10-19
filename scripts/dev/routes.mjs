@@ -3,6 +3,7 @@
 import { API, COOKIE, check, clientAddress, readBody, safeEqual } from './auth.mjs';
 import { writeDrawing, MAX_DRAWING } from './drawings-store.mjs';
 import { HttpError } from './http-error.mjs';
+import { MCP_PATH, handleMcp } from './mcp-http.mjs';
 import { MAX_FILE, writeMonaco } from './monaco-write.mjs';
 import { readSlide, writeDrag, writeSlide } from './slides-write.mjs';
 import { canvasSize } from '../lib/canvas-size.mjs';
@@ -18,8 +19,8 @@ const json = (res, status, body, headers = {}) => {
 };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-/** The request handler: `http.createServer(createHandler(ctx))`. */
-export function createHandler(ctx) {
+/** The request handler: `http.createServer(createHandler(ctx, { hub }))`. `hub` is the sync hub, for the MCP tools. */
+export function createHandler(ctx, { hub } = {}) {
   // Writes run one after the other, so two quick moves cannot overwrite each other's lines.
   let queue = Promise.resolve();
   const serial = (job) => (queue = queue.then(job, job));
@@ -102,6 +103,7 @@ export function createHandler(ctx) {
   return async (req, res) => {
     try {
       const url = new URL(req.url, 'http://x');
+      if (url.pathname === MCP_PATH) return await handleMcp(req, res, ctx, { hub, serial });
       if (!url.pathname.startsWith(`${API}/`)) throw new HttpError(404, 'not found');
       await route(req, res, url);
     } catch (e) {

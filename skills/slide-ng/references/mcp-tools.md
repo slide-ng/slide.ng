@@ -1,6 +1,6 @@
 ---
 name: mcp-tools
-description: The seven MCP tools and their arguments
+description: The MCP tools and their arguments (seven, and two more on the dev server)
 ---
 
 # MCP tools
@@ -14,6 +14,8 @@ description: The seven MCP tools and their arguments
 | `insert_slide` | `after`, `markdown`, optional `frontmatter` object | adds a slide after slide `after` (never before slide 1); `markdown` may start with its own `---` frontmatter block |
 | `remove_slide` | `no`                                               | removes a slide (not slide 1); returns `slides` and the `removed` slide's `no` and `title`                         |
 | `move_slide`   | `from`, `to`                                       | the slide `from` becomes slide `to` (slide 1 cannot move)                                                          |
+| `get_info`     | none (dev server only)                             | `entry`, `title`, `slides`, `files`, `url` of the dev server, `current` (`page`, `clicks`) or null                 |
+| `goto_slide`   | `no`, optional `clicks` (dev server only)          | moves every open window (presenter and audience); returns `no`, `clicks` and the number of `windows`               |
 
 - Slide numbers start at 1.
 - `markdown` has no trailing `---` separator.

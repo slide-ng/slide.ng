@@ -228,7 +228,8 @@ folder that carries the marker file `.slide-ng-build`, and removes the work fold
 `angular.json`) and `generated/public` (a second asset folder). `tsconfig.json` maps `slide-ng/*` to `src/app/*` so copied theme code can import the app. In dev the generator watches the root folders.
 
 **MCP** (`scripts/mcp/`). `index.mjs` is a stdio server (`@modelcontextprotocol/sdk`), `tools.mjs` has the seven tools, `deck-edit.mjs` the text edits (remove, insert, move; pure functions
-tested with the real parser). Every change is parsed again before it is written, and only the deck's own markdown files are touched (`dev/auth.mjs` `confine`, the same check the dev server uses).
+tested with the real parser). The dev companion serves the same tools over streamable HTTP at `/__mcp` (`dev/mcp-http.mjs`, proxied like `/__slide-ng`),
+with two more from `dev-tools.mjs`: `get_info` and `goto_slide`, which sends a move through the sync hub. Every change is parsed again before it is written, and only the deck's own markdown files are touched (`dev/auth.mjs` `confine`, the same check the dev server uses).
 
 ## Styling
 
