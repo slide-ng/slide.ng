@@ -29,7 +29,9 @@ export async function run({ t, open, press, hud }) {
   // ---- custom-nav-controls: a button from layers/ at the end of the bar, after the slide counter
   const barOrder = await page
     .locator('nav #nav-counter')
-    .evaluate((c) => c.nextElementSibling?.id + '>' + c.nextElementSibling?.firstElementChild?.id);
+    .evaluate(
+      (c) => c.nextElementSibling?.id + '>' + c.nextElementSibling?.querySelector('button')?.id,
+    );
   t.ok(
     'a button of the custom-nav-controls layer is in the bar, after the counter',
     barOrder === 'custom-nav-controls>custom-next',
