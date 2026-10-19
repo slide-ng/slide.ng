@@ -14,7 +14,8 @@ import { Dark } from '../lib/dark';
 import { NoteStore } from './note-store';
 import { notesToText, textToNotes } from './notes-text';
 
-type Status = 'loading' | 'saved' | 'saving' | 'invalid' | 'conflict' | 'error' | 'offline';
+type Status =
+  'loading' | 'saved' | 'saving' | 'invalid' | 'conflict' | 'outside' | 'error' | 'offline';
 const SAVE_DELAY = 600;
 // A saved note rebuilds the deck and reloads this page. What was typed meanwhile is kept for a moment and taken back.
 const DRAFT = 'slide-ng-notes-draft';
@@ -65,6 +66,8 @@ export class NotesEditPage {
     saving: 'Saving...',
     invalid: `Not saved: keep the ${SLIDES.length} "--- #N" lines as they are`,
     conflict: 'Not saved: a note changed in the file. Reload the page.',
+    outside:
+      'Not saved: the notes of a slide imported from outside the project cannot be edited here.',
     error: 'Not saved',
     offline: 'The notes can only be edited while the dev server runs.',
   };
@@ -121,14 +124,17 @@ export class NotesEditPage {
     const edits = this.edits;
     const notes = textToNotes(this.text(), SLIDES.length);
     if (!Array.isArray(notes)) return this.status.set('invalid');
+    let outside = false;
     for (const [i, note] of notes.entries()) {
       const base = this.saved[i];
+      // Shown empty, and never written: typing there must not end in "Saved".
+      if (base == null) outside ||= note !== '';
       if (base == null || note === base) continue;
       const status = await this.store.save(i + 1, note, base);
       if (status !== 200) return this.status.set(status === 409 ? 'conflict' : 'error');
       this.saved[i] = note;
     }
-    if (edits === this.edits) this.status.set('saved');
+    if (edits === this.edits) this.status.set(outside ? 'outside' : 'saved');
   }
 }
 
