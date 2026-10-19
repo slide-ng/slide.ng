@@ -123,6 +123,28 @@ import { SHORTCUTS_SETUP } from 'slide-ng/lib/shortcuts';
   `<ng-content select="[name]" />` (the built-in `two-cols` uses `select="[left]"` and `select="[right]"`).
 - The deck's own folder can have a `theme.json` too, to declare the inputs and slots of its own layouts.
 
+### `themeConfig`
+
+The settings a theme offers to decks, as in Slidev. Give the defaults in `theme.json`; the deck's `themeConfig` is merged over them
+key by key (an addon's too):
+
+```json
+{ "name": "ocean", "headmatter": { "themeConfig": { "primary": "#0e7490", "accent": "#f59e0b" } } }
+```
+
+- **In CSS**: each key with a text or number value is the variable `--slidev-theme-<key>` on `<body>` (the key as written, so
+  `accent` is `--slidev-theme-accent`). It is written into the generated `theme.css` after the roots' style sheets, so it wins
+  over a value on `:root` or `html.dark`, also the default `--slidev-theme-primary` of the app, and it is there in the
+  presenter, the PDF and offline builds. Use it in rules on the elements (`color: var(--slidev-theme-accent)`), or alias it
+  on `body` or below; an alias on `:root` is resolved before the variable exists there. `primary` already colours the
+  built-in accent (`text-primary`, the progress bar, the controls).
+- **In code**: `inject(THEME_CONFIG)` (from `slide-ng/lib/theme-config`) is the whole merged map, also lists and objects.
+  Slides read it as `themeConfig` (`{{ themeConfig['primary'] }}`; the brackets are needed because the map has no fixed keys).
+- A key must be letters, digits, `-` and `_`. A value that could leave the CSS declaration (`;`, `{`, `}`, `<`, `>`, `\`, a
+  comment, a line break, quotes or brackets that do not close) is skipped with a warning; it is still in `THEME_CONFIG`.
+- There is one value for both colour modes, as in Slidev. A theme that wants another dark colour can offer a second key
+  (`primaryDark`) and use it under `html.dark`.
+
 ## Setup hooks
 
 The hooks of a theme or addon work the same as in a deck and are listed, with examples, in [SETUP.md](SETUP.md); the deck's own file always runs last.
@@ -153,7 +175,7 @@ version can change the built-in rules under your copy.
 ## How it works (for debugging)
 
 The generator copies each root's folders into `src/slides/generated/roots/<id>/` and merges the `public/` folders into
-`src/slides/generated/public/`. It writes `layers.ts`, `setup.ts` (the providers) and `theme.css` (the `@import`s of the styles).
+`src/slides/generated/public/`. It writes `layers.ts`, `setup.ts` (the providers) and `theme.css` (the `@import`s of the styles, the `fonts` and the `themeConfig` variables).
 Symbolic links are never copied. In dev mode the folders of themes and addons are watched, so an edit regenerates and reloads.
 
 ## Limits

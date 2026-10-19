@@ -17,6 +17,7 @@ The frontmatter of the **first slide** configures the deck. Other keys are kept 
 | `canvasWidth`, `aspectRatio`, `zoom`                                                                               | size, see `layout-canvas-size.md`, `layout-zoom.md`                                                                         |
 | `routerMode`                                                                                                       | `history` (default) or `hash`                                                                                               |
 | `fonts`                                                                                                            | web fonts, see `core-fonts.md`                                                                                              |
+| `themeConfig`                                                                                                      | theme settings; each text or number key is the CSS variable `--slidev-theme-<key>`, see `theme-use.md`                      |
 | `lineNumbers`, `codeCopy`, `shiki`, `codeAliases`, `magicMoveDuration`, `magicMoveCopy`, `plantUmlServer`          | code and diagrams                                                                                                           |
 | `duration`, `timer`                                                                                                | presenter timer, see `presenter-timer.md`                                                                                   |
 | `drawings`, `presenter`, `editor`, `record`, `contextMenu`, `wakeLock`                                             | tools, see `presenter-switches.md`                                                                                          |
@@ -40,6 +41,8 @@ defaults:
 canvasWidth: 980
 aspectRatio: 16/9
 duration: 30min
+themeConfig:
+  primary: '#5d8392'
 ---
 
 # Configured deck
