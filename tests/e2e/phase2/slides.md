@@ -263,3 +263,20 @@ A claim[^1] and another[^second].
 [^second]: The second one, with `{{ x }}` in it.
 
 <carbon-apps id="i1" /> <mdi-account-circle id="i2" class="text-red-500" /> <ph-star-fill id="i3" />
+
+---
+
+# UnoCSS
+
+<div id="u-attr" flex="~ col" text="red-500" p="4">attributify</div>
+<div id="u-hover" bg="green-500" hover:bg="blue-500">hover</div>
+<div id="u-group" class="p-2 hover:(text-blue-500 font-bold)">group</div>
+<div id="u-prose" class="prose"><p>Prose text with <a href="https://example.com">a link</a>.</p></div>
+<p id="u-apply" class="from-apply">apply</p>
+<p id="u-uno" class="from-uno">uno</p>
+<p id="u-styles" class="uno-from-styles">styles</p>
+
+<style>
+.from-apply { @apply text-green-600 italic; }
+.from-uno { --uno: underline font-mono; }
+</style>

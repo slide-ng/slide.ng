@@ -5,8 +5,10 @@ import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { fontsCss } from './fonts.mjs';
 import { findLayerFiles, layersSource } from './layers.mjs';
+import { unoGenerator } from './make-css.mjs';
 import { scanRoots } from './scan-roots.mjs';
 import { syncRoots } from './sync-roots.mjs';
+import { applyDirectivesOrWarn, hasDirectives } from './uno-directives.mjs';
 
 // The browser side setup files (docs/SETUP.md): the name of the file, and the helper of src/app/setup/index.ts that turns the files into providers.
 // `providers.ts` is the older way and default-exports an array itself.
@@ -58,29 +60,26 @@ export const SETUP_PROVIDERS: (Provider | EnvironmentProviders)[] = [${list.join
 `;
 }
 
-// `@apply` (UnoCSS's directive, common in Slidev themes) is not transformed: the rule would silently do nothing.
-const warnedApply = new Set();
-function warnApply(roots) {
+// The CSS files of the roots' styles/ folders that use UnoCSS directives (`@apply`, `--uno:`), written out with the deck's
+// UnoCSS settings: a map from the source file to its new text, for syncRoots to copy instead.
+async function stylesWithDirectives(roots, uno) {
+  const rewrite = new Map();
   for (const r of roots) {
     const dir = join(r.dir, 'styles');
     if (!existsSync(dir)) continue;
     for (const f of readdirSync(dir, { recursive: true })) {
       const file = join(dir, String(f));
-      if (!String(f).endsWith('.css') || warnedApply.has(file)) continue;
-      if (/@apply\b/.test(readFileSync(file, 'utf8'))) {
-        warnedApply.add(file);
-        console.warn(
-          `[slides] ${file}: @apply does nothing here (there is no UnoCSS directive transformer); write the CSS out, or put the classes on the elements`,
-        );
-      }
+      if (!String(f).endsWith('.css')) continue;
+      const css = readFileSync(file, 'utf8');
+      if (hasDirectives(css)) rewrite.set(file, await applyDirectivesOrWarn(css, uno, file));
     }
   }
+  return rewrite;
 }
 
 /** `src/slides/generated/theme.css`: the deck's `fonts`, then the style sheets of the roots (`styles/index.css`), weakest first. */
 /** @param {{ id: string, dir: string }[]} roots @param {Record<string, any>} [headmatter] @param {string | null} [fontFaces] */
 export function themeCss(roots, headmatter = {}, fontFaces = null) {
-  warnApply(roots);
   const imports = roots
     .filter((r) => existsSync(join(r.dir, 'styles', 'index.css')))
     .map((r) => `@import './roots/${r.id}/styles/index.css';`);
@@ -95,12 +94,22 @@ export function themeCss(roots, headmatter = {}, fontFaces = null) {
 }
 
 /**
- * Does everything for the roots of `deck`: copies them, finds layouts, components and layers, loads UnoCSS settings.
+ * Does everything for the roots of `deck`: loads UnoCSS settings, copies the roots, finds layouts, components and layers.
  * Sets `deck.layouts`, `deck.components` and `deck.layers`. `write(path, text)` is the generator's change-only writer.
+ * Returns the roots' UnoCSS settings and a UnoCSS generator made with them.
  */
 export async function applyRoots(deck, out, write, warn) {
+  // A root's uno.config.mjs is plain JavaScript that default-exports (part of) a UnoCSS config.
+  const unoConfigs = [];
+  for (const root of deck.roots) {
+    const file = join(root.dir, 'uno.config.mjs');
+    if (existsSync(file))
+      unoConfigs.push((await import(`${pathToFileURL(file).href}?v=${Date.now()}`)).default);
+  }
+  const uno = await unoGenerator(unoConfigs);
+
   const generated = resolve(out);
-  syncRoots(deck.roots, generated);
+  syncRoots(deck.roots, generated, await stylesWithDirectives(deck.roots, uno));
   // Where each copy came from, so a build error in `roots/deck/components/x.ts` can name the author's own file (cli/runtime.mjs).
   write(
     `${out}roots.json`,
@@ -120,13 +129,5 @@ export async function applyRoots(deck, out, write, warn) {
   write(`${out}layers.ts`, layersSource(layerFiles));
   write(`${out}setup.ts`, setupSource(deck.roots));
   write(`${out}theme.css`, themeCss(deck.roots, deck.headmatter, deck.fontFaces));
-
-  // A root's uno.config.mjs is plain JavaScript that default-exports (part of) a UnoCSS config.
-  const unoConfigs = [];
-  for (const root of deck.roots) {
-    const file = join(root.dir, 'uno.config.mjs');
-    if (existsSync(file))
-      unoConfigs.push((await import(`${pathToFileURL(file).href}?v=${Date.now()}`)).default);
-  }
-  return { unoConfigs };
+  return { unoConfigs, uno };
 }

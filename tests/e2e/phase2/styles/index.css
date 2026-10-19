@@ -1,0 +1,4 @@
+/* A deck style sheet with UnoCSS's @apply (tests/e2e/phase2/unocss.mjs). */
+.uno-from-styles {
+  @apply text-orange-500 font-bold;
+}

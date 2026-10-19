@@ -13,6 +13,7 @@ import { commonPipes } from './pipes.mjs';
 import { commonDirectives } from './angular-imports.mjs';
 import { setWarnSlide } from './code/highlighter.mjs';
 import { localAssets } from './local-assets.mjs';
+import { expandGroups } from './uno-directives.mjs';
 
 const pad = (no) => String(no).padStart(3, '0');
 export const slideName = (no) => `slide-${pad(no)}`;
@@ -187,35 +188,36 @@ export function slideSource(slide, no, deck = {}) {
   const layoutKey = slide.layout ?? layoutName(slide.frontmatter, no - 1, layouts);
   const def = layouts[layoutKey];
   setWarnSlide(no);
-  const { markdown, css } = extractStyles(tagDragSites(slide.content));
-  if (/@apply\b/.test(css))
-    console.warn(
-      `[slides] slide ${no}: @apply in a <style> does nothing here (there is no UnoCSS directive transformer); put the classes on the element, or write the CSS out`,
-    );
+  const { markdown, css: written } = extractStyles(tagDragSites(slide.content));
+  // `@apply` and `--uno:` were written out before (lib/uno-directives.mjs), as Slidev's transformerDirectives does.
+  const css = deck.cssDirectives?.get(written) ?? written;
   warnInlineControlFlow(markdown, no);
   const layer = (name) =>
     deck.layers?.includes(name) ? `<app-slide-layer name="${name}"></app-slide-layer>` : '';
   const layout = `${openTag(def, slide.frontmatter)}${body(markdown, def, no, { file: slide.file, root: deck.root, roots: deck.roots?.map((r) => r.dir), allowOutsideRoot: deck.allowOutsideRoot, headmatter: deck.headmatter, codeblocks: deck.transformers?.codeblocks, slide: slideInfo(slide, no) }, layoutKey)}</${def.tag}>`;
   const base = deck.assetBase ?? '/'; // where the deck is served from in a build; `/public` files get it in front
   const aliases = (deck.slides ?? []).map((sl) => sl.frontmatter?.routeAlias).filter(Boolean);
-  const html = safeLinks(
-    closeEntities(
-      keepSpaces(
-        rebaseHtml(
-          localAssets(
-            slideLinks(layer('slide-bottom') + layout + layer('slide-top'), aliases),
-            {
-              file: slide.file ?? slide.source?.filepath,
-              root: deck.root,
-              publics: (deck.roots ?? []).map((r) => join(r.dir, 'public')),
-            },
-            (deck.localAssets ??= new Set()),
+  // Variant groups (`hover:(a b)`) are expanded, as Slidev's transformerVariantGroup does.
+  const html = expandGroups(
+    safeLinks(
+      closeEntities(
+        keepSpaces(
+          rebaseHtml(
+            localAssets(
+              slideLinks(layer('slide-bottom') + layout + layer('slide-top'), aliases),
+              {
+                file: slide.file ?? slide.source?.filepath,
+                root: deck.root,
+                publics: (deck.roots ?? []).map((r) => join(r.dir, 'public')),
+              },
+              (deck.localAssets ??= new Set()),
+            ),
+            base,
           ),
-          base,
         ),
       ),
+      no,
     ),
-    no,
   );
 
   // Look for components outside code samples only (code is just text). A `<code>` written in HTML is live Angular.
@@ -238,15 +240,6 @@ export function slideSource(slide, no, deck = {}) {
       console.warn(
         `[slides] slide ${no}: the drag position "${m[1]}" is not in this slide's dragPos; it starts where the layout puts it`,
       );
-  // UnoCSS here has no variant groups and no `--uno:` directive (docs/SYNTAX.md): say so instead of dropping the styles.
-  if (/\sclass="[^"]*[\w-]:\(/.test(markup))
-    console.warn(
-      `[slides] slide ${no}: variant groups such as hover:(a b) are not supported; write hover:a hover:b`,
-    );
-  if (/--uno(?:css)?:/.test(css))
-    console.warn(
-      `[slides] slide ${no}: --uno: in a <style> is not supported; put the utility classes on the element instead`,
-    );
   // Vue's `<template #name>` slot is an inert HTML <template> here: its content never shows.
   if (/<template\s+(?:#|v-slot)/.test(markup))
     console.warn(

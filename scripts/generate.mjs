@@ -21,6 +21,7 @@ import { slideName, slideSource } from './lib/emit.mjs';
 import { indexSource } from './lib/index-source.mjs';
 import { layoutName } from './lib/layouts.mjs';
 import { makeCss, tsFiles } from './lib/make-css.mjs';
+import { slideStyleDirectives } from './lib/uno-directives.mjs';
 import { detectFeatures } from './lib/features.mjs';
 import { initHighlighter } from './lib/code/highlighter.mjs';
 import { snippetFiles } from './lib/code/snippet.mjs';
@@ -132,7 +133,9 @@ async function generate() {
   writeIndexHtml(deck, build.base);
   deck.drawings = readDrawings(deck.root, deck.headmatter);
   // Themes and addons: copies them into the app, finds their layouts, components and layers (see lib/theme-files.mjs).
-  const { unoConfigs } = await applyRoots(deck, OUT, write, (m) => console.warn(`[slides] ${m}`));
+  const { unoConfigs, uno } = await applyRoots(deck, OUT, write, (m) =>
+    console.warn(`[slides] ${m}`),
+  );
   // Decide each layout once, so that an unknown name is reported once.
   deck.slides.forEach((s, i) => (s.layout = layoutName(s.frontmatter, i, deck.layouts)));
   // setup/katex.ts, setup/transformers.ts and setup/shiki.ts of the roots (docs/SETUP.md).
@@ -169,6 +172,8 @@ async function generate() {
   for (const f of readdirSync(OUT)) if (!wanted.has(f)) rmSync(OUT + f, { recursive: true });
   resetMonacoWriteTargets();
   deck.localAssets = new Set();
+  // `@apply` and `--uno:` in the slides' <style> blocks (lib/uno-directives.mjs).
+  deck.cssDirectives = await slideStyleDirectives(deck.slides, uno);
   deck.slides.forEach((s, i) => write(`${OUT}${slideName(i + 1)}.ts`, slideSource(s, i + 1, deck)));
   copyLocalAssets(deck.root, deck.localAssets, `${OUT}local-assets`);
   writeMonacoTargets(deck.root);
@@ -180,10 +185,9 @@ async function generate() {
   const slideFiles = deck.slides.map((_, i) => `${OUT}${slideName(i + 1)}.ts`);
   write(
     `${OUT}uno.css`,
-    await makeCss(
-      [...deck.files, ...slideFiles, ...tsFiles('src/app'), ...tsFiles(`${OUT}roots`)],
-      unoConfigs,
-    ),
+    await makeCss([...deck.files, ...slideFiles, ...tsFiles(`${OUT}roots`)], unoConfigs, [
+      ...tsFiles('src/app'),
+    ]),
   );
   console.log(`[slides] generated ${deck.slides.length} slides`);
   // A file a {monaco-write} editor saves to is not watched: the editor shows it already, and a regeneration on each save would

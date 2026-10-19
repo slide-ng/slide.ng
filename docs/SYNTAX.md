@@ -147,7 +147,9 @@ h1 { color: red; }
 
 The CSS is placed inside the slide's own element with native CSS nesting (`slide-003 { ... }`), so every
 selector only matches inside that slide, layout elements included (`.two-cols-header { column-gap: 20px }` works).
-Nested rules and `&` work. UnoCSS directives (`--uno: ...`) do not; use utility classes in the HTML instead.
+Nested rules and `&` work. UnoCSS's directives work as in Slidev: `@apply p-4 text-red-500;`, `--uno: p-4 text-red-500;`,
+`@screen md { ... }` and `theme('colors.red.500')` are written out as CSS while generating (also in `styles/` of the deck, a theme or
+an addon). A utility UnoCSS does not know gives a `[slides]` warning.
 
 ## Transitions
 
@@ -619,9 +621,17 @@ or `'overview'` in previews.
 ## Styling
 
 Use [UnoCSS](https://unocss.dev) utility classes (Tailwind-like names) in HTML and in `class:`
-frontmatter. The CSS for the classes you use is built automatically.
-Responsive prefixes (`md:`, `lg:`) follow the browser window, not the slide, which keeps its own size and is scaled: the same slide
-can show another column count on a phone, in the presenter preview or in the PDF. Use plain classes for the slide's layout.
+frontmatter. The CSS for the classes you use is built automatically. As in Slidev:
+
+- **Variant groups**: `class="hover:(bg-blue-500 text-white)"` is written as `hover:bg-blue-500 hover:text-white` while generating
+  (in a slide's markup; a component in `components/` writes the classes out).
+- **Attributify**: utilities as attributes, `<div flex="~ col" text="sm red-500" p="4">`, also with a variant in the name
+  (`hover:bg="blue-500"`) and valueless (`<div flex items-center>`). Angular keeps such attributes as they are. Only the deck's own files
+  (slides, `components/`, layouts and other files of the deck, themes and addons) are read this way, not slide.ng's own source.
+- **Typography**: `class="prose"` styles long text (headings, lists, links, quotes), `dark:prose-invert` for dark mode, `not-prose` to opt out.
+- **Directives** in `<style>` and `styles/`: see Per-slide styles.
+  Responsive prefixes (`md:`, `lg:`) follow the browser window, not the slide, which keeps its own size and is scaled: the same slide
+  can show another column count on a phone, in the presenter preview or in the PDF. Use plain classes for the slide's layout.
 
 ## Presenter, notes and timer
 

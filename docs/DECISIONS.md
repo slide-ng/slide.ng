@@ -65,7 +65,7 @@ Short notes on choices made, and why. Newest at the bottom.
    stays visible in the normal flow (Slidev would drop it silently).
 7. **Per-slide `<style>`: Angular `styles` with `ViewEncapsulation.None`, wrapped in `slide-003 { ... }` (CSS nesting).** The slide's tag name is the
    scope, no extra attribute. Unlike Vue's scoped CSS it also reaches inside the layout's own elements, which is what the Slidev docs example needs.
-   `--uno:` directives are not supported.
+   `--uno:` and `@apply` are written out while generating (see Made while testing for 1.0.0, 17).
 8. **`center` no longer centres the text** (phase 0 did). Slidev's `center` only places the content in the middle; use `class: text-center`.
 9. **`full` has no padding.** Slidev's base style would give it the normal padding; the docs say "use all the space of the screen", so we follow the docs.
    This is the one layout where the two disagree; to be checked against a real Slidev (see STATUS).
@@ -484,3 +484,10 @@ Source: an independent review of the repository (nine findings). Each fix has a 
 16. **A relative picture next to `slides.md` is copied into the build** (`/_local/...`) when `public/` does not have it. Slidev decks
     write `./images/x.png` because Vite bundles it; failing silently with a 404 made those decks look broken. Files outside the deck's
     folder are never copied.
+17. **UnoCSS as Slidev sets it up: attributify, typography, variant groups and directives.** Three dependencies were added for it, all at the
+    UnoCSS version already installed: `@unocss/preset-attributify`, `@unocss/preset-typography` and `@unocss/transformer-directives`.
+    The generator does the work of Slidev's two transformers (`lib/uno-directives.mjs`): `hover:(a b)` in a slide's attributes is expanded
+    with `expandVariantGroup` from `@unocss/core`, and the directives in a slide's `<style>` and in the roots' `styles/` are written out
+    before Angular sees the CSS (the copies in `generated/roots` hold the result). Angular's template parser accepts attributify forms,
+    `hover:bg="..."` included (a namespace it does not know is set as a plain attribute), so no attribute is rewritten into a class.
+    Attributify reads only the deck's files: in slide.ng's own source, attributes such as `size="2"` or `visible` would become utilities.

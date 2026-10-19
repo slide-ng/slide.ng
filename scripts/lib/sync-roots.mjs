@@ -27,11 +27,15 @@ function listFiles(dir, base = dir) {
   });
 }
 
-/** Makes `to` hold the same files as `from`: new and changed files are written, and files only in `to` are removed when `prune`. */
-export function syncTree(from, to, prune = true) {
+/**
+ * Makes `to` hold the same files as `from`: new and changed files are written, and files only in `to` are removed when `prune`.
+ * `rewrite` gives other text for some source files (by their full path), copied instead of the file.
+ */
+export function syncTree(from, to, prune = true, rewrite = new Map()) {
   const wanted = new Set(listFiles(from));
   for (const file of wanted) {
-    const source = readFileSync(join(from, file));
+    const text = rewrite.get(join(from, file));
+    const source = text === undefined ? readFileSync(join(from, file)) : Buffer.from(text);
     const target = join(to, file);
     if (existsSync(target) && readFileSync(target).equals(source)) continue;
     mkdirSync(join(target, '..'), { recursive: true });
@@ -41,8 +45,11 @@ export function syncTree(from, to, prune = true) {
     for (const file of listFiles(to)) if (!wanted.has(file)) rmSync(join(to, file));
 }
 
-/** Copies every root. Returns, for the logs, `{ id, folders }` of each. `generated` is the folder `src/slides/generated`. */
-export function syncRoots(roots, generated) {
+/**
+ * Copies every root. Returns, for the logs, `{ id, folders }` of each. `generated` is the folder `src/slides/generated`.
+ * `rewrite` maps source files to the text to copy instead (styles with UnoCSS directives written out).
+ */
+export function syncRoots(roots, generated, rewrite = new Map()) {
   const target = join(generated, 'roots');
   const publicDir = join(generated, 'public');
   mkdirSync(target, { recursive: true });
@@ -66,7 +73,7 @@ export function syncRoots(roots, generated) {
       if (folder === 'public') {
         syncTree(from, publicDir, false);
         listFiles(from).forEach((f) => publicWanted.add(f));
-      } else syncTree(from, join(target, root.id, folder));
+      } else syncTree(from, join(target, root.id, folder), true, rewrite);
     }
     return { id: root.id, folders };
   });
