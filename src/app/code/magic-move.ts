@@ -40,8 +40,11 @@ export function stepAt(ranges: string[][], clickCount: number, stepCount: number
     '[attr.data-slide-ng-waitfor]': 'data() ? null : ".shiki-magic-move-container span"',
   },
   template: `
-    @if (title()) {
+    @if (title() || icon()) {
       <div class="slidev-code-block-title">
+        @if (icon()) {
+          <span class="slidev-code-title-icon w-3.5 h-3.5 relative" [class]="icon()"></span>
+        }
         <div class="leading-1em">{{ title() }}</div>
       </div>
     }
@@ -49,7 +52,7 @@ export function stepAt(ranges: string[][], clickCount: number, stepCount: number
     @if (!noCopy()) {
       <button
         class="slidev-code-copy absolute right-0 transition opacity-0 group-hover:opacity-20 hover:!opacity-100"
-        [class]="title() ? 'top-10' : 'top-0'"
+        [class]="title() || icon() ? 'top-10' : 'top-0'"
         [attr.title]="copied() ? 'Copied' : 'Copy'"
         (click)="copy()"
       >
@@ -66,6 +69,7 @@ export class ShikiMagicMove implements OnInit, OnDestroy {
   stepRanges = input([], { transform: (v: string) => JSON.parse(v || '[]') as string[][] });
   at = input<RawSingleAt>('+1');
   title = input('');
+  icon = input(''); // the icon class in front of the title
   duration = input(800, { transform: numberAttribute });
   noCopy = input(false, { transform: booleanAttribute });
 

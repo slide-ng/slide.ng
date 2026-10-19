@@ -289,7 +289,8 @@ yarn add @slide-ng/core
 ::
 ````
 
-The `~icon~` title syntax and the automatic file icons of Slidev are not drawn.
+An icon goes in front of a code block, code group tab or Magic Move title: write it in the title as `~i-set:name~` (`[npm ~i-carbon:terminal~]`; its `@iconify-json` set must be installed),
+or install `@iconify-json/vscode-icons` and Slidev's built-in icons are matched from the title (`npm`, `pnpm`, `vue`, `package.json`, `.ts`, `.svg`, ...; the longest name wins).
 
 ### Magic Move
 

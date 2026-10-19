@@ -21,6 +21,11 @@ describe('magic move', () => {
     expect(html).toContain('stepRanges="[[&quot;*&quot;,&quot;1&quot;],[]]"');
     expect(html).not.toContain('{');
   });
+  it('passes a ~icon~ of the title as the icon', () => {
+    const src = '````md magic-move [a.js ~i-carbon:code~]\n```js\nlet a = 1\n```\n````';
+    const html = renderMagicMove((extractFences(src) as { fences: any[] }).fences[0]);
+    expect(html).toContain('title="a.js" icon="i-carbon:code"');
+  });
   it('packs one step per code block, with keyed tokens', () => {
     const packed = /steps="([^"]+)"/.exec(renderMagicMove(fence()))![1];
     const steps = JSON.parse(inflateRawSync(Buffer.from(packed, 'base64')).toString());

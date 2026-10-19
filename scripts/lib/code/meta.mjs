@@ -85,7 +85,7 @@ export function parseInfo(info) {
   };
 }
 
-// The title bar text: Slidev lets a title carry an icon as ~icon-name~, which we do not draw.
+// The title bar text: an icon written as ~icon-name~ is drawn in front of it (see title-icon.mjs).
 export const cleanTitle = (title) => title.replace(/~([^~]+)~/g, '').trim();
 
 // "{monaco}", "{monaco-diff}", "{monaco-run}" right after the language.

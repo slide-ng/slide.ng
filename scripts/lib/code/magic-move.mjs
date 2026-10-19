@@ -4,6 +4,7 @@
 import { toKeyedTokens } from '@shikijs/magic-move/core';
 import { codeToTokens, themeOptions } from './highlighter.mjs';
 import { cleanTitle, parseInfo, parseOptions } from './meta.mjs';
+import { titleIcon } from './title-icon.mjs';
 import { extractFences } from '../fences.mjs';
 import { attrs, attr } from '../protect.mjs';
 import { pack } from '../pack.mjs';
@@ -44,6 +45,7 @@ export function renderMagicMove(fence, ctx = {}) {
   const packed = pack(steps);
   const a = attrs({
     title: cleanTitle(title),
+    icon: title ? titleIcon(title) : undefined,
     at: options.at,
     duration: options.duration ?? head.magicMoveDuration,
     noCopy: head.codeCopy === false || head.magicMoveCopy === false || undefined,

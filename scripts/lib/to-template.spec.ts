@@ -156,6 +156,13 @@ describe('toTemplate: highlighted code', () => {
     expect(warn.mock.calls[0][0]).toContain('"zzz"');
     warn.mockRestore();
   });
+  it('passes a ~icon~ of the title as the icon, without it in the title', () => {
+    const html = toTemplate('```sh [yarn ~i-carbon:terminal~]\nyarn\n```');
+    expect(html).toContain('title="yarn" icon="i-carbon:terminal"');
+    expect(toTemplate('```sh [~i-carbon:terminal~]\nyarn\n```')).toContain(
+      '<slide-ng-code-block-wrapper icon="i-carbon:terminal">',
+    );
+  });
   it('wraps a ::code-group in <slide-ng-code-group>', () => {
     const html = toTemplate(
       '::code-group\n\n```ts [a]\nlet a;\n```\n\n```ts [b]\nlet b;\n```\n\n::',
