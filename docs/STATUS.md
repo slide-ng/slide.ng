@@ -105,6 +105,7 @@ one can be written. The decisions are in DECISIONS.md ("Made while testing for 1
 - The offline mode and the offline folder in browsers other than Chromium (Firefox treats each `file://` page as its own origin; window sync from a folder is probably broken there), and an update of a deck that is already cached.
 - Real Google Fonts for `fonts.selfHost` (only a local fake provider was used), camera, microphone, screen share and recording from `file://`, an offline folder on a network share or a USB stick, and Chromium-based browsers other than the bundled one.
 - The real screen-share picker, recording quality, the wake lock, `--remote` from a second physical device and over a real LAN, touch input (all as in phase 3).
+- The sync mode menu between devices over `--remote` (tested between windows of one browser).
 - Everything under the phase 1 and 2 NOT VERIFIED lists.
 
 ## macOS run (2026-10-16, Node 24, Chrome from `/Applications`)
