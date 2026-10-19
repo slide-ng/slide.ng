@@ -379,6 +379,61 @@ try {
         'work-snippet.ts',
   );
 
+  // ---- notes: /overview edits one note, /notes-edit all of them in one text
+  await page.goto(`${base}/overview`);
+  const firstNote = page.locator('.overview-row[data-no="1"] .overview-note');
+  await firstNote.waitFor({ timeout: 60000 });
+  await sleep(1000); // the page has asked the server for its token
+  await firstNote.dblclick();
+  await page.locator('.overview-note-edit').waitFor({ timeout: 10000 });
+  await page.locator('.overview-note-edit').fill('Said in the overview.');
+  await page.locator('header h1').click(); // leaving the text saves it
+  t.ok(
+    'a note edited in /overview is saved into the markdown file',
+    await waitForFile((s) =>
+      /# One\n\nFirst slide\.\n\n<!--\nSaid in the overview\.\n-->\n/.test(s),
+    ),
+    read().slice(0, 200),
+  );
+  await sleep(4000); // the deck is rebuilt and the page reloads
+  await page.goto(`${base}/notes-edit`);
+  const area = page.locator('#notes-edit-text');
+  await page.waitForFunction(
+    () => document.querySelector('#notes-edit-text')?.value.includes('Said in the overview.'),
+    null,
+    { timeout: 60000 },
+  );
+  const notesText = await area.inputValue();
+  t.ok(
+    '/notes-edit shows every note after its --- #N line',
+    /^--- #1\n\nSaid in the overview\.\n\n--- #2\n[\s\S]*--- #3\n$/.test(notesText),
+    notesText,
+  );
+  const beforeNotes = read();
+  await area.fill(notesText.replace(/--- #3\n$/, '--- #3\n\nTyped for three.\n'));
+  t.ok(
+    'typing in /notes-edit saves the changed note into its slide',
+    await waitForFile((s) => s.includes('<!--\nTyped for three.\n-->')),
+  );
+  t.ok(
+    'and leaves the other slides as they were',
+    read().trimEnd() === `${beforeNotes.trimEnd()}\n\n<!--\nTyped for three.\n-->`,
+  );
+  await sleep(4000);
+  await page.waitForFunction(
+    () => document.querySelector('#notes-edit-status')?.dataset.status === 'saved',
+    null,
+    { timeout: 60000 },
+  );
+  const afterThree = read();
+  await area.fill((await area.inputValue()).replace('--- #2', 'two'));
+  await sleep(1500);
+  t.ok(
+    '/notes-edit refuses a text whose --- #N lines changed, and writes nothing',
+    (await page.locator('#notes-edit-status').getAttribute('data-status')) === 'invalid' &&
+      read() === afterThree,
+  );
+
   // ---- bad requests, through the proxy
   const drag = (headers, extra = {}) =>
     api(PORT, '/slides/2/drag', {

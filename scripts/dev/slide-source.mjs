@@ -24,6 +24,26 @@ function spliceLines(text, from, to, replacement) {
 export const sourceOf = (text, slide) =>
   text.replace(/\r\n/g, '\n').split('\n').slice(slide.start, slide.end).join('\n');
 
+// The speaker note is the slide's last HTML comment when nothing but white space follows it (Slidev's parser).
+function lastComment(raw) {
+  const body = raw.replace(/\r\n/g, '\n').trimEnd();
+  const last = [...body.matchAll(/<!--([\s\S]*?)-->/g)].at(-1);
+  return last && last.index + last[0].length === body.length
+    ? { body, last }
+    : { body, last: null };
+}
+
+/** The note of a slide's markdown (as `sourceOf` returns it), or '' when it has none. */
+export const noteOf = (raw) => lastComment(raw).last?.[1].trim() ?? '';
+
+/** The slide's markdown with `note` as its note: the old note is replaced, an empty note removes it. As Slidev writes it. */
+export function replaceNote(raw, note) {
+  const { body, last } = lastComment(raw);
+  const rest = last ? body.slice(0, last.index).trimEnd() : body;
+  const text = note.trim() ? `${rest}\n\n<!--\n${note.trim()}\n-->` : rest;
+  return raw.endsWith('\n') ? `${text}\n` : text;
+}
+
 /**
  * The file with this slide's lines replaced by `raw`. A slide without frontmatter begins right after a plain `---` line: its
  * text must start with a blank line there, or the parser would read `---` and the text below it as a frontmatter block.

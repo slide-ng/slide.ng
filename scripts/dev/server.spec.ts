@@ -213,6 +213,24 @@ describe('writes to slides.md', () => {
     ).toBe(200);
     writeFileSync(join(root, 'slides.md'), SLIDES);
   });
+  it('reads every note and writes one for the overview and the notes editor', async () => {
+    expect((await call('GET', '/__slide-ng/notes')).json.notes).toEqual(['', '']);
+    expect(
+      (await call('PUT', '/__slide-ng/slides/2/note', { note: 'Say hello.', base: '' })).status,
+    ).toBe(200);
+    const file = readFileSync(join(root, 'slides.md'), 'utf8');
+    expect(file).toBe(SLIDES.replace('# Two\n', '# Two\n\n<!--\nSay hello.\n-->\n'));
+    expect((await call('GET', '/__slide-ng/notes')).json.notes).toEqual(['', 'Say hello.']);
+    writeFileSync(join(root, 'slides.md'), SLIDES);
+  });
+  it('refuses a note that changed in the file since the page read it, or that closes the comment', async () => {
+    const stale = await call('PUT', '/__slide-ng/slides/1/note', { note: 'x', base: 'older' });
+    expect(stale.status).toBe(409);
+    const closing = await call('PUT', '/__slide-ng/slides/1/note', { note: '--> <b>x</b>' });
+    expect(closing.status).toBe(422);
+    expect((await call('PUT', '/__slide-ng/slides/1/note', { note: 3 })).status).toBe(400);
+    expect(readFileSync(join(root, 'slides.md'), 'utf8')).toBe(SLIDES);
+  });
 });
 
 describe('{monaco-write}', () => {

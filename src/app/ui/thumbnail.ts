@@ -4,15 +4,16 @@ import {
   computed,
   effect,
   input,
+  signal,
   untracked,
   viewChild,
 } from '@angular/core';
 import { DrawingPreview } from '../drawing/drawing-preview';
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from '../lib/canvas';
-import { CLICKS_MAX } from '../lib/clicks';
+import { CLICKS_MAX, ClicksContext } from '../lib/clicks';
 import { mountSlide } from '../lib/mount-slide';
 
-// One overview card: the real slide component, drawn at its last click and scaled down to `width`.
+// One overview card: the real slide component, drawn at its last click (or at `clicks`) and scaled down to `width`.
 @Component({
   selector: 'app-thumbnail',
   imports: [DrawingPreview],
@@ -33,6 +34,11 @@ import { mountSlide } from '../lib/mount-slide';
 export class Thumbnail {
   no = input.required<number>();
   width = input(300);
+  /** The click to draw; more than the slide has shows the final state. */
+  clicks = input(CLICKS_MAX);
+  private slideClicks = signal<ClicksContext | null>(null);
+  /** How many clicks the drawn slide has (for a clicks slider next to it). */
+  readonly clicksTotal = computed(() => this.slideClicks()?.total() ?? 0);
   private host = viewChild.required('host', { read: ViewContainerRef });
 
   protected height = computed(() => (this.width() * CANVAS_HEIGHT) / CANVAS_WIDTH);
@@ -52,9 +58,12 @@ export class Thumbnail {
         host = this.host();
       untracked(() => {
         host.clear();
+        const clicks = mountSlide(host, no, 'overview').instance.clicks;
         // Asking for too many clicks shows the final state: the slide clamps the number.
-        mountSlide(host, no, 'overview').instance.clicks.setCurrent(CLICKS_MAX);
+        clicks.setCurrent(this.clicks());
+        this.slideClicks.set(clicks);
       });
     });
+    effect(() => this.slideClicks()?.setCurrent(this.clicks()));
   }
 }

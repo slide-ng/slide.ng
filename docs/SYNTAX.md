@@ -627,6 +627,8 @@ can show another column count on a phone, in the presenter preview or in the PDF
 
 Open `/presenter` (or press the presenter button) for the presenter page: current slide, next step, notes with click markers, a clicks slider and the timer.
 The audience page (`/3`) in another window or on another device follows it; `/notes` shows only the notes and follows too.
+`/overview` lists every slide with its notes beside it and a clicks slider under it (the button at the top of the quick overview, `o`,
+goes there); `/entry` links to the slides, presenter, notes and overview pages.
 In notes, `[click]` marks where the next click starts and `[click:3]` moves three clicks on (counted from the marker before it, as in Slidev); double click a marker to jump there. The layout button cycles three arrangements.
 Windows of one browser follow each other with no server; other devices need the dev server (see Remote below).
 
@@ -704,6 +706,9 @@ Layers: add any of `layers/global-top.ts`, `global-bottom.ts`, `slide-top.ts`, `
 ## Dev-only extras and remote use
 
 While the dev server runs (`slide-ng dev`, or `npm start` in this repository): the **edit** button in the bar opens a side editor with the current slide's markdown (saved as you type), slide-ng-drag and drawings are written to files, and `{monaco-write}` saves.
+A double click on a note in `/overview` edits it (leaving the text saves it, Escape cancels). `/notes-edit` has every note in one text,
+each after a `--- #N` line; the notes that changed are saved after a short pause, and a text whose `--- #N` lines were changed is not saved.
+Saving a note rebuilds the deck and reloads the page; `/notes-edit` keeps the caret and what was typed meanwhile.
 A static build has none of this and makes no requests.
 
 ```sh
@@ -713,7 +718,7 @@ SLIDE_NG_PASSWORD=secret npm start -- --remote   # keeps the password out of the
 ```
 
 It prints the public and private deck addresses and the presenter address (`/presenter/1?password=secret`). Use that address on the presenter's device; a viewer opens `http://<your address>:4230/1?password=secret`.
-The password lets a device sync and write (slides, drawings and the `{monaco-write}` files), and opens the presenter and notes pages: without it they go to the slides. It is sent without encryption, so use it on a network you trust. See [SECURITY-MODEL.md](SECURITY-MODEL.md).
+The password lets a device sync and write (slides, drawings and the `{monaco-write}` files), and opens the presenter, notes, overview and notes editor pages: without it they go to the slides. It is sent without encryption, so use it on a network you trust. See [SECURITY-MODEL.md](SECURITY-MODEL.md).
 
 ## The page, export and build
 

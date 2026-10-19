@@ -1,0 +1,149 @@
+import {
+  Component,
+  ElementRef,
+  Injector,
+  afterNextRender,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
+import { Title } from '@angular/platform-browser';
+import { RouterLink } from '@angular/router';
+import { HEADMATTER, SLIDES } from '../../slides/generated';
+import { Dark } from '../lib/dark';
+import { NoteStore } from './note-store';
+import { notesToText, textToNotes } from './notes-text';
+
+type Status = 'loading' | 'saved' | 'saving' | 'invalid' | 'conflict' | 'error' | 'offline';
+const SAVE_DELAY = 600;
+// A saved note rebuilds the deck and reloads this page. What was typed meanwhile is kept for a moment and taken back.
+const DRAFT = 'slide-ng-notes-draft';
+const FRESH_MS = 15_000;
+interface Draft {
+  text: string;
+  start: number;
+  end: number;
+  at: number;
+}
+
+// The route /notes-edit (Slidev's notes editor, dev only): every note in one text, after `--- #N` lines. What is typed is saved
+// into the markdown files after a short pause, only the notes that changed. A text whose markers changed is not saved.
+@Component({
+  selector: 'app-notes-edit-page',
+  imports: [RouterLink],
+  host: { class: 'flex flex-col h-full bg-main text-main' },
+  template: `
+    <header class="flex items-center gap-4 px-6 py-3 border-b border-main">
+      <h1 class="text-lg">Notes</h1>
+      <span id="notes-edit-status" class="text-sm op60" [attr.data-status]="status()">{{
+        statusText[status()]
+      }}</span>
+      <div class="flex-auto"></div>
+      <a routerLink="/entry" class="text-sm op75 hover:op100">All pages</a>
+    </header>
+    <textarea
+      #area
+      id="notes-edit-text"
+      class="flex-auto w-full p-6 font-mono text-sm bg-transparent outline-none resize-none"
+      spellcheck="false"
+      aria-label="The speaker notes of all slides"
+      [disabled]="status() === 'loading' || status() === 'offline'"
+      [value]="text()"
+      (input)="edit($any($event.target).value)"
+    ></textarea>
+  `,
+})
+export class NotesEditPage {
+  private store = inject(NoteStore);
+  private injector = inject(Injector);
+  private area = viewChild<ElementRef<HTMLTextAreaElement>>('area');
+  protected text = signal('');
+  protected status = signal<Status>('loading');
+  protected readonly statusText: Record<Status, string> = {
+    loading: 'Loading...',
+    saved: 'Saved',
+    saving: 'Saving...',
+    invalid: `Not saved: keep the ${SLIDES.length} "--- #N" lines as they are`,
+    conflict: 'Not saved: a note changed in the file. Reload the page.',
+    error: 'Not saved',
+    offline: 'The notes can only be edited while the dev server runs.',
+  };
+  /** The notes as the files have them, as far as this page knows. */
+  private saved: (string | null)[] = [];
+  private timer?: ReturnType<typeof setTimeout>;
+  private edits = 0; // counts what was typed, so a save that ends after more typing does not say "Saved"
+  private saving = Promise.resolve();
+
+  constructor() {
+    inject(Dark);
+    inject(Title).setTitle(`Notes editor - ${HEADMATTER['title'] ?? 'slide.ng'}`);
+    void this.load();
+  }
+
+  private async load() {
+    const notes = await this.store.load();
+    if (!notes) return this.status.set('offline');
+    this.saved = notes;
+    const draft = takeDraft();
+    this.text.set(draft?.text ?? notesToText(notes.map((n) => n ?? '')));
+    this.status.set('saved');
+    if (!draft) return;
+    // Back after a reload: the caret and the focus return, and what was not saved yet is saved now.
+    afterNextRender(
+      () => {
+        const area = this.area()?.nativeElement;
+        area?.focus();
+        area?.setSelectionRange(draft.start, draft.end);
+        this.edit(draft.text);
+      },
+      { injector: this.injector },
+    );
+  }
+
+  protected edit(value: string) {
+    this.edits++;
+    this.text.set(value);
+    const area = this.area()?.nativeElement;
+    keepDraft({
+      text: value,
+      start: area?.selectionStart ?? 0,
+      end: area?.selectionEnd ?? 0,
+      at: Date.now(),
+    });
+    clearTimeout(this.timer);
+    if (!Array.isArray(textToNotes(value, SLIDES.length))) return this.status.set('invalid');
+    this.status.set('saving');
+    this.timer = setTimeout(() => (this.saving = this.saving.then(() => this.save())), SAVE_DELAY);
+  }
+
+  // One request per changed note, one after the other; a note outside the project's files is never written.
+  private async save() {
+    const edits = this.edits;
+    const notes = textToNotes(this.text(), SLIDES.length);
+    if (!Array.isArray(notes)) return this.status.set('invalid');
+    for (const [i, note] of notes.entries()) {
+      const base = this.saved[i];
+      if (base == null || note === base) continue;
+      const status = await this.store.save(i + 1, note, base);
+      if (status !== 200) return this.status.set(status === 409 ? 'conflict' : 'error');
+      this.saved[i] = note;
+    }
+    if (edits === this.edits) this.status.set('saved');
+  }
+}
+
+function keepDraft(draft: Draft) {
+  try {
+    sessionStorage.setItem(DRAFT, JSON.stringify(draft));
+  } catch {
+    // no storage: a reload right after typing loses what was not saved yet
+  }
+}
+function takeDraft(): Draft | null {
+  try {
+    const draft = JSON.parse(sessionStorage.getItem(DRAFT) ?? 'null') as Draft | null;
+    return draft && Date.now() - draft.at < FRESH_MS ? draft : null;
+  } catch {
+    return null;
+  }
+}
