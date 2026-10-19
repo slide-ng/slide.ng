@@ -38,6 +38,15 @@ export async function run({ t, open, press, hud }) {
     (await text()).includes('const add = () => count += 1'),
     await text(),
   );
+  const cssVar = (name) =>
+    page
+      .locator('.shiki-magic-move-container')
+      .evaluate((e, n) => e.style.getPropertyValue(n), name);
+  t.ok(
+    'shiki.magicMove options reach the renderer (easing, delayMove)',
+    (await cssVar('--smm-easing')) === 'linear' && (await cssVar('--smm-delay-move')) === '0.5',
+    `${await cssVar('--smm-easing')} ${await cssVar('--smm-delay-move')}`,
+  );
   t.ok(
     'step 2 has line numbers from its {lines:true}',
     (await page.locator('.shiki-magic-move-line-number').count()) > 0 ||

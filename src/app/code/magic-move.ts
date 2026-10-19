@@ -15,7 +15,11 @@ import {
   effect,
   booleanAttribute,
 } from '@angular/core';
-import type { KeyedTokensInfo } from '@shikijs/magic-move/types';
+import type {
+  KeyedTokensInfo,
+  MagicMoveDifferOptions,
+  MagicMoveRenderOptions,
+} from '@shikijs/magic-move/types';
 import { CLICKS_MAX, ClickInfo, ClicksContext, RawSingleAt } from '../lib/clicks';
 import { copyText } from './copy';
 import { highlightLines } from './ranges';
@@ -31,6 +35,8 @@ export function stepAt(ranges: string[][], clickCount: number, stepCount: number
   }
   return { step: stepCount - 1, range: 'all' };
 }
+
+type MagicMoveOptions = MagicMoveRenderOptions & MagicMoveDifferOptions;
 
 @Component({
   selector: 'slide-ng-magic-move',
@@ -68,6 +74,10 @@ export class ShikiMagicMove implements OnInit, OnDestroy {
   title = input('');
   duration = input(800, { transform: numberAttribute });
   noCopy = input(false, { transform: booleanAttribute });
+  // The headmatter's `shiki.magicMove`, as JSON: render options and the differ's `splitTokens` / `enhanceMatching`.
+  options = input({} as MagicMoveOptions, {
+    transform: (v: string) => JSON.parse(v || '{}') as MagicMoveOptions,
+  });
 
   protected copied = signal(false);
   private clicks = inject(ClicksContext);
@@ -131,11 +141,12 @@ export class ShikiMagicMove implements OnInit, OnDestroy {
     if (step !== this.shownStep) {
       const first = this.shownStep < 0;
       const next = steps[step];
-      const { from, to } = this.sync!(this.previous ?? steps[step], next);
+      const { from, to } = this.sync!(this.previous ?? steps[step], next, this.options());
       // The canvas is scaled with CSS; the renderer needs to know to place the tokens.
       const box = this.host.getBoundingClientRect();
+      // Slidev's order: a stagger of 1 ms, the deck's options, then the scale and the duration.
+      Object.assign(renderer.options, { stagger: 1, ...this.options() });
       renderer.options.globalScale = box.width / (this.host.offsetWidth || 1);
-      renderer.options.stagger = 1;
       renderer.options.duration = first ? 0 : this.duration();
       this.shownStep = step;
       this.previous = to;

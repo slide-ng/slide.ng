@@ -25,7 +25,8 @@ const add = () => (count += 1);
 
 - Each inner fence is one step; ranges inside a step add clicks of their own (`{*|1|2-3}` is three steps).
 - Options after `magic-move`: `lines`, `at` (first click), `duration` (ms; headmatter `magicMoveDuration` sets it for the deck). A `[title]` before the options gives a title bar.
-- Headmatter `magicMoveCopy` is read; the other `shiki.magicMove` options are not (the stagger is fixed).
+- Headmatter `magicMoveCopy: false` hides the copy button.
+- Headmatter `shiki.magicMove` sets the animation: `duration`, `stagger` (ms, default 1), `delayMove`, `delayLeave`, `delayEnter`, `delayContainer`, `easing`, `animateContainer`, `containerStyle`, `splitTokens`, `enhanceMatching`. A block's `{duration}` wins, then `magicMoveDuration`, then `shiki.magicMove.duration`.
 
 <!-- verify -->
 
@@ -33,6 +34,10 @@ const add = () => (count += 1);
 ---
 title: Magic move
 magicMoveDuration: 600
+shiki:
+  magicMove:
+    stagger: 3
+    easing: ease-in-out
 ---
 
 # Steps

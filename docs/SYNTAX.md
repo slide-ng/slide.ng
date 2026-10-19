@@ -314,6 +314,8 @@ const add = () => (count += 1);
 
 Each inner fence is one step; ranges inside a step add clicks of their own (`{*|1|2-3}` is three steps). Options after `magic-move`:
 `lines`, `at` (first click) and `duration` (ms; the headmatter `magicMoveDuration` sets it for the deck). A `[title]` before the options gives a title bar.
+The headmatter's `shiki.magicMove` takes the animation options of Slidev and `@shikijs/magic-move`: `duration`, `stagger` (ms, default 1), `delayMove`, `delayLeave`,
+`delayEnter`, `delayContainer`, `easing`, `animateContainer`, `containerStyle`, `splitTokens` and `enhanceMatching`. A block's `{duration}` wins, then `magicMoveDuration`, then `shiki.magicMove.duration`.
 
 ## Math
 
