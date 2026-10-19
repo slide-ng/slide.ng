@@ -44,13 +44,16 @@ export function listenForKeys(input, actions, onError = () => {}) {
   input.on('keypress', onKey);
   input.resume();
   return {
+    // While another program (the `e` editor) owns the terminal, stdin is not read at all, so no key is taken from it.
     pause() {
       paused = true;
       raw(false);
+      input.pause();
     },
     resume() {
       paused = false;
       raw(true);
+      input.resume();
     },
     stop() {
       input.off('keypress', onKey);

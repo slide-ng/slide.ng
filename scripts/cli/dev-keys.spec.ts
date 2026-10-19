@@ -43,14 +43,14 @@ describe('listenForKeys', () => {
     await tick();
     expect(calls).toEqual(['interrupt']);
   });
-  it('ignores keys while paused, and stop removes the listener', async () => {
+  it('stops reading while paused (the editor gets the keys), and stop removes the listener', async () => {
     const { input, modes } = fakeStdin();
     const calls: string[] = [];
     const keys = listenForKeys(input, { open: () => calls.push('open') });
     keys.pause();
-    input.write('o');
-    await tick();
+    expect(input.isPaused()).toBe(true);
     keys.resume();
+    expect(input.isPaused()).toBe(false);
     input.write('o');
     await tick();
     keys.stop();
