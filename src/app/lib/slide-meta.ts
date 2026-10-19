@@ -12,6 +12,7 @@ export interface SlideMeta {
   routeAlias: string | null; // /alias works like /3
   hideInToc: boolean;
   transition: string | { name: string } | null;
+  images?: string[]; // the pictures of the slide, as the page asks for them (`preloadImages` loads them early)
   frontmatter: Record<string, unknown>; // every frontmatter key; unknown keys are kept and ignored
   component: Type<SlideBase>;
 }

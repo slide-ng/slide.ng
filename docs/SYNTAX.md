@@ -695,8 +695,15 @@ canvasWidth: 980 # default 980, like Slidev
 aspectRatio: 16/9 # or 4/3, 1.6 ...
 zoom: 0.8 # all slides; a slide's own `zoom:` wins
 routerMode: hash # addresses look like /#/3 (default: history)
+preloadImages: { ahead: 3 } # default true (3 slides ahead); false turns it off
 ---
 ```
+
+Pictures are loaded before their slide is shown, as in Slidev: after each move the pictures of the slide on screen, the one before and the next
+`ahead` slides load in idle time, and 3 seconds after the deck opens every slide's. The generator lists each slide's pictures: `<img src>`
+(and markdown pictures), `url()` in inline styles, and the frontmatter's `image`, `backgroundImage` and `background`. A slide with
+`preload: false` in its frontmatter is left out. A component can read the progress from `slide-ng/lib/preload-images`
+(`preloadProgress`, 0 to 1, and `preloadComplete`, both signals). All slides are in the first bundle, so `preload` has no other effect here.
 
 Layers: add any of `layers/global-top.ts`, `global-bottom.ts`, `slide-top.ts`, `slide-bottom.ts` next to `slides.md` (or in a theme or addon), each `export default` of a standalone component.
 `global-*` appear once over or under all slides, `slide-*` inside every slide (inject `SLIDE_NO` to know which). They let clicks through; give your own elements `pointer-events: auto` if they need the mouse.

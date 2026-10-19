@@ -8,6 +8,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 - `<slide-ng-title-renderer />` draws a slide's title as HTML, with its inline markdown and `$math$` (Slidev's `<TitleRenderer>`); `no="N"` picks another slide. The table of contents shows the same HTML. Raw HTML in a title is shown as text.
 - `notesAutoRuby: { word: reading }` in the headmatter shows a reading above each listed word in the speaker notes, with `<ruby>` (Slidev's `notesAutoRuby`). Code, tag attributes and existing `<ruby>` are left alone.
+- Pictures of the next slides are loaded before they are shown (Slidev's `preloadImages`: `true` by default, `{ ahead: n }`, `false`), and a slide with `preload: false` is left out; `preloadProgress` and `preloadComplete` in `slide-ng/lib/preload-images` tell a component how far it is.
 
 ## [1.0.0] - 2026-10-18
 

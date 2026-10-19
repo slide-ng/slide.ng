@@ -21,7 +21,7 @@ If a feature is not listed as present in the other references, assume it is miss
 
 **Animation**
 
-- Custom transition objects (Vue `TransitionGroupProps`, class names), `clickAnimation`, `preloadImages`, slide `preload`.
+- Custom transition objects (Vue `TransitionGroupProps`, class names), `clickAnimation`.
 - `slide-ng-motion` presets, springs, `hovered`, `tapped`, `focused`, `visible`, keyframe lists.
 
 **Code**
