@@ -4,6 +4,10 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+### Fixed
+
+- `<slide-ng-youtube id="luoMHjh-XcQ?start=1234" />` starts at the given time, as in Slidev, instead of failing to find the video. YouTube's embed options in the id (`start`, `end`, `list`, `loop`, ...) are kept and others dropped; `start` and `list` can also be attributes.
+
 ## [1.0.0] - 2026-10-18
 
 ### Added
