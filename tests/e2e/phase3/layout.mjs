@@ -26,6 +26,25 @@ export async function run({ t, open, press, hud }) {
     String((await probe()).width),
   );
 
+  // ---- custom-nav-controls: a button from layers/ at the end of the bar, after the slide counter
+  const barOrder = await page
+    .locator('nav #nav-counter')
+    .evaluate((c) => c.nextElementSibling?.id + '>' + c.nextElementSibling?.firstElementChild?.id);
+  t.ok(
+    'a button of the custom-nav-controls layer is in the bar, after the counter',
+    barOrder === 'custom-nav-controls>custom-next',
+    barOrder,
+  );
+  await press(page, 'ArrowUp');
+  await page.locator('nav').first().hover();
+  await page.locator('#custom-next').click();
+  await page.waitForTimeout(300);
+  t.ok(
+    'the custom button works (it goes to slide 2)',
+    (await hud(page)).startsWith('slide 2/2'),
+    await hud(page),
+  );
+
   // ---- layers
   const ids = await page.locator('#gt, #gb, #st, #sb').evaluateAll((l) =>
     l
@@ -80,6 +99,16 @@ export async function run({ t, open, press, hud }) {
         .join(),
     );
   t.ok('the next-step preview shows the global layers', nextLayers === 'gb,gt', nextLayers);
+  const lastInBar = await presenter
+    .locator('nav')
+    .first()
+    .evaluate((n) => n.firstElementChild.lastElementChild?.id);
+  t.ok(
+    'the presenter bar ends with the custom-nav-controls layer',
+    lastInBar === 'custom-nav-controls' &&
+      (await presenter.locator('nav #custom-next').count()) === 1,
+    lastInBar,
+  );
   await presenter.close();
 
   // a reload on a deep link works in hash mode (the server only knows /)

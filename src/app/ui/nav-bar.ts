@@ -1,4 +1,6 @@
 import { Component, ElementRef, computed, inject, input } from '@angular/core';
+import { NgComponentOutlet } from '@angular/common';
+import { LAYERS } from '../../slides/generated/layers';
 import { Drawings } from '../drawing/drawings';
 import { Dark } from '../lib/dark';
 import { Download } from '../lib/download';
@@ -17,7 +19,7 @@ import { Settings } from './settings';
 // over that corner; the presenter page always shows it (`persist`, no frame around it).
 @Component({
   selector: 'app-nav-bar',
-  imports: [IconBtn, Settings, RecordingControls],
+  imports: [IconBtn, Settings, RecordingControls, NgComponentOutlet],
   host: { '(document:click)': 'closeSettingsOutside($event)' },
   template: `
     <nav class="flex flex-col" [attr.data-fullscreen]="fullscreen.isFullscreen()">
@@ -217,6 +219,13 @@ import { Settings } from './settings';
           <span class="text-lg">{{ nav.no() }}</span>
           <span class="opacity-50 text-sm"> / {{ nav.total }}</span>
         </div>
+
+        <!-- The deck's, theme's or addon's layers/custom-nav-controls.ts, last as in Slidev -->
+        @if (customControls) {
+          <div id="custom-nav-controls" class="flex">
+            <ng-container *ngComponentOutlet="customControls" />
+          </div>
+        }
       </div>
     </nav>
   `,
@@ -233,6 +242,7 @@ export class NavBar {
   protected fullscreen = inject(Fullscreen);
   protected download = inject(Download);
   private view = inject(ViewPrefs);
+  protected customControls = LAYERS['custom-nav-controls'];
   protected filtered = computed(() =>
     (Object.keys(defaultFilters) as (keyof Filters)[]).some(
       (k) => this.view.filters()[k] !== defaultFilters[k],

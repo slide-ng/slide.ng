@@ -23,6 +23,11 @@ describe('layersSource', () => {
     expect(src).toContain("'global-top': globalTop,");
     expect(src).toContain("'slide-bottom': null,");
   });
+  it('knows the custom-nav-controls layer', () => {
+    const src = layersSource(['custom-nav-controls']);
+    expect(src).toContain("import customNavControls from '../../app/layers/custom-nav-controls';");
+    expect(src).toContain("'custom-nav-controls': customNavControls,");
+  });
   it('is valid with no layers at all', () => {
     expect(layersSource([])).not.toContain('import globalTop');
   });

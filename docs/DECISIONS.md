@@ -283,7 +283,7 @@ plain Node.
     watcher channel to the page; the cost is one small request per two seconds while the editor is open.
 24. **Two phase 3 limits were smaller than written:** `slide-ng-drag` boxes are drawn in the right place in overview thumbnails (they are only not editable there), and the presenter's next-step preview now draws the global layers. Slidev does not draw global
     layers in overview thumbnails either, so they were left out there.
-25. **The four layer files of the layout test deck live in its own folder** (`tests/e2e/phase3/layout/layers/`) instead of being copied into `src/app/layers` during the build; that is the deck-folder feature doing the job.
+25. **The layer files of the layout test deck live in its own folder** (`tests/e2e/phase3/layout/layers/`) instead of being copied into `src/app/layers` during the build; that is the deck-folder feature doing the job.
 26. **Left out on purpose:** editable PPTX, the prettier plugin, the Vue-syntax converter, community themes, the browser exporter page and `overviewSnapshots` (as asked; the VS Code extension was left out of the core and became the separate slide-ng/vscode-extension repository). Also left out because they would not fit: `--tunnel`,
     Monaco type loading, `fonts`, MDC/Comark.
 

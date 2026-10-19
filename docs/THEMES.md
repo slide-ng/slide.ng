@@ -71,7 +71,7 @@ folders listed below; the rest of it (your markdown, `node_modules`, ...) is nev
 | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `layouts/<name>.ts`  | A layout. `<name>` is what a slide writes in `layout:`. The same name replaces a built-in layout.                                                                                  |
 | `components/*.ts`    | Components that slides can use as tags. Found by their `selector`.                                                                                                                 |
-| `layers/<name>.ts`   | A layer component: `global-top`, `global-bottom`, `slide-top`, `slide-bottom` (default export).                                                                                    |
+| `layers/<name>.ts`   | A layer component: `global-top`, `global-bottom`, `slide-top`, `slide-bottom`, `custom-nav-controls` (default export).                                                             |
 | `styles/index.css`   | CSS. Added after the app's styles, so it can override them.                                                                                                                        |
 | `public/`            | Files served from the site root (`/logo.png`). Merged; the later root wins on the same name.                                                                                       |
 | `setup/*.ts`         | Setup hooks: `shiki`, `katex`, `transformers`, `preparser`, `mermaid`, `monaco`, `code-runners`, `shortcuts`, `context-menu`, `main`, `root`. Written out in [SETUP.md](SETUP.md). |

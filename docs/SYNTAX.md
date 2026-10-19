@@ -698,8 +698,10 @@ routerMode: hash # addresses look like /#/3 (default: history)
 ---
 ```
 
-Layers: add any of `layers/global-top.ts`, `global-bottom.ts`, `slide-top.ts`, `slide-bottom.ts` next to `slides.md` (or in a theme or addon), each `export default` of a standalone component.
+Layers: add any of `layers/global-top.ts`, `global-bottom.ts`, `slide-top.ts`, `slide-bottom.ts`, `custom-nav-controls.ts` next to `slides.md` (or in a theme or addon), each `export default` of a standalone component.
 `global-*` appear once over or under all slides, `slide-*` inside every slide (inject `SLIDE_NO` to know which). They let clicks through; give your own elements `pointer-events: auto` if they need the mouse.
+`custom-nav-controls` adds its content to the end of the navigation bar, after the slide counter, on the deck and on the presenter page (as in Slidev).
+Give a button `class="slidev-icon-btn"` and a `title` to look like the built-in ones, and inject `Nav` (`slide-ng/lib/nav`) to move: `(click)="nav.next()"`.
 
 ## Dev-only extras and remote use
 
