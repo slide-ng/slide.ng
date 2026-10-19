@@ -14,18 +14,32 @@ import {
 } from '@angular/core';
 import { optionalNumber } from '../lib/attrs';
 import { Dark } from '../lib/dark';
-import { MERMAID_SETUP } from '../setup/tokens';
+import {
+  MERMAID_RENDERER,
+  MERMAID_SETUP,
+  MermaidRenderer,
+  MermaidRendererSetup,
+} from '../setup/tokens';
 import { unpack } from './unpack';
 
 let counter = 0;
 let queue: Promise<unknown> = Promise.resolve(); // Mermaid draws one diagram at a time
 const cache = new Map<string, string>(); // thumbnails draw the same diagram again
 
-async function draw(code: string, config: Record<string, unknown>): Promise<string> {
+async function draw(
+  code: string,
+  config: Record<string, unknown>,
+  renderer: MermaidRenderer | null,
+): Promise<string> {
   const key = JSON.stringify([code, config]);
   const known = cache.get(key);
   if (known) return known;
   const run = async () => {
+    if (renderer) {
+      const svg = await renderer(code, config);
+      cache.set(key, svg);
+      return svg;
+    }
     const { default: mermaid } = await import('mermaid');
     mermaid.initialize({ startOnLoad: false, ...config });
     const id = `mermaid-${++counter}`;
@@ -41,6 +55,23 @@ async function draw(code: string, config: Record<string, unknown>): Promise<stri
   const result = queue.then(run);
   queue = result.catch(() => undefined);
   return result;
+}
+
+// setup/mermaid-renderer.ts: the last root whose function gives a renderer wins; each list is asked once.
+const renderers = new WeakMap<MermaidRendererSetup[], Promise<MermaidRenderer | null>>();
+export function findRenderer(setups: MermaidRendererSetup[]): Promise<MermaidRenderer | null> {
+  let found = renderers.get(setups);
+  if (!found) {
+    found = (async () => {
+      for (const setup of setups.slice().reverse()) {
+        const renderer = await setup();
+        if (renderer) return renderer;
+      }
+      return null;
+    })();
+    renderers.set(setups, found);
+  }
+  return found;
 }
 
 @Component({
@@ -69,6 +100,7 @@ export class Mermaid {
   private box = viewChild<ElementRef<HTMLElement>>('box');
   private dark = inject(Dark);
   private setups = inject(MERMAID_SETUP);
+  private rendererSetups = inject(MERMAID_RENDERER);
 
   constructor() {
     effect(async () => {
@@ -84,7 +116,7 @@ export class Mermaid {
       };
       untracked(() => this.pending.set(true));
       try {
-        const svg = await draw(text, config);
+        const svg = await draw(text, config, await findRenderer(this.rendererSetups));
         this.error.set('');
         // The box only exists once the error is cleared and Angular has rendered it.
         queueMicrotask(() => this.show(svg));

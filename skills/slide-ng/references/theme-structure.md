@@ -27,4 +27,4 @@ The deck's folder is only searched for the folders below, never copied whole.
 
 - Theme code is copied into the app before compiling, hence the `slide-ng/` alias.
 - Symbolic links are never copied. In dev the folders of themes and addons are watched.
-- Missing: a `snippets/` convention (write the real snippet path), `setup/routes.ts`, all Vue and Vite files.
+- Missing: a `snippets/` convention (write the real snippet path), all Vue and Vite files.

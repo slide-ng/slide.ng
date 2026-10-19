@@ -194,24 +194,25 @@ Angular control flow works.
 
 ## Themes and Setup
 
-| Feature         | Description                                 | Reference                                              |
-| --------------- | ------------------------------------------- | ------------------------------------------------------ |
-| Use a theme     | `theme`, `addons`                           | [theme-use](references/theme-use.md)                   |
-| Official themes | seriph, shibainu, bricks, apple-basic, adev | [theme-official](references/theme-official.md)         |
-| Write a theme   | folder, `theme.json`                        | [theme-write](references/theme-write.md)               |
-| Roots           | what a root holds, who wins                 | [theme-structure](references/theme-structure.md)       |
-| Eject           | `theme eject`                               | [theme-eject](references/theme-eject.md)               |
-| Setup overview  | `setup/*.ts` hooks                          | [setup-overview](references/setup-overview.md)         |
-| Shiki           | `setup/shiki.ts`                            | [setup-shiki](references/setup-shiki.md)               |
-| KaTeX           | `setup/katex.ts`                            | [setup-katex](references/setup-katex.md)               |
-| Transformers    | `setup/transformers.ts`                     | [setup-transformers](references/setup-transformers.md) |
-| Preparser       | `setup/preparser.ts`                        | [setup-preparser](references/setup-preparser.md)       |
-| Mermaid         | `setup/mermaid.ts`                          | [setup-mermaid](references/setup-mermaid.md)           |
-| Monaco          | `setup/monaco.ts`                           | [setup-monaco](references/setup-monaco.md)             |
-| Code runners    | `setup/code-runners.ts`                     | [setup-code-runners](references/setup-code-runners.md) |
-| Shortcuts       | `setup/shortcuts.ts`                        | [setup-shortcuts](references/setup-shortcuts.md)       |
-| Context menu    | `setup/context-menu.ts`                     | [setup-context-menu](references/setup-context-menu.md) |
-| Main and root   | `setup/main.ts`, `setup/root.ts`            | [setup-main-root](references/setup-main-root.md)       |
+| Feature         | Description                                     | Reference                                              |
+| --------------- | ----------------------------------------------- | ------------------------------------------------------ |
+| Use a theme     | `theme`, `addons`                               | [theme-use](references/theme-use.md)                   |
+| Official themes | seriph, shibainu, bricks, apple-basic, adev     | [theme-official](references/theme-official.md)         |
+| Write a theme   | folder, `theme.json`                            | [theme-write](references/theme-write.md)               |
+| Roots           | what a root holds, who wins                     | [theme-structure](references/theme-structure.md)       |
+| Eject           | `theme eject`                                   | [theme-eject](references/theme-eject.md)               |
+| Setup overview  | `setup/*.ts` hooks                              | [setup-overview](references/setup-overview.md)         |
+| Shiki           | `setup/shiki.ts`                                | [setup-shiki](references/setup-shiki.md)               |
+| KaTeX           | `setup/katex.ts`                                | [setup-katex](references/setup-katex.md)               |
+| Transformers    | `setup/transformers.ts`                         | [setup-transformers](references/setup-transformers.md) |
+| Preparser       | `setup/preparser.ts`                            | [setup-preparser](references/setup-preparser.md)       |
+| Mermaid         | `setup/mermaid.ts`, `setup/mermaid-renderer.ts` | [setup-mermaid](references/setup-mermaid.md)           |
+| Monaco          | `setup/monaco.ts`                               | [setup-monaco](references/setup-monaco.md)             |
+| Code runners    | `setup/code-runners.ts`                         | [setup-code-runners](references/setup-code-runners.md) |
+| Shortcuts       | `setup/shortcuts.ts`                            | [setup-shortcuts](references/setup-shortcuts.md)       |
+| Context menu    | `setup/context-menu.ts`                         | [setup-context-menu](references/setup-context-menu.md) |
+| Main and root   | `setup/main.ts`, `setup/root.ts`                | [setup-main-root](references/setup-main-root.md)       |
+| Routes          | `setup/routes.ts`                               | [setup-routes](references/setup-routes.md)             |
 
 ## Tools
 

@@ -1,5 +1,7 @@
+import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { describe, expect, it } from 'vitest';
+import { findRenderer } from '../code/mermaid';
 import { CODE_RUNNERS } from '../code/runners';
 import {
   SHORTCUTS_FILES,
@@ -11,12 +13,17 @@ import {
 import {
   CONTEXT_MENU_SETUP,
   ContextMenuItem,
+  MERMAID_RENDERER,
   MERMAID_SETUP,
+  ROUTES_SETUP,
+  applyRoutesSetups,
   codeRunnerProviders,
   contextMenuProviders,
   mainProviders,
   mermaidProviders,
+  mermaidRendererProviders,
   rootProviders,
+  routesProviders,
   shortcutsProviders,
 } from './index';
 
@@ -101,5 +108,40 @@ describe('setup providers', () => {
     const a = { provide: 'A', useValue: 1 };
     const b = { provide: 'B', useValue: 2 };
     expect(mainProviders([() => [a], () => [b]])).toEqual([a, b]);
+  });
+
+  it('uses the renderer of the last root that gives one, and asks each file once', async () => {
+    let asked = 0;
+    const theme = () => (code: string) => `<svg>theme ${code}</svg>`;
+    const deck = async () => {
+      asked++;
+      return undefined; // the deck's file decides not to replace the renderer
+    };
+    TestBed.configureTestingModule({ providers: mermaidRendererProviders([theme, deck]) });
+    const setups = TestBed.inject(MERMAID_RENDERER);
+    const renderer = await findRenderer(setups);
+    expect(await renderer?.('A', {})).toBe('<svg>theme A</svg>');
+    await findRenderer(setups);
+    expect(asked).toBe(1);
+    expect(await findRenderer([])).toBeNull();
+  });
+
+  it('chains route setups and keeps the routes that match any address last', () => {
+    @Component({ template: '' })
+    class Page {}
+    TestBed.configureTestingModule({
+      providers: routesProviders([
+        (routes) => [...routes, { path: 'one', component: Page }],
+        (routes) => [...routes.filter((r) => r.path !== 'notes'), { path: 'two', component: Page }],
+      ]),
+    });
+    const base = [
+      { path: 'notes', component: Page },
+      { path: ':no', component: Page },
+      { path: '**', redirectTo: '1' },
+    ];
+    const paths = applyRoutesSetups(base, TestBed.inject(ROUTES_SETUP)).map((r) => r.path);
+    expect(paths).toEqual(['one', 'two', ':no', '**']);
+    expect(applyRoutesSetups(base, []).map((r) => r.path)).toEqual(['notes', ':no', '**']);
   });
 });
