@@ -140,9 +140,9 @@ import { Settings } from './settings';
           <button
             icon-btn
             id="nav-editor"
-            [title]="editor.open() ? 'Hide editor' : 'Show editor'"
-            [active]="editor.open()"
-            (click)="editor.toggle()"
+            [title]="editor.isOpen(persist()) ? 'Hide editor' : 'Show editor'"
+            [active]="editor.isOpen(persist())"
+            (click)="editor.toggle(persist())"
           >
             <div class="i-carbon:text-annotation-toggle"></div>
           </button>

@@ -412,6 +412,12 @@ try {
     { timeout: 15000 },
   );
   t.ok('the presenter bar opens the side editor in the notes pane', true);
+  const deckFlag = await page.evaluate(() => localStorage.getItem('slide-ng-editor-open'));
+  t.ok(
+    "opening it on the presenter page does not open the audience page's editor",
+    deckFlag !== 'true',
+    String(deckFlag),
+  );
   await page.locator('#editor-close').click();
   await page.waitForTimeout(300);
   t.ok(

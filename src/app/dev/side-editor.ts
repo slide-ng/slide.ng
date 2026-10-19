@@ -31,7 +31,7 @@ const WATCH_EVERY = 2000;
 @Component({
   selector: 'app-side-editor',
   template: `
-    @if (state.open() && state.available()) {
+    @if (state.isOpen(docked()) && state.available()) {
       <aside
         id="side-editor"
         class="flex flex-col bg-main text-main"
@@ -53,7 +53,7 @@ const WATCH_EVERY = 2000;
             id="editor-close"
             class="px-1"
             title="Close editor"
-            (click)="state.toggle()"
+            (click)="state.toggle(docked())"
           >
             <div class="i-carbon:close"></div>
           </button>
@@ -131,12 +131,12 @@ export class SideEditor {
     // Show the text of whichever slide is on screen. A change not saved yet goes out first.
     effect(() => {
       const no = this.nav.no(),
-        open = this.state.open() && this.state.available();
+        open = this.state.isOpen(this.docked()) && this.state.available();
       if (open && no !== this.loadedNo) untracked(() => void this.load(no));
     });
     // Shiki is fetched when the editor is first opened; until it arrives the text is plain. A production build has no editor and no chunk.
     effect(() => {
-      if (this.state.open() && this.state.available() && !untracked(this.highlight))
+      if (this.state.isOpen(this.docked()) && this.state.available() && !untracked(this.highlight))
         untracked(() => void this.loadColours());
     });
     const watch = setInterval(() => void this.refresh(), WATCH_EVERY);
@@ -161,7 +161,7 @@ export class SideEditor {
   // Takes over a change made outside, but only when nothing typed here is waiting to be saved.
   private async refresh() {
     if (
-      !this.state.open() ||
+      !this.state.isOpen(this.docked()) ||
       !this.loadedNo ||
       this.timer !== undefined ||
       this.status() !== 'saved'

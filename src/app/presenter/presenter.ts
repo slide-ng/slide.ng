@@ -145,7 +145,7 @@ function readEditing(): boolean {
         </div>
         <div #noteSection class="relative grid-section note overflow-hidden">
           <!-- In dev the side editor can take the place of the notes, as in Slidev -->
-          @if (editor.open() && editor.available()) {
+          @if (editor.isOpen(true) && editor.available()) {
             <app-side-editor docked />
           } @else {
             <div class="h-full grid grid-rows-[1fr_min-content]">

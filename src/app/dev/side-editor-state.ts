@@ -8,6 +8,9 @@ import { DevApi } from './dev-api';
 export class SideEditorState {
   /** Remembered in the browser, because a rebuild after an edit can reload the page. */
   readonly open = storedSignal('slide-ng-editor-open', false);
+  /** The presenter page's own flag (the editor in place of the notes), so opening it there never opens
+   *  the editor over the slides on the audience page after the reload. */
+  readonly presenterOpen = storedSignal('slide-ng-presenter-editor-open', false);
   /** True once the companion server accepted us and the deck allows the editor. A static build never gets there. */
   readonly available = signal(false);
   /** The companion server accepted us, so slides can be written (the presenter's notes editor), whatever `editor` says. */
@@ -24,8 +27,13 @@ export class SideEditorState {
       });
   }
 
-  toggle() {
-    this.open.update((v) => !v);
+  /** Open on the deck page, or (`docked`) in the presenter's notes pane. */
+  isOpen(docked = false) {
+    return (docked ? this.presenterOpen : this.open)();
+  }
+
+  toggle(docked = false) {
+    (docked ? this.presenterOpen : this.open).update((v) => !v);
   }
 }
 
