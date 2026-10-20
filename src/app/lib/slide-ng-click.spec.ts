@@ -28,3 +28,24 @@ describe('SlideNgClick', () => {
     expect([start('a'), start('b'), start('c')]).toEqual(['1', '2', '3']);
   });
 });
+
+@Component({
+  imports: [SlideNgClick],
+  providers: [ClicksContext],
+  template:
+    '<div id="a" slide-ng-click>A</div><div id="h" slide-ng-click-hide="3">H</div>' +
+    '<div id="n" slide-ng-click-hide>N</div>',
+})
+class HideAt {}
+
+describe('slide-ng-click-hide with a value', () => {
+  it('hides at that click, like v-click-hide="3" in Slidev; without one at the next click', async () => {
+    const fixture = TestBed.createComponent(HideAt);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const el = (id: string) => fixture.nativeElement.querySelector(`#${id}`) as HTMLElement;
+    expect(el('h').getAttribute('data-slidev-clicks-start')).toBe('3');
+    expect(el('h').classList.contains('slidev-vclick-hidden')).toBe(false);
+    expect(el('n').getAttribute('data-slidev-clicks-start')).toBe('2');
+  });
+});

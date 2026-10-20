@@ -14,6 +14,7 @@ Add the attribute to any HTML element.
 <div [slide-ng-click]="[2, 4]">Shows from click 2 until click 4, then hides</div>
 <div slide-ng-after>Same click as the element before it (a relative +0)</div>
 <div slide-ng-click="2" slide-ng-click-hide>Visible first, hides at click 2</div>
+<div slide-ng-click-hide="3">Visible first, hides at click 3</div>
 
 ---
 clickAnimation: up
@@ -56,4 +57,5 @@ title: Clicks
 <div [slide-ng-click]="[2, 4]">From click 2 until click 4</div>
 <div slide-ng-after>Together with the element before</div>
 <div slide-ng-click="2" slide-ng-click-hide>Visible first, hides at click 2</div>
+<div slide-ng-click-hide="3">Visible first, hides at click 3</div>
 ```

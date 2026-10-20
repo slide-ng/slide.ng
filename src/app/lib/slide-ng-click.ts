@@ -44,7 +44,9 @@ export function stateOf(ctx: ClicksContext, info: () => ClickInfo | null, hide: 
 export class SlideNgClick implements OnInit, OnDestroy {
   at = input<RawAt>(undefined, { alias: 'slide-ng-click' });
   after = input(false, { alias: 'slide-ng-after', transform: booleanAttribute });
-  hide = input(false, { alias: 'slide-ng-click-hide', transform: booleanAttribute });
+  /** `slide-ng-click-hide` hides at the next click; `slide-ng-click-hide="3"` at click 3, as Slidev's `v-click-hide="3"`. */
+  hideAt = input<RawAt>(undefined, { alias: 'slide-ng-click-hide' });
+  hide = computed(() => booleanAttribute(this.hideAt()));
   /** Click animation presets of this element, such as `fade.right` (the slide's `clickAnimation` when there are none). */
   animation = input<string | string[] | undefined>(undefined, { alias: 'click-anim' });
 
@@ -71,7 +73,9 @@ export class SlideNgClick implements OnInit, OnDestroy {
   }
 
   private place() {
-    const at = this.at() ?? (this.after() ? '+0' : undefined); // slide-ng-after = same click as the element before
+    const hideAt =
+      this.hide() && this.hideAt() !== '' && this.hideAt() !== true ? this.hideAt() : undefined;
+    const at = this.at() ?? hideAt ?? (this.after() ? '+0' : undefined); // slide-ng-after = same click as the element before
     const info = this.ctx.calculate(at);
     this.info.set(info);
     this.ctx.register(this, info);
