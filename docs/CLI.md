@@ -54,7 +54,7 @@ Makes a PDF (default), PNG files, a PPTX or a Markdown file. It builds the deck 
 | `--scale`                                            | PNG and PPTX picture scale, 0.25 to 8 (default 2)                                          |
 | `--omit-background`                                  | PNG: a transparent background                                                              |
 | `--timeout`, `--wait`, `--wait-until`                | how long to wait for each page (ms), extra wait (ms), and the load state to wait for       |
-| `--dist`                                             | export an existing build instead of building                                               |
+| `--dist`                                             | export an existing build, with the router mode it was built with                           |
 | `--url`                                              | export a running server (such as the dev server)                                           |
 | `--base`                                             | the base the build at `--dist` was made with                                               |
 | `--theme`, `-t`                                      | use this theme instead of the headmatter's                                                 |
