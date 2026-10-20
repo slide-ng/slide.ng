@@ -48,6 +48,8 @@ print(1 + 1)
 ```
 
 ---
+routeAlias: hooks
+---
 
 # Slide hooks
 
