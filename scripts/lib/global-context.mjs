@@ -12,6 +12,7 @@ const NAV_SIGNALS = [
   'hasNext',
   'hasPrev',
   'no',
+  'previousNo',
 ];
 // A call may be optional (`$nav.clicksTotal?.()`).
 const UNCALLED = new RegExp(

@@ -24,6 +24,11 @@ describe('uncalledGlobals', () => {
     expect(uncalledGlobals(markup)).toEqual([]);
   });
 
+  it('knows the previousNo signal that the slide hooks added to Nav', () => {
+    expect(uncalledGlobals('{{ $nav.previousNo }}')).toEqual(['$nav.previousNo']);
+    expect(uncalledGlobals('{{ $nav.previousNo() }}')).toEqual([]);
+  });
+
   it('leaves text outside expressions alone', () => {
     expect(uncalledGlobals('<p>Slidev has $clicks and $page.</p>')).toEqual([]);
   });
