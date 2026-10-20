@@ -62,7 +62,7 @@ export function applyThemeFlag(flags) {
     process.env.SLIDE_NG_THEME = flags.theme.startsWith('.') ? resolve(flags.theme) : flags.theme;
 }
 
-/** `--lang tr` sets the headmatter's `lang` for this run (a second language of the same deck). The generator reads the same variable. */
+/** `--lang tr` sets the headmatter's `lang` (and replaces `uiLang`) for this run (a second language of the same deck). The generator reads the same variable. */
 export function applyLangFlag(flags) {
   if (flags.lang === undefined) return;
   const lang = normalizeLang(flags.lang);

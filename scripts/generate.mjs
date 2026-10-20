@@ -33,6 +33,7 @@ import { monacoWriteTargets, resetMonacoWriteTargets } from './lib/code/monaco.m
 import { applyOffline, buildOptions, wantsRemoteAssets } from './lib/build-options.mjs';
 import { headParts, renderIndexHtml } from './lib/head.mjs';
 import { deckUiText, uiTextSource } from './lib/ui-text.mjs';
+import { langOverride } from './lib/lang.mjs';
 import { bundleRemoteAssets, emptyFolder } from './lib/remote-assets.mjs';
 import { bundleFonts, wantsFontFiles } from './lib/font-bundle.mjs';
 import { ogImageAddress, ogImagePlan } from './build/og-image.mjs';
@@ -40,7 +41,7 @@ import { pwaEnabled } from './build/pwa.mjs';
 
 // `slide-ng --theme <name|path>` reaches the generator through this variable.
 const THEME = process.env.SLIDE_NG_THEME || undefined;
-// `slide-ng build --lang tr` sets the headmatter's `lang` for this run (docs/UI-STRINGS.md).
+// `slide-ng build --lang tr` sets the headmatter's `lang` and `uiLang` for this run (docs/UI-STRINGS.md).
 const LANG = process.env.SLIDE_NG_LANG || undefined;
 
 // SLIDES_FILE lets tests build another deck.
@@ -115,7 +116,7 @@ async function generate() {
       s.note = null;
     });
   if (build.offline) applyOffline(deck.headmatter);
-  if (LANG) deck.headmatter.lang = LANG;
+  langOverride(deck.headmatter, LANG);
   deck.assetBase = build.building ? build.base : '/';
   mkdirSync(OUT, { recursive: true });
   // Remote pictures are fetched into the build only for a production build with `remoteAssets: true`.

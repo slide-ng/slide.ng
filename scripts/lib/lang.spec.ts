@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { angularLocale, isRtl, normalizeLang, uiLangOf } from './lang.mjs';
+import { angularLocale, isRtl, langOverride, normalizeLang, uiLangOf } from './lang.mjs';
 
 describe('language tags', () => {
   it('spells a tag the usual way and refuses what is not one', () => {
@@ -30,5 +30,24 @@ describe('language tags', () => {
     expect(angularLocale('en-AU', has)).toBe('en-US');
     expect(angularLocale('xx', has)).toBe('en-US');
     expect(angularLocale(undefined, has)).toBe('en-US');
+  });
+
+  it('tries every prefix of the tag, longest first', () => {
+    const has = (id: string) => ['zh', 'zh-Hant', 'sr', 'sr-Latn', 'en-GB'].includes(id);
+    expect(angularLocale('zh-Hant-TW', has)).toBe('zh-Hant');
+    expect(angularLocale('zh-Hans-CN', has)).toBe('zh');
+    expect(angularLocale('sr-Latn-RS', has)).toBe('sr-Latn');
+    expect(angularLocale('en-GB-oxendict', has)).toBe('en-GB');
+    expect(angularLocale('en-AU-x', has)).toBe('en-US');
+  });
+
+  it('lets --lang (SLIDE_NG_LANG) set lang and uiLang for the run', () => {
+    const headmatter: Record<string, unknown> = { lang: 'de', uiLang: 'de' };
+    expect(langOverride(headmatter, 'pt_br')).toBe(headmatter);
+    expect(headmatter).toEqual({ lang: 'pt-BR' });
+    expect(uiLangOf(headmatter)).toBe('pt-BR');
+    expect(langOverride({ lang: 'de' }, undefined)).toEqual({ lang: 'de' });
+    expect(langOverride({ lang: 'de' }, '')).toEqual({ lang: 'de' });
+    expect(() => langOverride({}, '../tr')).toThrow(/SLIDE_NG_LANG must be a language tag/);
   });
 });

@@ -849,4 +849,4 @@ pages/demo.md
 ```
 
 Build each into its own folder: `slide-ng build slides.md --out dist/en` and `slide-ng build slides.tr.md --out dist/tr`. `--lang tr`
-(for `dev`, `build` and `export`) sets `lang` for one run without changing the file.
+(for `dev`, `build` and `export`) sets `lang` for one run without changing the file; it also replaces `uiLang`, so the interface follows it.

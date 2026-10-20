@@ -33,13 +33,31 @@ export function uiLangOf(headmatter) {
 export const isRtl = (lang) => RTL_LANGS.includes(baseLang(normalizeLang(lang)));
 
 /**
- * The Angular locale for `lang`: the tag itself when Angular has data for it, else its language, else `en-US` (Angular's
- * own, which needs no data). `has(id)` says whether `@angular/common/locales/<id>` exists.
+ * `--lang` (or `SLIDE_NG_LANG`) for this run: `value` becomes the headmatter's `lang` and replaces its `uiLang`, so the
+ * interface follows it too. Nothing changes without a value; one that is not a language tag throws.
+ */
+export function langOverride(headmatter, value) {
+  if (!value) return headmatter;
+  const lang = normalizeLang(value);
+  if (!lang)
+    throw new Error(`SLIDE_NG_LANG must be a language tag such as tr or pt-BR, got "${value}"`);
+  headmatter.lang = lang;
+  delete headmatter.uiLang;
+  return headmatter;
+}
+
+/**
+ * The Angular locale for `lang`: the longest prefix of the tag Angular has data for (`zh-Hant-TW`, then `zh-Hant`, then
+ * `zh`), else `en-US` (Angular's own, which needs no data). `has(id)` says whether `@angular/common/locales/<id>` exists.
  */
 export function angularLocale(lang, has) {
   const tag = normalizeLang(lang);
   if (!tag || tag === 'en' || tag === 'en-US') return 'en-US';
-  if (has(tag)) return tag;
-  if (baseLang(tag) !== 'en' && has(baseLang(tag))) return baseLang(tag);
+  const parts = tag.split('-');
+  for (let n = parts.length; n > 0; n--) {
+    const id = parts.slice(0, n).join('-');
+    // Bare `en` is Angular's built-in data, used as en-US.
+    if (id !== 'en' && has(id)) return id;
+  }
   return 'en-US';
 }
