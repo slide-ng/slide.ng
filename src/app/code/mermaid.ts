@@ -58,18 +58,26 @@ async function draw(
 }
 
 // setup/mermaid-renderer.ts: the last root whose function gives a renderer wins; each list is asked once.
+// A file that throws is skipped (the next root, then Mermaid itself) and asked again for the next diagram.
 const renderers = new WeakMap<MermaidRendererSetup[], Promise<MermaidRenderer | null>>();
 export function findRenderer(setups: MermaidRendererSetup[]): Promise<MermaidRenderer | null> {
   let found = renderers.get(setups);
   if (!found) {
+    let failed = false;
     found = (async () => {
       for (const setup of setups.slice().reverse()) {
-        const renderer = await setup();
-        if (renderer) return renderer;
+        try {
+          const renderer = await setup();
+          if (renderer) return renderer;
+        } catch (e) {
+          console.warn(e);
+          failed = true;
+        }
       }
       return null;
     })();
     renderers.set(setups, found);
+    void found.then(() => failed && renderers.delete(setups));
   }
   return found;
 }

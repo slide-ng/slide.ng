@@ -28,7 +28,7 @@ A --> B
 ```
 ````
 
-`setup/mermaid-renderer.ts` returns a function `(code, options) => svg` (a string or a promise of one) that draws every diagram instead of Mermaid. `options` are the theme, the `setup/mermaid.ts` config and the fence's options, merged. `scale` still applies and the export waits for the drawing. The setup may be async and may return nothing to keep Mermaid; the last root that returns a function wins. Install any library it uses in the deck.
+`setup/mermaid-renderer.ts` returns a function `(code, options) => svg` (a string or a promise of one) that draws every diagram instead of Mermaid. `options` are the theme, the `setup/mermaid.ts` config and the fence's options, merged. `scale` still applies and the export waits for the drawing. The setup may be async and may return nothing to keep Mermaid; the last root that returns a function wins. A setup that throws is skipped with a warning. Install any library it uses in the deck.
 
 <!-- verify-file: setup/mermaid-renderer.ts -->
 

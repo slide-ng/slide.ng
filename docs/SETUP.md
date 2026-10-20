@@ -120,6 +120,7 @@ Returns a function that draws a diagram with another library, as in Slidev. The 
 config of `setup/mermaid.ts` and the fence's own options, merged in that order) and returns the SVG as a string, or a promise of it. Mermaid
 itself is then not loaded. `scale` is still applied to the SVG, and the export waits for it like for a Mermaid drawing. The setup function may be
 async, and it may return nothing to keep Mermaid. When several roots have the file, the last one that returns a function wins.
+A setup that throws is skipped with a warning in the console, and asked again for the next diagram.
 
 ```ts
 // setup/mermaid-renderer.ts: Mermaid's hand-drawn look for every diagram
@@ -231,8 +232,9 @@ export default () => {
 
 Gets the app's routes (Angular `Routes`) and returns the list to use, so a deck can add pages. A page is an Angular component; it can be in the
 file itself or be imported from the root (`import { Gallery } from '../components/gallery'`). The roots are chained: each gets the list the
-one before returned. Angular takes the first route that matches, and Slidev's router the most specific one; to keep that, the routes that match
-any address (`:no`, the slide, and `**`) are moved to the end afterwards, so a page appended to the list is reached.
+one before returned. Angular takes the first route that matches, and Slidev's router the most specific one; to keep that, the app's own routes that
+match any address (`:no`, the slide, and `**`) are moved to the end afterwards, so a page appended to the list is reached. Routes the files add
+stay where they put them, a `:lang` route too.
 
 ```ts
 // setup/routes.ts

@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { describe, expect, it } from 'vitest';
+import type { Routes } from '@angular/router';
+import { describe, expect, it, vi } from 'vitest';
 import { findRenderer } from '../code/mermaid';
 import { CODE_RUNNERS } from '../code/runners';
 import {
@@ -126,6 +127,24 @@ describe('setup providers', () => {
     expect(await findRenderer([])).toBeNull();
   });
 
+  it('tries the next root when a renderer setup throws, and asks it again for the next diagram', async () => {
+    let asked = 0;
+    const theme = () => (code: string) => `<svg>theme ${code}</svg>`;
+    const deck = async () => {
+      asked++;
+      throw new Error('broken setup');
+    };
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const setups = [theme, deck];
+    expect(await (await findRenderer(setups))?.('A', {})).toBe('<svg>theme A</svg>');
+    expect(await findRenderer([deck])).toBeNull();
+    expect(asked).toBe(2);
+    await findRenderer(setups);
+    expect(asked).toBe(3);
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
   it('chains route setups and keeps the routes that match any address last', () => {
     @Component({ template: '' })
     class Page {}
@@ -143,5 +162,16 @@ describe('setup providers', () => {
     const paths = applyRoutesSetups(base, TestBed.inject(ROUTES_SETUP)).map((r) => r.path);
     expect(paths).toEqual(['one', 'two', ':no', '**']);
     expect(applyRoutesSetups(base, []).map((r) => r.path)).toEqual(['notes', ':no', '**']);
+  });
+
+  it("moves only the app's own :no and ** routes, not a page the file adds", () => {
+    @Component({ template: '' })
+    class Page {}
+    const base = [
+      { path: ':no', component: Page },
+      { path: '**', redirectTo: '1' },
+    ];
+    const lang = (routes: Routes) => [...routes, { path: ':lang', component: Page }];
+    expect(applyRoutesSetups(base, [lang]).map((r) => r.path)).toEqual([':lang', ':no', '**']);
   });
 });
