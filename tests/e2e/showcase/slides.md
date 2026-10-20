@@ -218,9 +218,13 @@ Level 2.
 
 ---
 
-# Components
+# **Components**
 
 <p id="c-no">no <slide-ng-current-no /> of <slide-ng-total /></p>
+
+<p id="c-title-here"><slide-ng-title-renderer /></p>
+
+<p id="c-title-20"><slide-ng-title-renderer no="20" /></p>
 
 <slide-ng-light-or-dark><div dark id="c-dark">dark text</div><div light id="c-light">light text</div></slide-ng-light-or-dark>
 
