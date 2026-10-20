@@ -1,6 +1,7 @@
 // Math with KaTeX, done while generating: `$inline$` and `$$ block $$` (also `$$ {1|3|all}` to step through rows).
 // KaTeX is plain JavaScript, so the browser only needs its CSS.
 import katex from 'katex';
+import { Marked } from 'marked';
 import { splitRanges, parseOptions } from './code/meta.mjs';
 import { attrs, escapeCode, protect } from './protect.mjs';
 
@@ -77,17 +78,20 @@ export function renderMath({ block, latex, ranges, options }) {
   return `<slide-ng-katex-block-wrapper${a}><div ngNonBindable>${drawn}</div></slide-ng-katex-block-wrapper>`;
 }
 
-/** A slide title with `$math$` as HTML (for the table of contents), or null when it has no math. Text is escaped. */
+// Titles go into innerHTML (table of contents, <slide-ng-title-renderer>), so raw HTML in a title is shown as text.
+const titleMarked = new Marked({
+  renderer: {
+    html: ({ text }) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'),
+  },
+});
+
+/** A slide title as HTML: inline markdown and `$math$` drawn by KaTeX, raw HTML escaped. Null when there is no title. */
 export function titleHtml(title) {
-  if (!title) return null;
-  const { markdown, maths } = extractMath(title);
-  if (!maths.length) return null;
-  const text = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  return markdown
-    .split(/(NGMATH\d+X)/)
-    .map((part) => {
-      const m = /^NGMATH(\d+)X$/.exec(part);
-      return m ? render(maths[+m[1]].latex, false) : text(part);
-    })
-    .join('');
+  if (title == null) return null;
+  // parseInline runs on the whole string so that emphasis, links or code around a formula still pair up;
+  // NGMATHnX is plain alphanumerics, so marked leaves it alone and we swap it for the KaTeX output after.
+  const { markdown, maths } = extractMath(String(title));
+  return titleMarked
+    .parseInline(markdown, { async: false })
+    .replace(/NGMATH(\d+)X/g, (_, i) => render(maths[+i].latex, false));
 }

@@ -1,5 +1,7 @@
 {
-  "files": ["README.md"],
+  "files": [
+    "README.md"
+  ],
   "imageSize": 100,
   "commit": false,
   "commitConvention": "none",
@@ -9,7 +11,21 @@
       "name": "Erkam Yaman",
       "avatar_url": "https://avatars.githubusercontent.com/u/88717125?v=4",
       "profile": "https://github.com/erkamyaman",
-      "contributions": ["code", "doc", "infra", "maintenance"]
+      "contributions": [
+        "code",
+        "doc",
+        "infra",
+        "maintenance"
+      ]
+    },
+    {
+      "login": "abiramcodes",
+      "name": "Abiram",
+      "avatar_url": "https://avatars.githubusercontent.com/u/131433061?v=4",
+      "profile": "https://www.abikb.xyz/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
@@ -17,5 +33,6 @@
   "repoType": "github",
   "repoHost": "https://github.com",
   "projectName": "slide.ng",
-  "projectOwner": "slide-ng"
+  "projectOwner": "slide-ng",
+  "commitType": "docs"
 }

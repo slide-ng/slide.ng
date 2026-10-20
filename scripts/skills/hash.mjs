@@ -12,9 +12,15 @@ const END = '<!-- skills-hash:end -->';
 const TABLE_BEGIN = '<!-- skills-table:begin -->';
 const TABLE_END = '<!-- skills-table:end -->';
 
-/** The hash of one source file; line endings do not count. */
+// The contributors table in the README is written by the all-contributors bot; it is not something the skill is written from.
+const CONTRIBUTORS =
+  /<!-- ALL-CONTRIBUTORS-LIST:START[^>]*-->[\s\S]*?<!-- ALL-CONTRIBUTORS-LIST:END -->/g;
+
+/** The hash of one source file; line endings and the all-contributors table do not count. */
 export function hashFile(root, path) {
-  const text = readFileSync(join(root, path), 'utf8').replace(/\r\n/g, '\n');
+  const text = readFileSync(join(root, path), 'utf8')
+    .replace(/\r\n/g, '\n')
+    .replace(CONTRIBUTORS, '');
   return createHash('sha256').update(text).digest('hex');
 }
 
