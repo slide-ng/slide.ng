@@ -18,6 +18,11 @@ export const COMPONENTS = [
   { className: 'SlideToc', file: 'builtin/slide-toc', test: /<slide-ng-toc/ },
   { className: 'SlideCurrentNo', file: 'builtin/slide-current-no', test: /<slide-ng-current-no/ },
   { className: 'SlidesTotal', file: 'builtin/slides-total', test: /<slide-ng-total/ },
+  {
+    className: 'SlideTitleRenderer',
+    file: 'builtin/slide-title-renderer',
+    test: /<slide-ng-title-renderer/,
+  },
   { className: 'LightOrDark', file: 'builtin/light-or-dark', test: /<slide-ng-light-or-dark/ },
   { className: 'RenderWhen', file: 'builtin/render-when', test: /<slide-ng-render-when/ },
   { className: 'SlideLink', file: 'builtin/slide-link', test: /<slide-ng-link/ },

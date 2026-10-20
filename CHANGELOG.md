@@ -10,6 +10,8 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - `lang` sets Angular's `LOCALE_ID`, so the `date`, `number` and `currency` pipes in slides format for the deck's language.
 - `ar`, `he`, `fa` and `ur` set `dir="rtl"` (unless `htmlAttrs.dir` is given); the bar, menus and presenter mirror.
 - `--lang` for `dev`, `build` and `export`, and a recipe for one deck in several languages.
+- `<slide-ng-title-renderer />` draws a slide's title as HTML, with its inline markdown and `$math$` (Slidev's `<TitleRenderer>`); `no="N"` picks another slide. The table of contents shows the same HTML. Raw HTML in a title is shown as text.
+- `notesAutoRuby: { word: reading }` in the headmatter shows a reading above each listed word in the speaker notes, with `<ruby>` (Slidev's `notesAutoRuby`). Code, tag attributes and existing `<ruby>` are left alone.
 
 ### Changed
 

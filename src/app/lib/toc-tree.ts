@@ -12,7 +12,7 @@ export interface TocSlide {
 export interface TocItem {
   no: number;
   title: string;
-  titleHtml?: string | null; // the title with KaTeX math, when it has some
+  titleHtml?: string | null; // the title with inline markdown and KaTeX math as HTML
   path: string; // `3` or the routeAlias
   level: number; // depth in the tree, 1 = top
   hideInToc: boolean;

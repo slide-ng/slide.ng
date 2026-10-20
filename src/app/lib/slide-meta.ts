@@ -4,7 +4,7 @@ import { SlideBase } from './slide-base';
 /** What the generator writes for each slide into src/slides/generated/index.ts. */
 export interface SlideMeta {
   title: string | null;
-  titleHtml?: string | null; // the title with its $math$ drawn by KaTeX (generated, for the table of contents)
+  titleHtml?: string | null; // the title with its inline markdown and $math$ as HTML (used by the table of contents and <slide-ng-title-renderer>)
   level: number | null; // heading level of the title (or `level:` frontmatter), used by the table of contents
   layout: string;
   note: string | null;

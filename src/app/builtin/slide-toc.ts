@@ -56,7 +56,7 @@ export class TocList {
       `slidev-toc-list-level-${this.level()}`,
     ].join(' '),
   );
-  // The generator drew the title's math with KaTeX from the deck's own markdown; the sanitizer would strip KaTeX's styles.
+  // The generator rendered the title's inline markdown and math from the deck's own source; the sanitizer would strip KaTeX's styles.
   private sanitizer = inject(DomSanitizer);
   protected trusted = (html: string): SafeHtml => this.sanitizer.bypassSecurityTrustHtml(html);
   // `listStyle` gives one list-style per level, like Slidev; a single style applies at every level.
