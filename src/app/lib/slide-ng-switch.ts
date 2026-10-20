@@ -109,9 +109,9 @@ export class SlideNgSwitch implements OnInit, OnDestroy {
 
   // The animation for this change, as Slidev's TransitionGroup would run it (going back uses the backward name of a pair).
   private animation(kind: 'enter' | 'leave') {
-    const name = resolveTransition(this.transition() || null, this.nav.direction() < 0);
+    const resolved = resolveTransition(this.transition() || null, this.nav.direction() < 0);
     const ms = transitionDuration();
-    const pair = name ? animationsFor(name, ms) : null;
+    const pair = resolved ? animationsFor(resolved.name, ms) : null;
     if (!pair) return null;
     const options = kind === 'enter' ? pair.enterOptions : pair.leaveOptions;
     return { keyframes: pair[kind], options: { duration: ms, easing: 'ease', ...options } };
