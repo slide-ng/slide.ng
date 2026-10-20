@@ -204,7 +204,7 @@ function readEditing(): boolean {
                   <button
                     icon-btn
                     id="notes-edit"
-                    title="Edit Notes"
+                    [title]="'presenter.editNotes' | t"
                     [class.text-primary]="editingNotes()"
                     [attr.aria-pressed]="editingNotes()"
                     (click)="setEditingNotes(!editingNotes())"

@@ -5,21 +5,22 @@ import { HEADMATTER } from '../../slides/generated';
 import { DevApi } from '../dev/dev-api';
 import { Dark } from '../lib/dark';
 import { presenterEnabled } from '../lib/switches';
+import { T } from '../i18n/t';
 
 // The route /entry (Slidev's entry page): links to the pages of the deck, for a second device or a new window.
 @Component({
   selector: 'app-entry-page',
-  imports: [RouterLink],
+  imports: [RouterLink, T],
   host: { class: 'grid place-items-center h-full bg-main text-main' },
   template: `
-    <nav id="entry" class="grid gap-3 w-72 text-lg" aria-label="Pages of this deck">
+    <nav id="entry" class="grid gap-3 w-72 text-lg" [attr.aria-label]="'entry.label' | t">
       <h1 class="text-2xl mb-2">{{ title }}</h1>
       @for (link of links; track link.path) {
         <a
           class="flex items-center gap-3 px-4 py-3 border border-main rounded hover:border-primary hover:text-primary"
           [routerLink]="link.path"
         >
-          <span [class]="link.icon"></span>{{ link.label }}
+          <span [class]="link.icon"></span>{{ link.label | t }}
         </a>
       }
     </nav>
@@ -28,14 +29,14 @@ import { presenterEnabled } from '../lib/switches';
 export class EntryPage {
   protected readonly title = HEADMATTER['title'] ?? 'slide.ng';
   protected readonly links = [
-    { path: '/1', label: 'Slides', icon: 'i-carbon:presentation-file' },
+    { path: '/1', label: 'entry.slides' as const, icon: 'i-carbon:presentation-file' },
     ...(presenterEnabled()
-      ? [{ path: '/presenter/1', label: 'Presenter', icon: 'i-carbon:user-speaker' }]
+      ? [{ path: '/presenter/1', label: 'entry.presenter' as const, icon: 'i-carbon:user-speaker' }]
       : []),
-    { path: '/notes', label: 'Notes', icon: 'i-carbon:catalog' },
-    { path: '/overview', label: 'Overview', icon: 'i-carbon:list-boxes' },
+    { path: '/notes', label: 'entry.notes' as const, icon: 'i-carbon:catalog' },
+    { path: '/overview', label: 'entry.overview' as const, icon: 'i-carbon:list-boxes' },
     ...(inject(DevApi).enabled
-      ? [{ path: '/notes-edit', label: 'Notes editor', icon: 'i-carbon:edit' }]
+      ? [{ path: '/notes-edit', label: 'entry.notesEdit' as const, icon: 'i-carbon:edit' }]
       : []),
   ];
 

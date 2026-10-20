@@ -1,14 +1,15 @@
+import type { UiTextKey } from '../i18n/en';
 // Slidev's sync mode (SyncControls.vue): the four ways a window can take part in navigation sync, read from and
 // written to the per-role directions in SyncState.
 import { SyncDirections } from './sync-state';
 
 export type SyncMode = 'bidirectional' | 'receive-only' | 'send-only' | 'off';
 
-export const SYNC_MODES: { value: SyncMode; label: string }[] = [
-  { value: 'bidirectional', label: 'Bidirectional Sync' },
-  { value: 'receive-only', label: 'Receive Only' },
-  { value: 'send-only', label: 'Send Only' },
-  { value: 'off', label: 'Disable' },
+export const SYNC_MODES: { value: SyncMode; label: UiTextKey }[] = [
+  { value: 'bidirectional', label: 'sync.bidirectional' },
+  { value: 'receive-only', label: 'sync.receiveOnly' },
+  { value: 'send-only', label: 'sync.sendOnly' },
+  { value: 'off', label: 'sync.off' },
 ];
 
 /** Whether this window sends and receives, for its role. */

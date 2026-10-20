@@ -13,6 +13,8 @@ import { HEADMATTER, SLIDES } from '../../slides/generated';
 import { Dark } from '../lib/dark';
 import { NoteStore } from './note-store';
 import { notesToText, textToNotes } from './notes-text';
+import { T } from '../i18n/t';
+import type { UiTextKey } from '../i18n/en';
 
 type Status =
   'loading' | 'saved' | 'saving' | 'invalid' | 'conflict' | 'outside' | 'error' | 'offline';
@@ -33,16 +35,16 @@ interface Draft {
 // into the markdown files after a short pause, only the notes that changed. A text whose markers changed is not saved.
 @Component({
   selector: 'app-notes-edit-page',
-  imports: [RouterLink],
+  imports: [RouterLink, T],
   host: { class: 'flex flex-col h-full bg-main text-main' },
   template: `
     <header class="flex items-center gap-4 px-6 py-3 border-b border-main">
-      <h1 class="text-lg">Notes</h1>
+      <h1 class="text-lg">{{ 'notesEdit.heading' | t }}</h1>
       <span id="notes-edit-status" class="text-sm op60" [attr.data-status]="status()">{{
-        statusText[status()]
+        statusText[status()] | t: { count: slideCount }
       }}</span>
       <div class="flex-auto"></div>
-      <a routerLink="/entry" class="text-sm op75 hover:op100">All pages</a>
+      <a routerLink="/entry" class="text-sm op75 hover:op100">{{ 'pages.all' | t }}</a>
     </header>
     <textarea
       #area
@@ -50,7 +52,7 @@ interface Draft {
       class="flex-auto w-full p-6 font-mono text-sm bg-transparent outline-none resize-none"
       style="unicode-bidi: plaintext"
       spellcheck="false"
-      aria-label="The speaker notes of all slides"
+      [attr.aria-label]="'notesEdit.label' | t"
       [disabled]="(status() === 'loading' && !draft) || status() === 'offline'"
       [value]="text()"
       (input)="edit($any($event.target).value)"
@@ -63,16 +65,16 @@ export class NotesEditPage {
   private area = viewChild<ElementRef<HTMLTextAreaElement>>('area');
   protected text = signal('');
   protected status = signal<Status>('loading');
-  protected readonly statusText: Record<Status, string> = {
-    loading: 'Loading...',
-    saved: 'Saved',
-    saving: 'Saving...',
-    invalid: `Not saved: keep the ${SLIDES.length} "--- #N" lines as they are`,
-    conflict: 'Not saved: a note changed in the file. Reload the page.',
-    outside:
-      'Not saved: the notes of a slide imported from outside the project cannot be edited here.',
-    error: 'Not saved',
-    offline: 'The notes can only be edited while the dev server runs.',
+  protected readonly slideCount = SLIDES.length;
+  protected readonly statusText: Record<Status, UiTextKey> = {
+    loading: 'editor.loading',
+    saved: 'editor.saved',
+    saving: 'editor.saving',
+    invalid: 'notesEdit.invalid',
+    conflict: 'notesEdit.conflict',
+    outside: 'notesEdit.outside',
+    error: 'notesEdit.error',
+    offline: 'notesEdit.offline',
   };
   /** The notes as the files have them, as far as this page knows. */
   private saved: (string | null)[] = [];

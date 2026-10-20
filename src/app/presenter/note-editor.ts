@@ -15,6 +15,7 @@ import {
 import { DevApi } from '../dev/dev-api';
 import { noteOf, withNote } from '../dev/note-source';
 import { saveCaret, takeCaret } from '../dev/side-editor-state';
+import { T } from '../i18n/t';
 
 type Status = 'loading' | 'saved' | 'saving' | 'error' | 'conflict';
 const SAVE_DELAY = 500; // Slidev's NoteEditable waits as long
@@ -24,15 +25,16 @@ const SAVE_DELAY = 500; // Slidev's NoteEditable waits as long
 // The note is part of the generated deck, so a save rebuilds it and reloads the page: the caret comes back afterwards.
 @Component({
   selector: 'app-note-editor',
+  imports: [T],
   host: { class: 'flex flex-col h-full', '(document:pointerdown)': 'outside($event)' },
   template: `
     <textarea
       #area
       id="note-editor"
-      aria-label="Notes of this slide"
+      [attr.aria-label]="'noteEditor.label' | t"
       class="slidev-note prose dark:prose-invert flex-auto w-full resize-none overflow-auto outline-none bg-transparent block border-2 border-primary placeholder:op25"
       [class.italic]="!text()"
-      [placeholder]="'No notes for Slide ' + no() + '.'"
+      [placeholder]="'presenter.noNotes' | t: { no: no() }"
       [value]="text()"
       [disabled]="status() === 'loading' || !loaded()"
       (input)="edit($any($event.target).value)"
@@ -45,7 +47,7 @@ const SAVE_DELAY = 500; // Slidev's NoteEditable waits as long
       class="text-xs op60 px-2"
       [class.color-red-500]="status() === 'error' || status() === 'conflict'"
     >
-      {{ label() }}
+      {{ label() | t }}
     </div>
   `,
 })
@@ -67,13 +69,15 @@ export class NoteEditor {
   private timer?: ReturnType<typeof setTimeout>;
 
   protected label = () =>
-    ({
-      loading: 'Loading...',
-      saved: 'Saved',
-      saving: 'Saving...',
-      error: 'Could not save',
-      conflict: 'Changed in the file, not saved: copy your text and edit again',
-    })[this.status()];
+    (
+      ({
+        loading: 'editor.loading',
+        saved: 'editor.saved',
+        saving: 'editor.saving',
+        error: 'editor.error',
+        conflict: 'noteEditor.conflict',
+      }) as const
+    )[this.status()];
 
   constructor() {
     effect(() => {

@@ -2,6 +2,8 @@ import { Component, Injector, afterNextRender, inject, signal } from '@angular/c
 import { Title } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
 import { HEADMATTER, SLIDES } from '../../slides/generated';
+import { T } from '../i18n/t';
+import type { UiTextKey } from '../i18n/en';
 import { SideEditorState } from '../dev/side-editor-state';
 import { CLICKS_MAX } from '../lib/clicks';
 import { Dark } from '../lib/dark';
@@ -20,15 +22,15 @@ type Status = 'editing' | 'saving' | 'saved' | 'conflict' | 'error';
 // Nav and Ui are provided because a few built-in components (the table of contents) read them.
 @Component({
   selector: 'app-overview-page',
-  imports: [Thumbnail, ClicksSlider, NoteDisplay, RouterLink],
+  imports: [Thumbnail, ClicksSlider, NoteDisplay, RouterLink, T],
   providers: [Nav, Ui],
   host: { class: 'block h-full overflow-y-auto bg-main text-main' },
   template: `
     <header class="flex items-center gap-4 px-6 py-3 border-b border-main">
       <h1 class="text-lg">{{ title }}</h1>
-      <span class="op50 text-sm">{{ slides.length }} slides</span>
+      <span class="op50 text-sm">{{ 'overviewPage.count' | t: { count: slides.length } }}</span>
       <div class="flex-auto"></div>
-      <a routerLink="/entry" class="text-sm op75 hover:op100">All pages</a>
+      <a routerLink="/entry" class="text-sm op75 hover:op100">{{ 'pages.all' | t }}</a>
     </header>
     <ol id="overview-list" class="m-0 p-0 list-none">
       @for (slide of slides; track $index) {
@@ -40,7 +42,7 @@ type Status = 'editing' | 'saving' | 'saved' | 'conflict' | 'error';
           <a
             class="text-3xl op30 hover:op100 w-12 text-right flex-none"
             [routerLink]="['/', no]"
-            [attr.aria-label]="'Go to slide ' + no"
+            [attr.aria-label]="'overview.goTo' | t: { no }"
             >{{ no }}</a
           >
           <div class="flex-none" [style.width.px]="width">
@@ -80,13 +82,13 @@ type Status = 'editing' | 'saving' | 'saved' | 'conflict' | 'error';
                 [html]="slide.noteHtml"
                 [clicks]="clicks()[no] ?? null"
                 [placeholder]="
-                  canEdit() ? 'No notes. Double click or press Enter to add some.' : 'No notes.'
+                  (canEdit() ? 'overviewPage.noNotesEdit' : 'presenter.noNotesAtAll') | t
                 "
               />
             }
             @if (status()[no]; as s) {
               <div class="overview-note-status text-xs op60 mt-1" [attr.data-status]="s">
-                {{ statusText[s] }}
+                {{ statusText[s] | t }}
               </div>
             }
           </div>
@@ -110,12 +112,12 @@ export class OverviewPage {
   protected draft = signal('');
   private base = '';
   protected status = signal<Record<number, Status>>({});
-  protected readonly statusText: Record<Status, string> = {
-    editing: 'Editing; leave the text to save, Escape to cancel.',
-    saving: 'Saving...',
-    saved: 'Saved.',
-    conflict: 'Not saved: the note changed in the file. Reload the page.',
-    error: 'Not saved.',
+  protected readonly statusText: Record<Status, UiTextKey> = {
+    editing: 'overviewPage.editing',
+    saving: 'editor.saving',
+    saved: 'overviewPage.saved',
+    conflict: 'overviewPage.conflict',
+    error: 'overviewPage.error',
   };
   protected clicksOf = (no: number) => this.clicks()[no] ?? CLICKS_MAX;
 

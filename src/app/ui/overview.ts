@@ -62,8 +62,8 @@ import { Thumbnail } from './thumbnail';
         <a
           id="overview-page-link"
           class="slidev-icon-btn text-2xl"
-          title="Open the overview page, with the notes"
-          aria-label="Open the overview page, with the notes"
+          [title]="'overview.openPage' | t"
+          [attr.aria-label]="'overview.openPage' | t"
           routerLink="/overview"
           (click)="close()"
         >

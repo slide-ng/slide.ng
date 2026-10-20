@@ -1,6 +1,7 @@
 import { Component, DestroyRef, computed, effect, inject, input, signal } from '@angular/core';
 import { PresenterPrefs } from './prefs';
 import { clampRows, clampWidth, resizers } from './pane-sizes';
+import { T } from '../i18n/t';
 
 interface Box {
   left: number;
@@ -19,6 +20,7 @@ interface Drag {
 // placed from where the panes are, so the same two handles serve the three layouts. Sizes are kept per layout.
 @Component({
   selector: 'app-pane-resizers',
+  imports: [T],
   host: { class: 'contents' },
   template: `
     @if (handles(); as h) {
@@ -28,7 +30,7 @@ interface Drag {
           class="pane-resizer pane-resizer-col"
           role="separator"
           aria-orientation="vertical"
-          title="Resize notes panel"
+          [title]="'presenter.resizeNotes' | t"
           [attr.aria-valuenow]="size().width"
           [style.left.px]="h.width.x"
           [style.top.px]="h.width.top"
@@ -45,7 +47,7 @@ interface Drag {
           class="pane-resizer pane-resizer-row"
           role="separator"
           aria-orientation="horizontal"
-          title="Resize notes panel height"
+          [title]="'presenter.resizeNotesHeight' | t"
           [attr.aria-valuenow]="size().rows"
           [style.top.px]="h.rows.y"
           [style.left.px]="h.rows.left"

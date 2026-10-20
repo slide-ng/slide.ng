@@ -4,18 +4,19 @@ import { Ui } from '../lib/ui-state';
 import { SyncState } from '../sync/sync-state';
 import { SYNC_MODES, SyncMode, syncFlags, syncMode, withSyncMode } from '../sync/sync-mode';
 import { IconBtn } from './icon-btn';
+import { T } from '../i18n/t';
 
 // The sync button of the bar and its menu (Slidev's SyncControls): which way this window's navigation travels.
 // The choice is kept per role (viewer or presenter) and applies to every window of that role in this browser.
 @Component({
   selector: 'app-sync-controls',
-  imports: [IconBtn],
+  imports: [IconBtn, T],
   host: { class: 'flex relative', '(document:click)': 'closeOutside($event)' },
   template: `
     <button
       icon-btn
       id="nav-sync"
-      title="Change sync settings"
+      [title]="'nav.sync' | t"
       [active]="open()"
       [attr.aria-expanded]="open()"
       (click)="toggle()"
@@ -37,8 +38,8 @@ import { IconBtn } from './icon-btn';
       >
         <div class="text-sm flex flex-col gap-2">
           <div class="px-3 whitespace-nowrap">
-            <span class="op75">Slides navigation syncing for </span>
-            <span class="font-bold text-primary">{{ role }}</span>
+            <span class="op75">{{ 'sync.for' | t }} </span>
+            <span class="font-bold text-primary">{{ role | t }}</span>
           </div>
           <div class="h-1px opacity-10 bg-current w-full"></div>
           <div role="radiogroup" aria-labelledby="sync-mode-title">
@@ -46,7 +47,7 @@ import { IconBtn } from './icon-btn';
               id="sync-mode-title"
               class="text-sm op75 px-3 py-1 select-none whitespace-nowrap font-bold"
             >
-              Sync Mode
+              {{ 'sync.mode' | t }}
             </div>
             @for (m of modes; track m.value) {
               <button
@@ -62,7 +63,7 @@ import { IconBtn } from './icon-btn';
                   class="i-carbon:checkmark text-green-500 my-auto"
                   [class.op0]="mode() !== m.value"
                 ></div>
-                <div [class.op50]="mode() !== m.value">{{ m.label }}</div>
+                <div [class.op50]="mode() !== m.value">{{ m.label | t }}</div>
               </button>
             }
           </div>
@@ -78,7 +79,7 @@ export class SyncControls {
   private el = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   private injector = inject(Injector);
   protected readonly modes = SYNC_MODES;
-  protected readonly role = this.isPresenter ? 'presenter' : 'viewer';
+  protected readonly role = this.isPresenter ? 'sync.presenter' : 'sync.viewer';
   protected open = this.ui.syncMenu; // in Ui, so Escape (Ui.closeAll) closes it like the settings menu
   protected flags = computed(() => syncFlags(this.sync.directions(), this.isPresenter));
   protected mode = computed(() => syncMode(this.sync.directions(), this.isPresenter));

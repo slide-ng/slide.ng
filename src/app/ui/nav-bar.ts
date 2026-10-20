@@ -214,7 +214,7 @@ import { presenterEnabled } from '../lib/switches';
           <button
             icon-btn
             id="nav-click-preview"
-            [title]="prefs.clickPreview() ? 'Hide upcoming clicks' : 'Show upcoming clicks'"
+            [title]="(prefs.clickPreview() ? 'nav.clickPreviewHide' : 'nav.clickPreviewShow') | t"
             [active]="prefs.clickPreview()"
             (click)="prefs.toggleClickPreview()"
           >

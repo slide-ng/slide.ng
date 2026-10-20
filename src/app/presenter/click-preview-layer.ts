@@ -12,6 +12,7 @@ import { Drawings } from '../drawing/drawings';
 import { Nav } from '../lib/nav';
 import { Ui } from '../lib/ui-state';
 import { PreviewMark, previewMarks } from './click-preview';
+import { T } from '../i18n/t';
 
 const AHEAD = 'slide-ng-click-ahead';
 const NEXT = 'slide-ng-click-next';
@@ -36,6 +37,7 @@ interface Badge {
 // its click. A click on a badge or on a greyed-out part goes to that click in every window. It sits in the canvas.
 @Component({
   selector: 'app-click-preview',
+  imports: [T],
   host: {
     style: 'position: absolute; inset: 0; pointer-events: none; z-index: 30',
     // While drawing, a pen tap on a badge is a stroke, not a jump.
@@ -52,8 +54,8 @@ interface Badge {
         [style.right.px]="b.rtl ? b.x : null"
         [style.top.px]="b.y"
         [attr.data-click]="b.at"
-        [title]="'Go to click ' + b.at"
-        [attr.aria-label]="'Go to click ' + b.at"
+        [title]="'presenter.goToClick' | t: { no: b.at }"
+        [attr.aria-label]="'presenter.goToClick' | t: { no: b.at }"
         (click)="go(b.at)"
       >
         {{ b.at }}
