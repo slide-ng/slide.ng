@@ -234,7 +234,7 @@ Gets the app's routes (Angular `Routes`) and returns the list to use, so a deck 
 file itself or be imported from the root (`import { Gallery } from '../components/gallery'`). The roots are chained: each gets the list the
 one before returned. Angular takes the first route that matches, and Slidev's router the most specific one; to keep that, the app's own routes that
 match any address (`:no`, the slide, and `**`) are moved to the end afterwards, so a page appended to the list is reached. Routes the files add
-stay where they put them, a `:lang` route too.
+stay where they put them, a `:lang` route too; a copy of `:no` or `**` (with a guard added, say) is moved like the original.
 
 ```ts
 // setup/routes.ts

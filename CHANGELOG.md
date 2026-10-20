@@ -8,8 +8,8 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 - `<slide-ng-title-renderer />` draws a slide's title as HTML, with its inline markdown and `$math$` (Slidev's `<TitleRenderer>`); `no="N"` picks another slide. The table of contents shows the same HTML. Raw HTML in a title is shown as text.
 - `notesAutoRuby: { word: reading }` in the headmatter shows a reading above each listed word in the speaker notes, with `<ruby>` (Slidev's `notesAutoRuby`). Code, tag attributes and existing `<ruby>` are left alone.
-- `setup/routes.ts` adds pages to the app: it gets the Angular routes and returns the list to use; the slide routes stay last (Slidev's `setup/routes.ts`).
-- `setup/mermaid-renderer.ts` returns a function `(code, options) => svg` that draws Mermaid diagrams with another library (Slidev's `setup/mermaid-renderer.ts`).
+- `setup/routes.ts` adds pages to the app: it gets the Angular routes and returns the list to use; the app's slide and catch-all routes (or copies of them, say with a guard) stay last, while routes the file adds, `:lang` too, stay where it put them (Slidev's `setup/routes.ts`).
+- `setup/mermaid-renderer.ts` returns a function `(code, options) => svg` that draws Mermaid diagrams with another library; a setup that throws is skipped with a warning and the next root or Mermaid draws instead (Slidev's `setup/mermaid-renderer.ts`).
 
 ## [1.0.0] - 2026-10-18
 

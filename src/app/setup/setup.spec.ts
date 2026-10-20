@@ -174,4 +174,21 @@ describe('setup providers', () => {
     const lang = (routes: Routes) => [...routes, { path: ':lang', component: Page }];
     expect(applyRoutesSetups(base, [lang]).map((r) => r.path)).toEqual([':lang', ':no', '**']);
   });
+
+  it('still moves the :no and ** routes last when a file copies them, e.g. to add a guard', () => {
+    @Component({ template: '' })
+    class Page {}
+    const base = [
+      { path: ':no', component: Page },
+      { path: '**', redirectTo: '1' },
+    ];
+    const guarded = (routes: Routes) => [
+      ...routes.map((r) => ({ ...r, canActivate: [() => true] })),
+      { path: 'about', component: Page },
+      { path: ':lang', component: Page },
+    ];
+    const result = applyRoutesSetups(base, [guarded]);
+    expect(result.map((r) => r.path)).toEqual(['about', ':lang', ':no', '**']);
+    expect(result.slice(2).every((r) => r.canActivate)).toBe(true);
+  });
 });

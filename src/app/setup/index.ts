@@ -67,8 +67,16 @@ export const routesProviders = (files: RoutesSetup[]): Providers => [
  * specific one), so the routes that match any address, `:no` and `**`, are moved last: a page a file adds is reached before them. */
 export function applyRoutesSetups(routes: Routes, files: RoutesSetup[]): Routes {
   const changed = files.reduce((all, f) => f(all), routes);
-  // The app's own route objects: a `:lang` page a file adds is the deck's, and stays where the file put it.
-  const fallbacks = new Set(routes.filter((r) => r.path === '**' || r.path === ':no'));
-  const isFallback = (r: Route) => fallbacks.has(r);
+  // The app's own `:no` and `**`, or a copy of one (same path and target, e.g. with a guard added). A `:lang` page a file
+  // adds is the deck's, and stays where the file put it.
+  const fallbacks = routes.filter((r) => r.path === '**' || r.path === ':no');
+  const isFallback = (r: Route) =>
+    fallbacks.some(
+      (f) =>
+        f.path === r.path &&
+        f.component === r.component &&
+        f.redirectTo === r.redirectTo &&
+        f.loadComponent === r.loadComponent,
+    );
   return [...changed.filter((r) => !isFallback(r)), ...changed.filter(isFallback)];
 }
