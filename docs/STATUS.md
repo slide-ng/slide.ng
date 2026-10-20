@@ -55,6 +55,7 @@ one can be written. The decisions are in DECISIONS.md ("Made while testing for 1
 - `export` takes one entry; no `--format pptx-editable`.
 - `dev --tunnel` (needs a tunnel service; refused with a message) and `dev --base` (refused with a message); `build --router-mode` (use `routerMode`).
 - Prettier plugin, Vue-syntax converter, community themes, browser exporter page, `overviewSnapshots` (out of scope). A VS Code extension exists in the slide-ng/vscode-extension repository (first version, not released, never run inside VS Code).
+- Presenter click preview: a `<slide-ng-switch>` shows only its current child, and code line steps, magic-move, marks and motion are drawn as they are at the current click (with a badge for their next change), not in their later state. The notes PDF has no click preview.
 - Monaco type loading; MDC/Comark; slide hooks; custom transition objects; touch tuning for drawing and drag. The full list is in docs/PARITY.md.
 - Offline: PlantUML, `<slide-ng-youtube>`, `<slide-ng-tweet>` and `<slide-ng-blue-sky>` need the network, also in an offline folder. A deck with Monaco and Mermaid becomes one large script in an offline folder (27 MB folder, 16 MB script for the phase 2 test deck).
 - PWA: the first visit must be online (a browser that never opened the deck cannot get it offline). Remote pictures are not cached in dev. Icons are drawn with Chromium at build time (a build without one warns and has no icons).

@@ -104,7 +104,7 @@ export class ShikiMagicMove implements OnInit, OnDestroy {
     const place = () => {
       const info = this.clicks.calculateSince(this.at(), total - 1);
       this.info.set(info);
-      this.clicks.register(this, info);
+      this.clicks.register(this, info, { el: this.host });
     };
     place();
     this.clicks.track(this, this.host, place);

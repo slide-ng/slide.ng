@@ -16,12 +16,15 @@ if (!process.env.SKIP_BUILD) {
     build('phase3', 'tests/e2e/phase3/slides.md');
     // The second deck has its own size, zoom, hash routing and the four layer components (its own layers/ folder).
     build('phase3-layout', 'tests/e2e/phase3/layout/slides.md');
+    // The third has every kind of click, for the presenter's click preview.
+    build('phase3-clicks', 'tests/e2e/phase3/clicks/slides.md');
   } finally {
     execSync('node scripts/generate.mjs', { stdio: 'ignore' });
   }
 }
 const { server, port } = await serve('dist/phase3/browser');
 const layoutServer = await serve('dist/phase3-layout/browser');
+const clicksServer = await serve('dist/phase3-clicks/browser');
 // Fake camera, microphone and screen so the recording tests can run without devices.
 const browser = await launch([
   '--use-fake-device-for-media-stream',
@@ -32,6 +35,8 @@ const browser = await launch([
 const t = reporter();
 const ctx = makeContext(`http://localhost:${port}`, browser, t);
 const layoutCtx = makeContext(`http://localhost:${layoutServer.port}`, browser, t);
+const clicksCtx = makeContext(`http://localhost:${clicksServer.port}`, browser, t);
+const contexts = { layout: layoutCtx, 'click-preview': clicksCtx };
 
 const only = process.argv[2];
 for (const topic of [
@@ -43,6 +48,7 @@ for (const topic of [
   'settings',
   'drag',
   'layout',
+  'click-preview',
 ]) {
   if (only && only !== topic) continue;
   let run;
@@ -53,15 +59,16 @@ for (const topic of [
     throw e;
   }
   console.log(`\n== ${topic}`);
-  await run(topic === 'layout' ? layoutCtx : ctx);
+  await run(contexts[topic] ?? ctx);
 }
 
 t.ok(
   'no console errors or warnings',
-  ctx.problems.length + layoutCtx.problems.length === 0,
-  JSON.stringify([...ctx.problems, ...layoutCtx.problems]),
+  ctx.problems.length + layoutCtx.problems.length + clicksCtx.problems.length === 0,
+  JSON.stringify([...ctx.problems, ...layoutCtx.problems, ...clicksCtx.problems]),
 );
 await browser.close();
 server.close();
 layoutServer.server.close();
+clicksServer.server.close();
 process.exit(t.done());

@@ -639,6 +639,20 @@ timer: countdown # or stopwatch (default)
 
 The presenter's mouse is shown on the audience page as a pointer or a red laser dot (settings menu, or the bar button).
 
+**Click preview** (slide.ng's own, Slidev has none): the eye button in the presenter's bar, or `u`, draws the whole current slide on the presenter page.
+Parts already shown look as usual, the part of the next click is brighter with a dashed outline, the parts of later clicks are greyed out, and each part
+a later click changes has a badge with that click's number. Click a badge or a greyed-out part to go to that click in every window. Only the presenter's
+current slide changes: the audience, `/notes` and the next-step pane do not. The choice is remembered in the browser (`slide-ng-presenter-click-preview`).
+
+- `slide-ng-click`, `slide-ng-after`, ranges, `<slide-ng-clicks>` items and `{monaco-run}` output (`showOutputAt`) are drawn greyed out until their click; a range on screen is marked again where it ends.
+- `slide-ng-click-hide` stays as it is until it goes, with its badge.
+- Code line steps, magic-move, `slide-ng-mark` and `slide-ng-motion` click variants are drawn as they are at the current click, with a badge for their next change.
+- `<slide-ng-switch>` shows only its current child; the badge on the switch says when it changes.
+
+Themes change the look with `--slide-ng-ghost-opacity` (0.25), `--slide-ng-ghost-next-opacity` (0.75), `--slide-ng-ghost-next` (the primary colour),
+`--slide-ng-ghost-badge-background` and `--slide-ng-ghost-badge-foreground`. The classes on the parts are `slide-ng-click-ahead` and `slide-ng-click-next`,
+with the click in `data-slide-ng-click-at`. The notes PDF (`export-notes`, `/presenter/print`) has no click preview.
+
 ## Drawing
 
 The pen button in the bar (or the right-click menu) opens a toolbar: pen, line, arrow, ellipse, rectangle, eraser, colours, width, undo, redo, clear, pin. The eraser has no key; use its button.
@@ -789,6 +803,7 @@ A package name that is not installed stops the run with the command that install
 | `d`                          | dark / light                                             |
 | `g`                          | go to a slide: type a number or part of a title, Enter   |
 | Escape                       | close the overview, dialogs and menus                    |
+| `u`                          | presenter page: show or hide the upcoming clicks         |
 
 The bar at the bottom left (fullscreen, previous, next, overview, dark mode, drawing, presenter mode, info, settings, counter)
 shows when the mouse is there. Drawing, presenter mode, camera and recording (when `record` is on) and the dev-only editor button are live. Right click opens a menu with the same actions;

@@ -68,7 +68,7 @@ export class SlideNgClick implements OnInit, OnDestroy {
     const at = this.at() ?? (this.after() ? '+0' : undefined); // slide-ng-after = same click as the element before
     const info = this.ctx.calculate(at);
     this.info.set(info);
-    this.ctx.register(this, info);
+    this.ctx.register(this, info, { el: this.el });
   }
 
   ngOnDestroy() {

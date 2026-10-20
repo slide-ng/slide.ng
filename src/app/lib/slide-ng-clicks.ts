@@ -46,7 +46,7 @@ export class SlideNgClicks implements OnInit, OnDestroy {
       const delta = showAt - previous;
       previous = showAt;
       const info = this.ctx.calculate(relative ? (delta >= 0 ? `+${delta}` : `${delta}`) : showAt)!;
-      this.ctx.register(li, info);
+      this.ctx.register(li, info, { el: li });
       this.keys.push(li);
       li.classList.add('slidev-vclick-target');
       const state = stateOf(

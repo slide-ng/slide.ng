@@ -55,7 +55,9 @@ export class SlideNgSwitch implements OnInit, OnDestroy {
     const slots = parseSlots(items);
     const size = Math.max(...slots.map((s) => s.end)) - 1;
     const info = this.ctx.calculateSince(this.at(), size);
-    if (info) this.ctx.register(this, info);
+    // The switch changes where a child starts or ends, counted from the switch's own first click.
+    const steps = info ? slots.flatMap((s) => [s.start, s.end].map((c) => info.start + c - 1)) : [];
+    if (info) this.ctx.register(this, info, { el: this.el, steps });
 
     for (const { el, start, end } of slots) {
       el.classList.add('slidev-vclick-target');

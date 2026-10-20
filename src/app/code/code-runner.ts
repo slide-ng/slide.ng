@@ -2,6 +2,7 @@
 // Port of Slidev's CodeRunner.vue. What actually runs the code is passed in as `execute`.
 import {
   Component,
+  ElementRef,
   OnDestroy,
   OnInit,
   computed,
@@ -56,6 +57,7 @@ export class CodeRunner implements OnInit, OnDestroy {
   protected result = signal<RunResult | null>(null);
 
   private clicks = inject(ClicksContext);
+  private el = inject<ElementRef<Element>>(ElementRef).nativeElement;
   private info = signal<ClickInfo | null>(null);
   private timer?: ReturnType<typeof setTimeout>;
   protected hidden = computed(() => {
@@ -85,7 +87,7 @@ export class CodeRunner implements OnInit, OnDestroy {
     if (at != null) {
       const info = this.clicks.calculate(at);
       this.info.set(info);
-      this.clicks.register(this, info);
+      this.clicks.register(this, info, { el: this.el });
     }
   }
 

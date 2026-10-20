@@ -117,6 +117,45 @@ html.dark .slidev-presenter .grid-section {
   overflow: auto;
 }
 
+/* The click preview on the presenter's current slide (slide.ng's own, see click-preview-layer.ts). A part that a later click
+   shows is drawn greyed out instead of hidden, the part of the next click brighter and outlined. The audience never gets these classes. */
+.slide-ng-click-ahead.slidev-vclick-hidden {
+  opacity: var(--slide-ng-ghost-opacity) !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  filter: grayscale(1);
+  cursor: pointer;
+}
+.slide-ng-click-ahead.slide-ng-click-next.slidev-vclick-hidden {
+  opacity: var(--slide-ng-ghost-next-opacity) !important;
+  filter: none;
+}
+.slide-ng-click-next {
+  outline: 2px dashed var(--slide-ng-ghost-next);
+  outline-offset: 2px;
+}
+.slide-ng-ghost-badge {
+  position: absolute;
+  transform: translate(-40%, -40%);
+  min-width: 1.4em;
+  height: 1.4em;
+  padding: 0 0.3em;
+  border-radius: 9999px;
+  font:
+    600 11px/1.4em ui-sans-serif,
+    system-ui,
+    sans-serif;
+  text-align: center;
+  background: var(--slide-ng-ghost-badge-background);
+  color: var(--slide-ng-ghost-badge-foreground);
+  opacity: 0.9;
+  pointer-events: auto;
+  cursor: pointer;
+}
+.slide-ng-ghost-badge-next {
+  background: var(--slide-ng-ghost-next);
+}
+
 /* The presenter's cursor on the slide: a red laser dot (Slidev's LaserPointer.vue). */
 app-presenter-cursor {
   position: absolute;
