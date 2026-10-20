@@ -12,7 +12,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ### Changed
 
-- `wakeLock` takes `true`, `false`, `dev` or `build` and is on by default, as in Slidev (it was off unless `wakeLock: true`). Off for the current mode, the settings menu has no wake lock entry.
+- `wakeLock` takes `true`, `false`, `dev` or `build` and is on by default, as in Slidev (it was off unless `wakeLock: true`); a choice already stored in the browser (`slidev-wake-lock`, also the `false` written by earlier versions on first use) is kept, so turn it on once in the settings menu. Off for the current mode, the settings menu has no wake lock entry.
 - `{monaco-run}` code runs in strict mode (`"use strict"`), as in Slidev.
 
 ## [1.0.0] - 2026-10-18

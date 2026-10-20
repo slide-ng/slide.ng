@@ -58,7 +58,7 @@ In the headmatter (the frontmatter of the first slide) you can also set:
 | `contextMenu`, `presenter`                                                       | `true` (default), `false`, `dev` or `build`: the right-click menu, and the presenter page and button  |
 | `editor`                                                                         | `false` hides the side editor (dev server only)                                                       |
 | `monaco`, `twoslash`                                                             | `true` (default), `false`, `dev` or `build`: off, `{monaco}` blocks are plain code; Twoslash not run  |
-| `wakeLock`                                                                       | `true` (default), `false`, `dev` or `build`: the wake lock of the settings menu, on until turned off  |
+| `wakeLock`                                                                       | `true` (default), `false`, `dev`, `build`: the settings wake lock; a choice the browser stored wins   |
 | `monacoRunUseStrict`                                                             | `false` runs `{monaco-run}` code without `"use strict"` (on by default, as in Slidev)                 |
 
 Other keys are kept in the slide's metadata and ignored, unless a theme or a component reads them.
