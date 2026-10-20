@@ -54,6 +54,16 @@ export async function run({ t, open, press, hud, pathOf, style }) {
     await page.locator('#c-no').innerText(),
   );
   t.ok(
+    'slide-ng-title-renderer draws the slide title with its markdown',
+    (await page.locator('#c-title-here strong').innerText()) === 'Components',
+    await page.locator('#c-title-here').innerHTML(),
+  );
+  t.ok(
+    'slide-ng-title-renderer no="N" draws another slide title',
+    (await page.locator('#c-title-20').innerText()).trim() === 'Contents',
+    await page.locator('#c-title-20').innerText(),
+  );
+  t.ok(
     'slide-ng-light-or-dark shows the light content in light mode',
     (await page.locator('#c-light').count()) === 1 && (await page.locator('#c-dark').count()) === 0,
   );

@@ -11,6 +11,7 @@ Use them as lower-case tags. Nothing to import.
 | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `<slide-ng-toc />`                                                                                                                                                                     | table of contents from slide `title` and `level`. Options `columns="2"`, `listClass`, `start`, `listStyle`, `minDepth`, `maxDepth`, `mode="all\|onlyCurrentTree\|onlySiblings"`      |
 | `<slide-ng-current-no />`, `<slide-ng-total />`                                                                                                                                        | current slide number, number of slides                                                                                                                                               |
+| `<slide-ng-title-renderer />`, `<slide-ng-title-renderer no="3" />`                                                                                                                    | draws a slide's title as HTML (inline markdown and `$math$`); without `no`, the slide it is on                                                                                       |
 | `<slide-ng-link to="3">text</slide-ng-link>`                                                                                                                                           | link to slide 3 or to a `routeAlias` (Slidev's `Link`)                                                                                                                               |
 | `<slide-ng-light-or-dark>`                                                                                                                                                             | `<div dark>...</div>` in dark mode, `<div light>...</div>` in light mode                                                                                                             |
 | `<slide-ng-render-when context="slide">`                                                                                                                                               | content only where drawn: `slide`, `presenter`, `print`, `overview`, `main`. `[context]="['slide','overview']"` for several. A child with attribute `fallback` shows everywhere else |
@@ -26,7 +27,7 @@ Use them as lower-case tags. Nothing to import.
 | `slide-ng-mark`, `slide-ng-motion`                                                                                                                                                     | see `animation-marks.md`, `animation-motion.md`                                                                                                                                      |
 | `<slide-ng-code-group>`, `<slide-ng-mermaid>`, `<slide-ng-plant-uml>`, `<slide-ng-monaco>`, `<slide-ng-magic-move>`, `<slide-ng-katex-block-wrapper>`, `<slide-ng-code-block-wrapper>` | written by the generator from fences and math; use the markdown forms                                                                                                                |
 
-Not there: `PoweredBySlidev`, `TitleRenderer`. `Youtube` is partial.
+Not there: `PoweredBySlidev`. `Youtube` is partial.
 
 Table of contents levels: a slide whose level is higher than the one before becomes its child (`# A`, `## A.1`, `## A.2`, `# B`). A slide without a title, or with `hideInToc`, is left out.
 
@@ -56,6 +57,8 @@ title: Arrow and fit
 # Counters and links
 
 Slide <slide-ng-current-no /> of <slide-ng-total />, <slide-ng-link to="1">go to slide 1</slide-ng-link>.
+
+Title of slide 1: <slide-ng-title-renderer no="1" />. This slide: <slide-ng-title-renderer />.
 
 <slide-ng-light-or-dark>
 <div dark>Dark mode text</div>

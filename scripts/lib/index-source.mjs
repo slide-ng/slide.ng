@@ -1,7 +1,7 @@
 // Writes generated/index.ts: the list of slides with their metadata, and the deck's headmatter.
 import { marked } from 'marked';
 import { layoutName } from './layouts.mjs';
-import { slideClass, slideName } from './emit.mjs';
+import { safeLinks, slideClass, slideName } from './emit.mjs';
 import { checkRouteAlias } from './route-alias.mjs';
 import { noteToHtml } from './note-html.mjs';
 import { downloadTarget } from '../export/filename.mjs';
@@ -23,15 +23,15 @@ export function plainTitle(title) {
 }
 
 // What the app needs to know about one slide, besides its component.
-function metaOf(slide, index) {
+function metaOf(slide, index, rubyMap) {
   const f = slide.frontmatter;
   return {
     title: slide.title == null ? null : plainTitle(slide.title),
-    titleHtml: titleHtml(slide.title), // only when the title has $math$
+    titleHtml: slide.title == null ? null : safeLinks(titleHtml(slide.title), index + 1), // inline markdown and $math$ as HTML
     level: slide.level ?? null,
     layout: slide.layout ?? layoutName(f, index),
     note: slide.note ?? null,
-    noteHtml: noteToHtml(slide.note),
+    noteHtml: noteToHtml(slide.note, rubyMap),
     routeAlias: checkRouteAlias(f.routeAlias, index + 1),
     hideInToc: Boolean(f.hideInToc),
     transition: f.transition ?? null,
@@ -40,12 +40,14 @@ function metaOf(slide, index) {
 }
 
 export function indexSource(deck) {
+  // `notesAutoRuby` in the headmatter wraps listed words in <ruby> in the note HTML of every slide.
+  const rubyMap = deck.headmatter?.notesAutoRuby;
   const imports = deck.slides.map(
     (_, i) => `import ${slideClass(i + 1)} from './${slideName(i + 1)}';`,
   );
   const entries = deck.slides.map(
     (s, i) =>
-      `  { ${JSON.stringify(metaOf(s, i)).slice(1, -1)}, component: ${slideClass(i + 1)} },`,
+      `  { ${JSON.stringify(metaOf(s, i, rubyMap)).slice(1, -1)}, component: ${slideClass(i + 1)} },`,
   );
   // `info:` in the headmatter is markdown for the info dialog; we turn it into HTML here.
   const info =

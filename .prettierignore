@@ -16,3 +16,6 @@ template/slides.md
 tests/**/*.md
 docs/screenshots
 examples/**/*.md
+
+# Written by the all-contributors bot in its own format
+.all-contributorsrc

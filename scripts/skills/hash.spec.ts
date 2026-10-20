@@ -57,6 +57,15 @@ describe('hashing', () => {
     expect(hashFile(root, 'docs/crlf.md')).toBe(hashFile(root, 'docs/lf.md'));
     expect(hashFile(root, 'docs/A.md')).not.toBe(hashFile(root, 'docs/B.md'));
   });
+  it('ignores the all-contributors table of a README', () => {
+    const table = (who: string) =>
+      `# Project\n\n<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->\n${who}\n<!-- ALL-CONTRIBUTORS-LIST:END -->\n\nEnd.\n`;
+    put('docs/one.md', table('one person'));
+    put('docs/two.md', table('two people'));
+    put('docs/other.md', table('two people').replace('End.', 'Other.'));
+    expect(hashFile(root, 'docs/one.md')).toBe(hashFile(root, 'docs/two.md'));
+    expect(hashFile(root, 'docs/one.md')).not.toBe(hashFile(root, 'docs/other.md'));
+  });
   it('does not depend on the order of the sources, but on their names and contents', () => {
     expect(hashSources(root, ['docs/A.md', 'docs/B.md'])).toBe(
       hashSources(root, ['docs/B.md', 'docs/A.md']),
