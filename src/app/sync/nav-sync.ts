@@ -54,10 +54,12 @@ export function startNavSync(nav: Nav) {
     });
   });
 
-  // Someone else moved: follow. Only a new position or a new update time counts, not a moving cursor or the timer.
+  // Someone else moved: follow. Only a new position or a new update counts, not a moving cursor or the timer. The kind of
+  // window is part of it: MCP's goto_slide sends one move as a viewer and one as a presenter with the same time, and the
+  // second must still be seen when an effect ran between the two.
   const moved = computed(() => {
     const s = sync.shared();
-    return `${s.page}:${s.clicks}:${s.lastUpdate?.time}`;
+    return `${s.page}:${s.clicks}:${s.lastUpdate?.time}:${s.lastUpdate?.type}`;
   });
   effect(() => {
     moved();
