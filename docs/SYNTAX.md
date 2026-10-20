@@ -700,7 +700,7 @@ preloadImages: { ahead: 3 } # default true (3 slides ahead); false turns it off
 ```
 
 Pictures are loaded before their slide is shown, as in Slidev: after each move the pictures of the slide on screen, the one before and the next
-`ahead` slides load in idle time, and 3 seconds after the deck opens every slide's. The generator lists each slide's pictures: `<img src>`
+`ahead` slides (`0`: none ahead) load in idle time, and 3 seconds after the deck opens every slide's. The generator lists each slide's pictures: `<img src>`
 (and markdown pictures), `url()` in inline styles, and the frontmatter's `image`, `backgroundImage` and `background`. A slide with
 `preload: false` in its frontmatter is left out. A component can read the progress from `slide-ng/lib/preload-images`
 (`preloadProgress`, 0 to 1, and `preloadComplete`, both signals). All slides are in the first bundle, so `preload` has no other effect here.
