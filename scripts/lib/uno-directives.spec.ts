@@ -108,4 +108,22 @@ describe('slideStyleDirectives', () => {
     expect(css).not.toContain('slide-scope');
     expect(scopeCss(css, 'slide-002')).toMatch(/^@keyframes k[\s\S]*\nslide-002 \{\n/);
   });
+
+  // `.group` and `.peer` are in the slide, so these stay inside the scope.
+  it('keeps group- and peer- variants inside the slide scope', async () => {
+    const written = [
+      'h1 { @apply group-hover:text-red-500 peer-checked:p-1 rtl:m-1; }',
+      'h2 { @apply dark:group-hover:p-2; }',
+    ].join('\n');
+    const done = await slideStyleDirectives(
+      [{ content: `<style>\n${written}\n</style>` }],
+      await uno(),
+    );
+    const css = done.get(written)!;
+    expect(css).toContain('& .group:hover h1{');
+    expect(css).toContain('& .peer:checked~h1{');
+    expect(css).toContain('[dir="rtl"] & h1{');
+    expect(css).toContain('.dark & .group:hover h2{');
+    expect(css).not.toContain('slide-scope');
+  });
 });

@@ -40,7 +40,10 @@ export async function applyDirectivesOrWarn(css, uno, where, scoped = false) {
     const unknown = await unknownUtilities(css, uno);
     if (unknown.length) console.warn(`[slides] ${where}: unknown utilities ${unknown.join(', ')}`);
     if (!scoped) return await applyDirectives(css, uno, 'style.css');
-    return (await applyDirectives(markScope(css), uno, 'style.css')).replace(SCOPE_MARK, '& ');
+    return (await applyDirectives(markScope(css), uno, 'style.css')).replace(
+      SCOPE_MARK,
+      placeScope,
+    );
   } catch (e) {
     console.warn(`[slides] ${where}: ${e.message}`);
     return css;
@@ -65,7 +68,20 @@ export async function slideStyleDirectives(slides, uno) {
 // nested in the slide's scope that would be `slide-002 .dark h1`, which never matches. So each selector of a rule with a
 // directive (at the top, or in @media and the like) gets a mark first, `.__slide-scope h1`; the transformer keeps it where
 // the selector was (`.dark .__slide-scope h1`), and it becomes `&`, the scope: `.dark & h1`, as Slidev's `.dark h1[data-v-…]`.
-const SCOPE_MARK = /\.__slide-scope\s+/g;
+// Only classes on elements outside the slide stay in front of it; `.group:hover` and `.peer:checked~` are in the slide, so
+// `group-hover:` gives `& .group:hover h1`.
+const SCOPE_MARK = /(^|[,{}])(\s*)([^,{}]*?)\.__slide-scope\s+/g;
+const OUTSIDE =
+  /^(?:html|:root)?(?:\.dark|\.light|\.slidev-nav-go-(?:forward|backward)|\[dir="?(?:rtl|ltr)"?\])*$/;
+
+function placeScope(_, edge, space, prefix) {
+  let outside = '';
+  let rest = prefix;
+  for (let m; (m = /^(\S+)\s+/.exec(rest)) && OUTSIDE.test(m[1]); rest = rest.slice(m[0].length))
+    outside += m[0];
+  return `${edge}${space}${outside}& ${rest}`;
+}
+
 const GROUP_AT = /^@(?:media|supports|container|layer|screen)\b/;
 
 function markScope(css) {
