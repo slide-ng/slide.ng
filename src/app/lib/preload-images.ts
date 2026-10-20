@@ -29,11 +29,11 @@ export const preloadProgress = computed(() => {
 /** Every picture of the deck has loaded. */
 export const preloadComplete = computed(() => preloadProgress() >= 1);
 
-/** How many slides ahead to load: `preloadImages: false` gives null (off), `{ ahead: n }` gives n, anything else 3. */
+/** How many slides ahead to load: `preloadImages: false` gives null (off), `{ ahead: n }` gives n (0 too), anything else 3. */
 export function preloadAhead(setting: unknown): number | null {
   if (setting === false) return null;
   const ahead = (setting as { ahead?: unknown } | null)?.ahead;
-  return typeof ahead === 'number' && ahead > 0 ? Math.floor(ahead) : 3;
+  return typeof ahead === 'number' && Number.isFinite(ahead) && ahead >= 0 ? Math.floor(ahead) : 3;
 }
 
 /** The slides whose pictures are loaded while slide `no` is shown: itself, the one before, and `ahead` after it. */

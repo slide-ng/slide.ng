@@ -1,11 +1,15 @@
 import { preloadAhead, preloadWindow } from './preload-images';
 
 describe('preloadAhead', () => {
-  it('is 3 by default, n for { ahead: n }, and off for false', () => {
+  it('is 3 by default, n for { ahead: n } (0 too), and off for false', () => {
     expect(preloadAhead(undefined)).toBe(3);
     expect(preloadAhead(true)).toBe(3);
     expect(preloadAhead({ ahead: 5 })).toBe(5);
-    expect(preloadAhead({ ahead: 0 })).toBe(3);
+    expect(preloadAhead({ ahead: 0 })).toBe(0);
+    expect(preloadAhead({ ahead: 2.7 })).toBe(2);
+    expect(preloadAhead({})).toBe(3);
+    expect(preloadAhead({ ahead: '5' })).toBe(3);
+    expect(preloadAhead({ ahead: -1 })).toBe(3);
     expect(preloadAhead(false)).toBeNull();
   });
 });
