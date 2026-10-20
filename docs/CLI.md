@@ -32,6 +32,9 @@ On a terminal the dev server also reads keys, as Slidev's does, and prints a lin
 
 The QR code holds the password, like the private address it encodes: do not show it to people who should not edit the deck.
 
+On Windows `e` and `o` run through `cmd` with every argument quoted, so a deck path with spaces, `&` or `%` stays one
+argument and runs nothing else; a path with a `"` or a line break (Windows paths have neither) is refused with a message.
+
 ## build
 
 Makes a static site in `dist/`. Hosting is described in [HOSTING.md](HOSTING.md), the offline folder in [OFFLINE.md](OFFLINE.md).
