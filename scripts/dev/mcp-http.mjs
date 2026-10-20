@@ -23,7 +23,7 @@ export function mcpDenied(req, ctx) {
   const client = clientAddress(req);
   if (ctx.loginGuard.wait(client) > 0)
     return { status: 429, error: 'too many wrong passwords, try again later' };
-  const bearer = /^Bearer\s+(\S+)$/i.exec(String(req.headers.authorization ?? ''))?.[1];
+  const bearer = /^Bearer\s+(.+)$/i.exec(String(req.headers.authorization ?? ''))?.[1];
   if (bearer && safeEqual(bearer, ctx.password)) {
     ctx.loginGuard.ok(client);
     return null;
