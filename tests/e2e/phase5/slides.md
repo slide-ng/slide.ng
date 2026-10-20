@@ -49,6 +49,7 @@ print(1 + 1)
 
 ---
 layout: center
+routeAlias: globals
 ---
 
 # Global context
