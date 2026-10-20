@@ -66,7 +66,8 @@ export function listenForKeys(input, actions, onError = () => {}) {
 /** How to open an address in the default browser on this system. */
 export function openCommand(url, platform = process.platform) {
   if (platform === 'darwin') return { command: 'open', args: [url] };
-  if (platform === 'win32') return { command: 'cmd', args: ['/c', 'start', '""', url] };
+  // cmd's `start` (startProgram runs it through cmd); the empty first argument is the window title.
+  if (platform === 'win32') return { command: 'start', args: ['', url] };
   return { command: 'xdg-open', args: [url] };
 }
 
@@ -78,14 +79,46 @@ export function editorCommand(file, env = process.env) {
   return { command: words[0], args: [...words.slice(1), file] };
 }
 
+/**
+ * The line cmd.exe runs for `command` and `args` on Windows (`code` and the like are .cmd files, which only cmd can
+ * start). Each argument is quoted unless it is a plain word, so a space does not split it, and with no quote inside it
+ * cmd stays inside the quotes, where `& | < > ( ) ^` do nothing (also when a .cmd file passes `%*` on). `%` is taken
+ * out of the quotes and escaped (`"^%"`), so no variable is expanded; `!` needs `/v:off` (startProgram passes it).
+ * A quote or a line break cannot be kept inside one argument and is refused; Windows paths have neither.
+ */
+export function windowsCommandLine(command, args) {
+  return [command, ...args]
+    .map((arg) => {
+      arg = String(arg);
+      if (/["\r\n\0]/.test(arg))
+        throw new Error(`cannot pass a quote or a line break to a program: ${arg}`);
+      if (/^[\w.:/\\-]+$/.test(arg)) return arg;
+      // Backslashes before a quote this adds (around a `%`, at the end) are doubled, so they stay backslashes.
+      return `"${arg.replace(/(\\*)(%|$)/g, (_, slashes, end) => slashes + slashes + (end && '"^%"'))}"`;
+    })
+    .join(' ');
+}
+
 /** Starts a program without waiting for it; `done` is called when it ends or cannot start. */
 export function startProgram({ command, args }, { inherit = false, done = () => {} } = {}) {
-  const child = spawn(command, args, {
-    stdio: inherit ? 'inherit' : 'ignore',
-    detached: !inherit,
-    // `code` and the like are .cmd files on Windows, which only a shell can start.
-    shell: process.platform === 'win32',
-  });
+  const options = { stdio: inherit ? 'inherit' : 'ignore', detached: !inherit };
+  let child;
+  if (process.platform === 'win32') {
+    // Through cmd, with the line quoted by windowsCommandLine (Node's `shell: true` joins the arguments unquoted).
+    let line;
+    try {
+      line = windowsCommandLine(command, args);
+    } catch (error) {
+      return done(error);
+    }
+    const cmd = process.env.ComSpec || 'cmd.exe';
+    child = spawn(cmd, ['/d', '/v:off', '/s', '/c', `"${line}"`], {
+      ...options,
+      windowsVerbatimArguments: true,
+    });
+  } else {
+    child = spawn(command, args, options);
+  }
   child.on('error', (error) => done(error));
   child.on('exit', () => done(null));
   if (!inherit) child.unref();

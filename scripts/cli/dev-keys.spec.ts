@@ -1,6 +1,12 @@
 import { PassThrough } from 'node:stream';
 import { describe, expect, it } from 'vitest';
-import { editorCommand, keyHint, listenForKeys, openCommand } from './dev-keys.mjs';
+import {
+  editorCommand,
+  keyHint,
+  listenForKeys,
+  openCommand,
+  windowsCommandLine,
+} from './dev-keys.mjs';
 
 // A fake terminal: what is written to it arrives as typed keys.
 const fakeStdin = () => {
@@ -89,7 +95,10 @@ describe('programs', () => {
   it('opens the browser with the command of the system', () => {
     expect(openCommand('http://x/', 'darwin')).toEqual({ command: 'open', args: ['http://x/'] });
     expect(openCommand('http://x/', 'linux')).toEqual({ command: 'xdg-open', args: ['http://x/'] });
-    expect(openCommand('http://x/', 'win32').command).toBe('cmd');
+    expect(openCommand('http://x/', 'win32')).toEqual({
+      command: 'start',
+      args: ['', 'http://x/'],
+    });
   });
   it('uses VISUAL or EDITOR with their flags, else code', () => {
     expect(editorCommand('/d/slides.md', {})).toEqual({ command: 'code', args: ['/d/slides.md'] });
@@ -98,5 +107,39 @@ describe('programs', () => {
       args: ['-w', '/d/s.md'],
     });
     expect(editorCommand('/d/s.md', { EDITOR: 'nano', VISUAL: 'vim' }).command).toBe('vim');
+  });
+});
+
+describe('windowsCommandLine', () => {
+  it('leaves plain words bare, so cmd builtins such as start still work', () => {
+    expect(windowsCommandLine('code', ['-w', 'C:\\d\\slides.md'])).toBe('code -w C:\\d\\slides.md');
+    expect(windowsCommandLine('start', ['', 'http://localhost:3030/'])).toBe(
+      'start "" http://localhost:3030/',
+    );
+  });
+  it('quotes a path with spaces as one argument', () => {
+    expect(windowsCommandLine('code', ['C:\\my talks\\slides.md'])).toBe(
+      'code "C:\\my talks\\slides.md"',
+    );
+    expect(windowsCommandLine('C:\\Program Files\\vim.exe', ['a b'])).toBe(
+      '"C:\\Program Files\\vim.exe" "a b"',
+    );
+  });
+  it('keeps & | < > ( ) ^ inside quotes, where cmd does not act on them', () => {
+    expect(windowsCommandLine('code', ['C:\\Q&A\\slides.md'])).toBe('code "C:\\Q&A\\slides.md"');
+    expect(windowsCommandLine('code', ['a^b|c<d>(e)'])).toBe('code "a^b|c<d>(e)"');
+  });
+  it('takes % out of the quotes and escapes it, so no variable is expanded', () => {
+    expect(windowsCommandLine('code', ['C:\\%PATH%\\s.md'])).toBe(
+      'code "C:\\\\"^%"PATH"^%"\\s.md"',
+    );
+    expect(windowsCommandLine('code', ['100%'])).toBe('code "100"^%""');
+  });
+  it('doubles the backslashes before a closing quote', () => {
+    expect(windowsCommandLine('code', ['C:\\my dir\\'])).toBe('code "C:\\my dir\\\\"');
+  });
+  it('refuses a quote or a line break, which cmd cannot keep inside one argument', () => {
+    expect(() => windowsCommandLine('code', ['say "hi" & calc'])).toThrow(/quote or a line break/);
+    expect(() => windowsCommandLine('code', ['a\nb'])).toThrow(/quote or a line break/);
   });
 });
