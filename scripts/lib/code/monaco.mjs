@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto';
 import { relative } from 'node:path';
 import { attrs } from '../protect.mjs';
 import { pack } from '../pack.mjs';
-import { writeTargetProblem } from '../monaco-targets.mjs';
+import { rootFoldersIn, writeTargetProblem } from '../monaco-targets.mjs';
 
 // `{monaco-write}` editors, as { id: file path in the project }. The generator saves this list next to the deck
 // and the dev server writes only to files on it (scripts/dev/monaco-write.mjs): the page sends an id, never a path.
@@ -30,7 +30,7 @@ function writeIdFor(fence, ctx) {
     );
     return undefined;
   }
-  const problem = writeTargetProblem(path);
+  const problem = writeTargetProblem(path, rootFoldersIn(ctx.root ?? '.', ctx.roots ?? []));
   if (problem) {
     console.warn(
       `[slides] {monaco-write}: ${path} cannot be written (${problem}), the editor is shown without saving`,

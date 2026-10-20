@@ -41,6 +41,18 @@ describe('{monaco-write}', () => {
     expect(warn.mock.calls[0][0]).toContain('{monaco-write}');
     warn.mockRestore();
   });
+  it("lists no theme's or addon's index.html, which goes into the page", () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const roots = ['/project/my-theme', '/project'];
+    expect(
+      renderMonaco(fence({ file: '/project/my-theme/index.html' }), { ...ctx, roots }),
+    ).not.toContain('write-id');
+    expect(
+      renderMonaco(fence({ file: '/project/snippets/index.html' }), { ...ctx, roots }),
+    ).toContain('write-id');
+    expect(Object.values(monacoWriteTargets())).toEqual(['snippets/index.html']);
+    warn.mockRestore();
+  });
   it('does not touch the other editors', () => {
     expect(renderMonaco({ info: 'ts {monaco}', code: 'x' }, ctx)).not.toContain('write-id');
   });
