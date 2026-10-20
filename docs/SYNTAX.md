@@ -641,7 +641,7 @@ The presenter's mouse is shown on the audience page as a pointer or a red laser 
 
 **Click preview** (slide.ng's own, Slidev has none): the eye button in the presenter's bar, or `u`, draws the whole current slide on the presenter page.
 Parts already shown look as usual, the part of the next click is brighter with a dashed outline, the parts of later clicks are greyed out, and each part
-a later click changes has a badge with that click's number. Click a badge or a greyed-out part to go to that click in every window. Only the presenter's
+a later click changes has a badge with that click's number. Click a badge or a greyed-out part to go to that click in every window (a link or button inside a greyed-out part is not run; while drawing, the pen gets the click). Only the presenter's
 current slide changes: the audience, `/notes` and the next-step pane do not. The choice is remembered in the browser (`slide-ng-presenter-click-preview`).
 
 - `slide-ng-click`, `slide-ng-after`, ranges, `<slide-ng-clicks>` items and `{monaco-run}` output (`showOutputAt`) are drawn greyed out until their click; a range on screen is marked again where it ends.

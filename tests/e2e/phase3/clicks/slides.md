@@ -43,4 +43,6 @@ let count = 2
 
 <span id="mk" slide-ng-mark.red.circle="6">marked</span>
 
+<div id="plink" slide-ng-click="7"><a id="plink-a" href="/1">back to one</a></div>
+
 <div id="mo" class="w-20 h-10 bg-blue-300" slide-ng-motion :initial="{ x: 0 }" :enter="{ x: 0 }" :click-7="{ x: 40 }">moves</div>

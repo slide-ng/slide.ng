@@ -34,14 +34,17 @@ interface Badge {
 // its click. A click on a badge or on a greyed-out part goes to that click in every window. It sits in the canvas.
 @Component({
   selector: 'app-click-preview',
-  host: { style: 'position: absolute; inset: 0; pointer-events: none; z-index: 30' },
+  host: {
+    style: 'position: absolute; inset: 0; pointer-events: none; z-index: 30',
+    // While drawing, a pen tap on a badge is a stroke, not a jump.
+    '[class.slide-ng-ghost-drawing]': 'drawing()',
+  },
   template: `
     @for (b of badges(); track $index) {
       <button
         type="button"
         class="slide-ng-ghost-badge"
         [class.slide-ng-ghost-badge-next]="b.isNext"
-        [class.pointer-events-none]="drawing()"
         [style.left.px]="b.x"
         [style.top.px]="b.y"
         [attr.data-click]="b.at"
@@ -62,6 +65,7 @@ export class ClickPreviewLayer {
   protected drawing = () => this.drawings.available && this.drawings.enabled();
   private tagged = new Set<Element>();
   private moved = signal(0);
+  private resized?: ResizeObserver;
 
   constructor() {
     // After the slide has applied its own click classes, so the measured places are the ones on screen.
@@ -77,20 +81,31 @@ export class ClickPreviewLayer {
     afterNextRender(() => {
       const canvas = this.host.parentElement!;
       const onClick = (e: Event) => this.clickPart(e);
+      const remeasure = () => this.moved.update((n) => n + 1);
       const onMoved = (e: TransitionEvent) => {
-        if (MOVES.test(e.propertyName)) this.moved.update((n) => n + 1);
+        if (MOVES.test(e.propertyName)) remeasure();
       };
-      canvas.addEventListener('click', onClick);
+      // Captured, so a greyed-out part's own link or button does not run before the jump.
+      canvas.addEventListener('click', onClick, true);
       canvas.addEventListener('transitionend', onMoved);
+      // A picture or a web font that arrives later moves the content under the badges.
+      canvas.addEventListener('load', remeasure, true);
+      document.fonts?.addEventListener('loadingdone', remeasure);
+      this.resized = new ResizeObserver(remeasure);
+      for (const el of this.tagged) this.resized.observe(el);
       destroyRef.onDestroy(() => {
-        canvas.removeEventListener('click', onClick);
+        canvas.removeEventListener('click', onClick, true);
         canvas.removeEventListener('transitionend', onMoved);
+        canvas.removeEventListener('load', remeasure, true);
+        document.fonts?.removeEventListener('loadingdone', remeasure);
+        this.resized?.disconnect();
       });
     });
     destroyRef.onDestroy(() => this.apply([]));
   }
 
   protected go(at: number) {
+    if (this.drawing()) return;
     this.nav.ctx()?.setCurrent(at);
   }
 
@@ -98,7 +113,10 @@ export class ClickPreviewLayer {
   private clickPart(e: Event) {
     if (this.drawing() || !(e.target instanceof Element)) return;
     const el = e.target.closest(`.${AHEAD}.slidev-vclick-hidden`);
-    if (el && this.tagged.has(el)) this.go(+el.getAttribute(AT)!);
+    if (!el || !this.tagged.has(el)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    this.go(+el.getAttribute(AT)!);
   }
 
   private apply(marks: PreviewMark[]) {
@@ -108,6 +126,7 @@ export class ClickPreviewLayer {
       el.classList.remove(AHEAD, NEXT);
       el.removeAttribute(AT);
       this.tagged.delete(el);
+      this.resized?.unobserve(el);
     }
     const canvas = this.host.parentElement;
     if (!canvas) return this.badges.set([]);
@@ -118,6 +137,7 @@ export class ClickPreviewLayer {
       el.classList.add(AHEAD);
       el.classList.toggle(NEXT, isNext);
       el.setAttribute(AT, String(at));
+      if (!this.tagged.has(el)) this.resized?.observe(el);
       this.tagged.add(el);
       const r = el.getBoundingClientRect();
       if (!r.width && !r.height) continue; // not laid out (display: none, a switch's other child)

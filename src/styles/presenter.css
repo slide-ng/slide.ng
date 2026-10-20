@@ -155,6 +155,10 @@ html.dark .slidev-presenter .grid-section {
 .slide-ng-ghost-badge-next {
   background: var(--slide-ng-ghost-next);
 }
+/* While drawing, the pen gets the slide: the badges take no clicks (the drawing layer is over the greyed-out parts). */
+.slide-ng-ghost-drawing .slide-ng-ghost-badge {
+  pointer-events: none;
+}
 
 /* The presenter's cursor on the slide: a red laser dot (Slidev's LaserPointer.vue). */
 app-presenter-cursor {

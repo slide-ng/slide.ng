@@ -1,6 +1,6 @@
 // The presenter's click preview (slide.ng's own): the current slide shows what later clicks show, greyed out,
 // with the next click highlighted and a badge on each part; a click on one jumps there in every window. Deck: phase3/clicks.
-export async function run({ t, open, press, hud, windowGroup }) {
+export async function run({ t, open, press, hud, pathOf, windowGroup }) {
   const group = await windowGroup();
   const presenter = await open('/presenter/1', undefined, undefined, group);
   const viewer = await open('/1', undefined, undefined, group);
@@ -49,6 +49,27 @@ export async function run({ t, open, press, hud, windowGroup }) {
     'click preview: each part not shown yet has a badge with its click',
     (await badges()) === '1,2,2,3,4,5,5',
     await badges(),
+  );
+  // Content that grows later (a picture or a font arriving) moves the badges with it.
+  const badgeTop = (n) =>
+    presenter
+      .locator(`${main} .slide-ng-ghost-badge[data-click="${n}"]`)
+      .first()
+      .evaluate((b) => parseFloat(b.style.top));
+  const before = await badgeTop(2);
+  await presenter.evaluate((main) => {
+    document.querySelector(`${main} #p1`).style.height = '120px';
+  }, main);
+  await presenter.waitForTimeout(300);
+  const after = await badgeTop(2);
+  await presenter.evaluate((main) => {
+    document.querySelector(`${main} #p1`).style.height = '';
+  }, main);
+  await presenter.waitForTimeout(300);
+  t.ok(
+    'click preview: badges follow content that changes size later',
+    after > before + 30 && (await badgeTop(2)) === before,
+    `${before} -> ${after}`,
   );
   const p1 = await state('#p1'),
     p2 = await state('#p2'),
@@ -158,11 +179,39 @@ export async function run({ t, open, press, hud, windowGroup }) {
   await press(presenter, 'ArrowRight', 400);
   t.ok(
     'click preview: a part that changes on each click is marked with the next one',
-    (await badges()) === '3,5,6,7' &&
+    (await badges()) === '3,5,6,7,7' &&
       (await presenter
         .locator(`${main} slide-ng-switch`)
         .evaluate((e) => e.classList.contains('slide-ng-click-next'))),
     await badges(),
+  );
+
+  // ---- while drawing, a tap on a badge is the pen's
+  await presenter.locator('#nav-drawing').click();
+  await presenter.waitForTimeout(300);
+  const box = await presenter
+    .locator(`${main} .slide-ng-ghost-badge[data-click="5"]`)
+    .boundingBox();
+  await presenter.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  await presenter.waitForTimeout(400);
+  t.ok(
+    'click preview: with drawing on, clicking a badge does not change the click',
+    (await hud(presenter)) === 'slide 2/2 clicks 2/7' &&
+      (await hud(viewer)) === 'slide 2/2 clicks 2/7',
+    await hud(presenter),
+  );
+  await presenter.locator('#nav-drawing').click();
+  await presenter.waitForTimeout(300);
+
+  // ---- a link inside a greyed-out part jumps to its click instead of being followed
+  await presenter.locator(`${main} #plink-a`).click();
+  await presenter.waitForTimeout(400);
+  t.ok(
+    'click preview: a link in a greyed-out part is not followed, the click is reached',
+    pathOf(presenter) === '/presenter/2' &&
+      (await hud(presenter)) === 'slide 2/2 clicks 7/7' &&
+      (await hud(viewer)) === 'slide 2/2 clicks 7/7',
+    `${pathOf(presenter)} ${await hud(presenter)}`,
   );
   await group.close();
 }
