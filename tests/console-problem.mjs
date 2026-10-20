@@ -1,7 +1,11 @@
 // What the browser tests count as a console problem: errors and warnings, with the address of a request that failed.
 // Chrome on a machine without a GPU (CI runners) warns "No available adapters." when a page asks for WebGPU;
-// that says nothing about the deck, so it is not counted.
-const NOT_OURS = new Set(['No available adapters.']);
+// that says nothing about the deck, so it is not counted. Nor is YouTube's player (in the embed's frame) asking for the
+// Compute Pressure API, which slide.ng never uses.
+const NOT_OURS = new Set([
+  'No available adapters.',
+  'Permissions policy violation: compute-pressure is not allowed in this document.',
+]);
 
 /** The problem as text, or null when the message is not one. */
 export function consoleProblem(message) {
