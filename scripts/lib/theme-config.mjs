@@ -6,6 +6,8 @@
 const KEY = /^[A-Za-z0-9_-]+$/;
 // Characters that could end the declaration or the rule, open a comment or a tag, or escape the next character.
 const UNSAFE = /[;{}<>\\\n\r\f]|\/\*|\*\//;
+// A file named in theme.css would be looked up next to src/slides/generated/ by the build (and `/x.png` gets no base).
+const FILE = /\b(?:url|image-set)\(/i;
 
 // Quotes and brackets must close: an open string or `url(` would run into the next declaration.
 function isBalanced(value) {
@@ -29,6 +31,8 @@ export function unsafeCssValue(value) {
   if (!value.trim()) return 'it is empty';
   if (UNSAFE.test(value)) return 'it contains ; { } < > \\, a comment or a line break';
   if (!isBalanced(value)) return 'its quotes or brackets do not close';
+  if (FILE.test(value))
+    return "it names a file with url() or image-set(); write it in the theme's or deck's CSS instead";
   return null;
 }
 

@@ -19,7 +19,7 @@ addons:
 - **Slidev themes (`@slidev/theme-*`) are Vue packages and cannot be used.**
 - Theme `fonts` and `themeConfig` are merged with the deck's key by key.
 - `themeConfig` works as in Slidev: each key with a text or number value becomes the CSS variable `--slidev-theme-<key>` on `<body>`, the key as written. `themeConfig: { primary: '#5d8392' }` recolours `text-primary`, `bg-primary`, `border-primary`, the progress bar and the controls, also in the presenter, the PDF and offline builds. One value for both colour modes.
-- Keys are letters, digits, `-`, `_`. A value with `;`, `{`, `}`, `<`, `>`, `\`, a comment, a line break or unclosed quotes or brackets is skipped with a warning.
+- Keys are letters, digits, `-`, `_`. A value with `;`, `{`, `}`, `<`, `>`, `\`, a comment, a line break or unclosed quotes or brackets is skipped with a warning, and so is `url(...)` or `image-set(...)` (name pictures in the CSS of the theme or the deck).
 - A slide reads the map as `themeConfig` (Slidev's `$slidev.themeConfigs`): write `{{ themeConfig['primary'] }}`; `themeConfig.primary` does not compile (the map has no fixed keys).
 - Addons were unit-tested for resolution and merge order only; no deck was built end to end with one.
 - Official themes: `theme-official.md`. Write one: `theme-write.md`.

@@ -142,6 +142,8 @@ key by key (an addon's too):
   Slides read it as `themeConfig` (`{{ themeConfig['primary'] }}`; the brackets are needed because the map has no fixed keys).
 - A key must be letters, digits, `-` and `_`. A value that could leave the CSS declaration (`;`, `{`, `}`, `<`, `>`, `\`, a
   comment, a line break, quotes or brackets that do not close) is skipped with a warning; it is still in `THEME_CONFIG`.
+  So is a `url(...)` or `image-set(...)`: the generated CSS would look for the file in the wrong folder, without the base.
+  Name pictures in the theme's `styles/` instead.
 - There is one value for both colour modes, as in Slidev. A theme that wants another dark colour can offer a second key
   (`primaryDark`) and use it under `html.dark`.
 

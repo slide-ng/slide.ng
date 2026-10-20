@@ -35,13 +35,12 @@ describe('themeConfigVars', () => {
       '#fff',
       'rgb(0 0 0 / 50%)',
       "'Inter', sans-serif",
-      'url("a.png")',
       'calc(1rem + 2px)',
       'var(--x, [a])',
     ])
       expect(unsafeCssValue(value), value).toBeNull();
   });
-  it('skips values that could leave the declaration, with the key in the warning', () => {
+  it('skips values that could leave the declaration or name a file, with the key in the warning', () => {
     const bad = {
       semicolon: 'red; color: blue',
       brace: 'red } body { color: blue',
@@ -56,11 +55,15 @@ describe('themeConfigVars', () => {
       paren: 'url(a.png',
       closer: 'a) b',
       empty: '  ',
+      url: 'url("a.png")',
+      rootUrl: 'center / cover URL(/x.png)',
+      imageSet: '-webkit-image-set("a.png" 1x)',
     };
     const { vars, problems } = themeConfigVars(bad);
     expect(vars).toEqual([]);
     expect(problems).toHaveLength(Object.keys(bad).length);
     expect(problems[0]).toMatch(/^themeConfig\.semicolon is not set as a CSS variable: /);
+    expect(problems.at(-1)).toMatch(/url\(\) or image-set\(\)/);
   });
 });
 
