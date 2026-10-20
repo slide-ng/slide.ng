@@ -13,7 +13,7 @@ slide.ng reads the same `slides.md` shape (Slidev's own parser splits slides and
 | `pnpm create slidev`                                           | `slide-ng create <folder>`                                                               |
 | `v-if`, `v-for`, `:prop`, `@click`, `<script setup>`           | Angular: `@if`, `@for`, `[prop]`, `(click)`, template references                         |
 | `<v-click>...</v-click>` tag, `v-click`, `v-clicks`            | not available as a tag. Use the attribute `<div slide-ng-click>` or `<slide-ng-clicks>`  |
-| `<div v-click.hide>`                                           | the `.hide` modifier does nothing. Use `slide-ng-click-hide`                             |
+| `<div v-click.hide>`                                           | `<div slide-ng-click.hide>`, the same as `slide-ng-click slide-ng-click-hide`            |
 | `<Toc />`, `<Link>`, `<Tweet />` (PascalCase)                  | `<slide-ng-toc />`, `<slide-ng-link>`, `<slide-ng-tweet />` (lower-case, dashes, prefix) |
 | `<Link to="3">`                                                | `<slide-ng-link to="3">`; `link` is an HTML tag, so it was renamed                       |
 | `<SlidevVideo>`                                                | `<slide-ng-video>`                                                                       |

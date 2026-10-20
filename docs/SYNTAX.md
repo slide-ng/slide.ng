@@ -178,6 +178,7 @@ Clicks reveal things step by step. Add these to any HTML element:
 <div slide-ng-after>Same click as the element before it (a relative +0)</div>
 <div slide-ng-click="2" slide-ng-click-hide>Visible first, hides at click 2</div>
 <div slide-ng-click-hide="3">Visible first, hides at click 3 (as v-click-hide="3")</div>
+<div slide-ng-click.hide="2">Visible first, hides at click 2 (as v-click.hide="2")</div>
 ```
 
 Two forms exist because of how Angular reads attributes:
