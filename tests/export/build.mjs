@@ -423,6 +423,26 @@ t.ok(
   existsSync(pdfM) && /Pages:\s+2/.test(execFileSync('pdfinfo', [pdfM], { encoding: 'utf8' })),
   readdirSync(siteM).join(),
 );
+// The headmatter says hash, the build says memory: `export --dist` goes by the build.
+const pdfMDist = join(scratch, 'm-dist.pdf');
+await cli(
+  [
+    'export',
+    join(dirB, 'slides.md'),
+    '--dist',
+    siteM,
+    '--base',
+    '/m/',
+    '--output',
+    pdfMDist.replace(/\.pdf$/, ''),
+  ],
+  dirB,
+);
+t.ok(
+  'export --dist of a --router-mode memory build has one page per slide (the build, not the headmatter, picks the addresses)',
+  existsSync(pdfMDist) &&
+    /Pages:\s+2/.test(execFileSync('pdfinfo', [pdfMDist], { encoding: 'utf8' })),
+);
 const servedM = await serveDirectory(siteM, '/m/');
 const pageM = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 await pageM.goto(`${servedM.origin}/m/2`);

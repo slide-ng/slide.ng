@@ -18,6 +18,15 @@ export function buildOptions(env = process.env) {
 
 export const ROUTER_MODES = ['history', 'hash', 'memory'];
 
+/** The <meta> of a build's index.html that records its router mode (lib/head.mjs). */
+export const ROUTER_MODE_META = 'slide-ng-router-mode';
+
+/** The router mode recorded in a build's index.html, or null for a build made before it was recorded. */
+export function builtRouterMode(html) {
+  const mode = new RegExp(`<meta name="${ROUTER_MODE_META}" content="(\\w+)">`).exec(html)?.[1];
+  return ROUTER_MODES.includes(mode) ? mode : null;
+}
+
 /** `--router-mode`: one of ROUTER_MODES, or undefined when the flag was not given. */
 export function checkRouterMode(mode) {
   if (mode !== undefined && !ROUTER_MODES.includes(mode))

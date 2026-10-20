@@ -2,6 +2,7 @@
 // `htmlAttrs`, `seoMeta` (Open Graph and Twitter tags) and the PWA manifest link.
 // The headmatter can come from someone else's deck, so every value is escaped and attribute names are checked.
 import { themeColor } from '../build/pwa.mjs';
+import { ROUTER_MODE_META, ROUTER_MODES } from './build-options.mjs';
 
 const escapeHtml = (text) =>
   String(text)
@@ -96,6 +97,12 @@ export function headParts(headmatter, { ogImage = null, pwa = false, warn = () =
     meta('property', 'og:title', seo.ogTitle ?? title),
     meta('property', 'og:description', seo.ogDescription ?? description),
     meta('property', 'og:image', ogImage ?? (seo.ogImage === 'auto' ? null : seo.ogImage)),
+    // How the app routes, for `export --dist` (a build's `--router-mode` may differ from the headmatter it is exported with).
+    meta(
+      'name',
+      ROUTER_MODE_META,
+      ROUTER_MODES.includes(headmatter.routerMode) ? headmatter.routerMode : 'history',
+    ),
   ];
   for (const [key, value] of Object.entries(seo)) {
     if (['ogTitle', 'ogDescription', 'ogImage'].includes(key)) continue;

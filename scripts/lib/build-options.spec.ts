@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
-import { addressMode, buildOptions, checkRouterMode } from './build-options.mjs';
+import { addressMode, buildOptions, builtRouterMode, checkRouterMode } from './build-options.mjs';
 
 describe('router mode of a build', () => {
   it('reads --router-mode from the environment, or nothing', () => {
@@ -17,5 +17,14 @@ describe('router mode of a build', () => {
     expect(addressMode({ routerMode: 'memory' })).toBe('history');
     expect(addressMode({ routerMode: 'hash' })).toBe('hash');
     expect(addressMode({})).toBe('history');
+  });
+  it('reads the router mode a build was made with from its index.html', () => {
+    expect(
+      builtRouterMode('<head><meta name="slide-ng-router-mode" content="memory"></head>'),
+    ).toBe('memory');
+    expect(builtRouterMode('<head><title>x</title></head>')).toBeNull();
+    expect(
+      builtRouterMode('<head><meta name="slide-ng-router-mode" content="abstract"></head>'),
+    ).toBeNull();
   });
 });

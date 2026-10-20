@@ -75,6 +75,12 @@ describe('headParts', () => {
     expect(p.tags.join('')).not.toContain('<script>');
     expect(p.tags).toContain('<meta name="author" content="a&quot;b&lt;c">');
   });
+  it('records the router mode, so `export --dist` opens the build with the right addresses', () => {
+    expect(headParts({ routerMode: 'memory' }).tags).toContain(
+      '<meta name="slide-ng-router-mode" content="memory">',
+    );
+    expect(headParts({}).tags).toContain('<meta name="slide-ng-router-mode" content="history">');
+  });
   it('adds the manifest link for pwa', () => {
     expect(headParts({}, { pwa: true }).tags).toContain(
       '<link rel="manifest" href="manifest.webmanifest">',
