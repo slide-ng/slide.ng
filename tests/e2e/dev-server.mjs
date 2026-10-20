@@ -426,6 +426,11 @@ try {
   t.ok('WebSocket with the token is accepted', (await ws(`?token=${session.token}`)) === 'open');
 
   // ---- MCP over HTTP at /__mcp, through the proxy
+  // The page is still on slide 3 from the {monaco-write} check; open slide 1 so goto_slide really has to move it.
+  await page.goto(`${base}/1`);
+  await page.waitForFunction(() =>
+    /^slide 1\//.test(document.querySelector('#hud')?.innerText ?? ''),
+  );
   const mcp = await new Client({ name: 'dev-test', version: '1.0.0' });
   await mcp.connect(new StreamableHTTPClientTransport(new URL(`${base}/__mcp`)));
   const mcpTools = (await mcp.listTools()).tools.map((x) => x.name);
