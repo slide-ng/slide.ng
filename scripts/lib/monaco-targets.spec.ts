@@ -77,6 +77,24 @@ describe('writeTargetProblem', () => {
   });
 });
 
+describe('writeTargetProblem with a theme under another name', () => {
+  it('denies the code folders at the top of every theme and addon folder, not deeper', () => {
+    const roots = ['my-theme', 'extras/addon-a'];
+    for (const p of [
+      'my-theme/setup/main.ts',
+      'my-theme/layouts/cover.ts',
+      'My-Theme/Components/x.ts',
+      'my-theme/styles/index.css',
+      'extras/addon-a/setup/shiki.ts',
+      'extras/addon-a/public/x.json',
+    ])
+      expect(writeTargetProblem(p, roots), p).not.toBeNull();
+    for (const p of ['my-theme/demo/setup/a.ts', 'extras/setup/a.ts', 'my-theme/snippets/a.ts'])
+      expect(writeTargetProblem(p, roots), p).toBeNull();
+    expect(writeTargetProblem('my-theme/setup/main.ts')).toBeNull();
+  });
+});
+
 describe('rootFoldersIn', () => {
   it("gives the roots inside the deck's folder relative to it, and leaves the others out", () => {
     const deck = mkdtempSync(join(tmpdir(), 'slide-ng-targets-'));

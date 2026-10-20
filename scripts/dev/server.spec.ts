@@ -535,12 +535,14 @@ describe('drawings with a symlinked .slide-ng', () => {
 });
 
 describe('{monaco-write} with a local theme', () => {
-  it("refuses the theme's index.html, also through a linked folder, and still writes a snippet", async () => {
+  it("refuses the theme's index.html and code folders, also through a linked folder, and still writes a snippet", async () => {
     const deck = mkdtempSync(join(tmpdir(), 'slide-ng-themedeck-'));
     writeFileSync(join(deck, 'slides.md'), '---\ntheme: ./my-theme\n---\n\n# One\n');
     mkdirSync(join(deck, 'my-theme'));
     writeFileSync(join(deck, 'my-theme/theme.json'), '{}\n');
     writeFileSync(join(deck, 'my-theme/index.html'), '<head></head>\n');
+    mkdirSync(join(deck, 'my-theme/setup'));
+    writeFileSync(join(deck, 'my-theme/setup/main.ts'), 'export default {};\n');
     symlinkSync(join(deck, 'my-theme'), join(deck, 'linked'));
     writeFileSync(join(deck, 'snippet.ts'), 'old\n');
     mkdirSync(join(deck, '.slide-ng'));
@@ -549,6 +551,8 @@ describe('{monaco-write} with a local theme', () => {
       JSON.stringify({
         theme: 'my-theme/index.html',
         linked: 'linked/index.html',
+        setup: 'my-theme/setup/main.ts',
+        linkedSetup: 'linked/setup/main.ts',
         ok: 'snippet.ts',
       }),
     );
@@ -558,6 +562,11 @@ describe('{monaco-write} with a local theme', () => {
         callOn(started.port as number, 'PUT', `/__slide-ng/monaco/${id}`, { content: 'pwned' });
       expect((await put('theme')).status).toBe(403);
       expect((await put('linked')).status).toBe(403);
+      expect((await put('setup')).status).toBe(403);
+      expect((await put('linkedSetup')).status).toBe(403);
+      expect(readFileSync(join(deck, 'my-theme/setup/main.ts'), 'utf8')).toBe(
+        'export default {};\n',
+      );
       expect(readFileSync(join(deck, 'my-theme/index.html'), 'utf8')).toBe('<head></head>\n');
       expect((await put('ok')).status).toBe(200);
     } finally {
