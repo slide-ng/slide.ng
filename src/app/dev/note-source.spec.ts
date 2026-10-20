@@ -12,6 +12,13 @@ describe('noteOf', () => {
     expect(noteOf('# A\n\n<!-- not a note -->\n\nMore text.\n')).toBe('');
     expect(noteOf('# A\n')).toBe('');
   });
+  it('does not start a note inside the frontmatter', () => {
+    expect(noteOf('---\ntitle: Use <!-- for notes\n---\n\n# Two\n\nBody\n\n<!-- hi -->')).toBe(
+      'hi',
+    );
+    expect(noteOf('---\ntitle: <!-- a -->\n---\n\n# Two\n')).toBe('');
+    expect(noteOf('\n```yaml\ntitle: <!-- a\n```\n\n# Two\n\n<!-- hi -->\n')).toBe('hi');
+  });
 });
 
 describe('withNote', () => {
@@ -36,6 +43,15 @@ describe('withNote', () => {
     const raw = withNote('# A\n', 'a --> b');
     expect(noteOf(raw)).toBe('a -- > b');
     expect(raw.match(/-->/g)).toHaveLength(1);
+  });
+  it('leaves a comment opener in the frontmatter alone', () => {
+    const raw = '---\ntitle: Use <!-- for notes\n---\n\n# Two\n\nBody\n\n<!-- hi -->';
+    expect(withNote(raw, 'New')).toBe(
+      '---\ntitle: Use <!-- for notes\n---\n\n# Two\n\nBody\n\n<!--\nNew\n-->',
+    );
+    expect(withNote(raw, '')).toBe('---\ntitle: Use <!-- for notes\n---\n\n# Two\n\nBody');
+    const tail = '---\ntitle: <!-- a -->\n---\n\n# Two\n';
+    expect(withNote(tail, 'N')).toBe(`${tail}\n<!--\nN\n-->\n`);
   });
   it('reads and writes the same note back', () => {
     expect(withNote(slide, noteOf(slide))).toBe(slide);
