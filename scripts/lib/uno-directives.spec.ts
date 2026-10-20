@@ -1,6 +1,7 @@
 import { createGenerator } from '@unocss/core';
 import { describe, expect, it, vi } from 'vitest';
 import config from '../../uno.config.mjs';
+import { scopeCss } from './scoped-style.mjs';
 import {
   applyDirectives,
   expandGroups,
@@ -21,6 +22,13 @@ describe('expandGroups', () => {
   it('leaves text attributes and bindings alone', () => {
     const html = '<a title="Note:(one)" href="x:(y)" [class]="a ? \'b:(c)\' : \'\'">';
     expect(expandGroups(html)).toBe(html);
+  });
+
+  it('leaves code blocks and inline code as they are written', () => {
+    const html =
+      '<pre class="shiki"><code><span>&lt;div class="hover:(bg-red-500 text-white)"&gt;</span></code></pre>' +
+      '<p><code ngNonBindable>&lt;p class="sm:(xl red-500)"&gt;</code> <b class="sm:(p-1 m-1)">x</b></p>';
+    expect(expandGroups(html)).toBe(html.replace('sm:(p-1 m-1)', 'sm:p-1 sm:m-1'));
   });
 });
 
@@ -76,5 +84,28 @@ describe('slideStyleDirectives', () => {
     expect(done.get('h1 { @apply text-red-500; }')).toContain('color:rgb(239 68 68');
     expect(warn.mock.calls.join()).toMatch(/slide 3: <style>: unknown utilities not-a-utility-xyz/);
     warn.mockRestore();
+  });
+
+  // `.dark` is on <html> and the direction class on the stage, outside the slide: the scope goes after them.
+  it('keeps the slide scope inside ancestor variants (dark:, forward:, backward:)', async () => {
+    const written = [
+      'h1, .x p { @apply dark:text-white hover:p-2; }',
+      '.a { --uno: forward:text-red-500 backward:p-1; }',
+      '@media print { .b { @apply dark:p-1; } }',
+      '@keyframes k { from { opacity: 0 } }',
+    ].join('\n');
+    const done = await slideStyleDirectives(
+      [{ content: `<style>\n${written}\n</style>` }],
+      await uno(),
+    );
+    const css = done.get(written)!;
+    expect(css).toContain('.dark & h1,.dark & .x p{');
+    expect(css).toContain('& h1:hover,& .x p:hover{');
+    expect(css).toContain('.slidev-nav-go-forward & .a{');
+    expect(css).toContain('.slidev-nav-go-backward & .a{');
+    expect(css).toContain('.dark & .b{');
+    expect(css).toContain('from { opacity: 0 }');
+    expect(css).not.toContain('slide-scope');
+    expect(scopeCss(css, 'slide-002')).toMatch(/^@keyframes k[\s\S]*\nslide-002 \{\n/);
   });
 });
