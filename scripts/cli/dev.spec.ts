@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { devPlan } from './dev.mjs';
+import { devPlan, ngServeArgs } from './dev.mjs';
 
 describe('devPlan', () => {
   it('has sensible defaults', () => {
@@ -62,5 +62,18 @@ describe('devPlan', () => {
     expect(() => devPlan(['--tunnel'])).toThrow('--tunnel is not available');
     expect(() => devPlan(['--base', '/x/'])).toThrow('slide-ng build');
     expect(() => devPlan(['--log', 'loud'])).toThrow('--log must be one of');
+  });
+});
+
+describe('ngServeArgs', () => {
+  it('passes --open on the first start only, not on a restart', () => {
+    const plan = { port: 4230, host: '0.0.0.0', open: true };
+    expect(ngServeArgs(plan)).toEqual(['serve', '--port', '4230', '--host', '0.0.0.0', '--open']);
+    expect(ngServeArgs(plan, true)).toEqual(['serve', '--port', '4230', '--host', '0.0.0.0']);
+    expect(ngServeArgs({ port: 4230, host: null, open: false })).toEqual([
+      'serve',
+      '--port',
+      '4230',
+    ]);
   });
 });

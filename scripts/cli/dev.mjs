@@ -118,13 +118,10 @@ export async function devCommand(argv) {
   const quiet = plan.log === 'error' || plan.log === 'silent';
   // No stdin for them: the terminal's keys are read here (dev-keys.mjs).
   const stdio = quiet ? ['ignore', 'ignore', 'inherit'] : ['ignore', 'inherit', 'inherit'];
-  const ngArgs = [ngBinary(), 'serve', '--port', String(plan.port)];
-  if (plan.host) ngArgs.push('--host', plan.host);
-  if (plan.open) ngArgs.push('--open');
   // The three processes; `r` in the terminal stops them and starts them again (watchChildren is told first, so the
   // stop does not end the command).
   let running;
-  const startAll = () => {
+  const startAll = (restart = false) => {
     const children = [
       spawn(process.execPath, [generate, '--watch'], { cwd: appRoot, env, stdio }),
       spawn(process.execPath, [join(packageRoot, 'scripts/dev/server.mjs')], {
@@ -132,7 +129,7 @@ export async function devCommand(argv) {
         env,
         stdio,
       }),
-      angularServer(ngArgs, { appRoot, env, quiet }),
+      angularServer([ngBinary(), ...ngServeArgs(plan, restart)], { appRoot, env, quiet }),
     ];
     const watcher = watchChildren(
       [
@@ -189,7 +186,7 @@ export async function devCommand(argv) {
           console.log('[slide.ng] restarting...');
           running.watcher.stop();
           await Promise.all(running.children.map(stopChild));
-          startAll();
+          startAll(true);
           restarting = false;
         },
         open: () =>
@@ -222,6 +219,14 @@ export async function devCommand(argv) {
     );
     if (plan.log !== 'silent') console.log(keyHint(plan.remote));
   }
+}
+
+/** `ng serve`'s arguments; `--open` only on the first start, so a restart (`r`) does not open another tab. */
+export function ngServeArgs(plan, restart = false) {
+  const args = ['serve', '--port', String(plan.port)];
+  if (plan.host) args.push('--host', plan.host);
+  if (plan.open && !restart) args.push('--open');
+  return args;
 }
 
 // Kills a child process and resolves once it has ended.
