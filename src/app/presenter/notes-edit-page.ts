@@ -96,18 +96,17 @@ export class NotesEditPage {
           area?.focus();
           area?.setSelectionRange(draft.start, draft.end);
           // The keys typed while the page was starting (index.html kept them): typed into the text now.
-          const early = (window as { slideNgEarlyKeys?: () => EarlyKey[] }).slideNgEarlyKeys?.();
-          if (area && early?.length) {
+          const early = takeEarlyKeys();
+          if (area && early.length) {
             const typed = typeKeys(draft.text, draft.start, draft.end, early);
             area.value = typed.text;
             area.setSelectionRange(typed.caret, typed.caret);
             this.edit(typed.text); // the draft has them now
           }
-          dropEarlyKeys();
         },
         { injector: this.injector },
       );
-    }
+    } else takeEarlyKeys(); // no draft to type them into: stop keeping keys
     void this.load();
   }
 
@@ -189,6 +188,12 @@ function keepDraft(draft: Draft) {
   } catch {
     // no storage: a reload right after typing loses what was not saved yet
   }
+}
+/** The keys index.html kept on this load of the page (once; it stops keeping them), and what it stored is removed. */
+function takeEarlyKeys(): EarlyKey[] {
+  const keys = (window as { slideNgEarlyKeys?: () => EarlyKey[] }).slideNgEarlyKeys?.() ?? [];
+  dropEarlyKeys();
+  return keys;
 }
 function dropEarlyKeys() {
   try {

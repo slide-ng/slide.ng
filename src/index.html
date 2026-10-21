@@ -1,31 +1,42 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <!-- /notes-edit (dev): a saved note reloads the page. Keys typed before the app is back are kept here (in the tab's
-         storage, in case the page reloads again) and typed into the notes then (src/app/presenter/notes-edit-page.ts).
-         Only while that page's draft is fresh. -->
-    <script>
-      (function () {
-        try {
-          var draft = JSON.parse(sessionStorage.getItem('slide-ng-notes-draft') || 'null');
-          if (draft && Date.now() - draft.at < 15000) {
-            var keys = JSON.parse(sessionStorage.getItem('slide-ng-notes-keys') || '[]');
-            var keep = function (e) {
-              keys.push({ key: e.key, ctrl: e.ctrlKey || e.metaKey || e.altKey });
-              sessionStorage.setItem('slide-ng-notes-keys', JSON.stringify(keys));
-            };
-            addEventListener('keydown', keep, true);
-            window.slideNgEarlyKeys = function () {
-              removeEventListener('keydown', keep, true);
-              return keys;
-            };
-          } else sessionStorage.removeItem('slide-ng-notes-keys'); // keys of an old draft are not typed in later
-        } catch (e) {}
-      })();
-    </script>
     <meta charset="utf-8" />
     <title>slide.ng</title>
     <base href="/" />
+    <!-- /notes-edit (dev): a saved note reloads the page. Keys typed before the app is back are kept here (in the tab's
+         storage, in case the page reloads again) and typed into the notes then (src/app/presenter/notes-edit-page.ts).
+         Only on a load of /notes-edit itself (after the base, or after #/ with routerMode: hash) while its draft is fresh;
+         any other page clears what was kept. After <base>, so document.baseURI is the deck's base. -->
+    <script>
+      (function () {
+        try {
+          var KEYS = 'slide-ng-notes-keys';
+          var base = new URL(document.baseURI).pathname;
+          var route =
+            location.pathname.indexOf(base) === 0 ? location.pathname.slice(base.length) : '';
+          if (location.hash.indexOf('#/') === 0) route = location.hash.slice(2).split('?')[0];
+          var draft = JSON.parse(sessionStorage.getItem('slide-ng-notes-draft') || 'null');
+          if (route.replace(/\/$/, '') !== 'notes-edit' || !draft || Date.now() - draft.at >= 15000)
+            return sessionStorage.removeItem(KEYS);
+          var page = location.pathname + location.hash;
+          // Keys kept by an earlier load count only when that load was this page too.
+          var kept = JSON.parse(sessionStorage.getItem(KEYS) || 'null');
+          var keys = kept && kept.page === page ? kept.keys : [];
+          var keep = function (e) {
+            keys.push({ key: e.key, ctrl: e.ctrlKey || e.metaKey || e.altKey });
+            sessionStorage.setItem(KEYS, JSON.stringify({ page: page, keys: keys }));
+          };
+          addEventListener('keydown', keep, true);
+          // Taken once, by the notes editor of this load.
+          window.slideNgEarlyKeys = function () {
+            removeEventListener('keydown', keep, true);
+            delete window.slideNgEarlyKeys;
+            return keys;
+          };
+        } catch (e) {}
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <!-- Shown only when the app takes more than a second to start (a slow network); Angular replaces it once it runs. -->

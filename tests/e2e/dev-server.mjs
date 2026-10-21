@@ -502,6 +502,25 @@ try {
   );
   await page.unroute('**/main.js');
   await sleep(4000);
+  // Keys pressed on another page while the draft is still fresh are not typed into the notes when /notes-edit opens by a link.
+  await page.goto(`${base}/entry`);
+  await page.locator('a[href$="/notes-edit"]').waitFor({ timeout: 60000 });
+  const keptOnEntry = await page.evaluate(() => typeof window.slideNgEarlyKeys);
+  await page.keyboard.type('foreign', { delay: 30 });
+  await page.locator('a[href$="/notes-edit"]').click();
+  await page.waitForFunction(
+    () => document.querySelector('#notes-edit-status')?.dataset.status === 'saved',
+    null,
+    { timeout: 60000 },
+  );
+  await sleep(2000);
+  t.ok(
+    '/notes-edit does not type in keys pressed on another page',
+    keptOnEntry === 'undefined' &&
+      !(await page.locator('#notes-edit-text').inputValue()).includes('foreign') &&
+      !read().includes('foreign'),
+    `${keptOnEntry} ${read().slice(-80)}`,
+  );
 
   // ---- bad requests, through the proxy
   const drag = (headers, extra = {}) =>
