@@ -809,3 +809,25 @@ export default (actions: ShortcutActions, list: Shortcut[]): Shortcut[] => [
 Dark mode follows the system until the user presses `d` or the sun/moon button; the choice is kept in the browser
 (`localStorage`, key `slidev-color-schema`). `colorSchema: light` or `dark` in the headmatter fixes it and hides the button.
 Dark styles for your own markup: UnoCSS `dark:` classes work (`dark:text-white`).
+
+Touch: on the audience page (`/3`) a swipe left or right moves through the clicks, up or down through the slides (not while
+drawing, and not when the finger starts on a `slide-ng-drag` element or one of its handles: that moves the element). The presenter
+page and `/notes` have no swipes. The bar has no hover on a touch screen: the first tap on the hidden bar only shows it, the next tap
+presses a button, and a touch on the slide hides it again. On a screen taller than the slide (a phone held upright) the bar is always shown.
+
+## Accessibility
+
+- **Screen readers** hear the number and title of each new slide (a polite live region). Elements that wait for a click are hidden from them
+  until they show. The presenter page has three named regions (Current slide, Next step, Notes); the next-step picture is skipped, so
+  headings are not read twice. Line numbers of code and of Magic Move are skipped too.
+- **Reduced motion**: when the system asks for less motion (`prefers-reduced-motion: reduce`), slide transitions, click fades,
+  `slide-ng-motion` and Magic Move change at once (every CSS transition and animation is cut to almost zero). JavaScript timers in your own
+  components are not changed; check `matchMedia('(prefers-reduced-motion: reduce)')` there.
+- **Forced colors** (Windows high contrast): the browser's colours replace the deck's. The interface's icons are drawn in the text colour,
+  so the buttons stay visible; colours you set on your own icons are not kept in that mode.
+- **Pictures**: write the text alternative with markdown (`![A red bridge at night](/bridge.jpg)`) or `<img alt="...">`. A picture given as
+  `image:` or `background:` in the frontmatter is a CSS background and cannot have one: when it carries meaning, put an `<img alt>` in the
+  slide or say it in the text.
+- **Mermaid**: `accTitle: ...` and `accDescr: ...` lines in the diagram become the title and description of the SVG, which screen readers read.
+- **Math** is read as its TeX source (`\frac{a}{b}`, not "a over b"): KaTeX is drawn without MathML, and the TeX is in visually hidden text.
+  Say a formula in words in the text or the notes when the audience needs it.

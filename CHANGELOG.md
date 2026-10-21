@@ -9,6 +9,20 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - `<slide-ng-title-renderer />` draws a slide's title as HTML, with its inline markdown and `$math$` (Slidev's `<TitleRenderer>`); `no="N"` picks another slide. The table of contents shows the same HTML. Raw HTML in a title is shown as text.
 - `notesAutoRuby: { word: reading }` in the headmatter shows a reading above each listed word in the speaker notes, with `<ruby>` (Slidev's `notesAutoRuby`). Code, tag attributes and existing `<ruby>` are left alone.
 
+### Fixed
+
+- Icons stay visible in forced colors mode (Windows high contrast); they are drawn in the text colour.
+- A finger drag that starts on a `slide-ng-drag` element or one of its handles moves it and no longer also swipes to another slide.
+- On a touch screen the first tap on the hidden navigation bar shows it instead of pressing the invisible button under the finger.
+- `slide-ng-motion` animates every property it changes; with two or more, only the last one moved and the others jumped.
+- The settings menu, the "go to" box and the slide overview fit in a 320px wide window and at 200% zoom.
+- `/notes` follows dark mode.
+- The drawing toolbar's undo, redo and delete buttons are really disabled when there is nothing to do, not only greyed out.
+- More contrast for the slide counter, the slide numbers in the overview and the "go to" list, the unselected options of the settings menu, the
+  presenter's labels, click numbers and timer buttons.
+- The side editor's coloured copy behind the text is no longer a Tab stop or read out; the presenter's next-step picture and Magic Move line
+  numbers are not read out, and the presenter panes are named regions.
+
 ## [1.0.0] - 2026-10-18
 
 ### Added
