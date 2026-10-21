@@ -17,8 +17,10 @@ const BROWSER_SETUPS = [
   ['shortcuts', 'shortcutsProviders'],
   ['context-menu', 'contextMenuProviders'],
   ['mermaid', 'mermaidProviders'],
+  ['mermaid-renderer', 'mermaidRendererProviders'],
   ['monaco', 'monacoProviders'],
   ['code-runners', 'codeRunnerProviders'],
+  ['routes', 'routesProviders'],
 ];
 
 /** `src/slides/generated/setup.ts`: the providers that roots bring in `setup/*.ts`. Weakest root first, so the deck has the last word. */

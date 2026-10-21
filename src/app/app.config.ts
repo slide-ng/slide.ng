@@ -7,7 +7,7 @@ import {
   provideEnvironmentInitializer,
 } from '@angular/core';
 import { LocationStrategy } from '@angular/common';
-import { provideRouter, withHashLocation } from '@angular/router';
+import { ROUTES, provideRouter, withHashLocation } from '@angular/router';
 import { HEADMATTER } from '../slides/generated';
 import { SETUP_PROVIDERS } from '../slides/generated/setup';
 import { LOCALE, UI_DIR, UI_TRANSLATIONS } from '../slides/generated/ui-text';
@@ -15,6 +15,7 @@ import { routes } from './app.routes';
 import { DevApi } from './dev/dev-api';
 import { MemoryLocationStrategy } from './lib/memory-location';
 import { presenterEnabled } from './lib/switches';
+import { ROUTES_SETUP, applyRoutesSetups } from './setup';
 import { DRAG_SAVER } from './drag/drag-state';
 import { WebSocketTransport } from './dev/ws-transport';
 import { BroadcastTransport } from './sync/broadcast-transport';
@@ -36,10 +37,16 @@ export const appConfig: ApplicationConfig = {
     ...SETUP_PROVIDERS,
     // Headmatter `routerMode: hash` puts the slide after a # (/#/3), for hosts that cannot send every path to index.html;
     // `memory` keeps the address bar as it was (lib/memory-location.ts).
-    provideRouter(routes, ...(HEADMATTER['routerMode'] === 'hash' ? [withHashLocation()] : [])),
+    // The routes come from a factory, so the setup/routes.ts files of the roots can add pages before the catch-all.
+    provideRouter([], ...(HEADMATTER['routerMode'] === 'hash' ? [withHashLocation()] : [])),
     ...(HEADMATTER['routerMode'] === 'memory'
       ? [{ provide: LocationStrategy, useClass: MemoryLocationStrategy }]
       : []),
+    {
+      provide: ROUTES,
+      multi: true,
+      useFactory: () => applyRoutesSetups(routes, inject(ROUTES_SETUP)),
+    },
     // Windows of the same browser stay in step through a BroadcastChannel.
     { provide: SYNC_TRANSPORTS, multi: true, useFactory: () => new BroadcastTransport() },
     // While developing, the companion server (scripts/dev) also carries sync between devices and writes slides.md.

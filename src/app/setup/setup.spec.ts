@@ -1,5 +1,8 @@
+import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { describe, expect, it } from 'vitest';
+import type { Routes } from '@angular/router';
+import { describe, expect, it, vi } from 'vitest';
+import { findRenderer } from '../code/mermaid';
 import { CODE_RUNNERS } from '../code/runners';
 import {
   SHORTCUTS_FILES,
@@ -11,12 +14,17 @@ import {
 import {
   CONTEXT_MENU_SETUP,
   ContextMenuItem,
+  MERMAID_RENDERER,
   MERMAID_SETUP,
+  ROUTES_SETUP,
+  applyRoutesSetups,
   codeRunnerProviders,
   contextMenuProviders,
   mainProviders,
   mermaidProviders,
+  mermaidRendererProviders,
   rootProviders,
+  routesProviders,
   shortcutsProviders,
 } from './index';
 
@@ -101,5 +109,109 @@ describe('setup providers', () => {
     const a = { provide: 'A', useValue: 1 };
     const b = { provide: 'B', useValue: 2 };
     expect(mainProviders([() => [a], () => [b]])).toEqual([a, b]);
+  });
+
+  it('uses the renderer of the last root that gives one, and asks each file once', async () => {
+    let asked = 0;
+    const theme = () => (code: string) => `<svg>theme ${code}</svg>`;
+    const deck = async () => {
+      asked++;
+      return undefined; // the deck's file decides not to replace the renderer
+    };
+    TestBed.configureTestingModule({ providers: mermaidRendererProviders([theme, deck]) });
+    const setups = TestBed.inject(MERMAID_RENDERER);
+    const renderer = await findRenderer(setups);
+    expect(await renderer?.('A', {})).toBe('<svg>theme A</svg>');
+    await findRenderer(setups);
+    expect(asked).toBe(1);
+    expect(await findRenderer([])).toBeNull();
+  });
+
+  it('tries the next root when a renderer setup throws, and asks it again for the next diagram', async () => {
+    let asked = 0;
+    const theme = () => (code: string) => `<svg>theme ${code}</svg>`;
+    const deck = async () => {
+      asked++;
+      throw new Error('broken setup');
+    };
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const setups = [theme, deck];
+    expect(await (await findRenderer(setups))?.('A', {})).toBe('<svg>theme A</svg>');
+    expect(await findRenderer([deck])).toBeNull();
+    expect(asked).toBe(2);
+    await findRenderer(setups);
+    expect(asked).toBe(3);
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
+  it('chains route setups and keeps the routes that match any address last', () => {
+    @Component({ template: '' })
+    class Page {}
+    TestBed.configureTestingModule({
+      providers: routesProviders([
+        (routes) => [...routes, { path: 'one', component: Page }],
+        (routes) => [...routes.filter((r) => r.path !== 'notes'), { path: 'two', component: Page }],
+      ]),
+    });
+    const base = [
+      { path: 'notes', component: Page },
+      { path: ':no', component: Page },
+      { path: '**', redirectTo: '1' },
+    ];
+    const paths = applyRoutesSetups(base, TestBed.inject(ROUTES_SETUP)).map((r) => r.path);
+    expect(paths).toEqual(['one', 'two', ':no', '**']);
+    expect(applyRoutesSetups(base, []).map((r) => r.path)).toEqual(['notes', ':no', '**']);
+  });
+
+  it("moves only the app's own :no and ** routes, not a page the file adds", () => {
+    @Component({ template: '' })
+    class Page {}
+    const base = [
+      { path: ':no', component: Page },
+      { path: '**', redirectTo: '1' },
+    ];
+    const lang = (routes: Routes) => [...routes, { path: ':lang', component: Page }];
+    expect(applyRoutesSetups(base, [lang]).map((r) => r.path)).toEqual([':lang', ':no', '**']);
+  });
+
+  it('still moves the :no and ** routes last when a file copies them, e.g. to add a guard', () => {
+    @Component({ template: '' })
+    class Page {}
+    const base = [
+      { path: ':no', component: Page },
+      { path: '**', redirectTo: '1' },
+    ];
+    const guarded = (routes: Routes) => [
+      ...routes.map((r) => ({ ...r, canActivate: [() => true] })),
+      { path: 'about', component: Page },
+      { path: ':lang', component: Page },
+    ];
+    const result = applyRoutesSetups(base, [guarded]);
+    expect(result.map((r) => r.path)).toEqual(['about', ':lang', ':no', '**']);
+    expect(result.slice(2).every((r) => r.canActivate)).toBe(true);
+  });
+
+  it('keeps the routes as they were when a file throws or returns no list, and says which file', () => {
+    @Component({ template: '' })
+    class Page {}
+    const base = [
+      { path: ':no', component: Page },
+      { path: '**', redirectTo: '1' },
+    ];
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const add = (routes: Routes) => [...routes, { path: 'about', component: Page }];
+    const broken = () => {
+      throw new Error('bad routes');
+    };
+    const empty = () => undefined as unknown as Routes;
+    expect(applyRoutesSetups(base, [add, broken, empty]).map((r) => r.path)).toEqual([
+      'about',
+      ':no',
+      '**',
+    ]);
+    expect(error).toHaveBeenCalledTimes(2);
+    expect(String(error.mock.calls[0][0])).toContain('setup/routes.ts');
+    error.mockRestore();
   });
 });

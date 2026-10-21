@@ -39,6 +39,10 @@ hello setup
 graph TD; A-->B
 ```
 
+```mermaid
+custom drawn by the renderer
+```
+
 ---
 
 # Editors

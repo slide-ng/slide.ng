@@ -34,6 +34,16 @@ describe('setupSource', () => {
     );
   });
 
+  it('hands setup/routes.ts and setup/mermaid-renderer.ts to their helpers', () => {
+    const text = setupSource([root('theme-a', ['mermaid-renderer']), root('deck', ['routes'])]);
+    expect(text).toMatch(
+      /import mermaidRenderer\d from '\.\/roots\/theme-a\/setup\/mermaid-renderer'/,
+    );
+    expect(text).toMatch(/\.\.\.mermaidRendererProviders\(\[mermaidRenderer\d\]\)/);
+    expect(text).toMatch(/\.\.\.routesProviders\(\[routes\d\]\)/);
+    expect(text).toContain('import { mermaidRendererProviders, routesProviders }');
+  });
+
   it('keeps code runners from providers.ts and code-runners.ts in root order, so the deck wins', () => {
     const text = setupSource([root('addon-a', ['code-runners']), root('deck', ['providers'])]);
     expect(text.indexOf('...codeRunnerProviders(')).toBeLessThan(text.indexOf('...providers1'));
