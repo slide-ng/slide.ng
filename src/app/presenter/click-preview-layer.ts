@@ -53,6 +53,7 @@ interface Badge {
         [style.top.px]="b.y"
         [attr.data-click]="b.at"
         [title]="'Go to click ' + b.at"
+        [attr.aria-label]="'Go to click ' + b.at"
         (click)="go(b.at)"
       >
         {{ b.at }}
@@ -68,6 +69,8 @@ export class ClickPreviewLayer {
   protected badges = signal<Badge[]>([]);
   protected drawing = () => this.drawings.available && this.drawings.enabled();
   private tagged = new Set<Element>();
+  /** Greyed-out parts hidden from screen readers here: they are not shown yet, and the next slide pane reads them already. */
+  private muted = new Set<Element>();
   private moved = signal(0);
   private resized?: ResizeObserver;
 
@@ -129,6 +132,7 @@ export class ClickPreviewLayer {
       if (keep.has(el)) continue;
       el.classList.remove(AHEAD, NEXT);
       el.removeAttribute(AT);
+      this.mute(el, false);
       this.tagged.delete(el);
       this.resized?.unobserve(el);
     }
@@ -141,6 +145,7 @@ export class ClickPreviewLayer {
       el.classList.add(AHEAD);
       el.classList.toggle(NEXT, isNext);
       el.setAttribute(AT, String(at));
+      this.mute(el, el.classList.contains('slidev-vclick-hidden'));
       if (!this.tagged.has(el)) this.resized?.observe(el);
       this.tagged.add(el);
       const r = el.getBoundingClientRect();
@@ -157,5 +162,13 @@ export class ClickPreviewLayer {
       badges.push({ at, isNext, x, y, rtl });
     }
     this.badges.set(badges);
+  }
+
+  // Only the aria-hidden set here is taken off again, not one the deck wrote.
+  private mute(el: Element, on: boolean) {
+    if (on && !this.muted.has(el) && !el.hasAttribute('aria-hidden')) {
+      el.setAttribute('aria-hidden', 'true');
+      this.muted.add(el);
+    } else if (!on && this.muted.delete(el)) el.removeAttribute('aria-hidden');
   }
 }

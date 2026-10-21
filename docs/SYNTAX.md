@@ -660,9 +660,10 @@ current slide changes: the audience, `/notes` and the next-step pane do not. The
   Use `slide-ng-click` (or `slide-ng-click="3"`) for content the preview should show.
 - In a right-to-left deck or part (`dir: rtl`) the badge sits at the part's inline start, its right edge.
 
-Themes change the look with `--slide-ng-ghost-opacity` (0.25), `--slide-ng-ghost-next-opacity` (0.75), `--slide-ng-ghost-next` (unset: the theme's primary colour, also one set with `themeConfig`),
+Themes change the look with `--slide-ng-ghost-opacity` (0.47, 0.4 in dark mode: about 3:1 for the default text colours), `--slide-ng-ghost-next-opacity` (0.75), `--slide-ng-ghost-next` (unset: the theme's primary colour, also one set with `themeConfig`),
 `--slide-ng-ghost-badge-background` and `--slide-ng-ghost-badge-foreground`. The classes on the parts are `slide-ng-click-ahead` and `slide-ng-click-next`,
-with the click in `data-slide-ng-click-at`. The notes PDF (`export-notes`, `/presenter/print`) has no click preview.
+with the click in `data-slide-ng-click-at`. Screen readers skip the greyed-out parts (the next slide pane already has the next click);
+each badge is a button named "Go to click N". The notes PDF (`export-notes`, `/presenter/print`) has no click preview.
 
 ## Drawing
 

@@ -29,6 +29,7 @@ export async function run({ t, open, press, hud, pathOf, windowGroup }) {
           next: el.classList.contains('slide-ng-click-next'),
           at: el.getAttribute('data-slide-ng-click-at'),
           opacity: +getComputedStyle(el).opacity,
+          ariaHidden: el.getAttribute('aria-hidden'),
         };
       },
       [main, selector],
@@ -183,6 +184,18 @@ export async function run({ t, open, press, hud, pathOf, windowGroup }) {
     JSON.stringify(hidden),
   );
   t.ok(
+    'click preview: greyed-out parts are hidden from screen readers (the next pane reads them), parts on screen are not',
+    p1.ariaHidden === 'true' && p2.ariaHidden === 'true' && hidden.ariaHidden === null,
+    JSON.stringify([p1.ariaHidden, p2.ariaHidden, hidden.ariaHidden]),
+  );
+  t.ok(
+    'click preview: a badge is named for what it does',
+    (await presenter
+      .locator(`${main} .slide-ng-ghost-badge[data-click="2"]`)
+      .first()
+      .getAttribute('aria-label')) === 'Go to click 2',
+  );
+  t.ok(
     'click preview: the audience window is unchanged',
     (await opacity(viewer, 'p1')) === 0 &&
       (await viewer.locator('.slide-ng-click-ahead, .slide-ng-ghost-badge').count()) === 0,
@@ -196,7 +209,7 @@ export async function run({ t, open, press, hud, pathOf, windowGroup }) {
   const shown = await state('#p1');
   t.ok(
     'click preview: a part on screen looks normal and the next click moves on',
-    !shown.ahead && shown.opacity === 1 && (await state('#p2')).next,
+    !shown.ahead && shown.opacity === 1 && shown.ariaHidden === null && (await state('#p2')).next,
     JSON.stringify(shown),
   );
 
