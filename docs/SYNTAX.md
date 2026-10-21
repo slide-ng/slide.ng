@@ -884,8 +884,11 @@ whole-deck pass costs a download of every picture of the deck, which a phone on 
 counts as done, so the progress reaches 1; with `preloadImages: false` it is 1 (complete) from the start. When the whole-deck pass is skipped
 (save data, 2g, 3g), `preloadComplete` becomes true only once every slide's pictures were loaded by visiting them. All slides are in the first bundle, so `preload` has no other effect here.
 
-Layers: add any of `layers/global-top.ts`, `global-bottom.ts`, `slide-top.ts`, `slide-bottom.ts` next to `slides.md` (or in a theme or addon), each `export default` of a standalone component.
+Layers: add any of `layers/global-top.ts`, `global-bottom.ts`, `slide-top.ts`, `slide-bottom.ts`, `custom-nav-controls.ts` next to `slides.md` (or in a theme or addon), each `export default` of a standalone component.
 `global-*` appear once over or under all slides, `slide-*` inside every slide (inject `SLIDE_NO` to know which). They let clicks through; give your own elements `pointer-events: auto` if they need the mouse.
+`custom-nav-controls` adds its content to the end of the navigation bar, after the slide counter, on the deck and on the presenter page (as in Slidev).
+For the other layers the deck's file replaces a theme's or addon's; `custom-nav-controls` of every root is drawn instead: the theme's first, then each addon's, then the deck's.
+Give a button `class="slidev-icon-btn"` and a `title` to look like the built-in ones, and inject `Nav` (`slide-ng/lib/nav`) to move: `(click)="nav.next()"`.
 A layer's template is not a slide: the built-in tags are not there by themselves, so import each one it uses (`SlideProgressBar` from `slide-ng/builtin/progress-bar`, for example).
 
 ## Dev-only extras and remote use

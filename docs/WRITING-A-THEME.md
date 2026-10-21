@@ -10,7 +10,7 @@ my-theme/
   layouts/
   components/
   styles/index.css
-  layers/          (optional: global-top.ts, global-bottom.ts, slide-top.ts, slide-bottom.ts)
+  layers/          (optional: global-top.ts, global-bottom.ts, slide-top.ts, slide-bottom.ts, custom-nav-controls.ts)
   setup/           (optional: setup hooks, see below)
   public/          (optional: pictures and fonts, served from /)
   uno.config.mjs   (optional: UnoCSS shortcuts and rules)

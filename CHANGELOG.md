@@ -27,6 +27,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - The headmatter `monaco` and `twoslash` take `true`, `false`, `dev` or `build`, as in Slidev: off for the current mode, `{monaco}` blocks are plain highlighted code and Twoslash does not run (a `{monaco-run}` with `showOutputAt` then has no click, so `monaco: build` counts one click less in `slide-ng dev`). `monacoRunUseStrict: false` runs `{monaco-run}` code without strict mode.
 - `<slide-ng-switch>` takes `unmount` and `transition`, `<slide-ng-video>` takes `printPoster` and `printTimestamp` (`last` too), and `<slide-ng-render-when>` takes the `visible` context, as in Slidev.
 - `progressBar` in the headmatter draws a progress bar on every slide (top or bottom, height, colours, clicks, and the minutes of the presenter timer; `progressBar: top` is short for the position, and a value that draws no bar is warned about); `<slide-ng-progress-bar />` places one in a slide or a layer.
+- The `custom-nav-controls` layer (`layers/custom-nav-controls.ts` in a deck, theme or addon) adds buttons to the end of the navigation bar, on the deck and on the presenter page (Slidev's fifth global layer). The theme's, each addon's and the deck's are all drawn, in that order.
 
 ### Changed
 

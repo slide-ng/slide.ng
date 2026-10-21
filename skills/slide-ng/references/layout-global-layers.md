@@ -1,15 +1,16 @@
 ---
 name: layers
-description: Global and per-slide layers (global-top, slide-bottom, ...)
+description: Global and per-slide layers (global-top, slide-bottom, custom-nav-controls, ...)
 ---
 
 # Layers
 
-Add any of `layers/global-top.ts`, `global-bottom.ts`, `slide-top.ts`, `slide-bottom.ts` next to `slides.md` (or in a theme or addon). Each default-exports a standalone Angular component.
+Add any of `layers/global-top.ts`, `global-bottom.ts`, `slide-top.ts`, `slide-bottom.ts`, `custom-nav-controls.ts` next to `slides.md` (or in a theme or addon). Each default-exports a standalone Angular component.
 
 - `global-*` appear once over or under all slides.
 - `slide-*` appear inside every slide; inject `SLIDE_NO` from `slide-ng/lib/slide-context` to know which.
 - Layers let clicks through (`pointer-events: none`); give your own elements `pointer-events: auto` if they need the mouse.
+- `custom-nav-controls` is not on the slide: its content goes at the end of the navigation bar (after the slide counter), on the deck and the presenter page. Use `class="slidev-icon-btn"` and a `title` on a button to match the built-in ones; inject `Nav` from `slide-ng/lib/nav` to move. Unlike the other layers (where the deck's file replaces a theme's or addon's), the `custom-nav-controls` of the theme, each addon and the deck are all drawn, in that order.
 - The generator finds them by folder and name, not by selector.
 - Built-in tags are not available in a layer by themselves: add each to the component's `imports` (`import { SlideProgressBar } from 'slide-ng/builtin/progress-bar'`, then `imports: [SlideProgressBar]`).
 
@@ -26,6 +27,23 @@ import { Component } from '@angular/core';
 export default class MyGlobalTop {}
 ```
 
+<!-- verify-file: layers/custom-nav-controls.ts -->
+
+```ts
+import { Component, inject } from '@angular/core';
+import { Nav } from 'slide-ng/lib/nav';
+
+@Component({
+  selector: 'my-nav-controls',
+  template: `<button class="slidev-icon-btn" title="Back to the start" (click)="nav.go(1)">
+    <div class="i-carbon:skip-back"></div>
+  </button>`,
+})
+export default class MyNavControls {
+  protected nav = inject(Nav);
+}
+```
+
 <!-- verify -->
 
 ```md
@@ -35,5 +53,5 @@ title: Layers
 
 # A deck with a global layer
 
-The text "my talk" is in the top right corner of every slide.
+The text "my talk" is in the top right corner of every slide, and the bar has a "Back to the start" button.
 ```

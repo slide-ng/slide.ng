@@ -4,6 +4,7 @@ routerMode: hash
 canvasWidth: 640
 aspectRatio: 4/3
 zoom: 0.5
+addons: [./nav-addon]
 ---
 
 # One
