@@ -154,7 +154,8 @@ Only `slide-ng build` moves the scripts (not `--offline`, which is opened from d
 ## Embedding the deck in another page
 
 A built deck works in an `<iframe>` on another site. Give the frame the permissions the deck asks for, or the browser logs a
-"Permissions policy violation" and the feature stays off: `fullscreen` for the full screen button and `screen-wake-lock`
+"Permissions policy violation" and the feature stays off: `fullscreen` for the full screen button (without it the button
+is left out) and `screen-wake-lock`
 when the wake lock is on (`wakeLock: true` in the headmatter, or switched on in the settings). Leave `wakeLock` off for a
 deck that is mostly shown embedded.
 

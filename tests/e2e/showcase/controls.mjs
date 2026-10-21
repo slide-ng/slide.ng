@@ -82,6 +82,24 @@ export async function run({ t, open, press, pathOf, style, base, browser, proble
   await page.waitForTimeout(400);
   t.ok('fullscreen button toggles it back', (await flag()) === 'false');
 
+  // An iframe without allow="fullscreen" (or an iPhone): document.fullscreenEnabled is false, so the button is left out.
+  const noFull = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+  await noFull.addInitScript(() =>
+    Object.defineProperty(Document.prototype, 'fullscreenEnabled', { get: () => false }),
+  );
+  const framed = await noFull.newPage();
+  await framed.goto(`${base}/1`);
+  await framed.locator('#nav-next').waitFor({ state: 'attached' });
+  await framed.keyboard.press('f');
+  await framed.waitForTimeout(300);
+  t.ok(
+    'without document.fullscreenEnabled there is no fullscreen button, and f does nothing',
+    (await framed.locator('#nav-fullscreen').count()) === 0 &&
+      (await framed.locator('nav').getAttribute('data-fullscreen')) === 'false' &&
+      (await framed.evaluate(() => !document.fullscreenElement)),
+  );
+  await noFull.close();
+
   // ---- overview ---------------------------------------------------------------------
   await page.locator('#nav-overview').click();
   await page.waitForTimeout(300);

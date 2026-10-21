@@ -42,16 +42,18 @@ import { presenterEnabled } from '../lib/switches';
         class="flex flex-wrap-reverse text-xl gap-0.5 p-1 lg:p-2 text-main"
         [class]="persist() ? 'bg-transparent' : 'rounded-md bg-main shadow-xl border border-main'"
       >
-        <button
-          icon-btn
-          id="nav-fullscreen"
-          [title]="(fullscreen.isFullscreen() ? 'nav.fullscreenExit' : 'nav.fullscreenEnter') | t"
-          (click)="fullscreen.toggle()"
-        >
-          <div
-            [class]="fullscreen.isFullscreen() ? 'i-carbon:minimize' : 'i-carbon:maximize'"
-          ></div>
-        </button>
+        @if (fullscreen.available) {
+          <button
+            icon-btn
+            id="nav-fullscreen"
+            [title]="(fullscreen.isFullscreen() ? 'nav.fullscreenExit' : 'nav.fullscreenEnter') | t"
+            (click)="fullscreen.toggle()"
+          >
+            <div
+              [class]="fullscreen.isFullscreen() ? 'i-carbon:minimize' : 'i-carbon:maximize'"
+            ></div>
+          </button>
+        }
         <button
           icon-btn
           id="nav-prev"

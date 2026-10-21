@@ -146,7 +146,7 @@ export class ContextMenu {
           this.fullscreen.isFullscreen() ? 'nav.fullscreenExit' : 'nav.fullscreenEnter',
         ),
         run: () => this.fullscreen.toggle(),
-        disabled: false,
+        disabled: !this.fullscreen.available,
       },
     ]),
   );

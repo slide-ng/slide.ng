@@ -84,6 +84,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - `slide-ng-motion` animates every property it changes; with two or more, only the last one moved and the others jumped.
 - The settings menu, the "go to" box and the slide overview fit in a 320px wide window and at 200% zoom.
 - `/notes` follows dark mode.
+- The fullscreen button is left out (and `f` does nothing) where the page may not go fullscreen: an iframe without `allow="fullscreen"`, or an iPhone. It used to do nothing and log a permissions policy violation.
 - The drawing toolbar's undo, redo and delete buttons are really disabled when there is nothing to do, not only greyed out.
 - More contrast for the slide counter, the slide numbers in the overview and the "go to" list, the unselected options of the settings menu, the
   presenter's labels, click numbers and timer buttons.

@@ -50,9 +50,11 @@ import { TimerBar } from './timer-bar';
       </div>
       <div class="flex-none border-t border-main">
         <div class="flex gap-1 items-center px-6 py-3">
-          <button icon-btn [title]="'nav.fullscreenEnter' | t" (click)="fullscreen.toggle()">
-            <div class="i-carbon:maximize"></div>
-          </button>
+          @if (fullscreen.available) {
+            <button icon-btn [title]="'nav.fullscreenEnter' | t" (click)="fullscreen.toggle()">
+              <div class="i-carbon:maximize"></div>
+            </button>
+          }
           <button
             icon-btn
             id="notes-bigger"
