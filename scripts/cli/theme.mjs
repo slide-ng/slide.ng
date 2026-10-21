@@ -2,6 +2,7 @@
 // headmatter at the copy (`theme: ./theme`), so it can be edited freely.
 //   built-in theme (`default`): the layouts of src/app/layouts (imports rewritten to `slide-ng/...`) and its CSS
 //   a theme folder or package:   a copy of its layouts, components, layers, styles, public, setup, theme.json, uno.config.mjs
+import { didYouMean } from '../lib/did-you-mean.mjs';
 import {
   cpSync,
   existsSync,
@@ -66,11 +67,15 @@ function ejectFolder(source, target) {
 
 export async function themeCommand(argv) {
   const [sub, ...rest] = argv;
-  if (sub !== 'eject') throw new Error('Usage: slide-ng theme eject [slides.md] [--dir theme]');
-  const { flags, positionals } = parseFlags(rest, {
-    dir: { type: 'string' },
-    theme: { type: 'string' },
-  });
+  if (sub !== 'eject')
+    throw new Error(
+      `${sub === undefined ? '' : `Unknown theme command "${sub}".${didYouMean(sub, ['eject'])} `}Usage: slide-ng theme eject [slides.md] [--dir theme]`,
+    );
+  const { flags, positionals } = parseFlags(
+    rest,
+    { dir: { type: 'string' }, theme: { type: 'string' } },
+    { command: 'theme eject' },
+  );
   const entry = resolve(positionals[0] ?? 'slides.md');
   const root = dirname(entry);
   const dirName = flags.dir ?? 'theme';

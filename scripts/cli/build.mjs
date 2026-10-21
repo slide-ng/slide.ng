@@ -17,7 +17,7 @@ import { pwaEnabled, writePwa } from '../build/pwa.mjs';
 import { launchBrowser } from '../export/browser.mjs';
 import { exportSlides } from '../export/index.mjs';
 import { downloadTarget } from '../export/filename.mjs';
-import { resolveExportOptions } from '../export/options.mjs';
+import { EXPORT_FLAGS, resolveExportOptions } from '../export/options.mjs';
 import { serveDirectory } from '../export/static-server.mjs';
 import { parseDeck } from '../lib/parse-deck.mjs';
 import { applyLangFlag, applyThemeFlag, parseFlags } from './flags.mjs';
@@ -41,6 +41,14 @@ export const BUILD_FLAGS = {
   lang: { type: 'string' },
 };
 
+// The flags of export that build does not take (`build --with-clicks` is told to use export).
+const otherCommandsFlags = (own) =>
+  Object.fromEntries(
+    Object.keys(EXPORT_FLAGS)
+      .filter((name) => !(name in own))
+      .map((name) => [name, 'export']),
+  );
+
 /** `/talk`, `talk/` and `/talk/` all become `/talk/`. Only plain path pieces are allowed (it goes into the page). */
 export function normalizeBase(base = '/') {
   const path = `/${base}/`.replace(/\/+/g, '/');
@@ -51,7 +59,10 @@ export function normalizeBase(base = '/') {
 }
 
 export async function buildCommand(argv) {
-  const { flags, positionals } = parseFlags(argv, BUILD_FLAGS);
+  const { flags, positionals } = parseFlags(argv, BUILD_FLAGS, {
+    command: 'build',
+    elsewhere: otherCommandsFlags(BUILD_FLAGS),
+  });
   applyThemeFlag(flags);
   applyLangFlag(flags);
   const entries = deckEntries(positionals);

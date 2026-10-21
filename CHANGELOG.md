@@ -115,6 +115,8 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - `r` in the dev server no longer prints an esbuild Go panic ("all goroutines are asleep") into the terminal: the Angular dev server and its esbuild service are stopped together.
 - Less noise in the terminal: a generator error while the dev server runs has the `[slides]` prefix, as at startup; Angular's follow-on "Can't bind to 'x' since it isn't a known property of 'y'" (NG8002) is left out when `y` is already reported as an unknown element; a dev rebuild that fails with the same errors as the one just before (deleting `components/` rebuilds twice) says so in one line; one slide is "generated 1 slide".
 - The hint for an unknown element in a slide starts with the deck's `components/` folder; it was written for layouts only ("import the component there").
+- More did-you-mean in the CLI: `--verison`, `-P` (for `-p`), `format --chekc` (format takes no flags), `theme ejcet` and `skills instal`; `build --with-clicks` says it is a flag of `export`; `present` says to open `/presenter`; `--range 2-x` says it is not a range instead of "matches no slide". `slide-ng --help` lists `--lang` for `dev`.
+- A click animation preset one or two letters away from a built-in one (`slide-ng-click.fadee`) gets a warning with the name meant, unless the deck's styles define it.
 
 ## [1.0.0] - 2026-10-18
 

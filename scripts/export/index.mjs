@@ -21,6 +21,17 @@ const EXTENSION = { pdf: '.pdf', pptx: '.pptx', md: '.md', png: '' };
 /** The slide numbers `range` picks; an error when it picks none (checked before the deck is built, too). */
 export function pagesToExport(deck, range) {
   const total = deck.slides.length;
+  // Slidev's parser reads `2-x` as slides 2 to the end and `x` as nothing: say that it is not a range instead.
+  const bad =
+    !range || ['all', '*', 'none'].includes(String(range))
+      ? undefined
+      : String(range)
+          .split(/[,;]/)
+          .find((part) => !/^\s*\d*\s*(-\s*\d*\s*)?$/.test(part) || !/\d/.test(part));
+  if (bad !== undefined)
+    throw new Error(
+      `export: the range "${range}" is not a range ("${bad.trim()}"): write slide numbers and ranges, such as 1,3-5 or 4-`,
+    );
   // Slidev's parser returns 0 for `0`; only real slides count.
   const pages = parseRangeString(total, range).filter((n) => n >= 1 && n <= total);
   if (!pages.length)

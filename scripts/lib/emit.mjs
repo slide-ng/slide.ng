@@ -13,6 +13,7 @@ import { hasRootUrl, rebaseCss, rebaseHtml } from './asset-paths.mjs';
 import { RenamedError, assertNoRenamedNames } from './renamed.mjs';
 import { assertClosedTags } from './unclosed-tags.mjs';
 import { warnUnknownNames } from './unknown-names.mjs';
+import { presetProblems } from './click-presets.mjs';
 import { warnMissingPublicFiles } from './public-paths.mjs';
 import { commonPipes } from './pipes.mjs';
 import { commonDirectives } from './angular-imports.mjs';
@@ -273,6 +274,14 @@ export function slideSource(slide, no, deck = {}) {
   );
   assertNoRenamedNames(markup, no, ownSelectors);
   warnUnknownNames(markup, no, ownSelectors);
+  for (const problem of presetProblems({
+    markup,
+    frontmatter: slide.frontmatter,
+    headmatter: deck.headmatter,
+    css,
+    roots: deck.roots,
+  }))
+    console.warn(`[slides] slide ${no}: ${problem}`);
   warnUncalledGlobals(markup, no);
   // A drag position by name (`slide-ng-drag="square"`, `pos="square"`) is looked up in the slide's `dragPos`.
   const dragPos = slide.frontmatter.dragPos ?? {};

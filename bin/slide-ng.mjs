@@ -11,7 +11,7 @@ const HELP = `slide-ng: slides from markdown
 Usage: slide-ng [command] [slides.md] [flags]      (slide-ng --version prints the version)
 
 Commands:
-  dev (default)   start the dev server       --port --open --remote[=password] --bind --theme --log --force
+  dev (default)   start the dev server       --port --open --remote[=password] --bind --theme --lang --log --force
   build           make a static site          --base --out --download --without-notes --offline --theme ...
   export          make a PDF, PNG, PPTX or Markdown file    --format --output --range --with-clicks --dark --scale ...
   export-notes    make a PDF of the speaker notes
@@ -82,6 +82,15 @@ const COMMANDS = {
   skills: async (args) => (await import('../scripts/cli/skills.mjs')).skillsCommand(args),
 };
 
+// Commands of other tools that people try, and what to run here instead.
+const OTHER_NAMES = {
+  present: 'To present, run slide-ng dev (or open a build) and open /presenter in the browser.',
+  serve:
+    'Did you mean "dev" (the dev server), or "build" and any static server for the built site?',
+  start: 'Did you mean "dev"?',
+  pdf: 'Did you mean "export" (a PDF by default)?',
+};
+
 const [command, args] = pickCommand(process.argv.slice(2));
 try {
   if (process.argv[2] === '--version' || process.argv[2] === '-v') {
@@ -100,7 +109,7 @@ try {
     );
   else if (!COMMANDS[command])
     throw new Error(
-      `Unknown command "${command}".${didYouMean(command, Object.keys(COMMANDS))} Run slide-ng --help for the list.`,
+      `Unknown command "${command}".${didYouMean(command, Object.keys(COMMANDS)) || (OTHER_NAMES[command] ? ` ${OTHER_NAMES[command]}` : '')} Run slide-ng --help for the list.`,
     );
   else await COMMANDS[command](args);
 } catch (error) {

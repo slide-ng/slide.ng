@@ -38,7 +38,7 @@ export async function formatMarkdown(text, filepath = 'slides.md') {
 }
 
 export async function formatCommand(argv) {
-  const { positionals } = parseFlags(argv, {});
+  const { positionals } = parseFlags(argv, {}, { command: 'format' });
   const files = (positionals.length ? positionals : ['slides.md']).map((f) => resolve(f));
   for (const file of files) {
     const before = await readFile(file, 'utf8');

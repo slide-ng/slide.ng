@@ -43,6 +43,23 @@ describe('parseFlags', () => {
       'Unknown flag --prot. Did you mean --port?',
     );
     expect(() => parseFlags(['--format'], spec)).toThrow('needs a value');
+  });
+  it('suggests the flag that was meant', () => {
+    expect(() => parseFlags(['--verison'], spec)).toThrow(
+      'Unknown flag --verison. Did you mean --version?',
+    );
+    expect(() => parseFlags(['-P', '3000'], spec)).toThrow('Unknown flag -P. Did you mean -p?');
+    expect(() => parseFlags(['--chekc'], {}, { command: 'format' })).toThrow(
+      'Unknown flag --chekc. slide-ng format takes no flags.',
+    );
+    expect(() =>
+      parseFlags(['--with-clicks'], spec, {
+        command: 'build',
+        elsewhere: { 'with-clicks': 'export' },
+      }),
+    ).toThrow(
+      'Unknown flag --with-clicks. It is a flag of slide-ng export: slide-ng export --with-clicks',
+    );
     expect(() => parseFlags(['--port', 'abc'], spec)).toThrow('must be a number');
   });
 });

@@ -87,7 +87,7 @@ To export one deck of such a build, name its folder: `slide-ng export a.md --dis
 | ---------------------------------------------------- | ------------------------------------------------------------------------------------------ |
 | `--format`                                           | `pdf`, `png`, `pptx` or `md`                                                               |
 | `--output`, `-o`                                     | the file (or the folder for PNG); the default comes from `exportFilename` or the file name |
-| `--range`                                            | slides to export, such as `1,4-5`                                                          |
+| `--range`                                            | slides to export, such as `1,4-5` (text that is not a range, `2-x`, is refused)            |
 | `--with-clicks`, `-c`                                | one page per click step (on by default for `pptx`; `--no-with-clicks` turns it off)        |
 | `--dark`                                             | dark mode                                                                                  |
 | `--per-slide`                                        | PDF: render slide by slide (slower, for very large decks; see below)                       |
@@ -130,7 +130,7 @@ and sets `theme: ./theme`, so it can be edited. See [THEMES.md](THEMES.md).
 
 ## create
 
-`slide-ng create <dir> [--force]` starts a new deck in `<dir>`: `slides.md`, `package.json` (scripts `dev`, `build`, `export`, `format`), a README and `.gitignore`. It refuses a folder with files; `--force` only adds the missing files (and fills in the name only in the files it adds). The `.gitignore` leaves out what `export` and `export-notes` write by default (`slides-export.pdf`, `*-export.*`, `*-notes.pdf`). A mistyped command or flag gets the nearest real one (`Unknown command "biuld". Did you mean "build"?`).
+`slide-ng create <dir> [--force]` starts a new deck in `<dir>`: `slides.md`, `package.json` (scripts `dev`, `build`, `export`, `format`), a README and `.gitignore`. It refuses a folder with files; `--force` only adds the missing files (and fills in the name only in the files it adds). The `.gitignore` leaves out what `export` and `export-notes` write by default (`slides-export.pdf`, `*-export.*`, `*-notes.pdf`). A mistyped command or flag gets the nearest real one (`Unknown command "biuld". Did you mean "build"?`, also `--verison`, `-P` for `-p` and `theme ejcet`); a flag of another command names it (`build --with-clicks` is a flag of `export`), and `present` says to open `/presenter` of `dev` or a build.
 
 ## mcp
 

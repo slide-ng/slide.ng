@@ -7,7 +7,17 @@ import { didYouMean } from '../lib/did-you-mean.mjs';
 // Types: string, number, boolean, and `optional` (`--remote` is true, `--remote=secret` is the text; it never takes the next argument).
 // Accepts `--port 3030`, `--port=3030`, `-p 3030`, `--open`, `--no-open` (false), and `--` (the rest is positional).
 // An unknown flag is an error, so a typo is never silently ignored.
-export function parseFlags(argv, spec) {
+// The flags `slide-ng` itself takes before any command (`slide-ng --version`), for the did-you-mean of a mistyped one.
+const GLOBAL_FLAGS = ['version', 'help'];
+
+/**
+ * `options.command` names the command in messages; `options.elsewhere` maps a flag of another command to that command
+ * (`build --with-clicks`: it is a flag of export).
+ * @param {string[]} argv
+ * @param {Record<string, { type: string, alias?: string }>} spec
+ * @param {{ command?: string, elsewhere?: Record<string, string> }} [options]
+ */
+export function parseFlags(argv, spec, { command, elsewhere = {} } = {}) {
   const flags = {};
   const positionals = [];
   const byAlias = Object.fromEntries(
@@ -34,13 +44,16 @@ export function parseFlags(argv, spec) {
       }
     } else {
       name = byAlias[arg.slice(1)];
-      if (!name) throw new Error(`Unknown flag ${arg}`);
+      if (!name) {
+        // `-P` for `-p`: the same letter in the other case.
+        const other = Object.keys(byAlias).find(
+          (a) => a.toLowerCase() === arg.slice(1).toLowerCase(),
+        );
+        throw new Error(`Unknown flag ${arg}.${other ? ` Did you mean -${other}?` : ''}`);
+      }
     }
     const s = spec[name];
-    if (!s)
-      throw new Error(
-        `Unknown flag --${name}.${didYouMean(name, Object.keys(spec), (n) => `--${n}`)}`,
-      );
+    if (!s) throw new Error(unknownFlag(name, spec, command, elsewhere));
 
     if (s.type === 'boolean') {
       flags[name] = inline === undefined ? true : !['false', '0', 'no'].includes(inline);
@@ -73,6 +86,16 @@ export function applyLangFlag(flags) {
   if (!lang)
     throw new Error(`--lang must be a language tag such as tr or pt-BR, got "${flags.lang}"`);
   process.env.SLIDE_NG_LANG = lang;
+}
+
+function unknownFlag(name, spec, command, elsewhere) {
+  const head = `Unknown flag --${name}.`;
+  if (elsewhere[name])
+    return `${head} It is a flag of slide-ng ${elsewhere[name]}: slide-ng ${elsewhere[name]} --${name}`;
+  const near = didYouMean(name, [...Object.keys(spec), ...GLOBAL_FLAGS], (n) => `--${n}`);
+  if (near) return head + near;
+  if (!Object.keys(spec).length && command) return `${head} slide-ng ${command} takes no flags.`;
+  return head;
 }
 
 function splitOnce(text, sep) {
