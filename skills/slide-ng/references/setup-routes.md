@@ -5,7 +5,7 @@ description: setup/routes.ts - add pages (Angular routes) to the app
 
 # setup/routes.ts
 
-Gets the app's Angular `Routes` and returns the list to use, so a deck can add pages. A page is an Angular component, in the file or imported from the root (`../components/...`). Roots are chained. The app's own routes that match any address (`:no`, the slide, and `**`) are moved last afterwards, so an appended page is reached (Slidev's router ranks routes; Angular takes the first match). A `:lang` route the file adds stays in place; a copy of `:no` or `**` with a guard added is moved too. A file that throws or returns no list is skipped with a console error naming `setup/routes.ts`; the deck keeps its own routes.
+Gets the app's Angular `Routes` and returns the list to use, so a deck can add pages. A page is an Angular component, in the file or imported from the root (`../components/...`). Roots are chained. The app's own routes that match any address (`:no`, the slide, and `**`) are moved last afterwards, so an appended page is reached (Slidev's router ranks routes; Angular takes the first match). A `:lang` route the file adds stays in place; a copy of `:no` or `**` with a guard added is moved too. A page is matched before the slides, so a `routeAlias` with the same path never opens its slide (the build cannot warn): keep the names apart. A file that throws or returns no list is skipped with a console error naming `setup/routes.ts`; the deck keeps its own routes.
 
 The page is shown on its own: no slide frame, navigation or slide keys. With `dev --remote` it is not behind the presenter password unless you add a `canActivate`.
 

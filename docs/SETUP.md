@@ -236,6 +236,8 @@ file itself or be imported from the root (`import { Gallery } from '../component
 one before returned. Angular takes the first route that matches, and Slidev's router the most specific one; to keep that, the app's own routes that
 match any address (`:no`, the slide, and `**`) are moved to the end afterwards, so a page appended to the list is reached. Routes the files add
 stay where they put them, a `:lang` route too; a copy of `:no` or `**` (with a guard added, say) is moved like the original.
+A page comes before the slides, so a slide whose `routeAlias` has the page's path is never reached at that address; the build cannot see
+the routes this file makes, so it cannot warn: give pages and aliases different names.
 A file that throws, or returns something other than a list, is skipped: the console says `slide-ng: setup/routes.ts threw` (or what it
 returned), and the deck keeps the routes it had before that file, so the slides still open.
 
