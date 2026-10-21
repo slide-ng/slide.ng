@@ -195,6 +195,25 @@ export async function run({ t, open, press, hud, pathOf, windowGroup }) {
     (await clock()).replace(/\s/g, '') === '10:00',
     await clock(),
   );
+  // The buttons show only on hover or focus; a touch screen cannot hover (a phone as the remote), so there they always show.
+  const buttonsOpacity = (page) =>
+    page.locator('#timer .timer-buttons').evaluate((e) => getComputedStyle(e).opacity);
+  await presenter.mouse.move(5, 5);
+  await presenter.evaluate(() => document.activeElement?.blur());
+  const desktopOpacity = await buttonsOpacity(presenter);
+  const phone = await windowGroup({
+    hasTouch: true,
+    isMobile: true,
+    viewport: { width: 844, height: 390 },
+  });
+  const phonePresenter = await open('/presenter/2', { width: 844, height: 390 }, undefined, phone);
+  const phoneOpacity = await buttonsOpacity(phonePresenter);
+  t.ok(
+    'the timer buttons are hidden until hover with a mouse, and always shown on a touch screen',
+    desktopOpacity === '0' && phoneOpacity === '1',
+    `${desktopOpacity} / ${phoneOpacity}`,
+  );
+  await phone.close();
 
   // ---- notes page follows the presenter
   await press(presenter, 'ArrowRight', 400);

@@ -113,6 +113,7 @@ Node (22.22.3 or newer) and Angular (22.2) are the same as in 1.x. These changes
 - The dev server's MCP endpoint takes a `--remote` password that is not ASCII (`--remote=şifre`) as a bearer token sent as UTF-8, as `curl` sends it; only Latin-1 worked.
 - The password prompt of `dev --remote` is in the deck's language (key `dev.password`, with a Turkish text).
 - A viewer on another machine, which only follows, no longer offers "Send only" and "Bidirectional" in the sync menu: they are disabled with a note that says why, and the button's up arrow is off.
+- On a touch screen (a phone used as the remote) the presenter timer's pause, play and reset buttons are always shown; they appeared only on hover.
 - MCP's `goto_slide` moves presenter windows every time; when its two messages (one for the presenters, one for the audience) came at once, a presenter window sometimes stayed where it was.
 - A presenter tab that was closed and opened again gets the running timer back from any other window of the deck, or from the dev server, and keeps it when the dev server restarts (`r`): every tab keeps the timer it shows, not only the one it started.
 - The timer shows the same time on devices whose clocks differ: it is shared with the sender's clock and moved onto the receiver's.

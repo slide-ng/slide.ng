@@ -915,7 +915,8 @@ timer: countdown # or stopwatch (default)
 The timer is shared: every window and device shows the same time passed, also when their clocks are not set alike (each message carries the
 sender's clock). A reload of the presenter tab keeps it. A presenter tab opened again gets it from any other open window of the deck, and while
 the dev server runs from the server too; in a built deck with no other window left open it starts again. Every tab keeps the timer it shows,
-so a restart of the dev server (`r`) keeps it too.
+so a restart of the dev server (`r`) keeps it too. Hover the clock (or Tab to it) for the pause, play and reset buttons; on a touch screen they
+are always shown.
 
 The presenter's mouse is shown on the audience page as a pointer or a red laser dot (settings menu, or the bar button).
 
