@@ -107,6 +107,7 @@ export const BUILTIN_ELEMENTS = [
   'slide-ng-mermaid',
   'slide-ng-monaco',
   'slide-ng-plant-uml',
+  'slide-ng-progress-bar',
   'slide-ng-render-when',
   'slide-ng-switch',
   'slide-ng-title-renderer',

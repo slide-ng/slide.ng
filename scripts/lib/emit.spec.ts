@@ -13,6 +13,7 @@ import {
 import { indexSource, plainTitle } from './index-source.mjs';
 import { parseDeck } from './parse-deck.mjs';
 import { initHighlighter } from './code/highlighter.mjs';
+import { BUILTIN_ELEMENTS, COMPONENTS } from './registry.mjs';
 
 // Code fences are highlighted while generating, so the highlighter must be ready.
 beforeAll(() => initHighlighter({ langs: ['ts', 'html'] }));
@@ -328,6 +329,11 @@ describe('slideSource: unknown slide-ng names', () => {
     expect(
       warnings('<slide-ng-badge />', [{ selector: 'slide-ng-badge', test: /<slide-ng-badge/ }]),
     ).toEqual([]);
+  });
+  it('knows every element the registry imports, the progress bar too', () => {
+    expect(warnings('<slide-ng-progress-bar position="top" />')).toEqual([]);
+    const tags = COMPONENTS.flatMap((c) => /<(slide-ng-[\w-]+)/.exec(String(c.test))?.[1] ?? []);
+    expect(tags.filter((t) => !BUILTIN_ELEMENTS.includes(t))).toEqual([]);
   });
 });
 
