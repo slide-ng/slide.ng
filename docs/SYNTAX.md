@@ -729,7 +729,7 @@ info:
   ## About this talk
 author: Ada
 keywords: [angular, slides] # a list or a comma separated text
-lang: en # <html lang>, the interface language and the locale of dates and numbers (see Translating the interface)
+lang: en # <html lang> (written pt-BR for pt_br), the interface language and the locale of dates and numbers (see Translating the interface)
 favicon: /favicon.ico # a file of public/, or a web address
 htmlAttrs: { data-theme: x } # more attributes on <html>
 seoMeta: # Open Graph and Twitter tags (ogTitle, ogDescription, ogImage, ogUrl, twitterCard, ...)
@@ -850,3 +850,4 @@ pages/demo.md
 
 Build each into its own folder: `slide-ng build slides.md --out dist/en` and `slide-ng build slides.tr.md --out dist/tr`. `--lang tr`
 (for `dev`, `build` and `export`) sets `lang` for one run without changing the file; it also replaces `uiLang`, so the interface follows it.
+An existing build keeps its language: `export --dist` and `export --url` refuse `--lang`.

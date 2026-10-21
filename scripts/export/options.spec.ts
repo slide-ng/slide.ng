@@ -63,6 +63,15 @@ describe('resolveExportOptions', () => {
     expect(() => resolveExportOptions({ scale: 99 }, {})).toThrow('scale');
     expect(() => resolveExportOptions({ 'wait-until': 'soon' }, {})).toThrow('wait-until');
   });
+  it('refuses --lang with --dist or --url, whose language is already fixed', () => {
+    expect(() => resolveExportOptions({ lang: 'ar', dist: 'dist' }, {})).toThrow(
+      '--lang cannot be used with --dist',
+    );
+    expect(() => resolveExportOptions({ lang: 'ar', url: 'http://localhost:4230' }, {})).toThrow(
+      '--lang cannot be used with --url',
+    );
+    expect(resolveExportOptions({ lang: 'ar' }, {}).format).toBe('pdf');
+  });
   it('--no-sandbox and --allow-local come from the command line only, never from the deck', () => {
     expect(resolveExportOptions({}, {})).toMatchObject({ noSandbox: false, allowLocal: false });
     expect(resolveExportOptions({ 'no-sandbox': true, 'allow-local': true }, {})).toMatchObject({

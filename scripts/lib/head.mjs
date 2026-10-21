@@ -2,7 +2,7 @@
 // `htmlAttrs`, `seoMeta` (Open Graph and Twitter tags) and the PWA manifest link.
 // The headmatter can come from someone else's deck, so every value is escaped and attribute names are checked.
 import { themeColor } from '../build/pwa.mjs';
-import { isRtl } from './lang.mjs';
+import { isRtl, normalizeLang } from './lang.mjs';
 
 const escapeHtml = (text) =>
   String(text)
@@ -149,12 +149,14 @@ function attributeText(attrs, warn) {
  * @param {(message: string) => void} [warn]
  */
 export function renderIndexHtml(template, parts, warn = () => {}) {
+  // `lang` in the usual spelling (`pt_br` is `pt-BR`); a value that is not a language tag is written as it is.
+  const lang = parts.lang ? normalizeLang(parts.lang) || parts.lang : null;
   // A right-to-left language (`ar`, `he`, `fa`, `ur`) turns the page around, unless `htmlAttrs.dir` says otherwise.
   const attrs = {
     lang: 'en',
-    ...(parts.lang && isRtl(parts.lang) ? { dir: 'rtl' } : {}),
+    ...(lang && isRtl(lang) ? { dir: 'rtl' } : {}),
     ...parts.htmlAttrs,
-    ...(parts.lang ? { lang: parts.lang } : {}),
+    ...(lang ? { lang } : {}),
   };
   let html = template.replace(/<html[^>]*>/i, `<html ${attributeText(attrs, warn).join(' ')}>`);
   html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtml(parts.title)}</title>`);

@@ -59,12 +59,15 @@ Makes a PDF (default), PNG files, a PPTX or a Markdown file. It builds the deck 
 | `--url`                                              | export a running server (such as the dev server)                                           |
 | `--base`                                             | the base the build at `--dist` was made with                                               |
 | `--theme`, `-t`                                      | use this theme instead of the headmatter's                                                 |
-| `--lang`                                             | use this language instead of the headmatter's `lang`                                       |
+| `--lang`                                             | use this language instead of the headmatter's `lang` (refused with `--dist` and `--url`)   |
 | `--executable-path`, `--no-sandbox`, `--allow-local` | as for `build`                                                                             |
 
 The headmatter's `export:` block sets the same options (`withClicks`, `perSlide`, ...); the command line wins. `output`,
 `executablePath`, `--no-sandbox` and `--allow-local` are never read from a deck. As root or in a container, Chromium needs
 `--no-sandbox` (or `SLIDE_NG_NO_SANDBOX=1`).
+
+The language of a deck is chosen when it is built, so `--lang` cannot change an existing build (`--dist`) or a running
+server (`--url`): build each language with `slide-ng build --lang <tag>` and export that folder.
 
 ## export-notes
 

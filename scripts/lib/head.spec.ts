@@ -121,4 +121,12 @@ describe('renderIndexHtml', () => {
       renderIndexHtml(template, headParts({ lang: 'fa', htmlAttrs: { dir: 'ltr' } })),
     ).toContain('<html lang="fa" dir="ltr">');
   });
+  it('writes lang in the usual spelling', () => {
+    expect(renderIndexHtml(template, headParts({ lang: 'pt_br' }))).toContain(
+      '<html lang="pt-BR">',
+    );
+    expect(renderIndexHtml(template, headParts({ lang: 'zh-hant-tw' }))).toContain(
+      '<html lang="zh-Hant-TW">',
+    );
+  });
 });
