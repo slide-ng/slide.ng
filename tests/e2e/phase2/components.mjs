@@ -56,6 +56,11 @@ export async function run({ t, open, press, hud }) {
     (await page.locator('slide-ng-youtube iframe').nth(1).getAttribute('src')) ===
       'https://www.youtube.com/embed/luoMHjh-XcQ?start=1234&end=1300',
   );
+  t.ok(
+    'youtube reads a start time written the YouTube way (1m30s) as seconds',
+    (await page.locator('slide-ng-youtube iframe').nth(2).getAttribute('src')) ===
+      'https://www.youtube.com/embed/luoMHjh-XcQ?start=90',
+  );
   await page.close();
 
   // The fake widget scripts answer instead of the network; the fake media element records play and pause.

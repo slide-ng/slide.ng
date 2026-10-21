@@ -216,6 +216,7 @@ const plain = 'no twoslash here'
 
 <slide-ng-youtube id="luoMHjh-XcQ" width="320" height="180" />
 <slide-ng-youtube id="luoMHjh-XcQ?start=1234&end=1300&foo=bar" width="160" height="90" />
+<slide-ng-youtube id="luoMHjh-XcQ" start="1m30s" width="160" height="90" />
 
 ---
 

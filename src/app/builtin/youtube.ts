@@ -28,8 +28,9 @@ export class Youtube {
   height = input(undefined, {
     transform: (v: unknown) => (v == null ? undefined : numberAttribute(v)),
   });
+  // Seconds, or YouTube's own form (`1m30s`).
   start = input(undefined, {
-    transform: (v: unknown) => (v == null ? undefined : numberAttribute(v)),
+    transform: (v: unknown) => (v == null ? undefined : typeof v === 'number' ? v : String(v)),
   });
   list = input<string>();
   private sanitizer = inject(DomSanitizer);
