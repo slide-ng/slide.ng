@@ -2,7 +2,7 @@
 // presentation. `ctx.hub` is the sync hub (scripts/dev/ws-hub.mjs) and `ctx.url` the address the client used.
 import { relative } from 'node:path';
 import { z } from 'zod';
-import { sendToAll } from '../dev/ws-hub.mjs';
+import { nextPosition, sendToAll } from '../dev/ws-hub.mjs';
 import { parseDeck } from '../lib/parse-deck.mjs';
 
 /** The two `shared` messages that move every window: presenters follow a viewer's move, viewers a presenter's. */
@@ -12,6 +12,9 @@ export function gotoMessages(page, clicks, time = Date.now()) {
     data: { page, clicks, lastUpdate: { id: 'slide-ng-mcp', type, time } },
   }));
 }
+
+// How long goto_slide waits for a window to report the step it took (a window that takes the asked step reports nothing).
+const REPORT_WAIT = 500;
 
 export const DEV_TOOLS = [
   {
@@ -34,7 +37,7 @@ export const DEV_TOOLS = [
   {
     name: 'goto_slide',
     description:
-      'Move every open window of the presentation (the presenter and the audience) to a slide, and optionally to a click step of it.',
+      'Move every open window of the presentation (the presenter and the audience) to a slide, and optionally to a click step of it. The answer has the click step the windows took (a step past the last click of the slide becomes its last).',
     schema: {
       no: z.number().int().min(1).describe('slide number, counting from 1'),
       clicks: z.number().int().min(0).max(999).optional().describe('click step (default 0)'),
@@ -45,8 +48,11 @@ export const DEV_TOOLS = [
         throw new Error(`there is no slide ${no} (the deck has ${slides.length})`);
       let windows = 0;
       if (ctx.hub) {
+        // A window that cannot take the step (the slide has fewer clicks) takes the last one and reports where it is.
+        const reported = nextPosition(ctx.hub, no, REPORT_WAIT);
         for (const message of gotoMessages(no, clicks)) windows = sendToAll(ctx.hub, message);
         ctx.hub.position = { page: no, clicks };
+        if (windows) clicks = (await reported)?.clicks ?? clicks;
       }
       return { no, clicks, windows };
     },

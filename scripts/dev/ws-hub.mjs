@@ -1,6 +1,6 @@
 // The WebSocket sync transport: every message one window sends goes to all the other windows.
 // It only passes on `{ channel, data }` for the channels the app uses, and drops the rest. The one thing it remembers is the
-// last slide a window reported (for the MCP `get_info` tool), and it can send a message to every window (`goto_slide`).
+// last slide a window reported (for the MCP `get_info` tool; `goto_slide` waits for the next one), and it can send a message to every window (`goto_slide`).
 import { WebSocketServer } from 'ws';
 
 const CHANNELS = new Set(['shared', 'drawings', 'hello']);
@@ -37,6 +37,20 @@ export function sendToAll(hub, message) {
   return sent;
 }
 
+/** The next position a window reports on slide `page` within `ms`, or null. */
+export function nextPosition(hub, page, ms) {
+  return new Promise((done) => {
+    const seen = (position) => position.page === page && finish(position);
+    const timer = setTimeout(() => finish(null), ms);
+    const finish = (position) => {
+      clearTimeout(timer);
+      hub.off('position', seen);
+      done(position);
+    };
+    hub.on('position', seen);
+  });
+}
+
 export function createHub() {
   const wss = new WebSocketServer({ noServer: true, maxPayload: MAX_MESSAGE });
   /** The last position a window sent, or null before the first one. */
@@ -47,7 +61,8 @@ export function createHub() {
     socket.on('message', (raw, isBinary) => {
       const text = raw.toString();
       if (isBinary || !isMessage(text)) return;
-      wss.position = positionOf(text) ?? wss.position;
+      const position = positionOf(text);
+      if (position) ((wss.position = position), wss.emit('position', position));
       for (const other of wss.clients)
         if (other !== socket && other.readyState === other.OPEN) other.send(text);
     });

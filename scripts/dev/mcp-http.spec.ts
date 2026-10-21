@@ -131,6 +131,33 @@ describe('MCP over HTTP on the dev server', () => {
     await client.close();
   });
 
+  it('goto_slide answers the click step a window took when the slide has fewer clicks', async () => {
+    const { port } = await start();
+    const client = await connect(port);
+    const presenter = await windowOn(port);
+    // The window clamps the step to the last click of the slide (2) and reports it, as the app does.
+    presenter.socket.on('message', (m) => {
+      const { data } = JSON.parse(String(m));
+      if (data.lastUpdate?.type === 'viewer')
+        presenter.socket.send(
+          JSON.stringify({ channel: 'shared', data: { page: data.page, clicks: 2 } }),
+        );
+    });
+    expect((await call(client, 'goto_slide', { no: 3, clicks: 50 })).json).toEqual({
+      no: 3,
+      clicks: 2,
+      windows: 1,
+    });
+    expect((await call(client, 'get_info')).json.current).toEqual({ page: 3, clicks: 2 });
+    presenter.socket.close();
+    expect((await call(client, 'goto_slide', { no: 2, clicks: 4 })).json).toEqual({
+      no: 2,
+      clicks: 4,
+      windows: 0,
+    });
+    await client.close();
+  });
+
   it('the edit tools write slides.md as with slide-ng mcp', async () => {
     const { root, port } = await start();
     const client = await connect(port);
