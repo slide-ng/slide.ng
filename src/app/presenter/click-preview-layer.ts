@@ -25,8 +25,10 @@ const BADGE = 16; // about the size of a badge, in slide pixels
 interface Badge {
   at: number;
   isNext: boolean;
+  /** from the inline start of the canvas: the left edge, or the right edge in a right-to-left part */
   x: number;
   y: number;
+  rtl: boolean;
 }
 
 // The presenter's click preview (slide.ng's own): over the presenter's current slide, the parts that later clicks show
@@ -45,7 +47,9 @@ interface Badge {
         type="button"
         class="slide-ng-ghost-badge"
         [class.slide-ng-ghost-badge-next]="b.isNext"
-        [style.left.px]="b.x"
+        [class.slide-ng-ghost-badge-rtl]="b.rtl"
+        [style.left.px]="b.rtl ? null : b.x"
+        [style.right.px]="b.rtl ? b.x : null"
         [style.top.px]="b.y"
         [attr.data-click]="b.at"
         [title]="'Go to click ' + b.at"
@@ -142,10 +146,15 @@ export class ClickPreviewLayer {
       const r = el.getBoundingClientRect();
       if (!r.width && !r.height) continue; // not laid out (display: none, a switch's other child)
       const y = Math.max(0, (r.top - box.top) / scale);
-      let x = Math.max(0, (r.left - box.left) / scale);
+      // At the part's inline start: its left edge, or its right edge when it reads right to left.
+      const rtl = getComputedStyle(el).direction === 'rtl';
+      let x = Math.max(0, (rtl ? box.right - r.right : r.left - box.left) / scale);
       // Parts that start at the same place (an empty switch above the next block) get their badges side by side.
-      while (badges.some((o) => Math.abs(o.x - x) < BADGE && Math.abs(o.y - y) < BADGE)) x += BADGE;
-      badges.push({ at, isNext, x, y });
+      while (
+        badges.some((o) => o.rtl === rtl && Math.abs(o.x - x) < BADGE && Math.abs(o.y - y) < BADGE)
+      )
+        x += BADGE;
+      badges.push({ at, isNext, x, y, rtl });
     }
     this.badges.set(badges);
   }

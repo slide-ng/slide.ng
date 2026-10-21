@@ -5,7 +5,7 @@ title: Click preview deck
 # Reveal
 
 <div id="p1" slide-ng-click>one</div>
-<div id="p2" slide-ng-click>two</div>
+<div id="p2" class="offset" slide-ng-click>two</div>
 <div id="p2b" slide-ng-after>two, too</div>
 <div id="ph" slide-ng-click="5" slide-ng-click-hide>gone at five</div>
 <div id="pr" [slide-ng-click]="[5, 6]">only at five</div>
@@ -16,6 +16,14 @@ title: Click preview deck
 - item four
 
 </slide-ng-clicks>
+
+<style>
+/* As a click animation preset (.up, .scale) draws a hidden part. */
+.offset.slidev-vclick-hidden {
+  translate: 0 20px;
+  scale: 0.9;
+}
+</style>
 
 ---
 

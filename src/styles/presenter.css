@@ -125,13 +125,16 @@ html.dark .slidev-presenter .grid-section {
   pointer-events: auto !important;
   filter: grayscale(1);
   cursor: pointer;
+  /* At its place, not at the offset a click animation preset (.up, .left, .scale, ...) gives a hidden part. */
+  translate: none !important;
+  scale: none !important;
 }
 .slide-ng-click-ahead.slide-ng-click-next.slidev-vclick-hidden {
   opacity: var(--slide-ng-ghost-next-opacity) !important;
   filter: none;
 }
 .slide-ng-click-next {
-  outline: 2px dashed var(--slide-ng-ghost-next);
+  outline: 2px dashed var(--slide-ng-ghost-next, var(--slidev-theme-primary));
   outline-offset: 2px;
 }
 .slide-ng-ghost-badge {
@@ -153,7 +156,11 @@ html.dark .slidev-presenter .grid-section {
   cursor: pointer;
 }
 .slide-ng-ghost-badge-next {
-  background: var(--slide-ng-ghost-next);
+  background: var(--slide-ng-ghost-next, var(--slidev-theme-primary));
+}
+/* Right to left: the badge sits at the part's inline start, its top right corner. */
+.slide-ng-ghost-badge-rtl {
+  transform: translate(40%, -40%);
 }
 /* While drawing, the pen gets the slide: the badges take no clicks (the drawing layer is over the greyed-out parts). */
 .slide-ng-ghost-drawing .slide-ng-ghost-badge {

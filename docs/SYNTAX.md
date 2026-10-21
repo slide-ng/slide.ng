@@ -648,8 +648,12 @@ current slide changes: the audience, `/notes` and the next-step pane do not. The
 - `slide-ng-click-hide` stays as it is until it goes, with its badge.
 - Code line steps, magic-move, `slide-ng-mark` and `slide-ng-motion` click variants are drawn as they are at the current click, with a badge for their next change.
 - `<slide-ng-switch>` shows only its current child; the badge on the switch says when it changes.
+- A part with a click animation preset (`.up`, `.left`, `.scale`, ...) is drawn at its place, not at its hidden offset.
+- Content in `@if (clicks.current() > 2) { ... }` (Slidev's `v-if="$clicks > 2"`) is not previewed: it is not on the page until its click, so it has no greyed-out part and no badge.
+  Use `slide-ng-click` (or `slide-ng-click="3"`) for content the preview should show.
+- In a right-to-left deck or part (`dir: rtl`) the badge sits at the part's inline start, its right edge.
 
-Themes change the look with `--slide-ng-ghost-opacity` (0.25), `--slide-ng-ghost-next-opacity` (0.75), `--slide-ng-ghost-next` (the primary colour),
+Themes change the look with `--slide-ng-ghost-opacity` (0.25), `--slide-ng-ghost-next-opacity` (0.75), `--slide-ng-ghost-next` (unset: the theme's primary colour, also one set with `themeConfig`),
 `--slide-ng-ghost-badge-background` and `--slide-ng-ghost-badge-foreground`. The classes on the parts are `slide-ng-click-ahead` and `slide-ng-click-next`,
 with the click in `data-slide-ng-click-at`. The notes PDF (`export-notes`, `/presenter/print`) has no click preview.
 

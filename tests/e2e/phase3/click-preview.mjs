@@ -50,6 +50,70 @@ export async function run({ t, open, press, hud, pathOf, windowGroup }) {
     (await badges()) === '1,2,2,3,4,5,5',
     await badges(),
   );
+  // A part that a click animation preset moves while hidden is drawn at its place.
+  const offset = (page, scope = '') =>
+    page.evaluate((scope) => {
+      const s = getComputedStyle(document.querySelector(`${scope} #p2`));
+      return `${s.translate} ${s.scale}`;
+    }, scope);
+  t.ok(
+    'click preview: a part with a preset offset is drawn at its place (the audience keeps the offset)',
+    (await offset(presenter, main)) === 'none none' && (await offset(viewer)) === '0px 20px 0.9',
+    `${await offset(presenter, main)} / ${await offset(viewer)}`,
+  );
+  // The next click's colour follows the theme's primary colour, which themeConfig sets on body.
+  const nextColour = () =>
+    presenter.evaluate(
+      (main) => [
+        getComputedStyle(document.querySelector(`${main} #p1`)).outlineColor,
+        getComputedStyle(document.querySelector(`${main} .slide-ng-ghost-badge-next`))
+          .backgroundColor,
+      ],
+      main,
+    );
+  await presenter.evaluate(() =>
+    document.body.style.setProperty('--slidev-theme-primary', 'rgb(200, 30, 40)'),
+  );
+  await presenter.waitForTimeout(800); // the part's colours change with a transition
+  t.ok(
+    "click preview: the next click's outline and badge follow the theme's primary colour",
+    (await nextColour()).join() === 'rgb(200, 30, 40),rgb(200, 30, 40)',
+    (await nextColour()).join(),
+  );
+  await presenter.evaluate(() => document.body.style.removeProperty('--slidev-theme-primary'));
+  // Right to left: the badge sits at the part's inline start, its right edge.
+  const badgeSide = () =>
+    presenter.evaluate((main) => {
+      const part = document.querySelector(`${main} #p1`).getBoundingClientRect();
+      const b = document
+        .querySelector(`${main} .slide-ng-ghost-badge[data-click="1"]`)
+        .getBoundingClientRect();
+      const centre = b.left + b.width / 2;
+      return Math.abs(centre - part.right) < b.width
+        ? 'right'
+        : Math.abs(centre - part.left) < b.width
+          ? 'left'
+          : `${centre} of ${part.left}-${part.right}`;
+    }, main);
+  const relayout = async () => {
+    // A new size of the window measures the badges again.
+    const size = presenter.viewportSize();
+    await presenter.setViewportSize({ width: size.width - 20, height: size.height });
+    await presenter.waitForTimeout(300);
+    await presenter.setViewportSize(size);
+    await presenter.waitForTimeout(300);
+  };
+  const ltr = await badgeSide();
+  await presenter.evaluate(() => (document.documentElement.dir = 'rtl'));
+  await relayout();
+  const rtl = await badgeSide();
+  await presenter.evaluate(() => document.documentElement.removeAttribute('dir'));
+  await relayout();
+  t.ok(
+    'click preview: badges sit at the inline start, the right edge in a right-to-left deck',
+    ltr === 'left' && rtl === 'right' && (await badgeSide()) === 'left',
+    `${ltr} ${rtl}`,
+  );
   // Content that grows later (a picture or a font arriving) moves the badges with it.
   const badgeTop = (n) =>
     presenter

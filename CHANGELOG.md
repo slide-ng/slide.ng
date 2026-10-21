@@ -8,7 +8,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 - `<slide-ng-title-renderer />` draws a slide's title as HTML, with its inline markdown and `$math$` (Slidev's `<TitleRenderer>`); `no="N"` picks another slide. The table of contents shows the same HTML. Raw HTML in a title is shown as text.
 - `notesAutoRuby: { word: reading }` in the headmatter shows a reading above each listed word in the speaker notes, with `<ruby>` (Slidev's `notesAutoRuby`). Code, tag attributes and existing `<ruby>` are left alone.
-- A click preview on the presenter page (the eye button in the bar, or `u`): the current slide shows what later clicks show, greyed out, with the next click highlighted and a badge with the click number on each part; clicking one goes to that click in every window. The audience page is unchanged, the choice is remembered, and themes can change the colours with `--slide-ng-ghost-*` variables.
+- A click preview on the presenter page (the eye button in the bar, or `u`): the current slide shows what later clicks show, greyed out, with the next click highlighted and a badge with the click number on each part; clicking one goes to that click in every window. The audience page is unchanged, the choice is remembered, and themes can change the colours with `--slide-ng-ghost-*` variables (the next click follows the theme's primary colour). Content shown by `@if (clicks.current() > n)` is not previewed.
 
 ## [1.0.0] - 2026-10-18
 

@@ -19,7 +19,8 @@
   /* The presenter's click preview (slide.ng's own): how parts of later clicks and of the next click look. */
   --slide-ng-ghost-opacity: 0.25;
   --slide-ng-ghost-next-opacity: 0.75;
-  --slide-ng-ghost-next: var(--slidev-theme-primary);
+  /* --slide-ng-ghost-next (the next click's outline and badge) is not set here: it falls back to the theme's primary colour where
+     it is used, so a primary set later on body (themeConfig) is followed. */
   --slide-ng-ghost-badge-background: #6b7280;
   --slide-ng-ghost-badge-foreground: white;
 }
