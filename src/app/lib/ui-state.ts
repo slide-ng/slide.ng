@@ -7,6 +7,8 @@ export class Ui {
   readonly goto = signal(false);
   readonly info = signal(false);
   readonly settings = signal(false);
+  /** The sync mode menu of the bar. */
+  readonly syncMenu = signal(false);
   /** The right-click menu: where it opened, or null when closed. */
   readonly contextMenu = signal<{ x: number; y: number } | null>(null);
   /** Slide scale: 0 = fit the window, 1 = real size (1:1). */
@@ -39,6 +41,7 @@ export class Ui {
     this.goto.set(false);
     this.info.set(false);
     this.settings.set(false);
+    this.syncMenu.set(false);
     this.contextMenu.set(null);
   }
 }

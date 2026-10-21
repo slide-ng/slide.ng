@@ -1,4 +1,4 @@
-import { Component, ElementRef, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, computed, inject } from '@angular/core';
 import { Nav } from '../lib/nav';
 import { Ui } from '../lib/ui-state';
 import { SyncState } from '../sync/sync-state';
@@ -32,6 +32,7 @@ import { IconBtn } from './icon-btn';
     @if (open()) {
       <div
         id="sync-menu"
+        (keydown)="menuKey($event)"
         class="bg-main text-main shadow-xl absolute bottom-10 left-0 z-menu py-2 border border-main rounded-md"
       >
         <div class="text-sm flex flex-col gap-2">
@@ -76,7 +77,7 @@ export class SyncControls {
   private el = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   protected readonly modes = SYNC_MODES;
   protected readonly role = this.isPresenter ? 'presenter' : 'viewer';
-  protected open = signal(false);
+  protected open = this.ui.syncMenu; // in Ui, so Escape (Ui.closeAll) closes it like the settings menu
   protected flags = computed(() => syncFlags(this.sync.directions(), this.isPresenter));
   protected mode = computed(() => syncMode(this.sync.directions(), this.isPresenter));
 
@@ -87,6 +88,18 @@ export class SyncControls {
 
   protected choose(mode: SyncMode) {
     this.sync.directions.update((d) => withSyncMode(d, this.isPresenter, mode));
+  }
+
+  // The arrow keys inside the menu move between the modes (as in a radio group) instead of through the slides.
+  protected menuKey(e: KeyboardEvent) {
+    const by = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
+    if (!by) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const i = this.modes.findIndex((m) => m.value === this.mode());
+    const next = this.modes[(i + by + this.modes.length) % this.modes.length].value;
+    this.choose(next);
+    this.el.querySelector<HTMLElement>(`[data-mode="${next}"]`)?.focus();
   }
 
   // A click anywhere outside closes the menu (Slidev's onClickOutside).

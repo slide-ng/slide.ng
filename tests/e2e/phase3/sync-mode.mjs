@@ -93,5 +93,23 @@ export async function run({ t, open, press, hud, windowGroup }) {
     (await hud(viewer)) === (await hud(presenter)),
     `${await hud(presenter)} / ${await hud(viewer)}`,
   );
+
+  // The keyboard: arrows inside the menu move between the modes, not through the slides; Escape closes it.
+  await openMenu(viewer);
+  await viewer.locator('#sync-menu [data-mode="bidirectional"]').focus();
+  const before = await hud(viewer);
+  await press(viewer, 'ArrowDown', 300);
+  t.ok(
+    'ArrowDown in the menu picks the next mode and does not move the slide',
+    (await checked(viewer)) === 'receive-only' && (await hud(viewer)) === before,
+    `${await checked(viewer)} / ${before} -> ${await hud(viewer)}`,
+  );
+  await press(viewer, 'ArrowUp', 300);
+  t.ok(
+    'ArrowUp goes back, the slide stays',
+    (await checked(viewer)) === 'bidirectional' && (await hud(viewer)) === before,
+  );
+  await press(viewer, 'Escape', 300);
+  t.ok('Escape closes the sync menu', (await viewer.locator('#sync-menu').count()) === 0);
   await group.close();
 }
