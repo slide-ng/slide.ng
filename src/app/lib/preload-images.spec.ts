@@ -1,4 +1,10 @@
-import { preloadAhead, preloadWindow, progressOf, slowConnection } from './preload-images';
+import {
+  preloadAhead,
+  preloadImage,
+  preloadWindow,
+  progressOf,
+  slowConnection,
+} from './preload-images';
 
 describe('preloadAhead', () => {
   it('is 3 by default, n for { ahead: n } (0 too), and off for false', () => {
@@ -42,5 +48,40 @@ describe('slowConnection', () => {
     expect(slowConnection({ effectiveType: 'slow-2g' })).toBe(true);
     expect(slowConnection({ effectiveType: '4g' })).toBe(false);
     expect(slowConnection(undefined)).toBe(false); // a browser without navigator.connection
+  });
+});
+
+describe('preloadImage', () => {
+  // Pictures that never finish unless the test says so; `started` lists them in the order they were asked for.
+  const started: FakeImage[] = [];
+  class FakeImage {
+    url = '';
+    onload?: () => void;
+    onerror?: () => void;
+    set src(src: string) {
+      this.url = src;
+      started.push(this);
+    }
+  }
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.stubGlobal('Image', FakeImage);
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+  const names = () => started.map((i) => i.url.split('/').pop());
+
+  it('loads two at a time, and a retried picture of the current slides goes before the rest of the deck', () => {
+    preloadImage('/q/near.png', true);
+    preloadImage('/q/other.png', true);
+    for (const n of ['a', 'b', 'c']) preloadImage(`/q/deck-${n}.png`);
+    expect(names()).toEqual(['near.png', 'other.png']);
+    started[0].onerror!(); // near.png failed: it is tried again a second later
+    expect(names()).toEqual(['near.png', 'other.png', 'deck-a.png']);
+    vi.advanceTimersByTime(1000);
+    started[1].onload!(); // a place is free: the retry of near.png comes before deck-b and deck-c
+    expect(names().slice(3)).toEqual(['near.png']);
   });
 });

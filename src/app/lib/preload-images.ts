@@ -12,8 +12,14 @@ const AT_ONCE = 2;
 // Pictures that are done: loaded, or given up on after the retries (a missing file), so the progress still reaches 1.
 const settled = new Set<string>();
 const loading = new Set<string>();
+// `first`: a picture of the slides around the one on screen, which goes before the rest of the deck (also when it is retried).
+interface Wanted {
+  key: string;
+  url: string;
+  first: boolean;
+}
 // Pictures waiting for a free place, the most wanted first.
-const waiting: { key: string; url: string }[] = [];
+const waiting: Wanted[] = [];
 const retries = new Map<string, number>();
 const settledCount = signal(0);
 const settle = (key: string) => {
@@ -73,8 +79,8 @@ export function slowConnection(connection?: {
   );
 }
 
-/** Asks for a picture; `first` puts it before the ones already waiting (the slides around the one on screen). */
-function preloadImage(url: string, first = false): void {
+/** Asks for a picture; `first` puts it before the ones already waiting (the slides around the one on screen). Exported for the spec. */
+export function preloadImage(url: string, first = false): void {
   const key = absolute(url);
   if (settled.has(key) || loading.has(key)) return;
   const at = waiting.findIndex((w) => w.key === key);
@@ -82,8 +88,8 @@ function preloadImage(url: string, first = false): void {
     if (!first) return;
     waiting.splice(at, 1);
   }
-  if (first) waiting.unshift({ key, url });
-  else waiting.push({ key, url });
+  if (first) waiting.unshift({ key, url, first });
+  else waiting.push({ key, url, first });
   next();
 }
 
@@ -91,7 +97,7 @@ function next(): void {
   while (loading.size < AT_ONCE && waiting.length) load(waiting.shift()!);
 }
 
-function load({ key, url }: { key: string; url: string }): void {
+function load({ key, url, first }: Wanted): void {
   loading.add(key);
   const img = new Image();
   img.onload = () => {
@@ -105,7 +111,7 @@ function load({ key, url }: { key: string; url: string }): void {
     const attempts = retries.get(key) ?? 0;
     if (attempts < RETRY_LIMIT) {
       retries.set(key, attempts + 1);
-      setTimeout(() => preloadImage(url), 1000 * (attempts + 1));
+      setTimeout(() => preloadImage(url, first), 1000 * (attempts + 1));
     } else settle(key);
     next();
   };
