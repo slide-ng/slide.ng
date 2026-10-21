@@ -40,6 +40,7 @@ const COMMAND_HELP = {
   --offline             a folder that opens from disk (not with --base)
   --download            also make the PDF and offer it in the bar
   --without-notes       leave the speaker notes out
+  --router-mode <mode>  history, hash or memory, instead of the headmatter's routerMode
   --theme, -t <name>    use this theme instead of the headmatter's
   --lang <tag>          use this language instead of the headmatter's lang
   --executable-path, --no-sandbox, --allow-local, --timeout   Chromium for the PDF and the Open Graph picture`,

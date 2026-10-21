@@ -25,19 +25,20 @@ Starts the dev server: the deck at `http://localhost:4230`, the presenter at `/p
 
 Makes a static site in `dist/`. Hosting is described in [HOSTING.md](HOSTING.md), the offline folder in [OFFLINE.md](OFFLINE.md).
 
-| flag                | what it does                                                                                |
-| ------------------- | ------------------------------------------------------------------------------------------- |
-| `--out`, `-o`       | output folder (default `dist`)                                                              |
-| `--base`            | the path the site is served from, such as `/talk/` (default `/`)                            |
-| `--offline`         | a folder that opens from disk (`file://`), with no server; cannot be combined with `--base` |
-| `--download`        | also export a PDF and offer it in the bar (like headmatter `download: true`)                |
-| `--without-notes`   | leave the speaker notes out of the site                                                     |
-| `--theme`, `-t`     | use this theme instead of the headmatter's                                                  |
-| `--lang`            | use this language instead of the headmatter's `lang` (one deck in several languages)        |
-| `--executable-path` | the Chromium to use for the PDF and the Open Graph picture (or `CHROME_PATH`)               |
-| `--no-sandbox`      | run that Chromium without its sandbox (root or containers, trusted decks only)              |
-| `--allow-local`     | let that page reach loopback and private addresses                                          |
-| `--timeout`         | milliseconds for each page Chromium renders                                                 |
+| flag                | what it does                                                                                                        |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `--out`, `-o`       | output folder (default `dist`)                                                                                      |
+| `--base`            | the path the site is served from, such as `/talk/` (default `/`)                                                    |
+| `--offline`         | a folder that opens from disk (`file://`), with no server; cannot be combined with `--base`                         |
+| `--download`        | also export a PDF and offer it in the bar (like headmatter `download: true`)                                        |
+| `--without-notes`   | leave the speaker notes out of the site                                                                             |
+| `--router-mode`     | `history`, `hash` or `memory`: replaces the headmatter's `routerMode` for this build (with `--offline` only `hash`) |
+| `--theme`, `-t`     | use this theme instead of the headmatter's                                                                          |
+| `--lang`            | use this language instead of the headmatter's `lang` (one deck in several languages)                                |
+| `--executable-path` | the Chromium to use for the PDF and the Open Graph picture (or `CHROME_PATH`)                                       |
+| `--no-sandbox`      | run that Chromium without its sandbox (root or containers, trusted decks only)                                      |
+| `--allow-local`     | let that page reach loopback and private addresses                                                                  |
+| `--timeout`         | milliseconds for each page Chromium renders                                                                         |
 
 ## export
 
@@ -55,7 +56,7 @@ Makes a PDF (default), PNG files, a PPTX or a Markdown file. It builds the deck 
 | `--scale`                                            | PNG and PPTX picture scale, 0.25 to 8 (default 2)                                          |
 | `--omit-background`                                  | PNG: a transparent background                                                              |
 | `--timeout`, `--wait`, `--wait-until`                | how long to wait for each page (ms), extra wait (ms), and the load state to wait for       |
-| `--dist`                                             | export an existing build instead of building                                               |
+| `--dist`                                             | export an existing build, with the router mode it was built with                           |
 | `--url`                                              | export a running server (such as the dev server)                                           |
 | `--base`                                             | the base the build at `--dist` was made with                                               |
 | `--theme`, `-t`                                      | use this theme instead of the headmatter's                                                 |

@@ -115,6 +115,7 @@ async function generate() {
     deck.slides.forEach((s) => {
       s.note = null;
     });
+  if (build.routerMode) deck.headmatter.routerMode = build.routerMode;
   if (build.offline) applyOffline(deck.headmatter);
   langOverride(deck.headmatter, LANG);
   deck.assetBase = build.building ? build.base : '/';

@@ -17,6 +17,8 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - A link to a slide points at that slide's page on the print page and in an exported PDF, instead of at the address of the local server (#14).
 - A link to a slide in the speaker notes, clicked in the presenter, moves the presenter to that slide instead of opening the audience page (#14).
 - `themeConfig` in the headmatter (or a theme's `theme.json`) is applied as in Slidev: each text or number key becomes the CSS variable `--slidev-theme-<key>`, so `themeConfig: { primary: '#5d8392' }` recolours `text-primary`, the progress bar and the controls. Values that could break out of the CSS, and `url()` or `image-set()` values, are skipped with a warning. Numbers are written without a unit, as in Slidev (`radius: 6px` for a length). Themes and components read the whole map with the `THEME_CONFIG` token, slides as `themeConfig`. `examples/theme-minimal` takes its accent colour from `themeConfig.accent`.
+- `routerMode: memory` keeps the address bar unchanged (Slidev's memory router), for kiosks and decks shown inside another page; the deck always opens at slide 1, and `/presenter` or `/notes` cannot be opened by address. The dev server keeps the slide when the page reloads after a save.
+- `slide-ng build --router-mode history|hash|memory` replaces the headmatter's `routerMode` for one build; the build records it, so `export --dist` opens it with the right addresses. `--offline` keeps hash routing: `--router-mode memory` is refused, a headmatter `routerMode: memory` gives a warning.
 
 ### Changed
 

@@ -1,10 +1,15 @@
 // The `build` command: a static copy of the deck that any web server can host.
-//   slide-ng build [slides.md] [--base /talk/] [--out dist] [--download] [--without-notes]
+//   slide-ng build [slides.md] [--base /talk/] [--out dist] [--download] [--without-notes] [--router-mode hash]
 import { copyFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { makeOffline } from '../build/offline.mjs';
 import { ogImagePlan, placeOgImage } from '../build/og-image.mjs';
-import { applyOffline } from '../lib/build-options.mjs';
+import {
+  addressMode,
+  applyOffline,
+  checkRouterMode,
+  offlineRouterWarning,
+} from '../lib/build-options.mjs';
 import { copyDefaultIcons, iconSource, writeIcons } from '../build/pwa-icons.mjs';
 import { pwaEnabled, writePwa } from '../build/pwa.mjs';
 import { launchBrowser } from '../export/browser.mjs';
@@ -24,6 +29,7 @@ export const BUILD_FLAGS = {
   download: { type: 'boolean' },
   offline: { type: 'boolean' },
   'without-notes': { type: 'boolean' },
+  'router-mode': { type: 'string' },
   'executable-path': { type: 'string' },
   'no-sandbox': { type: 'boolean' },
   'allow-local': { type: 'boolean' },
@@ -49,14 +55,25 @@ export async function buildCommand(argv) {
   const root = dirname(entry);
   checkToolDir(root); // before anything is written or removed under .slide-ng
   const offline = Boolean(flags.offline);
+  const routerMode = checkRouterMode(flags['router-mode']);
   if (offline && flags.base)
     throw new Error('--offline builds a folder that works at any path, so it cannot take --base');
+  if (offline && routerMode && routerMode !== 'hash')
+    throw new Error(
+      '--offline builds a folder that always uses hash routing, so it cannot take --router-mode ' +
+        routerMode,
+    );
   const base = offline ? './' : normalizeBase(flags.base);
   const out = resolve(flags.out ?? 'dist');
   checkClaimable(out); // fail now, not after a long build
   const deck = await parseDeck(entry);
   const head = deck.headmatter;
-  if (offline) applyOffline(head);
+  if (routerMode) head.routerMode = routerMode; // the flag wins over the headmatter, as in Slidev
+  if (offline) {
+    const warning = offlineRouterWarning(head);
+    if (warning) console.warn(`warning: ${warning}`);
+    applyOffline(head);
+  }
 
   const download = flags.download || downloadTarget(head, entry) !== null;
   const workDir = join(root, '.slide-ng', 'build');
@@ -66,6 +83,7 @@ export async function buildCommand(argv) {
     SLIDE_NG_DOWNLOAD: flags.download ? '1' : '0',
     SLIDE_NG_WITHOUT_NOTES: flags['without-notes'] ? '1' : '0',
     SLIDE_NG_OFFLINE: offline ? '1' : '0',
+    SLIDE_NG_ROUTER_MODE: routerMode ?? '',
   };
   try {
     const dist = buildDeck({ entry, workDir, base, env });
@@ -82,7 +100,7 @@ export async function buildCommand(argv) {
 // Files that can only be made once the app exists: the picture, the PDF, the 404 page, the offline worker.
 async function afterBuild({ dist, deck, entry, root, base, workDir, download, flags, offline }) {
   const head = deck.headmatter;
-  const routerMode = head.routerMode === 'hash' ? 'hash' : 'history';
+  const routerMode = addressMode(head);
   const exportOptions = {
     'executable-path': flags['executable-path'],
     timeout: flags.timeout,
