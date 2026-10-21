@@ -831,8 +831,10 @@ Slidev's slide hooks are in `slide-ng/lib/slide-hooks`. Call them in an injectio
 - `onSlideLeave((to, from) => ...)` runs when another slide is shown after this one.
 - `isSlideActive()` is a signal, true while the slide is the one on screen (Slidev's `useIsSlideActive`).
 
-`to` and `from` are slide numbers (1-based), `from` is `undefined` when no other slide was shown before. The hooks only run on the slide and presenter pages, not in
-thumbnails, the presenter's next slide preview or the PDF. In the PDF `isSlideActive()` is true for every slide, elsewhere it is false. The deck
+`to` and `from` are slide numbers (1-based), `from` is `undefined` when no other slide was shown before. The hooks run on the slide and presenter pages and in print
+(`export` and the PDF), not in thumbnails or the presenter's next slide preview. In print every page is its slide on screen, as in Slidev:
+`onSlideEnter` runs once per page when it is drawn (`from` is `undefined`), `onSlideLeave` never runs, and `isSlideActive()` is true for
+every slide; elsewhere it is false. Something that a hook animates (a count-up) is captured as it is when the page is taken: give `export` a `--wait`. The deck
 removes a slide it leaves, so a component that should remember something across visits keeps it outside the component. A hook that
 throws is reported in the browser console; the other hooks of the slide still run.
 

@@ -128,14 +128,39 @@ describe('slide hooks', () => {
     ]);
   });
 
-  it('stays quiet in thumbnails, the next slide preview and print', async () => {
-    for (const context of ['overview', 'previewNext', 'print'] as const) {
+  it('stays quiet in thumbnails and the next slide preview', async () => {
+    for (const context of ['overview', 'previewNext'] as const) {
       TestBed.resetTestingModule();
       const { fixture, go } = await mount(context);
       await go(3);
       expect(log).toEqual([]);
-      expect(fixture.componentInstance.active()).toBe(context === 'print');
+      expect(fixture.componentInstance.active()).toBe(false);
     }
+  });
+
+  it('enters once per page in print, as in Slidev, whatever slide the deck presents, and never leaves', async () => {
+    const { fixture, go } = await mount('print', 5);
+    expect(log).toEqual(['enter 2 undefined']);
+    await go(3);
+    await go(2);
+    fixture.destroy();
+    expect(log).toEqual(['enter 2 undefined']);
+    expect(fixture.componentInstance.active()).toBe(true);
+  });
+
+  it('reports an enter hook that throws in print', async () => {
+    log.length = 0;
+    const errors: unknown[] = [];
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: SLIDE_NO, useValue: 2 },
+        { provide: RENDER_CONTEXT, useValue: 'print' },
+        { provide: ErrorHandler, useValue: { handleError: (e: unknown) => errors.push(e) } },
+      ],
+    });
+    await TestBed.createComponent(Throwing).whenStable();
+    expect(log).toEqual(['sibling enter 2']);
+    expect(errors.map((error) => (error as Error).message)).toEqual(['enter failed']);
   });
 
   it('works without a Nav (a component drawn outside a deck)', async () => {
