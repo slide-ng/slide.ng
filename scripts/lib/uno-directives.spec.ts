@@ -19,6 +19,15 @@ describe('expandGroups', () => {
     expect(expandGroups('<p text="sm:(xl red-500)">')).toBe('<p text="sm:xl sm:red-500">');
   });
 
+  it('writes out a bare group in a tag as valueless attributes', () => {
+    expect(expandGroups('<div id="vg" p-4 hover:(bg-teal-50 border-teal-400)>card</div>')).toBe(
+      '<div id="vg" p-4 hover:bg-teal-50 hover:border-teal-400>card</div>',
+    );
+    expect(expandGroups('<p md:hover:(p-1 m-1)/> text hover:(a b) <b title="x hover:(c d)">')).toBe(
+      '<p md:hover:p-1 md:hover:m-1/> text hover:(a b) <b title="x hover:(c d)">',
+    );
+  });
+
   it('leaves text attributes and bindings alone', () => {
     const html = '<a title="Note:(one)" href="x:(y)" [class]="a ? \'b:(c)\' : \'\'">';
     expect(expandGroups(html)).toBe(html);

@@ -144,9 +144,28 @@ function splitSelectors(list) {
 const TEXT_ATTRIBUTES =
   /^(?:alt|title|href|src|srcset|srcdoc|style|content|value|placeholder|label|action|download|poster|id|name|for|type|lang|role|aria-.*|data-.*)$/i;
 
+// An opening tag, and in it a valueless group, attributify's bare form: `<div p-4 hover:(bg-teal-50 border-teal-400)>`.
+const TAG = /<[A-Za-z][\w-]*(?:"[^"]*"|'[^']*'|[^'">])*>/g;
+const BARE_GROUP = /(\s)((?:[\w-]+:)+\([^()"'<>=]*\))(?=[\s/>]|$)/g;
+
+// The bare groups of the tags in `html` written out as valueless attributes (`hover:bg-teal-50 hover:border-teal-400`): left
+// as they are, `hover:(bg-teal-50` is not a valid attribute name and the slide fails to draw. Quoted values are left alone.
+const expandBareGroups = (html) =>
+  html.replace(TAG, (tag) =>
+    tag
+      .split(/("[^"]*"|'[^']*')/)
+      .map((piece, i) =>
+        i % 2
+          ? piece
+          : piece.replace(BARE_GROUP, (_, space, group) => space + expandVariantGroup(group)),
+      )
+      .join(''),
+  );
+
 /**
- * `class="hover:(a b)"` becomes `class="hover:a hover:b"`; also in attributify values (`text="hover:(red-500 xl)"`). Code
- * blocks and inline code are text (shiki keeps a plain `"` there), so they stay as they are.
+ * `class="hover:(a b)"` becomes `class="hover:a hover:b"`; also in attributify values (`text="hover:(red-500 xl)"`) and as a
+ * bare attribute (`<div hover:(a b)>` becomes `<div hover:a hover:b>`). Code blocks and inline code are text (shiki keeps a
+ * plain `"` there), so they stay as they are.
  */
 export function expandGroups(html) {
   return html
@@ -154,8 +173,10 @@ export function expandGroups(html) {
     .map((part, i) =>
       i % 2
         ? part
-        : part.replace(/(\s)([A-Za-z][\w:-]*)="([^"]*:\([^"]*)"/g, (all, space, name, value) =>
-            TEXT_ATTRIBUTES.test(name) ? all : `${space}${name}="${expandVariantGroup(value)}"`,
+        : expandBareGroups(part).replace(
+            /(\s)([A-Za-z][\w:-]*)="([^"]*:\([^"]*)"/g,
+            (all, space, name, value) =>
+              TEXT_ATTRIBUTES.test(name) ? all : `${space}${name}="${expandVariantGroup(value)}"`,
           ),
     )
     .join('');

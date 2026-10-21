@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createGenerator } from '@unocss/core';
 import config from '../../uno.config.mjs';
-import { boundClasses, withoutForeignAttributes } from './make-css.mjs';
+import { boundClasses, componentInputs, withoutForeignAttributes } from './make-css.mjs';
 
 const css = async (classes: string) =>
   (await (await createGenerator(config)).generate(classes)).css;
@@ -47,6 +47,31 @@ describe('withoutForeignAttributes', () => {
     const after = '<svg class="a" /> <div p="4"></div> <svg-icon m="2"></svg-icon> </svg>';
     expect(withoutForeignAttributes(after)).toBe(
       '<svg /> <div p="4"></div> <svg-icon m="2"></svg-icon> </svg>',
+    );
+  });
+  it('hides the attributes of SVG elements written outside an <svg>, as in a renderer that builds strings', async () => {
+    const text =
+      'const label = `<text x="1" font-size="14" fill="currentColor">${t}</text><g\\n stroke-width="2">`;';
+    expect(withoutForeignAttributes(text)).toBe('const label = `<text>${t}</text><g>`;');
+    const out = await css(withoutForeignAttributes(text));
+    expect(out).not.toContain('[font-size~=');
+    expect(out).not.toContain('[stroke-width~=');
+    // <textarea> and <link> are not SVG elements.
+    expect(withoutForeignAttributes('<textarea p="2"></textarea><link m="1">')).toBe(
+      '<textarea p="2"></textarea><link m="1">',
+    );
+  });
+  it("hides the inputs of the deck's own components, not their other attributes", async () => {
+    const inputs = componentInputs([
+      `@Component({ selector: 'stat-row', template: '' })
+      export class StatRow { label = input(''); grid = input(false, { transform: booleanAttribute }); @Input() flat = false; }`,
+      `export const notAComponent = input('');`,
+    ]);
+    expect([...inputs]).toEqual([['stat-row', new Set(['label', 'grid', 'flat'])]]);
+    const text =
+      '<stat-row id="r1" label="Revenue" grid p="4" /> <div grid></div> <stat-rows grid>';
+    expect(withoutForeignAttributes(text, inputs)).toBe(
+      '<stat-row id="r1" p="4" /> <div grid></div> <stat-rows grid>',
     );
   });
   it('keeps attributify on plain HTML elements', async () => {

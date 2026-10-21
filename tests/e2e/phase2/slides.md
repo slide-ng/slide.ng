@@ -271,6 +271,7 @@ A claim[^1] and another[^second].
 <div id="u-attr" flex="~ col" text="red-500" p="4">attributify</div>
 <div id="u-hover" bg="green-500" hover:bg="blue-500">hover</div>
 <div id="u-group" class="p-2 hover:(text-blue-500 font-bold)">group</div>
+<div id="u-bare" p-2 hover:(text-blue-500 font-bold)>bare group</div>
 <div id="u-prose" class="prose"><p>Prose text with <a href="https://example.com">a link</a>.</p></div>
 <p id="u-apply" class="from-apply">apply</p>
 <p id="u-uno" class="from-uno">uno</p>

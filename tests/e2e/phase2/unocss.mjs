@@ -25,6 +25,12 @@ export async function run({ t, open, style }) {
     (await style(page, '#u-group', 'fontWeight')) === '700' &&
       (await style(page, '#u-group', 'color')) === 'rgb(59, 130, 246)',
   );
+  await page.hover('#u-bare');
+  t.ok(
+    'variant group as a bare attribute: <div hover:(a b)> draws and both apply on hover',
+    (await style(page, '#u-bare', 'fontWeight')) === '700' &&
+      (await style(page, '#u-bare', 'color')) === 'rgb(59, 130, 246)',
+  );
   t.ok(
     'typography: prose sets the text colour, the width and the links inside',
     (await style(page, '#u-prose', 'color')) === 'rgb(55, 65, 81)' &&
