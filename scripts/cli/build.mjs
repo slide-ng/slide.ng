@@ -1,7 +1,8 @@
 // The `build` command: a static copy of the deck that any web server can host.
-//   slide-ng build [slides.md] [--base /talk/] [--out dist] [--download] [--without-notes] [--router-mode hash]
-import { copyFileSync, writeFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+//   slide-ng build [slides.md..] [--base /talk/] [--out dist] [--download] [--without-notes] [--router-mode hash]
+// Several entries are built one after another into <out>/<name>/ (see entries.mjs).
+import { copyFileSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { basename, dirname, join, resolve } from 'node:path';
 import { makeOffline } from '../build/offline.mjs';
 import { ogImagePlan, placeOgImage } from '../build/og-image.mjs';
 import {
@@ -19,8 +20,9 @@ import { resolveExportOptions } from '../export/options.mjs';
 import { serveDirectory } from '../export/static-server.mjs';
 import { parseDeck } from '../lib/parse-deck.mjs';
 import { applyLangFlag, applyThemeFlag, parseFlags } from './flags.mjs';
-import { checkClaimable, publishDirectory } from './safe-dir.mjs';
+import { MARKER, checkClaimable, markDirectory, publishDirectory } from './safe-dir.mjs';
 import { checkToolDir, removeInside } from '../lib/tool-dir.mjs';
+import { buildTargets, checkEntriesExist, deckEntries } from './entries.mjs';
 import { buildDeck } from './runtime.mjs';
 
 export const BUILD_FLAGS = {
@@ -51,9 +53,7 @@ export async function buildCommand(argv) {
   const { flags, positionals } = parseFlags(argv, BUILD_FLAGS);
   applyThemeFlag(flags);
   applyLangFlag(flags);
-  const entry = resolve(positionals[0] ?? 'slides.md');
-  const root = dirname(entry);
-  checkToolDir(root); // before anything is written or removed under .slide-ng
+  const entries = deckEntries(positionals);
   const offline = Boolean(flags.offline);
   const routerMode = checkRouterMode(flags['router-mode']);
   if (offline && flags.base)
@@ -63,9 +63,36 @@ export async function buildCommand(argv) {
       '--offline builds a folder that always uses hash routing, so it cannot take --router-mode ' +
         routerMode,
     );
-  const base = offline ? './' : normalizeBase(flags.base);
   const out = resolve(flags.out ?? 'dist');
+  const targets = buildTargets(entries, {
+    out,
+    base: offline ? './' : normalizeBase(flags.base),
+    offline,
+  });
+  checkEntriesExist(entries);
+  for (const target of targets) checkToolDir(dirname(target.entry)); // before anything is written or removed under .slide-ng
   checkClaimable(out); // fail now, not after a long build
+  // With several decks --out is claimed as a whole: marked now, so that a later build of one deck or several may empty it,
+  // and once the decks are in, what an earlier build left there (a single deck's index.html and _redirects, another
+  // deck's folder) is removed.
+  const several = targets.length > 1;
+  if (several) {
+    mkdirSync(out, { recursive: true });
+    markDirectory(out);
+  }
+  // One deck after another, so only one Angular build runs at a time.
+  for (const target of targets) await buildOne({ ...target, flags, offline, routerMode, several });
+  if (several) keepOnly(out, [MARKER, ...targets.map((t) => basename(t.out))]);
+}
+
+// Removes everything in a folder of ours but the given names.
+function keepOnly(dir, names) {
+  for (const name of readdirSync(dir))
+    if (!names.includes(name)) rmSync(join(dir, name), { recursive: true, force: true });
+}
+
+async function buildOne({ entry, out, base, flags, offline, routerMode, several }) {
+  const root = dirname(entry);
   const deck = await parseDeck(entry);
   const head = deck.headmatter;
   if (routerMode) head.routerMode = routerMode; // the flag wins over the headmatter, as in Slidev
@@ -88,6 +115,8 @@ export async function buildCommand(argv) {
   try {
     const dist = buildDeck({ entry, workDir, base, env });
     await afterBuild({ dist, deck, entry, root, base, workDir, download, flags, offline });
+    // A deck's folder inside the claimed --out of several decks is ours, whatever an earlier build put there.
+    if (several) rmSync(out, { recursive: true, force: true });
     publishDirectory(dist, out);
     console.log(
       `\nBuilt ${deck.slides.length} slides into ${out} (${offline ? `offline folder, open ${join(out, 'index.html')}` : `base ${base}`}).`,

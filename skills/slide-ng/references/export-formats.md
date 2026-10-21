@@ -11,7 +11,7 @@ slide-ng export --format png             # one PNG per slide
 slide-ng export --format pptx            # pictures with notes (one slide per click step)
 slide-ng export --format md              # markdown with pictures and notes
 slide-ng export --range 1,4-5 --with-clicks --dark
-slide-ng export --dist dist              # export an existing build (with the router mode it was built with)
+slide-ng export --dist dist              # export an existing build (with the base and router mode it was built with)
 slide-ng export --url http://localhost:4230/   # export a running server
 ```
 

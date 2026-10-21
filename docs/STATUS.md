@@ -9,7 +9,7 @@ command line as a package, themes and addons, an example theme, the MCP server a
 2. **Export** `slide-ng export`: PDF (one page per slide or click step, outline with `--with-toc`, title), PNG, Markdown with pictures and notes, PPTX of pictures with notes,
    `export-notes`; flags `--format --output --range --with-clicks --dark --timeout --wait --wait-until --executable-path --per-slide --scale --omit-background --with-toc`, `--dist`, `--url`;
    headmatter `exportFilename`, `export`, `download`. File names are sanitised and nothing is written outside the output place.
-3. **Static build** `slide-ng build`: `--base`, `--out`, `--download`, `--without-notes`, `--theme`; `404.html`, `_redirects`, hash or history routing, `remoteAssets`, size budgets, docs/HOSTING.md.
+3. **Static build** `slide-ng build`: `--base`, `--out`, `--download`, `--without-notes`, `--theme`, several entries (`<out>/<name>/`, also for `export` and `export-notes`, one file each); `404.html`, `_redirects`, hash or history routing, `remoteAssets`, size budgets, docs/HOSTING.md.
 4. **Head and SEO**: `title`, `titleTemplate`, `info`, `author`, `keywords`, `favicon`, `lang`, `htmlAttrs`, `seoMeta`, Open Graph picture (`auto` makes a screenshot of slide 1), and the `index.html` of the deck, theme and addons (its head and body merged into the page, as in Slidev).
 5. **Offline mode** (`pwa: true`): manifest, install icons (192, 512, maskable 512), service worker and an "Available offline" / "Offline" label, tested in Chromium with the server stopped.
 6. **Command line as a package**: `bin/slide-ng.mjs` with `dev` (default), `build`, `export`, `export-notes`, `format`, `theme eject`, `mcp`, `create`; flags `--port --open --remote --bind --log --force --base (build) --theme`;
@@ -52,7 +52,7 @@ one can be written. The decisions are in DECISIONS.md ("Made while testing for 1
 ## Not done
 
 - **Editable PPTX** (out of scope on purpose). PPTX holds pictures and notes only.
-- `export` takes one entry; no `--format pptx-editable`.
+- No `--format pptx-editable`.
 - `dev --tunnel` (needs a tunnel service; refused with a message) and `dev --base` (refused with a message).
 - Prettier plugin, Vue-syntax converter, community themes, browser exporter page, `overviewSnapshots` (out of scope). A VS Code extension exists in the slide-ng/vscode-extension repository (first version, not released, never run inside VS Code).
 - Monaco type loading; MDC/Comark; slide hooks; touch tuning for drawing and drag. The full list is in docs/PARITY.md.

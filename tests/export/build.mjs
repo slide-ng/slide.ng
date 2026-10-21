@@ -502,6 +502,63 @@ t.ok(
 );
 await pageM.close();
 await servedM.close();
+// ---- several decks in one run: one folder each under --out, with the base adjusted per deck (like Slidev)
+const multiDir = join(scratch, 'multi');
+mkdirSync(multiDir, { recursive: true });
+for (const name of ['alpha', 'beta'])
+  writeFileSync(join(multiDir, `${name}.md`), `---\ntitle: ${name}\n---\n\n# ${name}\n`);
+// Into the folder that holds deck B's single build: its index.html and _redirects must go.
+const siteMulti = siteB;
+const multiOut = await cli(
+  [
+    'build',
+    join(multiDir, 'alpha.md'),
+    join(multiDir, 'beta.md'),
+    '--base',
+    '/decks/',
+    '--out',
+    siteMulti,
+  ],
+  multiDir,
+);
+t.ok(
+  'build a.md b.md writes <out>/a and <out>/b, each with the base /decks/<name>/',
+  ['alpha', 'beta'].every(
+    (name) =>
+      readFileSync(join(siteMulti, name, 'index.html'), 'utf8').includes(
+        `<base href="/decks/${name}/">`,
+      ) && multiOut.includes(`into ${join(siteMulti, name)} (base /decks/${name}/)`),
+  ),
+  multiOut,
+);
+t.ok(
+  'the earlier single build in --out is replaced: only the deck folders and the marker are left',
+  readdirSync(siteMulti).sort().join() === '.slide-ng-build,alpha,beta',
+  readdirSync(siteMulti).join(),
+);
+const servedMulti = await serveDirectory(join(siteMulti, 'beta'), '/decks/beta/');
+const pageMulti = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+await pageMulti.goto(`${servedMulti.origin}/decks/beta/1`);
+await pageMulti.waitForFunction(() =>
+  /clicks \d+\/\d+/.test(document.querySelector('#hud')?.innerText ?? ''),
+);
+t.ok(
+  'the second deck opens under its own base',
+  (await pageMulti.title()).includes('beta'),
+  await pageMulti.title(),
+);
+await pageMulti.close();
+await servedMulti.close();
+// Exporting one deck of that build: --dist alone serves it under the base it was built with, and a --base that differs is refused.
+const alphaPdf = join(multiDir, 'alpha-from-dist.pdf');
+await cli(
+  ['export', join(multiDir, 'alpha.md'), '--dist', join(siteMulti, 'alpha'), '--output', alphaPdf],
+  multiDir,
+);
+t.ok(
+  'export --dist of one deck of a multi build, without --base, uses the base in its index.html',
+  existsSync(alphaPdf) && readFileSync(alphaPdf).subarray(0, 5).toString() === '%PDF-',
+);
 
 // ---- refusals: a folder with other files, and a base that is not a plain path
 const precious = join(scratch, 'precious');
@@ -528,10 +585,31 @@ t.ok(
   ),
 );
 t.ok(
+  'export --dist with a --base other than the one the build was made with is refused',
+  (
+    await refuse([
+      'export',
+      join(multiDir, 'alpha.md'),
+      '--dist',
+      join(siteMulti, 'alpha'),
+      '--base',
+      '/',
+    ])
+  ).includes('which was made with the base /decks/alpha/'),
+);
+t.ok(
   '--base with .. is refused',
   (await refuse(['build', join(dirB, 'slides.md'), '--base', '/a/../b/'])).includes(
     '--base must be a path',
   ),
+);
+mkdirSync(join(multiDir, 'other'));
+writeFileSync(join(multiDir, 'other', 'alpha.md'), '# other alpha\n');
+t.ok(
+  'two decks with the same file name are refused before anything is built',
+  (
+    await refuse(['build', join(multiDir, 'alpha.md'), join(multiDir, 'other', 'alpha.md')])
+  ).includes('would both be built into'),
 );
 t.ok(
   '--router-mode takes history, hash or memory only',
@@ -544,6 +622,26 @@ t.ok(
   (
     await refuse(['build', join(dirB, 'slides.md'), '--offline', '--router-mode', 'memory'])
   ).includes('cannot take --router-mode memory'),
+);
+t.ok(
+  'a missing entry is refused before the first deck is built',
+  (
+    await refuse([
+      'build',
+      join(multiDir, 'alpha.md'),
+      join(multiDir, 'missing.md'),
+      '--out',
+      join(scratch, 'never'),
+    ])
+  ).includes(`${join(multiDir, 'missing.md')} not found`) && !existsSync(join(scratch, 'never')),
+);
+await cli(['build', join(multiDir, 'alpha.md'), '--out', siteMulti], multiDir);
+t.ok(
+  'one deck can be built into the --out of several (it is marked as ours) and replaces it',
+  existsSync(join(siteMulti, 'index.html')) &&
+    !existsSync(join(siteMulti, 'alpha')) &&
+    !existsSync(join(siteMulti, 'beta')),
+  readdirSync(siteMulti).join(),
 );
 t.ok(
   'an unknown flag is refused',

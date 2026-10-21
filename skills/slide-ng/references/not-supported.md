@@ -37,7 +37,7 @@ If a feature is not listed as present in the other references, assume it is miss
 **CLI and build**
 
 - `dev --base`, `dev --tunnel`, `dev --inspect`. `--force` only clears the build cache.
-- `export` with several entries; `--format pptx-editable` (PPTX is pictures only).
+- `--format pptx-editable` (PPTX is pictures only).
 - A browser exporter page, `overviewSnapshots` (the overview draws live slides).
 
 **Ecosystem**

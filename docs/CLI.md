@@ -23,7 +23,11 @@ Starts the dev server: the deck at `http://localhost:4230`, the presenter at `/p
 
 ## build
 
-Makes a static site in `dist/`. Hosting is described in [HOSTING.md](HOSTING.md), the offline folder in [OFFLINE.md](OFFLINE.md).
+Makes a static site in `dist/`. With several entries (`slide-ng build a.md b.md`) each deck is built, one after another, into
+`<out>/<name>/` and served under `<base><name>/` (`dist/a/` at `/a/`, `dist/b/` at `/b/`), where `<name>` is the file name without
+`.md`, as in Slidev. Two entries with the same file name, or a missing one, are refused before the first deck is built.
+`--out` then belongs to the build as a whole: once the decks are in, anything else an earlier build left there (a single deck's
+`index.html` and `_redirects`, the folder of a deck no longer listed) is removed, and a later build of one deck may replace it. Hosting is described in [HOSTING.md](HOSTING.md), the offline folder in [OFFLINE.md](OFFLINE.md).
 
 | flag                | what it does                                                                                                        |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------- |
@@ -43,6 +47,10 @@ Makes a static site in `dist/`. Hosting is described in [HOSTING.md](HOSTING.md)
 ## export
 
 Makes a PDF (default), PNG files, a PPTX or a Markdown file. It builds the deck first, unless `--dist` or `--url` says where it is.
+With several entries (`slide-ng export a.md b.md`) each deck is built and exported in turn, to its own file named as for one deck;
+`--output`, `--dist` and `--url` name one place, so they are refused then, and so are two decks that would get the same file name.
+To export one deck of such a build, name its folder: `slide-ng export a.md --dist dist/a` serves it under the base it was built with (the
+`<base href>` of its `index.html`); a `--base` that differs from it is refused.
 
 | flag                                                 | what it does                                                                               |
 | ---------------------------------------------------- | ------------------------------------------------------------------------------------------ |
@@ -58,7 +66,7 @@ Makes a PDF (default), PNG files, a PPTX or a Markdown file. It builds the deck 
 | `--timeout`, `--wait`, `--wait-until`                | how long to wait for each page (ms), extra wait (ms), and the load state to wait for       |
 | `--dist`                                             | export an existing build, with the router mode it was built with                           |
 | `--url`                                              | export a running server (such as the dev server)                                           |
-| `--base`                                             | the base the build at `--dist` was made with                                               |
+| `--base`                                             | the base the build at `--dist` was made with; read from its `index.html` when left out     |
 | `--theme`, `-t`                                      | use this theme instead of the headmatter's                                                 |
 | `--lang`                                             | use this language instead of the headmatter's `lang` (refused with `--dist` and `--url`)   |
 | `--executable-path`, `--no-sandbox`, `--allow-local` | as for `build`                                                                             |
@@ -72,7 +80,7 @@ server (`--url`): build each language with `slide-ng build --lang <tag>` and exp
 
 ## export-notes
 
-Makes a PDF of the speaker notes. Takes `--output`, `--range` and the Chromium flags of `export`.
+Makes a PDF of the speaker notes. Takes `--output`, `--range` and the Chromium flags of `export`, and several entries as `export` does.
 
 ## format
 
