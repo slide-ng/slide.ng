@@ -15,7 +15,8 @@ import { NoteStore } from './note-store';
 type Status = 'editing' | 'saving' | 'saved' | 'conflict' | 'error';
 
 // The route /overview (Slidev's slides overview): every slide in a list, with a clicks slider and its notes beside it.
-// While developing, a double click on a note edits it; leaving the text saves it into the markdown file.
+// While developing, a double click on a note (or Enter on it) edits it; leaving the text saves it into the markdown file.
+// On a narrow screen the notes go below the slide.
 // Nav and Ui are provided because a few built-in components (the table of contents) read them.
 @Component({
   selector: 'app-overview-page',
@@ -32,7 +33,10 @@ type Status = 'editing' | 'saving' | 'saved' | 'conflict' | 'error';
     <ol id="overview-list" class="m-0 p-0 list-none">
       @for (slide of slides; track $index) {
         @let no = $index + 1;
-        <li class="overview-row flex gap-6 px-6 py-4 border-b border-main" [attr.data-no]="no">
+        <li
+          class="overview-row flex flex-wrap gap-6 px-6 py-4 border-b border-main"
+          [attr.data-no]="no"
+        >
           <a
             class="text-3xl op30 hover:op100 w-12 text-right flex-none"
             [routerLink]="['/', no]"
@@ -56,7 +60,12 @@ type Status = 'editing' | 'saving' | 'saved' | 'conflict' | 'error';
               }
             </div>
           </div>
-          <div class="overview-note flex-auto min-w-0" (dblclick)="edit(no)">
+          <div
+            class="overview-note flex-auto min-w-0 basis-60"
+            [attr.tabindex]="canEdit() ? 0 : null"
+            (dblclick)="edit(no)"
+            (keydown.enter)="$event.target === $event.currentTarget && edit(no)"
+          >
             @if (editing() === no) {
               <textarea
                 class="overview-note-edit w-full h-full min-h-40 p-2 font-mono text-sm bg-transparent border border-primary rounded outline-none"
@@ -64,13 +73,15 @@ type Status = 'editing' | 'saving' | 'saved' | 'conflict' | 'error';
                 [value]="draft()"
                 (input)="draft.set($any($event.target).value)"
                 (blur)="save(no)"
-                (keydown.escape)="editing.set(0)"
+                (keydown.escape)="cancel(no)"
               ></textarea>
             } @else {
               <app-note-display
                 [html]="slide.noteHtml"
                 [clicks]="clicks()[no] ?? null"
-                [placeholder]="canEdit() ? 'No notes. Double click to add some.' : 'No notes.'"
+                [placeholder]="
+                  canEdit() ? 'No notes. Double click or press Enter to add some.' : 'No notes.'
+                "
               />
             }
             @if (status()[no]; as s) {
@@ -87,7 +98,8 @@ type Status = 'editing' | 'saving' | 'saved' | 'conflict' | 'error';
 export class OverviewPage {
   protected readonly slides = SLIDES;
   protected readonly title = `Overview - ${HEADMATTER['title'] ?? 'slide.ng'}`;
-  protected readonly width = 340;
+  // Narrower on a phone, so the slide fits between the page's side paddings.
+  protected readonly width = Math.min(340, window.innerWidth - 48);
   protected readonly max = CLICKS_MAX;
   private notes = inject(NoteStore);
   private injector = inject(Injector);
@@ -141,6 +153,19 @@ export class OverviewPage {
     const status = await this.notes.save(no, note, this.base);
     // The file changed: the generator rebuilds the deck and the page shows the new note.
     this.setStatus(no, status === 200 ? 'saved' : status === 409 ? 'conflict' : 'error');
+  }
+
+  // Escape: the note stays as it was and the focus goes back to it.
+  protected cancel(no: number) {
+    this.editing.set(0);
+    this.status.update(({ [no]: _, ...rest }) => rest);
+    afterNextRender(
+      () =>
+        document
+          .querySelector<HTMLElement>(`.overview-row[data-no="${no}"] .overview-note`)
+          ?.focus(),
+      { injector: this.injector },
+    );
   }
 
   private setStatus(no: number, status: Status) {

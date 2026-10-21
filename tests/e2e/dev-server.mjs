@@ -384,6 +384,19 @@ try {
   const firstNote = page.locator('.overview-row[data-no="1"] .overview-note');
   await firstNote.waitFor({ timeout: 60000 });
   await sleep(1000); // the page has asked the server for its token
+  const beforeKeys = read();
+  await firstNote.focus();
+  await page.keyboard.press('Enter');
+  await page.locator('.overview-note-edit').waitFor({ timeout: 10000 });
+  await page.keyboard.type('Not kept.');
+  await page.keyboard.press('Escape');
+  await sleep(500);
+  t.ok(
+    '/overview: Enter on a note edits it, Escape cancels and gives the focus back to the note',
+    (await page.locator('.overview-note-edit').count()) === 0 &&
+      (await firstNote.evaluate((e) => e === document.activeElement)) &&
+      read() === beforeKeys,
+  );
   await firstNote.dblclick();
   await page.locator('.overview-note-edit').waitFor({ timeout: 10000 });
   await page.locator('.overview-note-edit').fill('Said in the overview.');

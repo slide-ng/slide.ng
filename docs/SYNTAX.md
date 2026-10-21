@@ -706,7 +706,7 @@ Layers: add any of `layers/global-top.ts`, `global-bottom.ts`, `slide-top.ts`, `
 ## Dev-only extras and remote use
 
 While the dev server runs (`slide-ng dev`, or `npm start` in this repository): the **edit** button in the bar opens a side editor with the current slide's markdown (saved as you type), slide-ng-drag and drawings are written to files, and `{monaco-write}` saves.
-A double click on a note in `/overview` edits it (leaving the text saves it, Escape cancels). `/notes-edit` has every note in one text,
+A double click on a note in `/overview`, or Enter on it (Tab reaches it), edits it (leaving the text saves it, Escape cancels). On a narrow screen the notes are below each slide. `/notes-edit` has every note in one text,
 each after a `--- #N` line; the notes that changed are saved after a short pause, and a text whose `--- #N` lines were changed is not saved.
 Saving a note rebuilds the deck and reloads the page; `/notes-edit` keeps the caret and what was typed meanwhile, also while the
 page starts again (`src/index.html` keeps those keys until the text is back, only on a load of `/notes-edit` itself) and while the notes are read again; only a key pressed

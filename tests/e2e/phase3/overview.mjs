@@ -37,6 +37,21 @@ export async function run({ t, base, browser, problems, open, press }) {
     (await page.locator('.overview-note-edit').count()) === 0,
   );
 
+  for (const width of [320, 375]) {
+    await page.setViewportSize({ width, height: 700 });
+    await page.goto(`${base}/overview`);
+    const note = page.locator('.overview-row[data-no="2"] .overview-note');
+    await note.waitFor({ timeout: 15000 });
+    const box = await note.boundingBox();
+    t.ok(
+      `/overview at ${width}px: the notes are below the slide, as wide as the page`,
+      box.width > width - 80 &&
+        (await page.evaluate(() => document.querySelector('app-overview-page').scrollWidth)) <=
+          width,
+      JSON.stringify(box),
+    );
+  }
+
   await page.goto(`${base}/entry`);
   const labels = (await page.locator('#entry a').allInnerTexts()).map((l) => l.trim());
   t.ok(
