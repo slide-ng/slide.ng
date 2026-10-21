@@ -87,8 +87,9 @@ export function watchFolder(dir, onEvent, { tree = false } = {}) {
         start(true);
       });
     } catch {
-      // The folder above went away meanwhile (a whole tree being deleted): look further up.
-      if (dirname(above) !== above) wait();
+      // The folder above went away meanwhile (a whole tree being deleted): look further up. If it is still there, it cannot be
+      // watched (watch limit, permissions): give up rather than try the same folder again.
+      if (!existsSync(above) && dirname(above) !== above) wait();
       return;
     }
     retry(); // made again before the watch above started
