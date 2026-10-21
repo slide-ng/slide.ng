@@ -59,6 +59,34 @@ describe('injectIndexHtml', () => {
     expect(html).toContain('<meta charset="utf-8">');
     expect(html).toContain('og:site_name');
   });
+  it('keeps tags meant to repeat: a theme-color per media and Open Graph arrays', () => {
+    const own =
+      '<html>\n<head>\n  <meta property="og:title" content="hm">\n  <meta property="og:image" content="og-image.png">\n  <meta name="theme-color" content="#fff">\n</head>\n<body></body>\n</html>';
+    const html = injectIndexHtml(own, {
+      head: [
+        '<meta property="og:title" content="deck">',
+        '<meta property="og:image" content="a.png">',
+        '<meta property="og:image" content="b.png">',
+        '<meta property="article:tag" content="x">',
+        '<meta property="article:tag" content="y">',
+        '<meta name="theme-color" media="(prefers-color-scheme: light)" content="#fff">',
+        '<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000">',
+      ].join('\n'),
+      body: '',
+    });
+    expect(html.match(/og:title/g)).toHaveLength(1);
+    expect(html).toContain('<meta property="og:title" content="deck">');
+    expect(html.match(/property="og:image"/g)).toHaveLength(3);
+    expect(html.match(/article:tag/g)).toHaveLength(2);
+    // The two media are two tags; the page's one without media is another key.
+    expect(html.match(/name="theme-color"/g)).toHaveLength(3);
+  });
+  it("leaves the page's own tags alone when index.html has none of that key", () => {
+    const own =
+      '<html><head><meta name="x" content="1"><meta name="x" content="2"></head><body></body></html>';
+    const html = injectIndexHtml(own, { head: '<meta name="y" content="3">', body: '' });
+    expect(html.match(/name="x"/g)).toHaveLength(2);
+  });
   it('merges the attributes into <html> and <body>; the headmatter wins, class values are joined', () => {
     const own =
       '<html lang="en" class="dark"><head></head><body><app-root></app-root></body></html>';

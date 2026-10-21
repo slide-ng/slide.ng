@@ -80,34 +80,41 @@ export function rootIndexHtml(roots, base = '/') {
   return { head: head.join('\n'), body: body.join('\n'), htmlAttrs, bodyAttrs };
 }
 
-// The key of a head tag that replaces an earlier one (as Slidev's unhead does): `<title>`, `<meta name>` or `<meta property>`.
+// The key of a head tag that replaces an earlier one (as Slidev's unhead does): `<title>`, or a `<meta>` by its name or
+// property and its `media` (a light and a dark `theme-color` are two tags). Open Graph arrays (several `og:image`,
+// `article:tag`, ...) are meant to repeat: they have no key and are all kept.
 const TAG = /<title\b[^>]*>[\s\S]*?<\/title>\s*|<meta\b[^>]*>\s*/gi;
+const REPEATED =
+  /^(og:(image|video|audio)(:.*)?|og:locale:alternate|(article|book):(tag|author)|music:.*|video:(actor|director|writer|tag)(:.*)?)$/;
 function tagKey(tag) {
   if (/^<title/i.test(tag)) return 'title';
   const attrs = parseAttributes(tag.replace(/^<meta\b|\/?>\s*$/gi, ''));
   const name = attrs.name ?? attrs.property;
-  return typeof name === 'string' ? `meta:${name.toLowerCase()}` : null;
-}
-
-/** Keeps the last `<title>` and the last `<meta>` of each name or property in the head: the later one wins. */
-export function dedupeHead(html) {
-  const end = html.search(/<\/head>/i);
-  if (end < 0) return html;
-  const head = html.slice(0, end);
-  const last = new Map();
-  for (const m of head.matchAll(TAG)) {
-    const key = tagKey(m[0]);
-    if (key) last.set(key, m.index);
-  }
-  const kept = head.replace(TAG, (tag, index) => {
-    const key = tagKey(tag);
-    return key && last.get(key) !== index ? '' : tag;
-  });
-  return kept + html.slice(end);
+  if (typeof name !== 'string' || REPEATED.test(name.toLowerCase())) return null;
+  return `meta:${name.toLowerCase()}:${typeof attrs.media === 'string' ? attrs.media : ''}`;
 }
 
 /**
- * Puts the parts into the page: the head before </head> (its `<title>` and `<meta name>` replace the page's), the body after
+ * Puts the `<title>` and `<meta>` tags of `added` (the index.html parts) over the page's: a page tag with the same key as
+ * an added one is removed, and of added tags with the same key the last one is kept. The page's own tags are left alone.
+ */
+export function replaceHeadTags(page, added) {
+  const last = new Map();
+  for (const m of added.matchAll(TAG)) {
+    const key = tagKey(m[0]);
+    if (key) last.set(key, m.index);
+  }
+  const ownHead = page.replace(/<\/head>[\s\S]*$/i, '');
+  const own = ownHead.replace(TAG, (tag) => (last.has(tagKey(tag)) ? '' : tag));
+  const kept = added.replace(TAG, (tag, index) => {
+    const key = tagKey(tag);
+    return key && last.get(key) !== index ? '' : tag;
+  });
+  return { page: own + page.slice(ownHead.length), added: kept };
+}
+
+/**
+ * Puts the parts into the page: the head before </head> (its `<title>` and `<meta>` replace the page's, see replaceHeadTags), the body after
  * the app's element, and the attributes on <html> and <body>. The page's own attributes (from the headmatter: `lang`,
  * `htmlAttrs`) win, except those named in `defaults` (the `lang="en"` the headmatter did not ask for); `class` values are joined.
  */
@@ -117,7 +124,10 @@ export function injectIndexHtml(
   defaults = [],
 ) {
   let html = page;
-  if (head) html = dedupeHead(html.replace(/<\/head>/i, () => `${head}\n</head>`));
+  if (head) {
+    const replaced = replaceHeadTags(html, head);
+    html = replaced.page.replace(/<\/head>/i, () => `${replaced.added}\n</head>`);
+  }
   if (body) html = html.replace(/<\/app-root>/i, () => `</app-root>\n${body}`);
   for (const [tag, attrs] of [
     ['html', htmlAttrs],

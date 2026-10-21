@@ -110,8 +110,10 @@ analytics, an extra font, a `<meta>`. Only what is inside its `<head>` and `<bod
 ```
 
 The parts of every root are added in root order (theme, addons, deck), after the tags made from the headmatter. As Slidev's
-head manager does, a `<title>` or a `<meta name>`/`<meta property>` replaces the one with the same name made from the headmatter
-(or from an earlier root): the later one wins. While the deck runs, the tab's title still follows the slides' titles. The
+head manager does, a `<title>` or a `<meta name>`/`<meta property>` replaces the one with the same name (and the same `media`)
+made from the headmatter or from an earlier root: the later one wins. A light and a dark `theme-color` (two `media`) are both kept,
+and so are tags meant to repeat, the Open Graph arrays (`og:image`, `og:video`, `og:audio`, `og:locale:alternate`,
+`article:tag`, `article:author`, `book:*`, `music:*`, `video:*`): every copy from every root stays. While the deck runs, the tab's title still follows the slides' titles. The
 attributes of its `<html>` and `<body>` are added to the page's tags; the headmatter's `lang` and `htmlAttrs` win over them, and
 `class` values are joined. A root address (`src="/analytics.js"`, `href="/brand.css"`, files of `public/`) gets the base in front
 like `/x.svg` in a slide (`/talk/analytics.js` with `--base /talk/`, `analytics.js` in an offline folder); `//host/...` and
