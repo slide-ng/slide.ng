@@ -18,6 +18,10 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - The date on the notes PDF is written in the deck's language instead of the browser's.
 - `<html lang>` is written in the usual spelling: `lang: pt_br` gives `pt-BR`.
 
+### Fixed
+
+- `<slide-ng-youtube id="luoMHjh-XcQ?start=1234" />` starts at the given time, as in Slidev, instead of failing to find the video. YouTube's embed options in the id (`start`, `end`, `list`, `loop`, ...) are kept and others dropped; `start` and `list` can also be attributes. A start time (`start`, or `t` of a shared link) may be written YouTube's way (`1m30s`); one that is not a time is dropped with a warning.
+
 ## [1.0.0] - 2026-10-18
 
 ### Added

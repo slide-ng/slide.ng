@@ -215,6 +215,8 @@ const plain = 'no twoslash here'
 <slide-ng-auto-fit-text id="fit" class="w-60 h-20 bg-gray-100" min="10" max="60">Some text that should fit its box</slide-ng-auto-fit-text>
 
 <slide-ng-youtube id="luoMHjh-XcQ" width="320" height="180" />
+<slide-ng-youtube id="luoMHjh-XcQ?start=1234&end=1300&foo=bar" width="160" height="90" />
+<slide-ng-youtube id="luoMHjh-XcQ" start="1m30s" width="160" height="90" />
 
 ---
 
