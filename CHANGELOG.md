@@ -50,6 +50,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 ### Changed
 
 - The date on the notes PDF is written in the deck's language instead of the browser's.
+- The address leaves out `?clicks=0`: slide 2 at its first click is `/2` (or `#/2`), not `/2?clicks=0`, as in Slidev. An address with `?clicks=0` still opens.
 - `<html lang>` is written in the usual spelling: `lang: pt_br` gives `pt-BR`.
 - An `<a href="/4">` written as HTML is left as written; only markdown links become slide links (#14).
 - In a PDF made by `export` or `build --download`, other links to the deck's own site (`/file.pdf`, `<a href="/3">`) are text without a link, instead of links to the temporary server of the export.

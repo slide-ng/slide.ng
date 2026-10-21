@@ -42,7 +42,7 @@ The generator warns, with the slide and line, about text values that cannot work
 - Total clicks of a slide = the largest click number its elements ask for. `clicks: N` in the frontmatter fixes it; `clicksStart` sets the first click (default 0). A value that is not a number is ignored with a warning; a negative `clicks` is ignored and a negative `clicksStart` counts as 0.
 - The order of elements in the template is what makes `+1` relative work.
 - Code line ranges `{1|2|all}`, math ranges, `slide-ng-mark`, `slide-ng-motion`, `<slide-ng-switch>` and `<slide-ng-click-gap>` add clicks too.
-- The click is in the URL: `/8?clicks=2`. Going back to a slide lands on its last click.
+- The click is in the URL: `/8?clicks=2` (none at click 0). Going back to a slide lands on its last click.
 - In a PDF a slide with clicks shows its last state unless `--with-clicks` is used.
 
 <!-- verify -->

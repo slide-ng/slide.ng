@@ -127,7 +127,7 @@ export class Nav {
   go(no: number, clicks = 0, replace = false) {
     const slide = SLIDES[no - 1];
     return this.router.navigate([this.base, slide?.routeAlias ?? no], {
-      queryParams: { clicks },
+      queryParams: { clicks: clicksQuery(clicks) },
       replaceUrl: replace,
     });
   }
@@ -142,7 +142,7 @@ export class Nav {
   private switchTo(base: string) {
     const slide = SLIDES[this.no() - 1];
     return this.router.navigate([base, slide?.routeAlias ?? this.no()], {
-      queryParams: { clicks: this.clicks() },
+      queryParams: { clicks: clicksQuery(this.clicks()) },
     });
   }
 
@@ -160,11 +160,18 @@ export class Nav {
     return new URLSearchParams(this.location.path().split('?')[1] ?? '').get('clicks');
   }
 
-  /** Keep `?clicks=` up to date without a navigation (no history entry, the router stays quiet). */
+  /** Keep `?clicks=` up to date without a navigation (no history entry, the router stays quiet); left out at click 0. */
   writeClicksParam(clicks: number) {
     const [path, query = ''] = this.location.path().split('?');
     const params = new URLSearchParams(query);
-    params.set('clicks', String(clicks));
+    const value = clicksQuery(clicks);
+    if (value === undefined) params.delete('clicks');
+    else params.set('clicks', value);
     this.location.replaceState(path, params.toString());
   }
+}
+
+/** The `?clicks=` value for a click step: none at click 0, as in Slidev (`clicks === 0 ? undefined`). */
+export function clicksQuery(clicks: number): string | undefined {
+  return clicks === 0 ? undefined : String(clicks);
 }

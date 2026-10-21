@@ -115,7 +115,7 @@ export async function run({ t, open, press, hud, pathOf, style }) {
   await page.locator('#c-link a').click();
   await page.waitForTimeout(200);
   t.ok('slide-ng-link goes to a slide number', pathOf(page) === '/3', pathOf(page));
-  await page.goto(page.url().replace('/3?', '/26?'));
+  await page.goto(page.url().split('?')[0].replace(/\/3$/, '/26'));
   await page.waitForFunction(() =>
     /slide 26/.test(document.querySelector('#hud')?.innerText ?? ''),
   );

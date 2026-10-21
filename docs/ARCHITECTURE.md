@@ -138,7 +138,7 @@ and each element turns the signal into CSS classes (`slidev-vclick-hidden` hides
 `Deck` provides `Nav` and `Ui` for itself, so everything inside it (controls, and the slides, which are created
 inside it) can inject them. The URL is the state: `/7?clicks=2`. When the route changes the deck asks `Stage`
 to show the slide: the old slide is removed (or animated away), a new component is created with a fresh `ClicksContext`.
-`?clicks=N` is read when the slide is created and written back with `history.replaceState` as clicks change.
+`?clicks=N` is read when the slide is created and written back with `history.replaceState` as clicks change (left out at click 0, as in Slidev).
 Slides get their number and render context (`slide`, `overview`) from two injection tokens, which is how
 `<slide-ng-current-no>` and `<slide-ng-render-when>` know where they are.
 

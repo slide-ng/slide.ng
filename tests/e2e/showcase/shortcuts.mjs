@@ -23,7 +23,7 @@ export async function run({ t, open, press, pathOf, hud }) {
   t.ok('Enter does nothing outside the overview', at() === '/3');
 
   // Next and previous move through the clicks of a slide before changing slide (slide 28 has 3).
-  await page.goto(page.url().replace('/3?', '/28?').split('?')[0]);
+  await page.goto(page.url().split('?')[0].replace(/\/3$/, '/28'));
   await page.waitForFunction(() =>
     /slide 28/.test(document.querySelector('#hud')?.innerText ?? ''),
   );

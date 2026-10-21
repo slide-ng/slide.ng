@@ -1,4 +1,4 @@
-import { findSlide, slideAddress } from './nav';
+import { clicksQuery, findSlide, slideAddress } from './nav';
 
 describe('findSlide', () => {
   const aliases = [null, 'intro', null];
@@ -31,5 +31,12 @@ describe('slideAddress', () => {
     expect(slideAddress('/file.pdf')).toBeNull();
     expect(slideAddress('/a/b')).toBeNull();
     expect(slideAddress('#part')).toBeNull();
+  });
+});
+
+describe('clicksQuery', () => {
+  it('leaves ?clicks= out at click 0, as Slidev does', () => {
+    expect(clicksQuery(0)).toBeUndefined();
+    expect(clicksQuery(3)).toBe('3');
   });
 });
