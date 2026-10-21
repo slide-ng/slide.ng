@@ -52,7 +52,8 @@ import { T } from '../i18n/t';
 })
 export class CodeRunner implements OnInit, OnDestroy {
   code = input.required<string>();
-  execute = input.required<(code: string) => Promise<RunResult>>();
+  /** Runs the code. `signal` is aborted when a newer run starts or the runner goes away: stop the old run then. */
+  execute = input.required<(code: string, signal?: AbortSignal) => Promise<RunResult>>();
   autorun = input<boolean | 'once'>(true);
   showOutputAt = input<RawSingleAt>();
   protected running = signal(false);
@@ -70,6 +71,7 @@ export class CodeRunner implements OnInit, OnDestroy {
   private ranOnce = false;
   // Numbers the runs, so an old run that ends late cannot replace a newer result.
   private runId = 0;
+  private abort?: AbortController;
 
   constructor() {
     // `autorun: true` runs on every change (after a pause, so typing does not run on every key),
@@ -100,13 +102,17 @@ export class CodeRunner implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     clearTimeout(this.timer);
+    this.abort?.abort();
     this.clicks.unregister(this);
   }
 
   protected async run() {
     const id = ++this.runId;
+    // A run still going (an endless loop, say) is stopped, so the new one does not wait for its cut-off.
+    this.abort?.abort();
+    const abort = (this.abort = new AbortController());
     this.running.set(true);
-    const result = await this.execute()(this.code());
+    const result = await this.execute()(this.code(), abort.signal);
     if (id !== this.runId) return;
     this.result.set(result);
     this.running.set(false);

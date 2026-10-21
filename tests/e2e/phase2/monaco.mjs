@@ -131,4 +131,35 @@ export async function run({ t, open, press, hud }) {
     (await page.locator('[data-slide-ng-waitfor]').count()) === 0,
   );
   await page.close();
+
+  // A run stuck in an endless loop is stopped when the slide is left: the next slide's run does not wait for the
+  // 5 second cut-off (sandboxed frames of one site can share a process).
+  page = await open('/19');
+  await page.waitForSelector('.slidev-runner-run');
+  await page.locator('.slidev-runner-run').click();
+  await page.waitForTimeout(300);
+  await press(page, 'ArrowRight');
+  const start = Date.now();
+  await page.waitForFunction(
+    () => /after the loop|Stopped/.test(document.querySelector('code-runner')?.textContent ?? ''),
+    null,
+    { timeout: 15000 },
+  );
+  const took = Date.now() - start;
+  const after = await page.locator('code-runner').innerText();
+  t.ok(
+    "leaving a slide stops its endless loop: the next slide's run is not held up",
+    after.includes('after the loop') && took < 4000,
+    `${took} ms: ${after}`,
+  );
+  // Leaving a TypeScript run while it is turned into JavaScript logs no "Could not find source file" error
+  // (the "no console errors" check at the end of the phase).
+  for (let i = 0; i < 6; i++) {
+    await press(page, 'ArrowLeft');
+    await page.waitForTimeout(250);
+    await press(page, 'ArrowRight');
+    await page.waitForTimeout(250);
+  }
+  await page.waitForTimeout(1000);
+  await page.close();
 }

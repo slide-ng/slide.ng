@@ -303,3 +303,20 @@ A claim[^1] and another[^second].
 .from-apply { @apply text-green-600 italic; }
 .from-uno { --uno: underline font-mono; }
 </style>
+
+---
+
+# Monaco endless loop
+
+```js {monaco-run} {autorun:false}
+while (true) {}
+```
+
+---
+
+# Monaco after the loop
+
+```ts {monaco-run}
+const after: string = 'after the loop'
+console.log(after)
+```
