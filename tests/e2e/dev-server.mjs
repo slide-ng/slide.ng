@@ -1,6 +1,7 @@
 // `npm run test:dev` (second part): starts the real dev server on a copy of a small deck and checks what the
 // companion server does: slide-ng-drag moves are written into the markdown (also for names and bare slide-ng-drag), drawings
-// and {monaco-write} edits are saved to files, bad requests are refused, and `--remote` needs its password.
+// and {monaco-write} edits are saved to files, bad requests are refused, `--remote` needs its password, and a second dev
+// server on the same deck stops before it touches anything.
 import { spawn } from 'node:child_process';
 import { copyFileSync, existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { WebSocket } from 'ws';
@@ -119,6 +120,24 @@ try {
   await page.evaluate(() => {
     window.__marker = 'alive';
   });
+
+  // ---- one deck runs one dev server: a second one stops before it touches anything
+  const second = spawn(process.execPath, ['scripts/dev.mjs', '--port', '4229'], {
+    stdio: ['ignore', 'ignore', 'pipe'],
+    env: { ...process.env, SLIDES_FILE: WORK },
+  });
+  let secondErr = '';
+  second.stderr.on('data', (d) => (secondErr += d));
+  const secondCode = await new Promise((done) => {
+    const timer = setTimeout(() => (second.kill(), done('still running')), 30000);
+    second.on('exit', (code) => (clearTimeout(timer), done(code)));
+  });
+  t.ok(
+    'a second dev server on the same deck stops with a clear message',
+    secondCode === 1 && /already runs for this deck/.test(secondErr),
+    `${secondCode} ${secondErr.trim()}`,
+  );
+  t.ok('the first dev server still serves the deck', (await fetch(`${base}/2`)).ok);
 
   const session = await (await fetch(`${base}/__slide-ng/session`)).json();
   t.ok(

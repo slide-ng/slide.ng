@@ -50,6 +50,9 @@ Thumbs.db
 **/.slide-ng/monaco-files.json
 /tests/e2e/dev/.slide-ng/
 
+# Held while `slide-ng dev` runs (one deck runs one dev server)
+**/.slide-ng/dev.lock
+
 # Build folders that the slide-ng command makes and removes itself
 **/.slide-ng/export-build/
 **/.slide-ng/build/

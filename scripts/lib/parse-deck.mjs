@@ -118,8 +118,16 @@ export async function parseDeck(file = 'slides.md', sources, options = {}) {
   });
 
   // Import problems (missing file, circular import, bad range) are collected by the parser.
+  // The dev server shows them in the page too (`importProblems`), and watches for a missing file to be made (`missing`).
+  const importProblems = [];
+  const missing = [];
   for (const md of Object.values(data.markdownFiles))
-    for (const e of md.errors ?? []) problems.push(`${md.filepath}:${e.row}: ${e.message}`);
+    for (const e of md.errors ?? []) {
+      importProblems.push(`${md.filepath}:${e.row}: ${e.message}`);
+      const notFound = /^Imported markdown file not found: (.+)$/.exec(e.message);
+      if (notFound) missing.push(notFound[1]);
+    }
+  problems.push(...importProblems);
   return {
     headmatter,
     entry,
@@ -128,6 +136,8 @@ export async function parseDeck(file = 'slides.md', sources, options = {}) {
     allowOutsideRoot,
     slides,
     files: Object.keys(data.markdownFiles),
+    missing,
     problems,
+    importProblems,
   };
 }

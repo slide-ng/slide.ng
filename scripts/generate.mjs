@@ -1,16 +1,9 @@
 // Reads slides.md and writes one Angular component per slide into
 // src/slides/generated/, plus an index.ts and uno.css (the CSS for the class names in use). Usage: node scripts/generate.mjs [--watch]
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  readdirSync,
-  rmSync,
-  watch,
-  writeFileSync,
-} from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 import { coalesce } from './lib/coalesce.mjs';
+import { watchFolder } from './lib/watch-folder.mjs';
 import { offerInstall } from './lib/install-root.mjs';
 import { parseDeck } from './lib/parse-deck.mjs';
 import { RootNotFoundError } from './lib/roots.mjs';
@@ -43,6 +36,15 @@ const THEME = process.env.SLIDE_NG_THEME || undefined;
 // SLIDES_FILE lets tests build another deck.
 const INPUT = process.env.SLIDES_FILE ?? 'slides.md';
 const OUT = 'src/slides/generated/';
+
+const WATCH = process.argv.includes('--watch');
+
+// What the dev server's banner says (dev/problem-banner.ts): `lastGood` when the slides on screen are the last good ones.
+const writeProblem = (text, lastGood) =>
+  write(
+    `${OUT}problem.ts`,
+    `export const PROBLEM = ${JSON.stringify(text)};\nexport const LAST_GOOD = ${lastGood};\n`,
+  );
 
 // Only write when the text changed, so the dev server does not rebuild for nothing.
 function write(path, text) {
@@ -93,7 +95,7 @@ async function readDeck() {
   try {
     return await parseDeck(INPUT, undefined, { theme: THEME });
   } catch (e) {
-    if (!(e instanceof RootNotFoundError) || deckRead || process.argv.includes('--watch')) throw e;
+    if (!(e instanceof RootNotFoundError) || deckRead || WATCH) throw e;
     if (!(await offerInstall(e, dirname(resolve(INPUT))))) throw e;
     return parseDeck(INPUT, undefined, { theme: THEME });
   }
@@ -173,8 +175,9 @@ async function generate() {
   copyLocalAssets(deck.root, deck.localAssets, `${OUT}local-assets`);
   writeMonacoTargets(deck.root);
   write(`${OUT}index.ts`, indexSource(deck));
-  // The dev server shows a generator error in the page (dev/problem-banner.ts); a good run clears it.
-  write(`${OUT}problem.ts`, "export const PROBLEM = '';\n");
+  // The dev server shows a generator error in the page (dev/problem-banner.ts); a good run clears it. Slides that could not be
+  // imported (a missing `src:` file) are named there too, while the rest of the deck is shown.
+  writeProblem(WATCH ? deck.importProblems.join('\n') : '', false);
   write(`${OUT}features.css`, featureCss(features));
   // The generated slides are scanned too: icon tags and alerts only become class names there.
   const slideFiles = deck.slides.map((_, i) => `${OUT}${slideName(i + 1)}.ts`);
@@ -190,15 +193,15 @@ async function generate() {
   // take the focus from the editor while the speaker types.
   const written = new Set(Object.values(monacoWriteTargets()).map((p) => resolve(deck.root, p)));
   const snippets = [...snippetFiles].filter((f) => !written.has(f));
-  return { files: [...deck.files, ...snippets], folders: rootFolders(deck.roots) };
+  return { files: [...deck.files, ...deck.missing, ...snippets], folders: rootFolders(deck.roots) };
 }
 
 // What to watch for the roots: a theme or addon folder as a whole, and only the known folders of the deck's own folder
-// (the rest of it is the deck's files, `node_modules` and so on).
+// (the rest of it is the deck's files, `node_modules` and so on). A known folder that is not there yet is watched for too.
 const rootFolders = (roots) =>
   roots
-    .flatMap((r) => (r.kind === 'deck' ? ROOT_FOLDERS.map((f) => join(r.dir, f)) : [r.dir]))
-    .filter((d) => existsSync(d));
+    .filter((r) => r.dir)
+    .flatMap((r) => (r.kind === 'deck' ? ROOT_FOLDERS.map((f) => join(r.dir, f)) : [r.dir]));
 
 // A failed first run prints its message, not Node's stack trace (SLIDE_NG_DEBUG=1 shows the stack).
 let first;
@@ -209,7 +212,7 @@ try {
   process.exit(1);
 }
 const { files, folders } = first;
-if (process.argv.includes('--watch')) {
+if (WATCH) {
   let timer;
   const watched = new Set();
   // Runs never overlap: generating uses shared state, and a change during a run asks for one more run.
@@ -218,7 +221,7 @@ if (process.argv.includes('--watch')) {
       .then(watchAll)
       .catch((e) => {
         console.error(e.message);
-        write(`${OUT}problem.ts`, `export const PROBLEM = ${JSON.stringify(e.message)};\n`);
+        writeProblem(e.message, true);
       }),
   );
   // Editors save in bursts; wait a moment so we generate once.
@@ -228,22 +231,23 @@ if (process.argv.includes('--watch')) {
   };
   // The entry file, every file it imports with `src:` or `<<<`, and the folders of themes and addons. A file is watched through
   // its folder: an editor that saves by writing a new file and renaming it over the old one ends a watch on the file itself.
+  // Folders are watched one by one (lib/watch-folder.mjs), and again after one is deleted and made again.
   const names = new Map(); // folder -> the file names wanted in it
   const watchAll = ({ files, folders }) => {
     for (const f of files) {
       const dir = dirname(f);
       if (!names.has(dir)) {
         names.set(dir, new Set());
-        watch(dir, (_, name) => {
-          if (name && names.get(dir).has(String(name))) onChange();
+        watchFolder(dir, (_, name) => {
+          if (!name || names.get(dir).has(name)) onChange();
         });
       }
       names.get(dir).add(basename(f));
     }
     for (const d of folders)
-      if (!watched.has(d)) (watched.add(d), watch(d, { recursive: true }, onChange));
+      if (!watched.has(d)) (watched.add(d), watchFolder(d, onChange, { tree: true }));
   };
   watchAll({ files, folders });
-  watch('src/app', { recursive: true }, onChange); // layouts may use new class names
+  watchFolder('src/app', onChange, { tree: true }); // layouts may use new class names
   console.log(`[slides] watching ${INPUT} (and its imports), its theme folders and src/app`);
 }

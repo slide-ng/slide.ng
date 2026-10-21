@@ -16,7 +16,7 @@ class: from-here
 
 - The path is relative to the markdown file. A range after `#` picks slides: `src: ./pages/intro.md#2,4-6`.
 - Keys on the importing slide **win** over the imported slide's keys. The text of the importing slide is ignored.
-- A missing file or a circular import is reported when the slides are generated, and the slide is skipped.
+- A missing file or a circular import is reported when the slides are generated (a warning, so a build goes on), and the slide is skipped. The dev server also names it in a red banner on the page until the file is back.
 - `defaults:` in the headmatter gives every slide a base frontmatter; a slide's own keys win.
 - Imported files outside the deck's folder cannot be edited by the dev server's side editor.
 

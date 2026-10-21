@@ -7,10 +7,11 @@ import { spawn, spawnSync } from 'node:child_process';
 import { createServer } from 'node:net';
 import { hostname, networkInterfaces } from 'node:os';
 import { createInterface } from 'node:readline';
-import { join, resolve } from 'node:path';
-import { removeInside } from '../lib/tool-dir.mjs';
+import { dirname, join, resolve } from 'node:path';
+import { checkToolDir, removeInside } from '../lib/tool-dir.mjs';
 import { randomPassword, randomSecret } from '../dev/config.mjs';
 import { ngBinary, prepareApp } from './app-root.mjs';
+import { checkPortFree, takeDevLock } from './dev-lock.mjs';
 import { applyThemeFlag, parseFlags } from './flags.mjs';
 import { packageRoot } from './package-root.mjs';
 import { askPassword } from './prompt.mjs';
@@ -88,6 +89,9 @@ const freePort = () =>
 
 export async function devCommand(argv) {
   const plan = devPlan(argv);
+  // One deck runs one dev server: both are checked before anything is asked or written (see dev-lock.mjs).
+  takeDevLock(checkToolDir(dirname(plan.entry)), plan.port);
+  await checkPortFree(plan.port, plan.host);
   // On a terminal, ask for the password (Enter keeps the random one), so it never has to be in the command line.
   if (plan.remote && plan.passwordGenerated && process.stdin.isTTY) {
     const typed = await askPassword('[slide.ng] remote password (Enter for a random one): ');

@@ -47,25 +47,32 @@ export async function initHighlighter({
   const names = [
     ...new Set([...langs, ...(setup.langNames ?? []), 'ts', 'js', 'html', 'css'].map(resolveAlias)),
   ];
+  // The highlighter of the previous run is let go: its WebAssembly memory is not freed otherwise (the dev server runs this on every save).
+  highlighter?.dispose();
+  highlighter = null;
   highlighter = await createHighlighter({
     themes: singleTheme ? [singleTheme] : Object.values(themes),
     langs: [...names.filter((n) => n in bundledLanguages), ...grammars.map((g) => g.input)],
   });
   grammarNames = new Set(grammars.map((g) => g.name));
-  twoslash = null;
-  if (useTwoslash) {
-    const { transformerTwoslash } = await import('@shikijs/twoslash');
-    // Only blocks with `twoslash` after the language are processed (explicitTrigger), as in Slidev.
-    // `^?` queries get a line of their own: as popups they lay over the next lines of code.
-    twoslash = transformerTwoslash({
-      explicitTrigger: true,
-      rendererRich: { queryRendering: 'line' },
-      twoslashOptions: {
-        compilerOptions: { ignoreDeprecations: '6.0' },
-        handbookOptions: { noErrorValidation: true },
-      },
-    });
-  }
+  // Twoslash's options never change, so the transformer (and the TypeScript program it starts) is made once and kept.
+  if (useTwoslash) twoslashMade ??= await makeTwoslash();
+  twoslash = useTwoslash ? twoslashMade : null;
+}
+
+let twoslashMade = null;
+async function makeTwoslash() {
+  const { transformerTwoslash } = await import('@shikijs/twoslash');
+  // Only blocks with `twoslash` after the language are processed (explicitTrigger), as in Slidev.
+  // `^?` queries get a line of their own: as popups they lay over the next lines of code.
+  return transformerTwoslash({
+    explicitTrigger: true,
+    rendererRich: { queryRendering: 'line' },
+    twoslashOptions: {
+      compilerOptions: { ignoreDeprecations: '6.0' },
+      handbookOptions: { noErrorValidation: true },
+    },
+  });
 }
 
 export const twoslashTransformer = () => twoslash;
