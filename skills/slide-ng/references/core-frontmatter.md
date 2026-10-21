@@ -14,13 +14,16 @@ The YAML block at the top of a slide.
 | `title`                                                                | slide title; otherwise the first `#` heading. Used in the tab, the table of contents and the goto box                   |
 | `level`                                                                | depth in `<slide-ng-toc>`; otherwise the number of `#` in the first heading                                             |
 | `hideInToc`                                                            | leave out of `<slide-ng-toc>`                                                                                           |
-| `routeAlias`                                                           | extra address: `routeAlias: intro` opens this slide at `/intro` (`print`, `notes`, `presenter` and numbers are refused) |
+| `routeAlias`                                                           | `routeAlias: intro` opens this at `/intro`; one slide per alias; refused: app pages, numbers, empty, `/ . ? # \` inside |
 | `hide`, `disabled`                                                     | slide is left out of the deck                                                                                           |
 | `clicks`, `clicksStart`                                                | fix the number of clicks; first click number (default 0)                                                                |
 | `transition`                                                           | transition between this slide and the next                                                                              |
 | `src`                                                                  | take the slides from another markdown file, see `core-import-slides.md`                                                 |
 | `image`, `url`, `scale`, `backgroundSize`, `background`, `layoutClass` | props of some layouts                                                                                                   |
 | `zoom`, `dragPos`                                                      | see `layout-zoom.md`, `layout-draggable.md`                                                                             |
+
+A `routeAlias` on a `src:` import of several slides lands on each of them, so it is refused as a duplicate. Links to a missing
+slide or alias are generator warnings.
 
 Keys are camelCase, as in Slidev (`hideInToc`, `routeAlias`, `clicksStart`).
 

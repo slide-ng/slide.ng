@@ -42,15 +42,24 @@ const joinLines = (md) =>
 
 /**
  * @param {string} markdown
- * @param {{ file?: string, root?: string, headmatter?: any, aliases?: string[] }} [ctx] file, root: where snippet paths start;
- *   headmatter: deck-wide code settings; aliases: the deck's routeAlias names, which links to slides may use
+ * @param {{ file?: string, root?: string, headmatter?: any, aliases?: string[], total?: number, hiddenAliases?: string[], slide?: { no: number } }} [ctx]
+ *   file, root: where snippet paths start; headmatter: deck-wide code settings; aliases: the deck's routeAlias names, which
+ *   links to slides may use; total, hiddenAliases: the slide count and the aliases of hidden slides, to warn about links
+ *   that reach no slide (with `slide`, whose number the warning names)
  */
 export function toTemplate(markdown, ctx = {}) {
   const kept = []; // Angular syntax we put back at the end
   const keep = (s) => `NGKEEP${kept.push(s) - 1}X`;
   // A line that is only an HTML comment is left alone by the markdown converter.
   const hide = (s) => `<!--${keep(s)}-->`;
-  const marked = new Marked({ renderer: linkRenderer({ aliases: ctx.aliases }) });
+  const marked = new Marked({
+    renderer: linkRenderer({
+      aliases: ctx.aliases,
+      total: ctx.total,
+      hidden: ctx.hiddenAliases,
+      warn: ctx.slide && ((m) => console.warn(`[slides] slide ${ctx.slide.no}: ${m}`)),
+    }),
+  });
 
   // 1. Code fences and inline code are plain text: set them aside first.
   let { markdown: md, fences } = extractFences(markdown, ctx);

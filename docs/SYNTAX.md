@@ -34,13 +34,17 @@ Keys slide.ng understands:
 | `title`                                                                | slide title (otherwise the first `#` heading); used in the browser tab, the table of contents and the goto box                                              |
 | `level`                                                                | depth in the table of contents (otherwise the number of `#` in the first heading)                                                                           |
 | `hideInToc`                                                            | leave this slide out of `<slide-ng-toc>`                                                                                                                    |
-| `routeAlias`                                                           | an extra address: `routeAlias: intro` makes `/intro` open this slide; `print`, `notes` and `presenter` (app pages) and numbers (`2` is slide 2) are refused |
+| `routeAlias`                                                           | an extra address: `routeAlias: intro` makes `/intro` open this slide; one slide per alias, and the names that are refused are listed right under this table |
 | `hide`, `disabled`                                                     | the slide is left out of the deck completely                                                                                                                |
 | `clicksStart`                                                          | first click number of the slide (default 0)                                                                                                                 |
 | `clicks`                                                               | fixes the number of clicks of the slide, whatever its elements ask for                                                                                      |
 | `transition`                                                           | transition to the next slide, see Transitions                                                                                                               |
 | `src`                                                                  | take the slides from another markdown file, see Importing slides                                                                                            |
 | `image`, `url`, `scale`, `backgroundSize`, `background`, `layoutClass` | props of some layouts                                                                                                                                       |
+
+A `routeAlias` stops the build when it is `print`, `notes` or `presenter` (pages of the app), a number (`/2` is slide 2), empty, has `/`, `.`,
+`?`, `#` or `\` (an address does not keep them in one name), or is on two slides; one set on a `src:` import of several slides lands on each of
+them, so it is refused too. A page a deck adds itself is not seen by the build: give it a name no slide uses as an alias.
 
 In the headmatter (the frontmatter of the first slide) you can also set:
 
@@ -469,8 +473,10 @@ As in Slidev, a markdown link to a slide moves inside the deck, and a link to a 
 
 - An address of only digits, or `/`, `./` or `#/` followed by a slide number or a `routeAlias`, becomes a `<slide-ng-link>`: a click moves to that
   slide without loading the page again, with history or hash routing, a base or an offline folder, and Ctrl+click opens it in a new tab. A number
-  past the last slide goes to the last slide. Other addresses that start with `/` or `./` (`/file.pdf`, a name that is no `routeAlias`) stay plain links;
-  Slidev turns those into slide links too.
+  past the last slide goes to the last slide. An alias may be any name (`./café`, `./🚀`, `./My%20Alias`). Other addresses that start with `/` or `./`
+  (`/file.pdf`, a name that is no `routeAlias`) stay plain links; Slidev turns those into slide links too.
+- The generator warns, naming the slide, about a number past the last slide (`[far](99)`), a `./name` or `#/name` that is no `routeAlias`
+  (`/name` may be a page of the site, so it is not warned about) and a link to the alias of a slide with `hide:` or `disabled:`.
 - `#id` and `./#id` scroll to that element of the slide. `#5` is such an anchor too: write `5` or `#/5` for slide 5.
 - An `http:` or `https:` address gets `target="_blank" rel="noopener"`. Slidev opens every other link in a new tab; here `mailto:` and the like stay as they are.
 - An `<a>` written as HTML is left as written.

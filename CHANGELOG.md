@@ -18,6 +18,9 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - An `<a href="/4">` written as HTML is left as written; only markdown links become slide links (#14).
 - In a PDF made by `export` or `build --download`, other links to the deck's own site (`/file.pdf`, `<a href="/3">`) are text without a link, instead of links to the temporary server of the export.
 - A `routeAlias` that is a number (`routeAlias: 2`) is refused: the address `/2` is slide 2, so the alias's slide could not be opened.
+- A `routeAlias` that is empty, has `/`, `.`, `?`, `#` or `\`, or is on two slides (also through a `src:` import of several slides) stops the build, naming the slides.
+- Markdown links to a unicode or emoji `routeAlias` (`[x](./café)`) become slide links too.
+- The generator warns about a markdown link past the last slide (`[x](99)`), to a `./name` that is no `routeAlias`, or to the alias of a slide with `hide:`.
 
 ## [1.0.0] - 2026-10-18
 

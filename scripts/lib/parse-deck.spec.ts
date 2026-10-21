@@ -65,6 +65,10 @@ describe('parseDeck', async () => {
     );
     expect(result.slides.map((s) => s.title)).toEqual(['A', 'D']);
   });
+  it('keeps the routeAlias of a hidden slide, for the link warning', async () => {
+    const result = await parse('# A\n\n---\nhide: true\nrouteAlias: ghost\n---\n\n# B\n');
+    expect(result.hiddenAliases).toEqual(['ghost']);
+  });
   it('does not split at --- inside a code fence', async () => {
     const result = await parse('# A\n\n```md\n---\nx\n---\n```\n\n---\n\n# B\n');
     expect(result.slides.length).toBe(2);

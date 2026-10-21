@@ -91,7 +91,7 @@ routeAlias: details
 # Details
 ```
 
-- Only digits, or `/`, `./`, `#/` followed by a slide number or a `routeAlias`, makes a slide link (`<slide-ng-link>`). Other `/x` and `./x` addresses stay plain links.
+- Only digits, or `/`, `./`, `#/` followed by a slide number or a `routeAlias`, makes a slide link (`<slide-ng-link>`); an alias may be unicode or an emoji. Other `/x` and `./x` addresses stay plain links. The generator warns about `[far](99)` past the last slide, `./name` that is no alias, and the alias of a `hide:` slide.
 - `#id` scrolls to an element of the slide; `#5` is such an anchor, not slide 5.
 - `http(s)` links get `target="_blank" rel="noopener"`; `mailto:` and others do not.
 - An `<a href>` written as HTML is left as written. Use `<slide-ng-link to="3">` in HTML.

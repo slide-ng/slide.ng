@@ -22,6 +22,9 @@ describe('slideAddress', () => {
     expect(slideAddress('./intro')).toBe('intro');
     expect(slideAddress('#/4')).toBe('4');
     expect(slideAddress('/intro#part')).toBe('intro');
+    expect(slideAddress('./café')).toBe('café');
+    expect(slideAddress('./🚀')).toBe('🚀');
+    expect(slideAddress('./My%20Alias')).toBe('My Alias');
   });
   it('gives null for other addresses', () => {
     expect(slideAddress('https://example.org/4')).toBeNull();

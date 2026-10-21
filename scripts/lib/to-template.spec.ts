@@ -78,6 +78,22 @@ describe('toTemplate: links', () => {
       '<p><a href="/about">a</a> <a href="/file.pdf">f</a> <a href="./notes.html">n</a></p>',
     );
   });
+  it('turns a link to a unicode or emoji routeAlias into a slide link', () => {
+    expect(link('[a](./café) [b](/🚀) [c](./My%20Alias)', ['café', '🚀', 'My Alias'])).toBe(
+      '<p><slide-ng-link to="café">a</slide-ng-link> <slide-ng-link to="🚀">b</slide-ng-link> <slide-ng-link to="My Alias">c</slide-ng-link></p>',
+    );
+  });
+  it('warns about a link to a slide that is not there, naming the slide', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const ctx = { aliases: ['intro'], total: 3, hiddenAliases: ['ghost'], slide: { no: 2 } };
+    toTemplate('[a](99) [b](./nope) [c](./ghost) [d](/about) [e](3) [f](./intro)', ctx as any);
+    expect(warn.mock.calls.map((c) => c[0])).toEqual([
+      '[slides] slide 2: the link "99" goes to slide 99, but the deck has 3 slides (it opens slide 3)',
+      '[slides] slide 2: the link "./nope" names no slide (no slide has routeAlias "nope"), so it is a plain link',
+      '[slides] slide 2: the link "./ghost" names the routeAlias of a slide with hide: or disabled:, which is not in the deck',
+    ]);
+    warn.mockRestore();
+  });
   it('keeps a link to a heading of the slide an anchor', () => {
     expect(link('[r](#results) [s](./#results) [n](#5)')).toBe(
       '<p><a href="#results">r</a> <a href="#results">s</a> <a href="#5">n</a></p>',

@@ -18,7 +18,14 @@ export function findSlide(param: string, total: number, aliases: (string | null)
 
 // The slide part of a link written in markdown (`4`, `/4`, `./intro`, `#/4`, as scripts/lib/links.mjs reads them), or null.
 export function slideAddress(href: string): string | null {
-  return /^(?:(\d+)|(?:\.?\/|#\/)([\w-]+)(?:#.*)?)$/.exec(href)?.slice(1).find(Boolean) ?? null;
+  const to =
+    /^(?:(\d+)|(?:\.?\/|#\/)([^\s/?#.\\"'<>{}&`]+)(?:#.*)?)$/.exec(href)?.slice(1).find(Boolean) ??
+    null;
+  try {
+    return to && decodeURIComponent(to);
+  } catch {
+    return to;
+  }
 }
 
 @Injectable()
