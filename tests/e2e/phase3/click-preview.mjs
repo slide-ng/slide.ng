@@ -162,7 +162,7 @@ export async function run({ t, open, press, hud, pathOf, windowGroup }) {
     p2 = await state('#p2'),
     item = await state('li:nth-child(2)');
   t.ok(
-    'click preview: the part of the next click is highlighted',
+    'click preview: the part of the next click is highlighted, over a deck rule with opacity: 0 !important',
     p1.ahead && p1.next && p1.at === '1' && p1.opacity > 0.5 && p1.opacity < 1,
     JSON.stringify(p1),
   );

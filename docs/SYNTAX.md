@@ -651,6 +651,10 @@ current slide changes: the audience, `/notes` and the next-step pane do not. The
 - A part with a click animation preset (`.up`, `.left`, `.scale`, ...) or a deck's own hidden style (Slidev's
   `.slidev-vclick-hidden { transform: scale(0) }`) is drawn at its place and size: while a part is a greyed-out ghost its
   `transform`, `translate`, `scale` and `rotate` are reset, so a part's own transform is not shown until its click.
+  A ghost always has the ghost opacity, also with a preset that dims or hides it (`fade`, `fade-in`) or a deck's own
+  `.slidev-vclick-hidden.x { opacity: 0 !important }`.
+- A fractional click (`slide-ng-click="1.5"`) has the badge of the whole click it shows at (2), as the nav steps one whole click
+  at a time; a range that no click is in (`[3, 1]`, `[0, 0]`) gets no badge.
 - Content in `@if (clicks.current() > 2) { ... }` (Slidev's `v-if="$clicks > 2"`) is not previewed: it is not on the page until its click, so it has no greyed-out part and no badge.
   Use `slide-ng-click` (or `slide-ng-click="3"`) for content the preview should show.
 - In a right-to-left deck or part (`dir: rtl`) the badge sits at the part's inline start, its right edge.

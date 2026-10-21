@@ -4,7 +4,7 @@ title: Click preview deck
 
 # Reveal
 
-<div id="p1" slide-ng-click>one</div>
+<div id="p1" class="gone" slide-ng-click>one</div>
 <div id="p2" class="offset" slide-ng-click>two</div>
 <div id="p2b" slide-ng-after>two, too</div>
 <div id="ph" slide-ng-click="5" slide-ng-click-hide>gone at five</div>
@@ -18,6 +18,10 @@ title: Click preview deck
 </slide-ng-clicks>
 
 <style>
+/* As the fade-in preset (or a deck's own animation) hides a part: the click preview still draws its ghost. */
+.gone.slidev-vclick-hidden {
+  opacity: 0 !important;
+}
 /* As a click animation preset (.up, .scale) draws a hidden part. */
 .offset.slidev-vclick-hidden {
   translate: 0 20px;

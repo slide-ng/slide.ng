@@ -25,6 +25,16 @@ describe('changesOf', () => {
     const info = make().calculateSince('+1', 0)!;
     expect(changesOf({ el: el(), info })).toEqual([]);
   });
+  it('a fractional click changes at the whole click the nav steps to', () => {
+    const c = make();
+    expect(changesOf({ el: el(), info: c.calculateSince(0.5)! })).toEqual([1]);
+    expect(changesOf({ el: el(), info: c.calculateRange([1.5, 2.5])! })).toEqual([2, 3]);
+  });
+  it('a range that no click is in never changes', () => {
+    const c = make();
+    expect(changesOf({ el: el(), info: c.calculateRange([0, 0])! })).toEqual([]);
+    expect(changesOf({ el: el(), info: c.calculateRange([3, 1])! })).toEqual([]);
+  });
   it('steps of their own win, sorted and without repeats', () => {
     const info = make().calculateSince(1, 4)!;
     expect(changesOf({ el: el(), info, steps: [3, 1, 3, 5] })).toEqual([1, 3, 5]);
@@ -44,6 +54,22 @@ describe('previewMarks', () => {
     expect(previewMarks(parts, 1, 3)).toEqual([
       { el: b, at: 2, isNext: true },
       { el: d, at: 3, isNext: false },
+    ]);
+  });
+  it('marks a fractional click with the click it shows at, and not a range that never shows', () => {
+    const c = ctx();
+    const [a, b] = [el(), el()];
+    const parts: ClickPart[] = [
+      { el: a, info: c.calculateSince(0.5)! },
+      { el: b, info: c.calculateRange([0, 0])! },
+    ];
+    expect(previewMarks(parts, 0, 1)).toEqual([{ el: a, at: 1, isNext: true }]);
+  });
+  it('a fractional total is the last click, as the nav stops there', () => {
+    const c = ctx();
+    const a = el();
+    expect(previewMarks([{ el: a, info: c.calculateSince(1.5)! }], 1, 1.5)).toEqual([
+      { el: a, at: 1.5, isNext: true },
     ]);
   });
   it('an element with several parts gets its earliest click', () => {

@@ -118,8 +118,10 @@ html.dark .slidev-presenter .grid-section {
 }
 
 /* The click preview on the presenter's current slide (slide.ng's own, see click-preview-layer.ts). A part that a later click
-   shows is drawn greyed out instead of hidden, the part of the next click brighter and outlined. The audience never gets these classes. */
-.slide-ng-click-ahead.slidev-vclick-hidden {
+   shows is drawn greyed out instead of hidden, the part of the next click brighter and outlined. The audience never gets these classes.
+   `.slidev-presenter` in front wins over the click animation presets (`.slidev-vclick-hidden.slidev-vclick-anim-fade-in`)
+   and over a deck's own `.slidev-vclick-hidden.x { opacity: 0 !important }`, which are just as !important. */
+.slidev-presenter .slide-ng-click-ahead.slidev-vclick-hidden {
   opacity: var(--slide-ng-ghost-opacity) !important;
   visibility: visible !important;
   pointer-events: auto !important;
@@ -132,7 +134,7 @@ html.dark .slidev-presenter .grid-section {
   rotate: none !important;
   transform: none !important;
 }
-.slide-ng-click-ahead.slide-ng-click-next.slidev-vclick-hidden {
+.slidev-presenter .slide-ng-click-ahead.slide-ng-click-next.slidev-vclick-hidden {
   opacity: var(--slide-ng-ghost-next-opacity) !important;
   filter: none;
 }
