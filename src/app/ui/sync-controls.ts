@@ -2,7 +2,14 @@ import { Component, ElementRef, Injector, afterNextRender, computed, inject } fr
 import { Nav } from '../lib/nav';
 import { Ui } from '../lib/ui-state';
 import { SyncState } from '../sync/sync-state';
-import { SYNC_MODES, SyncMode, syncFlags, syncMode, withSyncMode } from '../sync/sync-mode';
+import {
+  SYNC_MODES,
+  SyncMode,
+  modeStep,
+  syncFlags,
+  syncMode,
+  withSyncMode,
+} from '../sync/sync-mode';
 import { IconBtn } from './icon-btn';
 import { T } from '../i18n/t';
 
@@ -109,7 +116,7 @@ export class SyncControls {
       this.el.querySelector<HTMLElement>('#nav-sync')?.focus();
       return;
     }
-    const by = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
+    const by = modeStep(e.key, getComputedStyle(this.el).direction === 'rtl');
     if (!by) return;
     e.preventDefault();
     e.stopPropagation();

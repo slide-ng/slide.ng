@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { syncMode, withSyncMode } from './sync-mode';
+import { modeStep, syncMode, withSyncMode } from './sync-mode';
 
 const all = { viewerSend: true, viewerReceive: true, presenterSend: true, presenterReceive: true };
 
@@ -26,5 +26,17 @@ describe('withSyncMode', () => {
   it('goes back to both ways', () => {
     const off = withSyncMode(all, false, 'off');
     expect(withSyncMode(off, false, 'bidirectional')).toEqual(all);
+  });
+});
+
+describe('modeStep', () => {
+  it('moves down and up, and right and left as seen', () => {
+    expect(
+      ['ArrowDown', 'ArrowUp', 'ArrowRight', 'ArrowLeft', 'a'].map((k) => modeStep(k, false)),
+    ).toEqual([1, -1, 1, -1, 0]);
+    // Right to left: left is the way the text goes, so it is the next mode.
+    expect(
+      ['ArrowDown', 'ArrowUp', 'ArrowRight', 'ArrowLeft'].map((k) => modeStep(k, true)),
+    ).toEqual([1, -1, -1, 1]);
   });
 });

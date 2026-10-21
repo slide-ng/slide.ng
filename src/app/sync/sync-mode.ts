@@ -12,6 +12,16 @@ export const SYNC_MODES: { value: SyncMode; label: UiTextKey }[] = [
   { value: 'off', label: 'sync.off' },
 ];
 
+/**
+ * How far an arrow key moves in the sync menu (a radio group): down and up go to the next and the previous mode;
+ * right and left too, mirrored on a right-to-left page so that they follow what is seen. Other keys: 0.
+ */
+export function modeStep(key: string, rtl: boolean): number {
+  const forward = rtl ? 'ArrowLeft' : 'ArrowRight',
+    back = rtl ? 'ArrowRight' : 'ArrowLeft';
+  return key === 'ArrowDown' || key === forward ? 1 : key === 'ArrowUp' || key === back ? -1 : 0;
+}
+
 /** Whether this window sends and receives, for its role. */
 export function syncFlags(d: SyncDirections, isPresenter: boolean) {
   return isPresenter
