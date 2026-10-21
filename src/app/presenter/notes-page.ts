@@ -1,6 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { SLIDES, HEADMATTER } from '../../slides/generated';
+import { Dark } from '../lib/dark';
 import { Fullscreen } from '../lib/fullscreen';
 import { storedSignal } from '../lib/stored-signal';
 import { SyncState } from '../sync/sync-state';
@@ -68,7 +69,7 @@ import { TimerBar } from './timer-bar';
           <div class="flex-auto"></div>
           <div id="notes-counter" class="px-2 my-auto">
             <span class="text-lg">{{ page() }}</span
-            ><span class="opacity-50 text-sm"> / {{ total }}</span>
+            ><span class="opacity-65 text-sm"> / {{ total }}</span>
           </div>
         </div>
       </div>
@@ -90,6 +91,7 @@ export class NotesPage {
 
   constructor() {
     inject(Title).setTitle(`Notes - ${HEADMATTER['title'] ?? 'slide.ng'}`);
+    inject(Dark); // the deck's colour scheme (colorSchema, the system or the last choice) on <html>
     this.sync.sendHello(); // the presenter answers with where it is
   }
 }

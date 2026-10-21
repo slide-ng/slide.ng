@@ -14,7 +14,7 @@ import { Component, computed, input, output } from '@angular/core';
         <div class="flex-auto"></div>
         <span
           ><span class="text-primary">{{ current() }}</span
-          ><span class="op25 text-sm">/</span><span class="op50 text-sm">{{ total() }}</span></span
+          ><span class="op65 text-sm">/</span><span class="op65 text-sm">{{ total() }}</span></span
         >
       </div>
       <div class="relative flex-auto font-mono flex h-5">
@@ -32,7 +32,7 @@ import { Component, computed, input, output } from '@angular/core';
             (click)="pick(i)"
           >
             <div class="absolute inset-0" [class]="i <= current() ? 'bg-primary op15' : ''"></div>
-            <div class="z-1" [class]="i === current() ? 'text-primary font-bold' : 'op30'">
+            <div class="z-1" [class]="i === current() ? 'text-primary font-bold' : 'op65'">
               {{ i }}
             </div>
           </button>

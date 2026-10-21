@@ -110,7 +110,7 @@ import { BRUSH_COLORS, Drawings, ToolMode } from './drawings';
           icon-btn
           id="draw-undo"
           title="Undo"
-          [class.disabled]="!drawings.canUndo()"
+          [disabled]="!drawings.canUndo()"
           (click)="drawings.undo()"
         >
           <div class="i-carbon:undo"></div>
@@ -119,7 +119,7 @@ import { BRUSH_COLORS, Drawings, ToolMode } from './drawings';
           icon-btn
           id="draw-redo"
           title="Redo"
-          [class.disabled]="!drawings.canRedo()"
+          [disabled]="!drawings.canRedo()"
           (click)="drawings.redo()"
         >
           <div class="i-carbon:redo"></div>
@@ -128,7 +128,7 @@ import { BRUSH_COLORS, Drawings, ToolMode } from './drawings';
           icon-btn
           id="draw-clear"
           title="Delete"
-          [class.disabled]="!drawings.canClear()"
+          [disabled]="!drawings.canClear()"
           (click)="drawings.clear()"
         >
           <div class="i-carbon:trash-can"></div>

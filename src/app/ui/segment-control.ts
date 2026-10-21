@@ -20,7 +20,7 @@ export function hashHue(name: string): number {
           type="button"
           [id]="o.id"
           class="px-2 py-1 text-xs font-mono whitespace-nowrap rounded cursor-pointer"
-          [class.op50]="o.value !== value()"
+          [class.op65]="o.value !== value()"
           [attr.aria-pressed]="o.value === value()"
           [style.color]="o.value === value() ? hsla(o.label, 1) : null"
           [style.background]="o.value === value() ? hsla(o.label, 0.1) : null"

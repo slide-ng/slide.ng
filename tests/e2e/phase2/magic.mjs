@@ -43,6 +43,12 @@ export async function run({ t, open, press, hud }) {
     (await page.locator('.shiki-magic-move-line-number').count()) > 0 ||
       (await text()).startsWith('1 '),
   );
+  t.ok(
+    'screen readers skip the line numbers',
+    await page
+      .locator('.shiki-magic-move-line-number')
+      .evaluateAll((l) => l.length > 0 && l.every((e) => e.getAttribute('aria-hidden') === 'true')),
+  );
   const hidden = () =>
     page.locator('#after-magic').evaluate((e) => e.classList.contains('slidev-vclick-hidden'));
   t.ok('the element after the block still waits', await hidden());

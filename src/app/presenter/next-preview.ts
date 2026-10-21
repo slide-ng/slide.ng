@@ -24,7 +24,14 @@ import { SlideLayer } from '../lib/slide-layer';
   host: { class: 'block relative h-full w-full overflow-hidden' },
   template: `
     @if (frame(); as f) {
-      <div id="next-canvas" class="canvas absolute left-1/2 top-1/2" [style]="style()">
+      <!-- A picture of what comes next: screen readers and the Tab key skip it (the current slide has the same content). -->
+      <div
+        id="next-canvas"
+        class="canvas absolute left-1/2 top-1/2"
+        aria-hidden="true"
+        inert
+        [style]="style()"
+      >
         <app-slide-layer name="global-bottom" [no]="f.no" /><ng-container #host /><app-slide-layer
           name="global-top"
           [no]="f.no"

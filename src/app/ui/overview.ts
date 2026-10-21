@@ -1,4 +1,13 @@
-import { Component, ElementRef, effect, inject, signal, untracked, viewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+  viewChild,
+} from '@angular/core';
 import { focusWhileOpen } from '../lib/dialog-focus';
 import { Nav } from '../lib/nav';
 import { Ui } from '../lib/ui-state';
@@ -20,12 +29,12 @@ import { Thumbnail } from './thumbnail';
         aria-modal="true"
         aria-label="Slide overview"
         tabindex="-1"
-        class="outline-none fixed inset-0 z-modal bg-main bg-opacity-75! p-16 py-20 overflow-y-auto backdrop-blur-5px select-none text-main"
+        class="outline-none fixed inset-0 z-modal bg-main bg-opacity-75! px-4 sm:px-16 py-20 overflow-y-auto backdrop-blur-5px select-none text-main"
         (click)="close()"
       >
         <div
           class="grid gap-y-4 gap-x-8 w-full"
-          [style.grid-template-columns]="'repeat(auto-fit, minmax(' + cardWidth + 'px, 1fr))'"
+          [style.grid-template-columns]="'repeat(auto-fit, minmax(' + cardWidth() + 'px, 1fr))'"
         >
           @for (slide of nav.slides; track $index) {
             <div class="relative">
@@ -39,12 +48,15 @@ import { Thumbnail } from './thumbnail';
                 (click)="go($index + 1, $event)"
               >
                 @defer (on viewport) {
-                  <app-thumbnail [no]="$index + 1" [width]="cardWidth" />
+                  <app-thumbnail [no]="$index + 1" [width]="cardWidth()" />
                 } @placeholder {
-                  <div [style.width.px]="cardWidth" [style.height.px]="(cardWidth * 9) / 16"></div>
+                  <div
+                    [style.width.px]="cardWidth()"
+                    [style.height.px]="(cardWidth() * 9) / 16"
+                  ></div>
                 }
               </button>
-              <div class="absolute top-0 opacity-50" [style.left.px]="cardWidth + 5">
+              <div class="absolute top-0 opacity-65" [style.left.px]="cardWidth() + 5">
                 {{ $index + 1 }}
               </div>
             </div>
@@ -70,7 +82,9 @@ export class Overview {
   protected ui = inject(Ui);
   protected nav = inject(Nav);
   protected width = signal(window.innerWidth);
-  protected cardWidth = 300;
+  // The side padding (px-4, sm:px-16). A phone gets narrower cards, with room for the slide number beside them.
+  private padding = computed(() => (this.width() < 640 ? 32 : 128));
+  protected cardWidth = computed(() => Math.min(300, this.width() - this.padding() - 40));
   private dialog = viewChild<ElementRef<HTMLElement>>('dialog');
   private closeButton = viewChild('closeButton', { read: ElementRef<HTMLElement> });
 
@@ -96,7 +110,7 @@ export class Overview {
       untracked(() => {
         this.ui.overviewPage.set(this.nav.no());
         this.ui.overviewColumns.set(
-          Math.max(1, Math.floor((this.width() - 128) / (this.cardWidth + 32))),
+          Math.max(1, Math.floor((this.width() - this.padding()) / (this.cardWidth() + 32))),
         );
       });
     });

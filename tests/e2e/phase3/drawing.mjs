@@ -53,10 +53,19 @@ export async function run({ t, open, hud, windowGroup, browser }) {
       titles.filter((x) => x.startsWith('Brush color: ')).length === 7,
     titles.join('|'),
   );
+  const off = (id) => presenter.locator(id).isDisabled();
+  t.ok(
+    'with nothing drawn, undo, redo and delete are disabled buttons',
+    (await off('#draw-undo')) && (await off('#draw-redo')) && (await off('#draw-clear')),
+  );
 
   // ---- drawing with the stylus tool (the default) and the other tools
   await stroke(presenter, [0.2, 0.3], [0.5, 0.6]);
   t.ok('a stroke makes a path', (await tags(presenter)) === 'path', await tags(presenter));
+  t.ok(
+    'then undo and delete can be pressed, redo not yet',
+    !(await off('#draw-undo')) && !(await off('#draw-clear')) && (await off('#draw-redo')),
+  );
   t.ok('the viewer shows it at once', (await tags(viewer)) === 'path', await tags(viewer));
   await presenter.keyboard.press('l');
   await stroke(presenter, [0.6, 0.2], [0.8, 0.4]);

@@ -23,7 +23,7 @@ import { Timer } from './timer';
           <button
             id="timer-toggle"
             type="button"
-            class="relative op-80 hover:op-100 cursor-pointer bg-transparent border-0 p-0 text-inherit"
+            class="relative cursor-pointer bg-transparent border-0 p-0 text-inherit"
             [attr.aria-label]="timer.status() === 'running' ? 'Pause the timer' : 'Start the timer'"
             (click)="timer.toggle()"
           >
@@ -34,7 +34,7 @@ import { Timer } from './timer';
           <button
             id="timer-reset"
             type="button"
-            class="op-80 hover:op-100 cursor-pointer bg-transparent border-0 p-0 text-inherit"
+            class="cursor-pointer bg-transparent border-0 p-0 text-inherit"
             aria-label="Reset the timer"
             (click)="timer.reset()"
           >

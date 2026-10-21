@@ -69,9 +69,13 @@ import { TimerInlined } from './timer-inlined';
         [class]="'layout' + prefs.layout()"
         (contextmenu)="contextMenu($event)"
       >
-        <div class="relative grid-section main flex flex-col">
+        <div
+          class="relative grid-section main flex flex-col"
+          role="region"
+          aria-label="Current slide"
+        >
           <div class="flex gap-4 items-center border-b border-main p-1">
-            <span class="op50 px-2">Current</span>
+            <span class="op65 px-2">Current</span>
             <div class="flex rounded border border-main overflow-hidden text-sm ml-auto">
               <button
                 type="button"
@@ -111,15 +115,19 @@ import { TimerInlined } from './timer-inlined';
             (picked)="nav.ctx()?.setCurrent($event)"
           />
         </div>
-        <div class="relative grid-section next flex flex-col p-2 lg:p-4">
+        <div
+          class="relative grid-section next flex flex-col p-2 lg:p-4"
+          role="region"
+          aria-label="Next step"
+        >
           <app-next-preview />
           <div
-            class="absolute left-0 top-0 bg-main border-b border-r border-main px-2 py-1 op50 text-sm"
+            class="absolute left-0 top-0 bg-main border-b border-r border-main px-2 py-1 op65 text-sm"
           >
             Next
           </div>
         </div>
-        <div class="relative grid-section note overflow-hidden">
+        <div class="relative grid-section note overflow-hidden" role="region" aria-label="Notes">
           <div class="h-full grid grid-rows-[1fr_min-content]">
             <div class="overflow-auto" [style.font-size.em]="prefs.fontSize()">
               <app-note-display

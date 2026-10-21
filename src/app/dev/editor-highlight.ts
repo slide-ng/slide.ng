@@ -24,5 +24,14 @@ export async function createEditorHighlighter(): Promise<Highlight> {
       lang: 'markdown',
       themes: { light: 'vitesse-light', dark: 'vitesse-dark' },
       defaultColor: false,
+      // Only a picture behind the textarea: not a Tab stop, not read out (the textarea has the same text).
+      tabindex: -1,
+      transformers: [
+        {
+          pre(pre) {
+            pre.properties['aria-hidden'] = 'true';
+          },
+        },
+      ],
     });
 }
