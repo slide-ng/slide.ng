@@ -166,7 +166,22 @@ runner. The function gets the editor's text and returns `{ lines: string[][], er
 ```ts
 // setup/code-runners.ts
 export default () => ({
-  python: async (code: string) => ({ lines: [[await runPython(code)]] }),
+  // A json {monaco-run} block: says whether the text is valid JSON.
+  json: (code: string) => {
+    try {
+      const value = JSON.parse(code);
+      return {
+        lines: [['valid JSON', Array.isArray(value) ? `a list of ${value.length}` : typeof value]],
+      };
+    } catch (e) {
+      return { lines: [], error: e instanceof Error ? e.message : String(e) };
+    }
+  },
+  // A python {monaco-run} block: a runner may be async, for example to send the code to a service of your own.
+  python: async (code: string) => {
+    const answer = await fetch('http://localhost:8000/run', { method: 'POST', body: code });
+    return { lines: (await answer.text()).split('\n').map((line) => [line]) };
+  },
 });
 ```
 
