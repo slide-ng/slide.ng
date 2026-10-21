@@ -509,7 +509,7 @@ Source: an independent review of the repository (nine findings). Each fix has a 
 3. **Translations are a root folder, `locales/<lang>.json`, merged key by key** like the other root folders (built-in, theme, addons, deck).
    Flat keys with `{name}` placeholders, so a translator needs no code. The generator checks each file against `en.ts`; a bad key stays
    English instead of stopping the build, a file that is not JSON stops it like a broken `theme.json`.
-4. **Turkish ships with 1.x** (`src/app/i18n/locales/tr.json`), complete, to prove the mechanism on a real language. A built-in
+4. **Turkish ships with 2.0.0** (`src/app/i18n/locales/tr.json`), complete, to prove the mechanism on a real language. A built-in
    translation must have every key; a deck's or a theme's may have only some.
 5. **`lang` is also `LOCALE_ID`**, and only that locale's data is imported (`registerLocaleData` in the generated file), so a German deck
    does not carry the data of every language. Angular has no data for a tag such as `xx`: the pipes stay English and the generator says so.
