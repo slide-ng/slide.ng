@@ -39,6 +39,9 @@ describe('parseFlags', () => {
   it('refuses unknown flags, missing values and bad numbers', () => {
     expect(() => parseFlags(['--nope'], spec)).toThrow('Unknown flag --nope');
     expect(() => parseFlags(['-z'], spec)).toThrow('Unknown flag -z');
+    expect(() => parseFlags(['--prot', '3000'], spec)).toThrow(
+      'Unknown flag --prot. Did you mean --port?',
+    );
     expect(() => parseFlags(['--format'], spec)).toThrow('needs a value');
     expect(() => parseFlags(['--port', 'abc'], spec)).toThrow('must be a number');
   });

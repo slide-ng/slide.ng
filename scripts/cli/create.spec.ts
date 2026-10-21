@@ -39,6 +39,20 @@ describe('createCommand', () => {
     expect(readFileSync(join(dir, 'slides.md'), 'utf8')).toBe('mine');
     expect(existsSync(join(dir, 'package.json'))).toBe(true);
   });
+  it('with --force, fills in only the files it adds and keeps an existing .gitignore', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'slide-ng-create-'));
+    writeFileSync(join(dir, 'README.md'), 'Hello {{name}}');
+    writeFileSync(join(dir, '.gitignore'), 'mine\n');
+    await createCommand([dir, '--force'], process.cwd());
+    expect(readFileSync(join(dir, 'README.md'), 'utf8')).toBe('Hello {{name}}');
+    expect(readFileSync(join(dir, '.gitignore'), 'utf8')).toBe('mine\n');
+    expect(JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')).name).not.toContain('{{');
+  });
+  it('ignores the files that export writes by default', async () => {
+    const dir = join(mkdtempSync(join(tmpdir(), 'slide-ng-create-')), 'talk');
+    await createCommand([dir], process.cwd());
+    expect(readFileSync(join(dir, '.gitignore'), 'utf8')).toContain('*-export.*');
+  });
   it('needs a folder name', async () => {
     await expect(createCommand([], process.cwd())).rejects.toThrow('Usage');
   });

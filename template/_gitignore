@@ -2,3 +2,7 @@ node_modules
 dist
 .slide-ng
 *.log
+# what slide-ng export and export-notes write by default
+*-export.*
+*-export/
+*-notes.pdf
