@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, computed } from '@angular/core';
 import { storedSignal } from '../lib/stored-signal';
+import { PaneSize, PaneSizes, paneSizeOf } from './pane-sizes';
 
 // What the presenter changes about its own page, remembered in the browser (Slidev's keys).
 @Injectable({ providedIn: 'root' })
@@ -12,6 +13,17 @@ export class PresenterPrefs {
   readonly showCursor = storedSignal('slidev-presenter-cursor', true);
   /** How the audience sees it: a mouse arrow or a red laser dot. */
   readonly cursorStyle = storedSignal<'cursor' | 'laser'>('slidev-cursor-style', 'cursor');
+  /** The notes pane's width and row size, dragged on the borders; one pair per layout. */
+  private readonly paneSizes = storedSignal<PaneSizes>('slide-ng-presenter-pane-sizes', {});
+  readonly paneSize = computed(() => paneSizeOf(this.paneSizes(), this.layout()));
+
+  setPaneSize(change: Partial<PaneSize>) {
+    const layout = this.layout();
+    this.paneSizes.update((all) => ({
+      ...all,
+      [layout]: { ...paneSizeOf(all, layout), ...change },
+    }));
+  }
 
   nextLayout() {
     this.layout.update((l) => (l >= 3 ? 1 : l + 1));

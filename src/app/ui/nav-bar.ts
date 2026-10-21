@@ -145,17 +145,18 @@ import { presenterEnabled } from '../lib/switches';
           >
             <div class="i-carbon:user-speaker"></div>
           </button>
-          @if (editor.available()) {
-            <button
-              icon-btn
-              id="nav-editor"
-              [title]="(editor.open() ? 'nav.editorHide' : 'nav.editorShow') | t"
-              [active]="editor.open()"
-              (click)="editor.toggle()"
-            >
-              <div class="i-carbon:text-annotation-toggle"></div>
-            </button>
-          }
+        }
+        <!-- On the presenter page the editor takes the place of the notes (as in Slidev) -->
+        @if (editor.available()) {
+          <button
+            icon-btn
+            id="nav-editor"
+            [title]="(editor.isOpen(persist()) ? 'nav.editorHide' : 'nav.editorShow') | t"
+            [active]="editor.isOpen(persist())"
+            (click)="editor.toggle(persist())"
+          >
+            <div class="i-carbon:text-annotation-toggle"></div>
+          </button>
         }
 
         @if (download.wanted) {

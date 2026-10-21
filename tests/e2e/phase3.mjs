@@ -42,6 +42,7 @@ for (const topic of [
   'sync',
   'sync-mode',
   'presenter',
+  'panes',
   'laser',
   'drawing',
   'camera',

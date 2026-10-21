@@ -115,6 +115,7 @@ one can be written. The decisions are in DECISIONS.md ("Made while testing for 1
 - The real screen-share picker, recording quality, the wake lock, `--remote` from a second physical device and over a real LAN, touch input (all as in phase 3).
 - The progress bar's timer minutes (`progressBar: { minutes: true }`) on a viewer on another device: checked between windows of one browser only.
 - The sync mode menu between devices over `--remote` (tested between windows of one browser).
+- Presenter pane resizing with touch input, and Edit Notes from a second device over `--remote` (both tried with a mouse on this machine only).
 - Everything under the phase 1 and 2 NOT VERIFIED lists.
 
 ## macOS run (2026-10-16, Node 24, Chrome from `/Applications`)
