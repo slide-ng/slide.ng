@@ -77,6 +77,16 @@ describe('SyncState', () => {
     expect(Math.abs(sent.timer.sentAt - Date.now())).toBeLessThan(1000);
   });
 
+  it("a move goes out with this device's clock, and stays without it here", () => {
+    const { transport, sync } = setup();
+    const lastUpdate = { id: sync.id, type: 'presenter' as const, time: Date.now() - 5000 };
+    sync.patchShared({ page: 2, lastUpdate });
+    expect(sync.shared().lastUpdate).toEqual(lastUpdate);
+    expect(transport.sent).toEqual([
+      ['shared', { page: 2, lastUpdate: { ...lastUpdate, sentAt: expect.any(Number) } }],
+    ]);
+  });
+
   it('every window answers a hello with a running or paused timer, not with a stopped one', () => {
     const { transport, sync } = setup();
     transport.deliver('hello', {});

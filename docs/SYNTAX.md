@@ -630,8 +630,9 @@ The audience page (`/3`) in another window or on another device follows it; `/no
 In notes, `[click]` marks where the next click starts and `[click:3]` moves three clicks on (counted from the marker before it, as in Slidev); double click a marker to jump there. The layout button cycles three arrangements.
 Windows of one browser follow each other with no server; other devices need the dev server (see Remote below).
 Use one presenter page. Two presenter pages do not follow each other: each keeps its own slide, and the audience follows the one that moved last
-(a window that opens later or a presenter page that reloads does not change that). To use a phone as the remote, open the presenter page on the
-phone and only the audience page on the laptop that drives the projector; an audience page on another device only follows.
+(a window that opens later or a presenter page that opens or reloads does not change that, also when the devices' clocks are not set alike).
+To use a phone as the remote, open the presenter page on the phone and only the audience page on the laptop that drives the projector; an
+audience page on another device only follows.
 
 ```md
 ---

@@ -110,6 +110,22 @@ export async function run({ t, open, press, hud, windowGroup }) {
       (await hud(b)).startsWith('slide 1/4'),
     `${before} / audience ${await hud(audience)} / late ${await hud(late)} / b ${await hud(b)}`,
   );
+  // The presenter that did not move last reloads: its first position is not a move. A window that opens after both
+  // reloads still lands on A's slide (A's reload kept the time of its move).
+  await b.reload();
+  await b.waitForFunction(() =>
+    /clicks \d+\/\d+/.test(document.querySelector('#hud')?.innerText ?? ''),
+  );
+  await audience.waitForTimeout(800);
+  const later = await open('/1', undefined, undefined, two);
+  await later.waitForTimeout(800);
+  t.ok(
+    'a reload of the presenter that did not move last leaves the audience at the last move',
+    (await hud(audience)) === before &&
+      (await hud(later)) === before &&
+      (await hud(b)).startsWith('slide 1/4'),
+    `${before} / audience ${await hud(audience)} / later ${await hud(later)} / b ${await hud(b)}`,
+  );
   await two.close();
 
   // The timer comes with the sender's clock (here an hour ahead, after a minute of running): it shows one minute here.

@@ -11,7 +11,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ### Fixed
 
-- With two presenter windows, a window that opens later or a presenter page that reloads no longer moves the audience to the other presenter's slide: the audience stays with the newest move.
+- With two presenter windows, a window that opens later or a presenter page that opens or reloads no longer moves the audience to the other presenter's slide: the audience stays with the newest move, also when the devices' clocks are not set alike.
 - A presenter tab that was closed and opened again gets the running timer back from any other window of the deck, or from the dev server.
 - The timer shows the same time on devices whose clocks differ: it is shared with the sender's clock and moved onto the receiver's.
 

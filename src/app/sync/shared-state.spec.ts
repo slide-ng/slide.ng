@@ -66,6 +66,22 @@ describe('cleanShared', () => {
     expect(cleanShared({ timer }, 1e9).timer?.startedAt).toBe(timer.startedAt);
   });
 
+  it("moves the time of a move from the sender's clock onto ours", () => {
+    // The sender's clock is an hour behind; it made the move 5 s before it sent it.
+    const hour = 3_600_000;
+    const update = { id: 'a', type: 'presenter', time: 1e9 - hour - 5000, sentAt: 1e9 - hour };
+    expect(cleanShared({ lastUpdate: update }, 1e9).lastUpdate).toEqual({
+      id: 'a',
+      type: 'presenter',
+      time: 1e9 - 5000,
+    });
+    // A presenter's first position (time 0) stays 0; without the sender's clock the time is taken as it is.
+    expect(cleanShared({ lastUpdate: { ...update, time: 0 } }, 1e9).lastUpdate?.time).toBe(0);
+    expect(
+      cleanShared({ lastUpdate: { id: 'a', type: 'viewer', time: 7 } }, 1e9).lastUpdate?.time,
+    ).toBe(7);
+  });
+
   it('cuts a very long id', () => {
     expect(
       cleanShared({ lastUpdate: { id: 'x'.repeat(500), type: 'viewer', time: 1 } }).lastUpdate?.id

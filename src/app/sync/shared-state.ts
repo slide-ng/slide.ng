@@ -22,7 +22,9 @@ export interface SharedState {
   /** `null` = the presenter's cursor is not over the slide. (null, not undefined: JSON keeps null.) */
   cursor: Cursor | null;
   /** Who moved last. A window ignores updates that came from its own kind. `via` is set when a presenter passes on a
-   *  viewer's move (so the other viewers follow too): the id of that viewer, which ignores its own move coming back. */
+   *  viewer's move (so the other viewers follow too): the id of that viewer, which ignores its own move coming back.
+   *  `time`: when the move was made, by this window's clock (see cleanShared); 0 = a presenter's first position after
+   *  it opened, which is not a move (see nav-sync). */
   lastUpdate: { id: string; type: 'presenter' | 'viewer'; time: number; via?: string } | null;
 }
 
@@ -42,12 +44,15 @@ const obj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' 
 /**
  * Messages come from other windows or devices, so only keys we know and values of the right
  * type get through. Anything else is dropped; a bad message can never put junk in the state.
- * A timer comes with the sender's clock (`sentAt`, see SyncState.patchShared): its times are moved onto ours (`now`), so
- * devices whose clocks differ show the same time passed.
+ * A timer and a move come with the sender's clock (`sentAt`, see SyncState.patchShared): their times are moved onto ours
+ * (`now`), so devices whose clocks differ show the same time passed, and a move from a device whose clock is behind is
+ * still newer than the one before it. Without `sentAt` the times are taken as they are.
  */
 export function cleanShared(data: unknown, now = Date.now()): Partial<SharedState> {
   const out: Partial<SharedState> = {};
   if (!obj(data)) return out;
+  // 0 stays 0: a timer not started or not paused, a presenter's first position (older than any move, see nav-sync).
+  const onOurClock = (at: number, sentAt: unknown) => (at && num(sentAt) ? at + now - sentAt : at);
   if (count(data['page'])) out.page = data['page'];
   if (count(data['clicks'])) out.clicks = data['clicks'];
   if (count(data['clicksTotal'])) out.clicksTotal = data['clicksTotal'];
@@ -58,12 +63,10 @@ export function cleanShared(data: unknown, now = Date.now()): Partial<SharedStat
     num(t['startedAt']) &&
     num(t['pausedAt'])
   ) {
-    const offset = num(t['sentAt']) ? now - t['sentAt'] : 0;
-    const shift = (at: number) => (at ? at + offset : 0); // 0 = not started, not paused
     out.timer = {
       status: t['status'] as TimerStatus,
-      startedAt: shift(t['startedAt']),
-      pausedAt: shift(t['pausedAt']),
+      startedAt: onOurClock(t['startedAt'], t['sentAt']),
+      pausedAt: onOurClock(t['pausedAt'], t['sentAt']),
     };
   }
   const c = data['cursor'];
@@ -83,7 +86,11 @@ export function cleanShared(data: unknown, now = Date.now()): Partial<SharedStat
     (u['type'] === 'presenter' || u['type'] === 'viewer') &&
     num(u['time'])
   ) {
-    out.lastUpdate = { id: u['id'].slice(0, 64), type: u['type'], time: u['time'] };
+    out.lastUpdate = {
+      id: u['id'].slice(0, 64),
+      type: u['type'],
+      time: onOurClock(u['time'], u['sentAt']),
+    };
     if (typeof u['via'] === 'string') out.lastUpdate.via = u['via'].slice(0, 64);
   }
   return out;

@@ -42,13 +42,15 @@ export class SyncState {
     for (const t of this.transports) t.listen((channel, data) => this.receive(channel, data));
   }
 
-  /** Change the shared state here and tell the others. A timer goes with this device's clock (see cleanShared). */
+  /** Change the shared state here and tell the others. A timer and a move go with this device's clock (`sentAt`, see
+   *  cleanShared). */
   patchShared(patch: Partial<SharedState>) {
     this.shared.update((s) => ({ ...s, ...patch }));
-    this.send(
-      'shared',
-      patch.timer ? { ...patch, timer: { ...patch.timer, sentAt: Date.now() } } : patch,
-    );
+    const sentAt = Date.now();
+    const out: Record<string, unknown> = { ...patch };
+    if (patch.timer) out['timer'] = { ...patch.timer, sentAt };
+    if (patch.lastUpdate) out['lastUpdate'] = { ...patch.lastUpdate, sentAt };
+    this.send('shared', out);
   }
 
   /** Change the drawing of one slide here and tell the others. */
