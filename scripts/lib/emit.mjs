@@ -356,3 +356,11 @@ export function slideSources(deck) {
   if (renamed.length) throw new RenamedError(renamed.join('\n'));
   return sources;
 }
+
+/** `src/slides/generated/source-paths.ts`: the folder of each root copy, and where each slide is in the markdown. */
+export function sourcePathsModule(rootDirs, slides) {
+  return `// GENERATED - do not edit
+export const ROOT_DIRS: Record<string, string> = ${JSON.stringify(rootDirs)};
+export const SLIDE_SOURCES: string[] = ${JSON.stringify(slides)};
+`;
+}
