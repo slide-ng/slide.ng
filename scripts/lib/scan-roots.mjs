@@ -6,21 +6,29 @@ import { join } from 'node:path';
 import { COMPONENTS, LAYOUTS } from './registry.mjs';
 import { pipeNames } from './pipes.mjs';
 
-// `@Component({ ... selector: 'x' ... }) export class Name` (also @Directive).
-const DECLARATION =
-  /@(?:Component|Directive)\(\{[\s\S]*?selector:\s*['"]([^'"]+)['"][\s\S]*?\}\)\s*export\s+class\s+(\w+)/g;
+// `@Component({ ... }) export class Name` (also @Directive and @Pipe): each decorator with the class right after it, so a
+// helper component that is not exported (declared first in the file) keeps its own selector and does not take the next one's.
+const DECORATED = /@(Component|Directive|Pipe)\(\{([\s\S]*?)\}\)\s*(export\s+)?class\s+(\w+)/g;
+const exported = (source, kinds, key) =>
+  [...source.matchAll(DECORATED)].flatMap(([, kind, meta, isExported, className]) => {
+    const value = new RegExp(`${key}:\\s*['"]([^'"]+)['"]`).exec(meta)?.[1];
+    return kinds.includes(kind) && isExported && value ? [{ value, className }] : [];
+  });
 
 /** `[{ selector, className }]` for every component or directive declared in some source text. */
 export function declarations(source) {
-  return [...source.matchAll(DECLARATION)].map((m) => ({ selector: m[1], className: m[2] }));
+  return exported(source, ['Component', 'Directive'], 'selector').map(({ value, className }) => ({
+    selector: value,
+    className,
+  }));
 }
 
-// `@Pipe({ name: 'initials' }) export class InitialsPipe`
-const PIPE = /@Pipe\(\{[\s\S]*?name:\s*['"]([^'"]+)['"][\s\S]*?\}\)\s*export\s+class\s+(\w+)/g;
-
-/** `[{ name, className }]` for every pipe declared in some source text. */
+/** `[{ name, className }]` for every pipe declared in some source text (`@Pipe({ name: 'initials' }) export class InitialsPipe`). */
 export function pipeDeclarations(source) {
-  return [...source.matchAll(PIPE)].map((m) => ({ name: m[1], className: m[2] }));
+  return exported(source, ['Pipe'], 'name').map(({ value, className }) => ({
+    name: value,
+    className,
+  }));
 }
 
 /**
