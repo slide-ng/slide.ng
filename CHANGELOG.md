@@ -6,7 +6,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ### Added
 
-- `themeConfig` in the headmatter (or a theme's `theme.json`) is applied as in Slidev: each text or number key becomes the CSS variable `--slidev-theme-<key>`, so `themeConfig: { primary: '#5d8392' }` recolours `text-primary`, the progress bar and the controls. Values that could break out of the CSS, and `url()` or `image-set()` values, are skipped with a warning. Themes and components read the whole map with the `THEME_CONFIG` token, slides as `themeConfig`. `examples/theme-minimal` takes its accent colour from `themeConfig.accent`.
+- `themeConfig` in the headmatter (or a theme's `theme.json`) is applied as in Slidev: each text or number key becomes the CSS variable `--slidev-theme-<key>`, so `themeConfig: { primary: '#5d8392' }` recolours `text-primary`, the progress bar and the controls. Values that could break out of the CSS, and `url()` or `image-set()` values, are skipped with a warning. Numbers are written without a unit, as in Slidev (`radius: 6px` for a length). Themes and components read the whole map with the `THEME_CONFIG` token, slides as `themeConfig`. `examples/theme-minimal` takes its accent colour from `themeConfig.accent`.
 - `<slide-ng-title-renderer />` draws a slide's title as HTML, with its inline markdown and `$math$` (Slidev's `<TitleRenderer>`); `no="N"` picks another slide. The table of contents shows the same HTML. Raw HTML in a title is shown as text.
 - `notesAutoRuby: { word: reading }` in the headmatter shows a reading above each listed word in the speaker notes, with `<ruby>` (Slidev's `notesAutoRuby`). Code, tag attributes and existing `<ruby>` are left alone.
 

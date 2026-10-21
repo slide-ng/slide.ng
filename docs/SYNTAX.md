@@ -793,7 +793,9 @@ themeConfig:
 The theme's `theme.json` can give defaults; the deck's keys win, key by key. A key must be letters, digits, `-` and `_`, and a
 value that could leave the CSS declaration (`;`, `{`, `}`, `<`, `>`, `\`, a comment, a line break, unclosed quotes or brackets) is
 skipped with a warning, and so is a `url(...)` or `image-set(...)` (the generated CSS cannot find the file; name pictures in
-the theme's or the deck's CSS). The value is the same in light and dark mode. A slide reads the whole map as `themeConfig`
+the theme's or the deck's CSS). The value is the same in light and dark mode. A number is written as it is, without a unit, as
+in Slidev: `radius: 6` is `--slidev-theme-radius: 6`, which CSS does not take as a length; write `radius: 6px` for one (or
+`calc(var(--slidev-theme-radius) * 1px)` in the CSS). A slide reads the whole map as `themeConfig`
 (`{{ themeConfig['primary'] }}`, Slidev's `$slidev.themeConfigs`); lists and objects are kept there but are not CSS variables.
 
 ## Keys, mouse and the interface

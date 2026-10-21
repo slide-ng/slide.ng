@@ -67,7 +67,8 @@ provider and merged with the deck's own `fonts`). A `colorSchema` of `light` or 
 decks that use it keep that mode. Leave it out when the theme styles both. Keys outside `"name"`, `"headmatter"` and `"layouts"` are not read. Pictures go in `public/`.
 
 Settings a deck may change, such as the accent colour, go in `themeConfig`, as in Slidev. Each one is the CSS variable
-`--slidev-theme-<key>` on `<body>`, and the deck's `themeConfig: { accent: '#22c55e' }` replaces your default:
+`--slidev-theme-<key>` on `<body>`, and the deck's `themeConfig: { accent: '#22c55e' }` replaces your default. A number
+is written without a unit (`radius: 6` is `6`, not a length), so give lengths as text with their unit (`"radius": "6px"`):
 
 ```json
 { "headmatter": { "themeConfig": { "accent": "#f59e0b" } } }
