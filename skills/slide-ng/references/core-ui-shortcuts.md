@@ -14,7 +14,7 @@ description: Keys, mouse, the navigation bar, overview, dark mode and URL state
 | `f`                          | fullscreen                                                                     |
 | `o` or backtick              | overview (arrows move, Enter opens, Escape closes; a button opens `/overview`) |
 | `d`                          | dark / light                                                                   |
-| `g`                          | go to a slide: number or part of a title, Enter                                |
+| `g`                          | go to a slide: number or part of a title (any case, accents optional), Enter   |
 | Escape                       | close overview, dialogs, menus                                                 |
 | `u`                          | presenter page: show or hide the upcoming clicks                               |
 
