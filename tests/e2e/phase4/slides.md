@@ -14,8 +14,8 @@ First slide
 
 # Clicks
 
-<div id="c1" slide-ng-click>one</div>
-<div id="c2" slide-ng-click>two</div>
+<div id="c1" slide-ng-click.up>one</div>
+<div id="c2" slide-ng-click.none>two</div>
 
 <slide-ng-render-when context="print"><p id="only-print">printing</p></slide-ng-render-when>
 <slide-ng-render-when context="slide"><p id="only-slide">on screen</p></slide-ng-render-when>
@@ -48,6 +48,7 @@ const a = 2
 
 ---
 clicksStart: 1
+clickAnimation: scale
 ---
 
 # Starts at one

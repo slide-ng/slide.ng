@@ -86,7 +86,7 @@ Angular control flow works.
 ## Rules for agents
 
 1. Do not invent Slidev or Vue features. Look in the tables below; if a feature is not there, read `references/not-supported.md`.
-2. `slide-ng-click` is an attribute (`<div slide-ng-click>`), never the tag `<slide-ng-click>`. Use `slide-ng-click-hide`, not `slide-ng-click.hide`.
+2. `slide-ng-click` is an attribute (`<div slide-ng-click>`), never the tag `<slide-ng-click>`. `slide-ng-click.hide` is the same as `slide-ng-click slide-ng-click-hide`.
 3. Put `@if`, `@for`, `@let` and their closing `}` on their own lines. Leave blank lines around markdown lists inside component tags.
 4. Add a component by creating `components/<name>.ts` next to `slides.md` (selector string literal, then `export class`); never edit `scripts/lib/registry.mjs` for a deck.
 5. Keep the dev server's output clean of `[slides]` warnings, then run `slide-ng build`.

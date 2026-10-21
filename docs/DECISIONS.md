@@ -346,7 +346,7 @@ The owner decided "do it like Slidev" for every open choice. For each one, Slide
 9. **Cheap leftovers of PARITY.md finished the Slidev way.** `fonts` (`lib/fonts.mjs`, a port of `resolveFonts`: sans, serif, mono, local, weights, italic, fallbacks, provider google, coollabs or none; the fonts are an @import
    from the provider, as Slidev, not copied into the build; since then `fonts.selfHost` copies them, see Offline use 8); the `contextMenu`, `presenter` and `editor` headmatter switches (`true`, `false`, `dev`, `build`; `lib/switches.ts`); touch swipes with Slidev's thresholds
    (`composables/useSwipeControls.ts`: 30% of the width or 75px for clicks, 40% of the height or 200px for slides, off while drawing). Left listed in PARITY.md: `selectable`, `themeConfig`,
-   MDC, slide hooks, `clickAnimation`; `--tunnel` stays refused.
+   MDC, slide hooks; `--tunnel` stays refused.
 10. **The official themes live in a separate repository, as npm packages `@slide-ng/theme-<name>`.** Owner decision, like Slidev's `slidevjs/themes` (a monorepo of `packages/theme-*`, each published as
     `@slidev/theme-<name>`). It supersedes the first version of this decision, which put the themes in a `themes/` folder of this package and searched it before `node_modules`. That folder is gone,
     and `themes` is no longer in `package.json#files`. `theme: <name>` now resolves from `node_modules` only, with Slidev's rule and slide.ng's prefixes: `@slide-ng/theme-<name>`, `slide-ng-theme-<name>`, `<name>`

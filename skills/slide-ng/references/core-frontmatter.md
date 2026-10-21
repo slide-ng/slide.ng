@@ -17,6 +17,7 @@ The YAML block at the top of a slide.
 | `routeAlias`                                                           | `routeAlias: intro` opens this at `/intro`; one slide per alias; refused: app pages, numbers, empty, `/ . ? # \` inside |
 | `hide`, `disabled`                                                     | slide is left out of the deck                                                                                           |
 | `clicks`, `clicksStart`                                                | fix the number of clicks; first click number (default 0)                                                                |
+| `clickAnimation`                                                       | click animation preset of the slide's click elements (`up`, `fade right`), see `animation-clicks.md`                    |
 | `transition`                                                           | transition between this slide and the next                                                                              |
 | `src`                                                                  | take the slides from another markdown file, see `core-import-slides.md`                                                 |
 | `image`, `url`, `scale`, `backgroundSize`, `background`, `layoutClass` | props of some layouts                                                                                                   |

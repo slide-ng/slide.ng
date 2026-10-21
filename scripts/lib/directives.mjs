@@ -4,15 +4,25 @@
 //   slide-ng-mark.red.circle="2"     ->  mark-mods="red.circle" slide-ng-mark="2"
 //   slide-ng-mark="{ at: 2 }"        ->  [slide-ng-mark]="{ at: 2 }"
 //   slide-ng-motion :initial=".." :click-1=".."  ->  [slide-ng-motion]="{ initial: .., 'click-1': .. }"
+//   slide-ng-click.fade.right="2"   ->  click-anim="fade.right" slide-ng-click="2"   (also slide-ng-after, slide-ng-click-hide)
+//   slide-ng-click.up="[2, 4]"      ->  click-anim="up" [slide-ng-click]="[2, 4]"   (a range is bound, as Slidev's v-click="[2, 4]")
+//   [slide-ng-click.up]="range"     ->  click-anim="up" [slide-ng-click]="range"
 
 const TAG = /<([a-z][\w-]*)((?:\s+[^\s=>"'/]+(?:\s*=\s*(?:"[^"]*"|'[^']*'))?)*)\s*(\/?)>/g;
 const ATTR = /\s+([^\s=>"']+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'))?/g;
 const VARIANT = /^:(initial|enter|leave|click-\d+(?:-\d+)?)$/;
+const CLICK = /^(\[?)(slide-ng-(?:click-hide|click|after))(?:\.([^\]]+))?\]?$/;
+const RANGE = /^\s*\[/;
 
 /** @param {string} html markdown with code already taken out */
 export function rewriteDirectives(html) {
   return html.replace(TAG, (tag, name, attrText, close) => {
-    if (!/\sslide-ng-(mark|motion)\b/.test(attrText)) return tag;
+    if (
+      !/\sslide-ng-(mark|motion)\b|\s\[?slide-ng-(click-hide|click|after)(\.|\s*=\s*["']\s*\[)/.test(
+        attrText,
+      )
+    )
+      return tag;
     const attrs = [...attrText.matchAll(ATTR)].map((m) => ({
       name: m[1],
       value: m[2] ?? m[3],
@@ -23,7 +33,9 @@ export function rewriteDirectives(html) {
     let motion = false;
     for (const a of attrs) {
       const variant = VARIANT.exec(a.name);
+      const click = clickAttr(a);
       if (/^slide-ng-mark(\.|$)/.test(a.name)) out.push(...markAttrs(a));
+      else if (click) out.push(...clickAttrs(click[2], click[3] ?? '', a, !!click[1]));
       else if (a.name === 'slide-ng-motion') motion = true;
       else if (variant) variants.push(`'${variant[1]}': (${a.value})`);
       else if (/^:(hovered|tapped|focused|visible|variants)/.test(a.name))
@@ -33,6 +45,27 @@ export function rewriteDirectives(html) {
     if (motion) out.push(`[slide-ng-motion]="{ ${variants.join(', ')} }"`);
     return `<${name} ${out.join(' ')}${close ? ' /' : ''}>`;
   });
+}
+
+// `slide-ng-click.fade.right="2"` -> the directive and its click animation presets. `.hide` is not a preset: like
+// Slidev's `v-click.hide` it shows the element first and hides it at its click, which is the `slide-ng-click-hide` flag.
+// A range such as `"[2, 4]"` is bound (`[slide-ng-click]`) so the directive gets an array, not the text "[2, 4]".
+function clickAttrs(directive, modifiers, a, bound) {
+  const mods = modifiers.split('.').filter(Boolean);
+  const presets = mods.filter((m) => m !== 'hide');
+  const out = presets.length ? [`click-anim="${presets.join('.')}"`] : [];
+  const name = bound || RANGE.test(a.value ?? '') ? `[${directive}]` : directive;
+  out.push(a.value == null ? name : `${name}=${a.quote}${a.value}${a.quote}`);
+  if (mods.includes('hide') && directive !== 'slide-ng-click-hide') out.push('slide-ng-click-hide');
+  return out;
+}
+
+// The click directive in `a` when the generator has to rewrite it (modifiers, or a range written as a plain attribute).
+function clickAttr(a) {
+  const m = CLICK.exec(a.name);
+  if (!m || !!m[1] !== a.name.endsWith(']')) return null;
+  if (m[1] ? !m[3] : !m[3] && !RANGE.test(a.value ?? '')) return null;
+  return m;
 }
 
 // One slide-ng-mark attribute -> the attributes Angular needs.

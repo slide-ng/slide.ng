@@ -21,6 +21,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - `slide-ng build --router-mode history|hash|memory` replaces the headmatter's `routerMode` for one build; the build records it, so `export --dist` opens it with the right addresses. `--offline` keeps hash routing: `--router-mode memory` is refused, a headmatter `routerMode: memory` gives a warning.
 - Pictures of the next slides are loaded before they are shown (Slidev's `preloadImages`: `true` by default, `{ ahead: n }` with `0` for none ahead, `false`), and a slide with `preload: false` is left out; at most two pictures load at a time, and the whole deck's (3 s after the page has loaded) is skipped when the browser saves data or the connection is 2g or 3g; `preloadProgress` and `preloadComplete` in `slide-ng/lib/preload-images` tell a component how far it is (a picture that fails counts as done; with `preloadImages: false` it is complete at once).
 - Custom slide transitions by name, as in Slidev: a name that is not built in runs Vue's `<name>-enter-from`, `-enter-active`, `-enter-to` (and `leave`) classes, so the deck's CSS animates the slides. The object form (`name`, `enterFromClass` and the other class names, `duration`) is read too. Under `prefers-reduced-motion` a fixed `duration` ends at once.
+- Click animation presets, as in Slidev: `clickAnimation` in the headmatter or a slide's frontmatter, modifiers on the attribute (`slide-ng-click.fade.right`, `slide-ng-after.up`, `slide-ng-click-hide.none`) and `<slide-ng-clicks animation="...">`. Presets `fade`, `fade-in`, `up`, `down`, `left`, `right`, `scale`, `none`; a deck's own is CSS on `.slidev-vclick-anim-<name>`. An element not revealed yet is inert (screen readers skip it, its links and buttons take no focus), also when `fade` shows it dimmed.
 
 ### Changed
 
@@ -32,6 +33,8 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - A `routeAlias` that is empty, has `/`, `.`, `?`, `#` or `\`, or is on two slides (also through a `src:` import of several slides) stops the build, naming the slides.
 - Markdown links to a unicode or emoji `routeAlias` (`[x](./café)`) become slide links too.
 - The generator warns about a markdown link past the last slide (`[x](99)`), to a `./name` that is no `routeAlias`, or to the alias of a slide with `hide:`.
+- `slide-ng-click.hide` and `slide-ng-after.hide` show the element first and hide it at its click, as `v-click.hide` does in Slidev (the `slide-ng-click-hide` flag); before, `.hide` was dropped without a word. `slide-ng-click-hide="3"` hides at click 3, as `v-click-hide="3"`; before, its value was ignored and it hid at the next click. `slide-ng-click="2" slide-ng-click-hide="3"` shows at click 2 and hides at click 3, as in Slidev; before, the hide value was ignored and it hid at click 2.
+- A click range written as text, `slide-ng-click="[2, 4]"` or `slide-ng-click.up="[2, 4]"` (as `v-click.up="[2, 4]"`), is a range; before, it was ignored and the element was always visible. `[slide-ng-click.up]="[2, 4]"` builds too; before, it stopped the build with Angular's NG8002.
 
 ### Fixed
 

@@ -38,6 +38,7 @@ Keys slide.ng understands:
 | `hide`, `disabled`                                                     | the slide is left out of the deck completely                                                                                                                |
 | `clicksStart`                                                          | first click number of the slide (default 0)                                                                                                                 |
 | `clicks`                                                               | fixes the number of clicks of the slide, whatever its elements ask for                                                                                      |
+| `clickAnimation`                                                       | click animation presets of the slide's click elements (`up`, `fade right`), see Click animation presets                                                     |
 | `transition`                                                           | transition to the next slide, see Transitions                                                                                                               |
 | `src`                                                                  | take the slides from another markdown file, see Importing slides                                                                                            |
 | `image`, `url`, `scale`, `backgroundSize`, `background`, `layoutClass` | props of some layouts                                                                                                                                       |
@@ -214,12 +215,21 @@ Clicks reveal things step by step. Add these to any HTML element:
 <div [slide-ng-click]="[2, 4]">Shows from click 2 until click 4, then hides</div>
 <div slide-ng-after>Same click as the element before it (a relative +0)</div>
 <div slide-ng-click="2" slide-ng-click-hide>Visible first, hides at click 2</div>
+<div slide-ng-click-hide="3">Visible first, hides at click 3 (as v-click-hide="3")</div>
+<div slide-ng-click.hide="2">Visible first, hides at click 2 (as v-click.hide="2")</div>
+<div slide-ng-click="2" slide-ng-click-hide="3">Shows at click 2, hides at click 3 (as v-click="2" v-click-hide="3")</div>
 ```
+
+With a value on both, `slide-ng-click` is the click that shows the element and `slide-ng-click-hide` the click that hides it
+again: the same as `[slide-ng-click]="[2, 3]"`. A relative hide value (`+1`) counts on from the clicks before it, as in Slidev: after a relative show (`slide-ng-click="+1"`) that is the show click. With the bare
+`slide-ng-click-hide` flag, the `slide-ng-click` value is the click that hides it.
 
 Two forms exist because of how Angular reads attributes:
 
 - `slide-ng-click="3"` or `slide-ng-click="+2"` is plain text; slide.ng turns it into a number or a relative step.
 - `[slide-ng-click]="[2, 4]"` is an Angular binding; use it for ranges and for any value you compute.
+  A range written as plain text, `slide-ng-click="[2, 4]"` or with presets `slide-ng-click.up="[2, 4]"` (as `v-click.up="[2, 4]"`),
+  is bound for you; so is `[slide-ng-click.up]="[2, 4]"`, whose presets move to `click-anim`.
 
 `slide-ng-after` and `+n` count from the relative counter, as in Slidev: the last plain or `+n` click before them, not an absolute
 `slide-ng-click="3"`. After only absolute clicks, `slide-ng-after` shows from the start; give it a number too (`slide-ng-click="3"`).
@@ -237,8 +247,37 @@ List items one by one:
 
 Leave an empty line after `<slide-ng-clicks>` and before `</slide-ng-clicks>`, otherwise markdown does not
 turn the list into HTML. Options: `depth="2"` (include nested lists), `every="2"` (items per click),
-`at="3"` (first click), `hide` (items hide instead of show). As in Slidev, a single list gives each item a click, a single table each
+`at="3"` (first click), `hide` (items hide instead of show), `animation="fade up"` (click animation presets for every item, see below).
+As in Slidev, a single list gives each item a click, a single table each
 body row, and anything else (paragraphs, pictures, several lists) each child of `<slide-ng-clicks>`. `every="0.5"` gives each item two clicks.
+
+### Click animation presets
+
+How a hidden element looks, and so how it comes in, as Slidev's presets: `clickAnimation` in the headmatter (all slides, also through `defaults`)
+or in a slide's frontmatter (that slide wins), or modifiers on the attribute, which win over both and can be combined.
+
+```md
+---
+clickAnimation: up
+---
+
+<div slide-ng-click>Uses the slide's preset</div>
+<div slide-ng-click.scale>Scales up from 0.9</div>
+<div slide-ng-click.fade.right="3">Dimmed (opacity 0.5) and 20px to the left until click 3</div>
+<div slide-ng-click.none>No animation</div>
+```
+
+Presets: `fade` (hidden is 0.5 opacity instead of invisible; until its click it is inert like any hidden element: screen readers skip it and its links and buttons take no focus or clicks), `fade-in` (a slower fade), `up`, `down`, `left`, `right` (20px away), `scale` (0.9),
+`none` (no transition). They work on `slide-ng-click`, `slide-ng-after` and `slide-ng-click-hide`. The element gets the class
+`slidev-vclick-anim-<name>`, so a preset of your own is CSS in `styles/index.css`:
+
+```css
+.slidev-vclick-anim-pop.slidev-vclick-hidden {
+  transform: scale(0.96) translateY(8px);
+}
+```
+
+In a PDF or PNG export nothing moves: each page shows the state of its click at once.
 
 ## Built-in components
 

@@ -246,6 +246,8 @@ const plain = 'no twoslash here'
 
 <div id="mo2" class="w-20 h-10 bg-green-300" [slide-ng-click]="[5, 6]" slide-ng-motion :initial="{ x: -50 }" :enter="{ x: 0 }" :leave="{ x: 50 }">with slide-ng-click</div>
 
+<div id="mo3" slide-ng-click.up="[5, 6]">a range written as text, with a preset</div>
+
 ---
 
 # Markdown extras

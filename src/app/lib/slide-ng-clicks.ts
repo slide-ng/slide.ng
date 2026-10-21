@@ -1,5 +1,5 @@
 // <slide-ng-clicks> makes each child of its content appear on its own click (each item of a list, each row of a table).
-// Options: depth="2" (nested lists), every="2" (items per click), at="3" (first click), hide.
+// Options: depth="2" (nested lists), every="2" (items per click), at="3" (first click), hide, animation="fade right".
 import {
   Component,
   ElementRef,
@@ -11,6 +11,7 @@ import {
   inject,
   input,
 } from '@angular/core';
+import { clickAnimationClasses } from './click-animation';
 import { ClicksContext, RawAt, RawSingleAt, normalizeSingle } from './clicks';
 import { stateOf } from './slide-ng-click';
 
@@ -24,10 +25,13 @@ export class SlideNgClicks implements OnInit, OnDestroy {
   every = input<number | string>(1);
   at = input<RawAt>('+1');
   hide = input(false, { transform: booleanAttribute });
+  /** Click animation presets for every item (`fade right`, or a list), as Slidev's `<v-clicks animation>`. */
+  animation = input<string | string[] | undefined>(undefined);
 
   private ctx = inject(ClicksContext);
   private el = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   private injector = inject(Injector);
+  private animationClasses = clickAnimationClasses();
   private keys: unknown[] = [];
 
   ngOnInit() {
@@ -38,6 +42,7 @@ export class SlideNgClicks implements OnInit, OnDestroy {
     const relative = typeof at === 'string';
 
     const items = this.items(depth);
+    const animations = this.animationClasses(this.animation());
 
     let index = 1,
       previous = 0;
@@ -48,7 +53,7 @@ export class SlideNgClicks implements OnInit, OnDestroy {
       const info = this.ctx.calculate(relative ? (delta >= 0 ? `+${delta}` : `${delta}`) : showAt)!;
       this.ctx.register(li, info);
       this.keys.push(li);
-      li.classList.add('slidev-vclick-target');
+      li.classList.add('slidev-vclick-target', ...animations);
       const state = stateOf(
         this.ctx,
         () => info,
@@ -58,6 +63,8 @@ export class SlideNgClicks implements OnInit, OnDestroy {
       effect(
         () => {
           li.classList.toggle('slidev-vclick-hidden', state.hidden());
+          // Inert while hidden, also with a preset such as `fade`, which keeps the item visible (see slide-ng-click.ts).
+          li.toggleAttribute('inert', state.hidden());
           li.classList.toggle('slidev-vclick-current', state.current());
           li.classList.toggle('slidev-vclick-prior', state.prior());
         },

@@ -97,6 +97,10 @@ export async function run({ t, open, press, hud }) {
   );
   await settle();
   t.ok(
+    'slide-ng-click.up="[5, 6]" is hidden before its click',
+    await page.locator('#mo3').evaluate((e) => e.classList.contains('slidev-vclick-hidden')),
+  );
+  t.ok(
     'before its click the element is hidden and at initial',
     (await tr('#mo2')) === 'matrix(1, 0, 0, 1, -50, 0)' &&
       (await page.locator('#mo2').evaluate((e) => e.classList.contains('slidev-vclick-hidden'))),
@@ -108,6 +112,24 @@ export async function run({ t, open, press, hud }) {
     'at its click it moves to enter',
     (await tr('#mo2')) === 'matrix(1, 0, 0, 1, 0, 0)',
     await tr('#mo2'),
+  );
+  const mo3 = () =>
+    page
+      .locator('#mo3')
+      .evaluate((e) => `${e.className} translate=${getComputedStyle(e).translate}`);
+  t.ok(
+    'slide-ng-click.up="[5, 6]": a range written as text, with a preset, shows at its first click',
+    /slidev-vclick-anim-up/.test(await mo3()) &&
+      !/slidev-vclick-hidden/.test(await mo3()) &&
+      (await mo3()).endsWith('translate=none'),
+    await mo3(),
+  );
+  await press(page, 'ArrowRight');
+  await settle();
+  t.ok(
+    'slide-ng-click.up="[5, 6]": hidden again at its end click, at the preset offset',
+    /slidev-vclick-hidden/.test(await mo3()) && (await mo3()).endsWith('translate=0px 20px'),
+    await mo3(),
   );
   await page.close();
 }

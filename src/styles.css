@@ -84,6 +84,37 @@ html.dark .canvas {
   display: none !important;
 }
 
+/* Click animation presets (Slidev's vclick.css): `clickAnimation: up`, `slide-ng-click.fade.right`. A preset says how a hidden
+   element looks; the transition above moves it to its place. A deck adds its own as `.slidev-vclick-anim-<name>`. */
+.slidev-vclick-target.slidev-vclick-anim-none {
+  transition: none;
+}
+.slidev-vclick-target.slidev-vclick-anim-fade-in {
+  transition: all 0.3s ease;
+}
+.slidev-vclick-hidden.slidev-vclick-anim-fade {
+  opacity: 0.5 !important;
+  visibility: visible !important; /* `fade` shows the hidden element dimmed */
+}
+.slidev-vclick-hidden.slidev-vclick-anim-fade-in {
+  opacity: 0 !important;
+}
+.slidev-vclick-hidden.slidev-vclick-anim-up {
+  translate: 0 20px;
+}
+.slidev-vclick-hidden.slidev-vclick-anim-down {
+  translate: 0 -20px;
+}
+.slidev-vclick-hidden.slidev-vclick-anim-left {
+  translate: 20px 0;
+}
+.slidev-vclick-hidden.slidev-vclick-anim-right {
+  translate: -20px 0;
+}
+.slidev-vclick-hidden.slidev-vclick-anim-scale {
+  scale: 0.9;
+}
+
 /* People who ask their system for less motion get no slide transitions, fades or animations: changes happen at once. */
 @media (prefers-reduced-motion: reduce) {
   :root {
