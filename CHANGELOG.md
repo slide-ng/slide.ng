@@ -109,6 +109,7 @@ Node (22.22.3 or newer) and Angular (22.2) are the same as in 1.x. These changes
 - The side editor's coloured copy behind the text is no longer a Tab stop or read out; the presenter's next-step picture and Magic Move line
   numbers are not read out, and the presenter panes are named regions.
 - With two presenter windows, a window that opens later or a presenter page that opens or reloads no longer moves the audience to the other presenter's slide: the audience stays with the newest move, also when the devices' clocks are not set alike.
+- MCP's `goto_slide` moves presenter windows every time; when its two messages (one for the presenters, one for the audience) came at once, a presenter window sometimes stayed where it was.
 - A presenter tab that was closed and opened again gets the running timer back from any other window of the deck, or from the dev server.
 - The timer shows the same time on devices whose clocks differ: it is shared with the sender's clock and moved onto the receiver's.
 - The dev server kept missing saves of components, layouts, styles and `public/` after one save by an editor that renames a new file over the old one (vim, JetBrains, `sed -i`, `git checkout`): folders are now watched one by one. A `src:` or root folder that is deleted and made again is watched again, and a root folder made while the server runs is picked up.

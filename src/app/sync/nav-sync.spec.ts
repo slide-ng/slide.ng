@@ -34,8 +34,8 @@ describe('firstMoveTime', () => {
   });
 });
 
-// A viewer window with a fake Nav; `deliver` plays the messages of the other windows.
-function viewer() {
+// A viewer (or presenter) window with a fake Nav; `deliver` plays the messages of the other windows.
+function viewer(isPresenter = false) {
   let deliver: (channel: string, data: unknown) => void = () => {};
   const transport: SyncTransport = { send: () => {}, listen: (h) => (deliver = h) };
   TestBed.configureTestingModule({
@@ -44,7 +44,7 @@ function viewer() {
   const no = signal(1),
     clicks = signal(0);
   const nav = {
-    isPresenter: false,
+    isPresenter,
     no,
     clicks,
     clicksTotal: signal(0),
@@ -55,8 +55,15 @@ function viewer() {
   TestBed.runInInjectionContext(() => startNavSync(nav));
   TestBed.tick();
   // `tick: false`: the next message comes before the effects run.
-  const move = (id: string, page: number, time: number, sentAt: number, tick = true) => {
-    deliver('shared', { page, clicks: 0, lastUpdate: { id, type: 'presenter', time, sentAt } });
+  const move = (
+    id: string,
+    page: number,
+    time: number,
+    sentAt: number,
+    tick = true,
+    type: 'presenter' | 'viewer' = 'presenter',
+  ) => {
+    deliver('shared', { page, clicks: 0, lastUpdate: { id, type, time, sentAt } });
     if (tick) TestBed.tick();
     return no();
   };
@@ -99,5 +106,29 @@ describe('startNavSync (a viewer)', () => {
     expect(move('b', 2, now - hour + 10, now - hour + 10)).toBe(2); // B's clock is an hour behind, moved later
     // A minute on, A answers a late window's hello with its move from before: older, by its own clock too.
     expect(move('a', 3, now + hour, now + hour + 60_000)).toBe(2);
+  });
+});
+
+describe("startNavSync (MCP's goto_slide)", () => {
+  // goto_slide sends a viewer move (for presenters) and a presenter move (for viewers) with the same time. Both often come
+  // before the windows' effects run.
+  for (const isPresenter of [true, false]) {
+    it(`moves a ${isPresenter ? 'presenter' : 'viewer'} window when both moves come before it looks`, () => {
+      const { move } = viewer(isPresenter);
+      const now = Date.now();
+      for (const page of [4, 2, 5]) {
+        const t = now + page;
+        move('slide-ng-mcp', page, t, t, false, 'viewer');
+        expect(move('slide-ng-mcp', page, t, t, true, 'presenter')).toBe(page);
+      }
+    });
+  }
+
+  it('both moves are seen also when the clock ticks between the two', () => {
+    const { move } = viewer(true);
+    const now = Date.now();
+    move('slide-ng-mcp', 4, now, now, false, 'viewer');
+    // The presenter move came a millisecond later: on our clock it is newer than the viewer move.
+    expect(move('slide-ng-mcp', 4, now + 1, now, true, 'presenter')).toBe(4);
   });
 });

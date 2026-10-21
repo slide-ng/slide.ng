@@ -15,6 +15,13 @@ import { SYNC_TRANSPORTS } from './transport';
 
 const DIRECTIONS_KEY = 'slidev-sync-directions';
 
+/** A move that came from outside, with the position it went to. */
+export interface Move {
+  page: number;
+  clicks: number;
+  lastUpdate: NonNullable<SharedState['lastUpdate']>;
+}
+
 export interface SyncDirections {
   viewerSend: boolean;
   viewerReceive: boolean;
@@ -30,6 +37,16 @@ export class SyncState {
 
   readonly shared = signal<SharedState>(initialShared());
   readonly drawings = signal<DrawingsState>({});
+  /**
+   * The newest move from outside of each kind of window. `shared` holds only the last move of all, and messages can come
+   * faster than the windows look at it: MCP's goto_slide sends a viewer move and a presenter move with the same time, and
+   * when both came before the effects ran, `shared` showed only the second. A window follows the moves of the other kind
+   * from here (nav-sync), so it still sees the one meant for it.
+   */
+  readonly moves = signal<Record<'presenter' | 'viewer', Move | null>>({
+    presenter: null,
+    viewer: null,
+  });
   /** Slidev's "sync mode" menu: which way navigation may travel for viewers and presenters. */
   readonly directions = storedSignal<SyncDirections>(DIRECTIONS_KEY, {
     viewerSend: true,
@@ -37,6 +54,9 @@ export class SyncState {
     presenterSend: true,
     presenterReceive: true,
   });
+
+  /** The time of the last move this window sent (0 before one): an older move from outside is not followed. */
+  ownMoveTime = 0;
 
   private helloHandlers: (() => void)[] = [];
   private drawingHandlers: ((patch: DrawingsState) => void)[] = [];
@@ -62,7 +82,11 @@ export class SyncState {
     const sentAt = Date.now();
     const out: Record<string, unknown> = { ...patch };
     if (patch.timer) out['timer'] = { ...patch.timer, sentAt };
-    if (patch.lastUpdate) out['lastUpdate'] = { ...patch.lastUpdate, sentAt };
+    if (patch.lastUpdate) {
+      out['lastUpdate'] = { ...patch.lastUpdate, sentAt };
+      if (patch.lastUpdate.id === this.id)
+        this.ownMoveTime = Math.max(this.ownMoveTime, patch.lastUpdate.time);
+    }
     this.send('shared', out);
   }
 
@@ -98,8 +122,18 @@ export class SyncState {
   }
 
   private receive(channel: string, data: unknown) {
-    if (channel === 'shared') this.shared.update((s) => mergeShared(s, cleanShared(data)));
-    else if (channel === 'hello') {
+    if (channel === 'shared') {
+      const patch = cleanShared(data);
+      const next = mergeShared(this.shared(), patch);
+      this.shared.set(next);
+      const u = patch.lastUpdate;
+      // Not older than the move the state held (mergeShared kept it): it counts as a move of its kind.
+      if (u && next.lastUpdate === u)
+        this.moves.update((m) => ({
+          ...m,
+          [u.type]: { page: next.page, clicks: next.clicks, lastUpdate: u },
+        }));
+    } else if (channel === 'hello') {
       const timer = this.shared().timer;
       if (timer.status !== 'stopped') this.patchShared({ timer });
       this.helloHandlers.forEach((fn) => fn());

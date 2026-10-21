@@ -105,25 +105,27 @@ export function startNavSync(nav: Nav) {
     });
   });
 
-  // Someone else moved: follow. Only a new position or a new update counts, not a moving cursor or the timer. The kind of
-  // window is part of it: MCP's goto_slide sends one move as a viewer and one as a presenter with the same time, and the
-  // second must still be seen when an effect ran between the two.
+  // Someone else moved: follow. Only a new move of the other kind of window counts, not a moving cursor or the timer. It is
+  // read from `moves`, not from the merged `shared`: MCP's goto_slide sends one move as a viewer and one as a presenter with
+  // the same time, and when both came before this effect ran, `shared` holds only the second (sync-state.ts).
+  const other = nav.isPresenter ? 'viewer' : 'presenter';
   const moved = computed(() => {
-    const s = sync.shared();
-    return `${s.page}:${s.clicks}:${s.lastUpdate?.time}:${s.lastUpdate?.type}`;
+    const m = sync.moves()[other];
+    return m ? `${m.page}:${m.clicks}:${m.lastUpdate.time}:${m.lastUpdate.id}` : '';
   });
   effect(() => {
     moved();
     untracked(() => {
-      const s = sync.shared();
+      const s = sync.moves()[other];
       const d = sync.directions();
       if (!(nav.isPresenter ? d.presenterReceive : d.viewerReceive)) return;
-      if (!s.lastUpdate || s.lastUpdate.type === type || s.page < 1) return;
+      if (!s || s.page < 1) return;
       // Our own move: passed on by the presenter, or made by this window while it was the presenter page (the state stays
       // when the window moves from /presenter/3 to /1).
       if (s.lastUpdate.via === sync.id || s.lastUpdate.id === sync.id) return;
-      // An older move than the one we follow: another presenter window answering a late window's hello.
-      if (s.lastUpdate.time < followed) return;
+      // An older move than the one we follow (another presenter window answering a late window's hello), or than our own
+      // last move.
+      if (s.lastUpdate.time < followed || s.lastUpdate.time < sync.ownMoveTime) return;
       followed = s.lastUpdate.time;
       const page = Math.min(s.page, nav.total);
       if (page === nav.no() && s.clicks === nav.clicks()) return;
