@@ -76,6 +76,11 @@ export class ClickPreviewLayer {
   /** Greyed-out parts whose `inert` (slide-ng-click.ts: a part not revealed yet) is taken off while they are ghosts, so a
    *  click on one reaches clickPart; it is put back when the preview lets go of a part that is still not revealed. */
   private wokeUp = new Set<Element>();
+  /** What a ghost holds is made inert here (links, buttons, inputs): hidden from screen readers, it must not be a Tab stop
+   *  either. The ghost itself stays clickable; the badges are the keyboard path. Put back on each apply. */
+  private sealed = new Set<Element>();
+  /** A ghost (or a part around another ghost) that is itself focusable gets tabindex -1 here; its own value, to put back. */
+  private untabbed = new Map<Element, string | null>();
   private moved = signal(0);
   private resized?: ResizeObserver;
 
@@ -132,6 +137,7 @@ export class ClickPreviewLayer {
   }
 
   private apply(marks: PreviewMark[]) {
+    this.unseal();
     const keep = new Set(marks.map((m) => m.el));
     for (const el of this.tagged) {
       if (keep.has(el)) continue;
@@ -168,7 +174,40 @@ export class ClickPreviewLayer {
         x += BADGE;
       badges.push({ at, isNext, x, y, rtl });
     }
+    for (const el of this.tagged) if (this.isGhost(el)) this.seal(el);
     this.badges.set(badges);
+  }
+
+  private isGhost(el: Element) {
+    return this.tagged.has(el) && el.classList.contains('slidev-vclick-hidden');
+  }
+
+  // A ghost takes no focus and its content is inert, but a ghost inside it keeps its own click: the part around it is
+  // only taken out of the Tab order and its other children are made inert.
+  private seal(el: Element) {
+    if ((el as HTMLElement).tabIndex >= 0 && !this.untabbed.has(el)) {
+      this.untabbed.set(el, el.getAttribute('tabindex'));
+      el.setAttribute('tabindex', '-1');
+    }
+    for (const child of el.children) {
+      if (this.isGhost(child)) continue;
+      if ([...this.tagged].some((g) => g !== child && child.contains(g) && this.isGhost(g)))
+        this.seal(child);
+      else if (!child.hasAttribute('inert')) {
+        child.setAttribute('inert', '');
+        this.sealed.add(child);
+      }
+    }
+  }
+
+  // Only what seal changed is put back: the content of a part that is no longer a ghost is focusable again.
+  private unseal() {
+    for (const el of this.sealed) el.removeAttribute('inert');
+    this.sealed.clear();
+    for (const [el, tabindex] of this.untabbed)
+      if (tabindex == null) el.removeAttribute('tabindex');
+      else el.setAttribute('tabindex', tabindex);
+    this.untabbed.clear();
   }
 
   // Only the aria-hidden set here is taken off again, not one the deck wrote.

@@ -303,9 +303,35 @@ export async function run({ t, open, press, hud, pathOf, windowGroup }) {
   await presenter.locator('#nav-drawing').click();
   await presenter.waitForTimeout(300);
 
-  // ---- a link inside a greyed-out part jumps to its click instead of being followed
-  await presenter.locator(`${main} #plink-a`).click();
+  // ---- a link inside a greyed-out part is inert (no Tab stop, the badges are the keyboard path) and a click on it
+  // jumps to its click instead of following it
+  const ghostLink = () =>
+    presenter.evaluate((main) => {
+      const a = document.querySelector(`${main} #plink-a`);
+      return {
+        inert: !!a.closest('[inert]'),
+        ghost: a.parentElement.classList.contains('slide-ng-click-ahead'),
+      };
+    }, main);
+  const tabStops = await presenter.evaluate((main) => {
+    const a = document.querySelector(`${main} #plink-a`);
+    a.focus();
+    return document.activeElement === a;
+  }, main);
+  t.ok(
+    'click preview: a link in a greyed-out part is inert and takes no focus',
+    (await ghostLink()).inert && (await ghostLink()).ghost && !tabStops,
+    JSON.stringify(await ghostLink()),
+  );
+  // Inert content takes no pointer events, so the click lands on the ghost around it, which jumps.
+  const linkBox = await presenter.locator(`${main} #plink-a`).boundingBox();
+  await presenter.mouse.click(linkBox.x + linkBox.width / 2, linkBox.y + linkBox.height / 2);
   await presenter.waitForTimeout(400);
+  t.ok(
+    'click preview: once revealed, the link is focusable again',
+    !(await ghostLink()).inert,
+    JSON.stringify(await ghostLink()),
+  );
   t.ok(
     'click preview: a link in a greyed-out part is not followed, the click is reached',
     pathOf(presenter) === '/presenter/2' &&

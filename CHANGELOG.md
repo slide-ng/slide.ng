@@ -123,6 +123,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - A step of a code block's line ranges that picks none of the numbers shown (`{3-5}` with `startLine:10`) gets a warning; it dimmed every line without a word.
 - `dev` on a deck whose first Angular build fails serves a page with the error on the port, instead of nothing (connection refused); an open tab loads the slides by itself once the build works. A page opened or reloaded while a build is broken shows Angular's error overlay again; it was sent only to the pages open at the time.
 - `e` in `npm run dev` or `npx slide-ng dev` opens `code` when it is installed instead of always vi: npm sets `EDITOR=vi` (`notepad.exe` on Windows) for the programs it starts, and that value now counts as unset there. `$VISUAL` and an `EDITOR` of your own still win.
+- Accessibility: links and buttons inside the presenter's greyed-out click-preview parts are no longer Tab stops while hidden from screen readers (the part's content is inert; the badges are the keyboard path, and a click on the part still jumps).
 - The "go to" box (`g`) finds titles in any case by the deck's language (Turkish `izmir` finds "İzmir", `ışık` finds "Işık") and without accents.
 - Slide titles with `$math$` or markdown escapes are plain text in the tab title, the live region, the "go to" list and the PDF outline (`Karmaşıklık O(1)`, not `$O(1)$`).
 - The page description and the PDF subject made from `info` keep `#`, `_`, `*` and `>` that are not markdown (`C#`, `#42`, `snake_case`).
