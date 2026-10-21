@@ -250,6 +250,11 @@ export default (routes: Routes): Routes => [...routes, { path: 'about', componen
 The page is shown on its own, without the slide frame, the navigation or the keys of the slides. In `dev --remote`, it is not behind the
 presenter password; add Angular's `canActivate` yourself if it should be.
 
+The page is outside the deck, so the services of a deck page are not there: `inject(Nav)` (and `Ui`, `Drawings`, the click context)
+fails with a "No provider" error, and `inject(Nav, { optional: true })` gives `null`. What it can inject is what the whole app has:
+Angular's `Router` (and `RouterLink` in its imports, for a link back such as `routerLink="/1"`), `Dark` from `slide-ng/lib/dark`, and the
+providers of `setup/main.ts` and `setup/providers.ts`.
+
 ## Differences from Slidev
 
 - Slidev's setup files are TypeScript with `define...Setup` helpers from `@slidev/types`; here a plain function is enough, and types come from `slide-ng/...`.

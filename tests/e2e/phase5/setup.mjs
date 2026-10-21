@@ -143,6 +143,11 @@ export async function run({ t, open, press, base, browser, problems }) {
   await page.goto(`${base}/hello`);
   await page.locator('#hello-page').waitFor({ timeout: 10000 });
   t.ok('routes: the page of setup/routes.ts is shown', new URL(page.url()).pathname === '/hello');
+  t.ok(
+    'routes: the page has no Nav (it is outside the deck) but can inject Dark',
+    (await page.locator('#hello-services').textContent())?.trim() === 'no nav, light',
+    await page.locator('#hello-services').textContent(),
+  );
   await page.goto(`${base}/no/where`);
   await page.waitForFunction(() => location.pathname === '/1');
   t.ok('routes: an unknown address still goes to slide 1', true);

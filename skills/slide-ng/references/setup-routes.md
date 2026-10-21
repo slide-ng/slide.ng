@@ -9,6 +9,8 @@ Gets the app's Angular `Routes` and returns the list to use, so a deck can add p
 
 The page is shown on its own: no slide frame, navigation or slide keys. With `dev --remote` it is not behind the presenter password unless you add a `canActivate`.
 
+The page is outside the deck: `Nav`, `Ui`, `Drawings` and the click context are not there (`inject(Nav)` fails with "No provider", `inject(Nav, { optional: true })` is `null`). It can inject Angular's `Router` (import `RouterLink` for a link back, `routerLink="/1"`), `Dark` from `slide-ng/lib/dark`, and what `setup/main.ts` or `setup/providers.ts` provide.
+
 <!-- verify-file: setup/routes.ts -->
 
 ```ts
