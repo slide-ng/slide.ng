@@ -35,6 +35,7 @@ function metaOf(slide, index, rubyMap) {
     routeAlias: checkRouteAlias(f.routeAlias, index + 1),
     hideInToc: Boolean(f.hideInToc),
     transition: f.transition ?? null,
+    images: slide.images ?? [], // set by slideSource (slide-images.mjs)
     frontmatter: f,
   };
 }

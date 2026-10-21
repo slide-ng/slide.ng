@@ -13,6 +13,7 @@ import { commonPipes } from './pipes.mjs';
 import { commonDirectives } from './angular-imports.mjs';
 import { setWarnSlide } from './code/highlighter.mjs';
 import { localAssets } from './local-assets.mjs';
+import { slideImages } from './slide-images.mjs';
 
 const pad = (no) => String(no).padStart(3, '0');
 export const slideName = (no) => `slide-${pad(no)}`;
@@ -212,6 +213,8 @@ export function slideSource(slide, no, deck = {}) {
     ),
     no,
   );
+  // The pictures the app loads before the slide is shown (`preloadImages`); index-source.mjs writes them into the slide list.
+  slide.images = slideImages(html, slide.frontmatter, base);
 
   // Look for components outside code samples only (code is just text). A `<code>` written in HTML is live Angular.
   const markup = html

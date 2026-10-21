@@ -216,6 +216,16 @@ describe('indexSource', () => {
     expect(src).toContain('export const HEADMATTER');
     expect(src.match(/component: Slide00\d/g)?.length).toBe(2);
   });
+  it('writes the pictures of each slide, with the base of the build', async () => {
+    const deck = await parseDeck('/d/slides.md', {
+      '/d/slides.md': '# A\n\n![a](/a.png)\n\n---\nlayout: image\nimage: /b.jpg\n---\n',
+    });
+    const built = { ...deck, root: undefined, assetBase: '/talk/' }; // a deck in memory: no folder to copy files from
+    deck.slides.forEach((s, i) => slideSource(s, i + 1, built));
+    const src = indexSource(deck);
+    expect(src).toContain('"images":["/talk/a.png"]');
+    expect(src).toContain('"images":["/talk/b.jpg"]');
+  });
 });
 
 describe('plainTitle', () => {

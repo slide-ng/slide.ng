@@ -17,6 +17,7 @@ import { Nav } from './nav';
 import { SlideLayer } from './slide-layer';
 import { RenderContext } from './slide-context';
 import { Stage } from './stage';
+import { preloadImages } from './preload-images';
 import { pickTransition } from './transitions';
 import { Ui } from './ui-state';
 import { ViewPrefs } from './view-prefs';
@@ -85,6 +86,8 @@ export class SlideShow {
 
   constructor() {
     effect(() => this.ui.canvasScale.set(this.scale()));
+    // Headmatter `preloadImages`: the pictures of the next slides load while this one is shown.
+    preloadImages(() => this.nav.no());
     // One slide component per slide number, so each slide gets a fresh ClicksContext.
     effect(() => {
       const no = this.nav.no(),
