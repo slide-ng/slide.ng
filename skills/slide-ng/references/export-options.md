@@ -16,7 +16,7 @@ Command line wins over the headmatter `export:` block, which wins over defaults.
 | `--timeout` (ms, 1000-600000)                                  | `timeout`        | 30000                                        |
 | `--wait` (ms, 0-120000), also for `@defer (on timer/viewport)` | `wait`           | 0                                            |
 | `--wait-until networkidle\|load\|domcontentloaded\|none`       | `waitUntil`      | `networkidle`                                |
-| `--per-slide`                                                  | `perSlide`       | false                                        |
+| `--per-slide` (no links between slides, untagged)              | `perSlide`       | false                                        |
 | `--scale 0.25-8`                                               | `scale`          | 2                                            |
 | `--omit-background`                                            | `omitBackground` | false                                        |
 | `--with-toc`                                                   | `withToc`        | false                                        |

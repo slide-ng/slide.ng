@@ -9,6 +9,15 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - `<slide-ng-title-renderer />` draws a slide's title as HTML, with its inline markdown and `$math$` (Slidev's `<TitleRenderer>`); `no="N"` picks another slide. The table of contents shows the same HTML. Raw HTML in a title is shown as text.
 - `notesAutoRuby: { word: reading }` in the headmatter shows a reading above each listed word in the speaker notes, with `<ruby>` (Slidev's `notesAutoRuby`). Code, tag attributes and existing `<ruby>` are left alone.
 
+### Fixed
+
+- A deck built with `slide-ng build` runs on a host that sends `Content-Security-Policy: script-src 'self'`: the inline scripts of `index.html` are written to `inline-*.js` files (docs/HOSTING.md, which also says how to embed a deck in an iframe).
+- `<object data="data:text/html,...">` and `javascript:` in an `<object>`'s `data` are replaced by `#`, like `href` and `src`; the "`<script>` is removed" warning is only given for a real `<script>` element; an inline event handler (`onclick=`) gets a warning that it runs.
+- Bidi override characters are left out of slide titles in the table of contents, the tab title and the PDF outline.
+- An element left open in a slide (`<div>` without `</div>`) stops the build with a message that names it and the slide, instead of Angular's "Unexpected closing tag sn-default".
+- PDF pages are exactly the size of a slide (Chromium made them 735.12 pt wide, which left a white line at the edge of dark slides); the notes PDF has the notes' background down to the end of the last page.
+- `export --per-slide` keeps the document language and says that links between slides and the tags for screen readers are lost.
+
 ## [1.0.0] - 2026-10-18
 
 ### Added

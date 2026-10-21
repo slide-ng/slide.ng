@@ -41,4 +41,4 @@ A claim[^1].
 ```
 
 - `## Title {#id .class}` puts an id and classes on a heading; `![logo](/logo.png){width=120}` sizes a picture.
-- `:emoji:` shortcodes are not converted: type the emoji. A `javascript:` link becomes `#` (with a warning).
+- `:emoji:` shortcodes are not converted: type the emoji. A `javascript:` link becomes `#` (with a warning); an inline `onclick=` is kept and runs (with a warning), use `(click)=`.

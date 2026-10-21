@@ -1,5 +1,5 @@
 // PDF output: page.pdf of the print page, merged (per-slide mode), titled, with an optional outline.
-import { PDFDocument } from '@cantoo/pdf-lib';
+import { PDFDocument, PDFName } from '@cantoo/pdf-lib';
 import { addOutline, outlineTree } from './outline.mjs';
 import { describe } from '../lib/head.mjs';
 import { plainTitle } from '../lib/index-source.mjs';
@@ -34,22 +34,40 @@ function setProperties(pdf, headmatter) {
     );
 }
 
+// Chromium rounds the paper up (980 css pixels are 735.12 pt, not 735) and paints only the slide's own box, which left a
+// thin white line at the edge of a dark page. Each page is cut back to the slide, at its top left corner.
+export function trimPages(pdf, { width, height }) {
+  const [w, h] = [width * 0.75, height * 0.75]; // css pixels to points
+  for (const page of pdf.getPages()) {
+    const box = page.getMediaBox();
+    if (box.width <= w && box.height <= h) continue;
+    const [nw, nh] = [Math.min(box.width, w), Math.min(box.height, h)];
+    page.setMediaBox(box.x, box.y + box.height - nh, nw, nh);
+    if (page.node.CropBox()) page.setCropBox(box.x, box.y + box.height - nh, nw, nh);
+  }
+}
+
 /**
  * Joins the buffers of the batches into one document.
- * `pages` is `{ no, id }` for every PDF page in order; `slides` are the deck's slides (for titles and levels).
+ * `pages` is `{ no, id }` for every PDF page in order; `slides` are the deck's slides (for titles and levels);
+ * `size` is the slide's size in css pixels.
  */
-export async function buildPdf({ buffers, pages, slides, headmatter, withToc }) {
+export async function buildPdf({ buffers, pages, slides, headmatter, withToc, size }) {
   // One batch (the usual case) is kept as Chromium wrote it, with its tags for screen readers: copying pages into a new
-  // document drops them. Several batches (`--per-slide`) are joined, and that copy is untagged.
+  // document drops them. Several batches (`--per-slide`) are joined, and that copy is untagged and has no links between
+  // slides (Chromium leaves out a link to a slide that is not in the same batch); it keeps the language of the page.
   let pdf;
   if (buffers.length === 1) pdf = await PDFDocument.load(buffers[0]);
   else {
     pdf = await PDFDocument.create();
-    for (const bytes of buffers) {
+    for (const [i, bytes] of buffers.entries()) {
       const part = await PDFDocument.load(bytes);
+      const lang = part.catalog.lookup(PDFName.of('Lang')); // a string, never a reference into `part`
+      if (i === 0 && lang) pdf.catalog.set(PDFName.of('Lang'), lang);
       (await pdf.copyPages(part, part.getPageIndices())).forEach((p) => pdf.addPage(p));
     }
   }
+  if (size) trimPages(pdf, size);
   setProperties(pdf, headmatter);
   if (withToc) addOutline(pdf, outlineTree(tocEntries(slides, pages)));
   return pdf.save();
