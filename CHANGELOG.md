@@ -24,6 +24,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - Click animation presets, as in Slidev: `clickAnimation` in the headmatter or a slide's frontmatter, modifiers on the attribute (`slide-ng-click.fade.right`, `slide-ng-after.up`, `slide-ng-click-hide.none`) and `<slide-ng-clicks animation="...">`. Presets `fade`, `fade-in`, `up`, `down`, `left`, `right`, `scale`, `none`; a deck's own is CSS on `.slidev-vclick-anim-<name>`. An element not revealed yet is inert (screen readers skip it, its links and buttons take no focus), also when `fade` shows it dimmed.
 - Every Magic Move option of the headmatter's `shiki.magicMove` is read (`duration`, `stagger`, `delayMove`, `delayLeave`, `delayEnter`, `delayContainer`, `easing`, `animateContainer`, `containerStyle`, `splitTokens`, `enhanceMatching`), as in Slidev. The stagger is no longer fixed at 1 ms.
 - Code block, code group and Magic Move titles draw an icon, as in Slidev: `~i-set:name~` in the title, or Slidev's built-in icons matched from the title (`npm`, `vue`, `package.json`, ...) when `@iconify-json/vscode-icons` is installed. A built-in name matches a whole word, a file extension or the start of a file name (`results.tsv` gets no TypeScript icon, unlike Slidev); every `~...~` is taken out of the shown title. A `<<<` snippet takes the title after the language (`<<< ./a.py python [a.py]`), with spaces and an icon.
+- The headmatter `monaco` and `twoslash` take `true`, `false`, `dev` or `build`, as in Slidev: off for the current mode, `{monaco}` blocks are plain highlighted code and Twoslash does not run (a `{monaco-run}` with `showOutputAt` then has no click, so `monaco: build` counts one click less in `slide-ng dev`). `monacoRunUseStrict: false` runs `{monaco-run}` code without strict mode.
 
 ### Changed
 
@@ -37,6 +38,8 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - The generator warns about a markdown link past the last slide (`[x](99)`), to a `./name` that is no `routeAlias`, or to the alias of a slide with `hide:`.
 - `slide-ng-click.hide` and `slide-ng-after.hide` show the element first and hide it at its click, as `v-click.hide` does in Slidev (the `slide-ng-click-hide` flag); before, `.hide` was dropped without a word. `slide-ng-click-hide="3"` hides at click 3, as `v-click-hide="3"`; before, its value was ignored and it hid at the next click. `slide-ng-click="2" slide-ng-click-hide="3"` shows at click 2 and hides at click 3, as in Slidev; before, the hide value was ignored and it hid at click 2.
 - A click range written as text, `slide-ng-click="[2, 4]"` or `slide-ng-click.up="[2, 4]"` (as `v-click.up="[2, 4]"`), is a range; before, it was ignored and the element was always visible. `[slide-ng-click.up]="[2, 4]"` builds too; before, it stopped the build with Angular's NG8002.
+- `wakeLock` takes `true`, `false`, `dev` or `build` and is on by default, as in Slidev (it was off unless `wakeLock: true`); a choice already stored in the browser (`slidev-wake-lock`, also the `false` written by earlier versions on first use) is kept, so turn it on once in the settings menu. Off for the current mode, the settings menu has no wake lock entry.
+- `{monaco-run}` code runs in strict mode (`"use strict"`), as in Slidev.
 
 ### Fixed
 

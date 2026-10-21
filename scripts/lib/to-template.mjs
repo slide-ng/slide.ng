@@ -42,8 +42,9 @@ const joinLines = (md) =>
 
 /**
  * @param {string} markdown
- * @param {{ file?: string, root?: string, headmatter?: any, aliases?: string[], total?: number, hiddenAliases?: string[], slide?: { no: number } }} [ctx]
- *   file, root: where snippet paths start; headmatter: deck-wide code settings; aliases: the deck's routeAlias names, which
+ * @param {{ file?: string, root?: string, headmatter?: any, monaco?: boolean, aliases?: string[], total?: number, hiddenAliases?: string[], slide?: { no: number } }} [ctx]
+ *   file, root: where snippet paths start; headmatter: deck-wide code settings; monaco: false makes editor blocks plain
+ *   code; aliases: the deck's routeAlias names, which
  *   links to slides may use; total, hiddenAliases: the slide count and the aliases of hidden slides, to warn about links
  *   that reach no slide (with `slide`, whose number the warning names)
  */

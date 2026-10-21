@@ -1,15 +1,16 @@
 import { Injectable, effect, signal } from '@angular/core';
-import { HEADMATTER } from '../../slides/generated';
 import { storedSignal } from './stored-signal';
+import { wakeLockEnabled } from './switches';
 
 /**
  * Keeps the screen awake while presenting (the browser's Screen Wake Lock).
- * The headmatter `wakeLock: true` turns it on until the user chooses otherwise in the settings.
+ * The headmatter `wakeLock` (`true` by default, `false`, `dev` or `build`, as in Slidev) turns it on until the user chooses
+ * otherwise in the settings; off for the current mode, the lock is never asked for and the settings do not offer it.
  */
 @Injectable({ providedIn: 'root' })
 export class WakeLock {
-  readonly supported = 'wakeLock' in navigator;
-  readonly enabled = storedSignal('slidev-wake-lock', HEADMATTER['wakeLock'] === true);
+  readonly supported = 'wakeLock' in navigator && wakeLockEnabled();
+  readonly enabled = storedSignal('slidev-wake-lock', true);
   /** True while the browser really holds the lock. */
   readonly held = signal(false);
   private sentinel: WakeLockSentinel | null = null;

@@ -11,7 +11,7 @@ export interface RunResult {
 const TIMEOUT_MS = 5000;
 let counter = 0;
 
-export function runJs(js: string): Promise<RunResult> {
+export function runJs(js: string, strict = true): Promise<RunResult> {
   return new Promise((resolve) => {
     const id = `run-${++counter}`;
     const result: RunResult = { lines: [] };
@@ -40,7 +40,7 @@ export function runJs(js: string): Promise<RunResult> {
     }, TIMEOUT_MS);
 
     window.addEventListener('message', onMessage);
-    frame.srcdoc = frameHtml(js, id);
+    frame.srcdoc = frameHtml(js, id, strict);
     document.body.append(frame);
   });
 }

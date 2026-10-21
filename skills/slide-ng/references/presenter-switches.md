@@ -11,9 +11,11 @@ description: Headmatter switches for presenter, editor, record, contextMenu, wak
 | `editor`      | `false` hides the side editor   | dev only                                  |
 | `record`      | `true`, `false`, `dev`, `build` | camera and record buttons (default `dev`) |
 | `contextMenu` | `true`, `false`, `dev`, `build` | right-click menu                          |
-| `wakeLock`    | `true`                          | start with the screen kept awake          |
+| `wakeLock`    | `true`, `false`, `dev`, `build` | screen kept awake (default `true`)        |
 | `drawings`    | object                          | see `animation-drawing.md`                |
 | `colorSchema` | `auto`, `light`, `dark`         | see `core-headmatter.md`                  |
+
+The wake lock is on by default and is also a settings menu entry; a choice already stored in the browser wins over the headmatter.
 
 <!-- verify -->
 

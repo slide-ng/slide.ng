@@ -192,7 +192,7 @@ export function slideSource(slide, no, deck = {}) {
     .map((sl) => sl.frontmatter?.routeAlias)
     .filter(Boolean)
     .map(String);
-  const layout = `${openTag(def, slide.frontmatter)}${body(markdown, def, no, { file: slide.file, root: deck.root, roots: deck.roots?.map((r) => r.dir), allowOutsideRoot: deck.allowOutsideRoot, headmatter: deck.headmatter, codeblocks: deck.transformers?.codeblocks, slide: slideInfo(slide, no), aliases, total: deck.slides?.length, hiddenAliases: deck.hiddenAliases }, layoutKey)}</${def.tag}>`;
+  const layout = `${openTag(def, slide.frontmatter)}${body(markdown, def, no, { file: slide.file, root: deck.root, roots: deck.roots?.map((r) => r.dir), allowOutsideRoot: deck.allowOutsideRoot, headmatter: deck.headmatter, monaco: deck.monaco, codeblocks: deck.transformers?.codeblocks, slide: slideInfo(slide, no), aliases, total: deck.slides?.length, hiddenAliases: deck.hiddenAliases }, layoutKey)}</${def.tag}>`;
   const base = deck.assetBase ?? '/'; // where the deck is served from in a build; `/public` files get it in front
   const html = safeLinks(
     closeEntities(

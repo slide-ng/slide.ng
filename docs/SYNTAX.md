@@ -63,6 +63,9 @@ In the headmatter (the frontmatter of the first slide) you can also set:
 | `codeCopy`, `magicMoveCopy`                                                      | `false` hides the copy button on every code block, or only on Magic Move blocks                       |
 | `contextMenu`, `presenter`                                                       | `true` (default), `false`, `dev` or `build`: the right-click menu, and the presenter page and button  |
 | `editor`                                                                         | `false` hides the side editor (dev server only)                                                       |
+| `monaco`, `twoslash`                                                             | `true` (default), `false`, `dev` or `build`: off, `{monaco}` blocks are plain code; Twoslash not run  |
+| `wakeLock`                                                                       | `true` (default), `false`, `dev`, `build`: the settings wake lock; a choice the browser stored wins   |
+| `monacoRunUseStrict`                                                             | `false` runs `{monaco-run}` code without `"use strict"` (on by default, as in Slidev)                 |
 | `themeConfig`                                                                    | settings for the theme, e.g. `themeConfig: { primary: '#5d8392' }`; see "Themes and addons" below     |
 
 Other keys are kept in the slide's metadata and ignored, unless a theme or a component reads them.
@@ -477,6 +480,11 @@ console.log('runs on a click and the result appears');
 
 Keys typed in an editor do not trigger slide shortcuts.
 
+`monaco: false` in the headmatter turns every `{monaco}`, `{monaco-diff}`, `{monaco-run}` and `{monaco-write}` block into a plain highlighted block;
+`monaco: dev` keeps the editors for `slide-ng dev` only, `monaco: build` for builds and exports only.
+Where the editors are off, a `{monaco-run}` with `showOutputAt` is plain code and has no click: with `monaco: build` its slide has one
+click less in `slide-ng dev` than in the build, so the click numbers after it and the `[click]` markers in its notes differ between the two.
+
 ## Twoslash
 
 Add `twoslash` after the language and hover the code to see types (worked out while generating, so no TypeScript reaches the browser):
@@ -489,6 +497,7 @@ const count = Math.max(1, 2);
 ````
 
 `//    ^?` shows the type of the word above the `^`, on a line of its own. A TypeScript error in the block is shown under its line (add `// @errors: <code>` to expect it), and the types still work.
+`twoslash: false` in the headmatter shows the blocks without types; `dev` or `build` runs Twoslash in that mode only (a build and an export count as `build`).
 
 ## Marks and motion
 
@@ -779,7 +788,7 @@ The presenter page has a **Screen Mirror** switch that shows a shared window ins
 
 ## Settings menu
 
-The same controls as Slidev, in the same order: Invert, Brightness, Contrast, Saturation, Sepia and Hue Rotate (slider and number box, Slidev's ranges and defaults; remembered under `slidev-viewer-css-filter`), Cursor Style (Cursor or Laser, `slidev-cursor-style`), Slide Scale (Fit or 1:1, not on the presenter page), Wake Lock (headmatter `wakeLock: true` starts it on; only where the browser supports it) and Hide Idle Cursor (not on the presenter page). The laser dot follows the pointer on the main page too. Below a divider: Show Presenter Cursor (presenter page), Dark Mode (only when `colorSchema` is `auto`), camera options and "Download as PDF".
+The same controls as Slidev, in the same order: Invert, Brightness, Contrast, Saturation, Sepia and Hue Rotate (slider and number box, Slidev's ranges and defaults; remembered under `slidev-viewer-css-filter`), Cursor Style (Cursor or Laser, `slidev-cursor-style`), Slide Scale (Fit or 1:1, not on the presenter page), Wake Lock (on by default, `wakeLock: false` turns it off and removes the entry; a choice the browser stored wins; only where the browser supports it) and Hide Idle Cursor (not on the presenter page). The laser dot follows the pointer on the main page too. Below a divider: Show Presenter Cursor (presenter page), Dark Mode (only when `colorSchema` is `auto`), camera options and "Download as PDF".
 "Download as PDF" appears with `download: true` and is enabled only when the build made the PDF (`slide-ng build` with `download: true` or `--download`, see HOSTING.md).
 
 ## Moving things: `slide-ng-drag`
