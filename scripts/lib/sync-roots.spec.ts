@@ -98,4 +98,18 @@ describe('syncRoots', () => {
     expect(existsSync(join(generated, 'roots/t'))).toBe(false);
     expect(existsSync(join(generated, 'public/x.txt'))).toBe(false);
   });
+  it('warns about a root folder that is a symbolic link, and does not follow it', () => {
+    const generated = folder(),
+      deck = folder(),
+      pictures = folder();
+    put(pictures, { 'a.png': 'A' });
+    symlinkSync(pictures, join(deck, 'public'), 'dir');
+    const warnings: string[] = [];
+    const result = syncRoots([{ id: 'deck', dir: deck }], generated, (m) => warnings.push(m));
+    expect(result).toEqual([{ id: 'deck', folders: [] }]);
+    expect(existsSync(join(generated, 'public/a.png'))).toBe(false);
+    expect(warnings).toEqual([
+      expect.stringMatching(/public\/ is a symbolic link.*not copied.*real folder/),
+    ]);
+  });
 });

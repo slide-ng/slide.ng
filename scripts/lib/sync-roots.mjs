@@ -41,8 +41,12 @@ export function syncTree(from, to, prune = true) {
     for (const file of listFiles(to)) if (!wanted.has(file)) rmSync(join(to, file));
 }
 
-/** Copies every root. Returns, for the logs, `{ id, folders }` of each. `generated` is the folder `src/slides/generated`. */
-export function syncRoots(roots, generated) {
+/**
+ * Copies every root. Returns, for the logs, `{ id, folders }` of each. `generated` is the folder `src/slides/generated`.
+ * `warn` hears about a root folder that is a symbolic link: it is left out like any other link, which would go unnoticed.
+ * @param {(message: string) => void} [warn]
+ */
+export function syncRoots(roots, generated, warn = () => {}) {
   const target = join(generated, 'roots');
   const publicDir = join(generated, 'public');
   mkdirSync(target, { recursive: true });
@@ -56,6 +60,11 @@ export function syncRoots(roots, generated) {
     const folders = ROOT_FOLDERS.filter(
       (f) => existsSync(join(root.dir, f)) && lstatSync(join(root.dir, f)).isDirectory(),
     );
+    for (const f of ROOT_FOLDERS)
+      if (existsSync(join(root.dir, f)) && lstatSync(join(root.dir, f)).isSymbolicLink())
+        warn(
+          `${join(root.dir, f)}/ is a symbolic link, and links are never followed: its files are not copied. Make it a real folder.`,
+        );
     for (const folder of ROOT_FOLDERS) {
       const from = join(root.dir, folder);
       if (!folders.includes(folder)) {
