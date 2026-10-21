@@ -6,6 +6,23 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [2.0.0] - 2026-10-21
 
+### Upgrading from 1.x
+
+Node (22.22.3 or newer) and Angular (22.2) are the same as in 1.x. These changes can alter a deck that 1.x showed correctly:
+
+- `routeAlias: overview`, `entry` or `notes-edit` stops `build` and `dev`: they are pages of the app now. Rename the alias. A markdown link `[x](/overview)` opens the app's overview page instead of that slide.
+- `lang` now also sets the locale of the `date`, `number` and `currency` pipes (`lang: en-GB` writes "30 September 2026"; `pt_br` writes `1.234.567,891`). Give a pipe its own locale argument to keep the old format.
+- Attributify reads plain HTML attributes as utilities: `<table border="1">` gets a border, `<span font="bold">` is bold, `<div m="4">` gets a margin. `unocss: { attributify: false }` in the headmatter turns it off.
+- An `index.html` next to `slides.md` is merged into the page: its `<title>`, `<meta>` and scripts now count. Rename it if it was not meant for the deck.
+- `themeConfig` is applied as CSS variables (`--slidev-theme-<key>`), so a `themeConfig.primary` recolours `text-primary`, the progress bar and the controls.
+- Pictures of the next slides are loaded ahead (`preloadImages` is on); `preloadImages: false` turns it off.
+- Markdown links to `http(s)` addresses open in a new tab.
+- The screen wake lock is on by default (`wakeLock: false` turns it off; a choice stored in the browser is kept).
+- `{monaco-run}` code runs in strict mode: assigning a name that was never declared stops with a `ReferenceError`. Declare it, or set `monacoRunUseStrict: false`.
+- `slide-ng-click.hide` (and `slide-ng-after.hide`) hides the element at its click instead of being ignored, and `slide-ng-click-hide="3"` hides at click 3 instead of the next click.
+- An `<a href="/3">` written as HTML with attributes other than `class`, `id` or `style` (such as `target`) is left as written, with a warning; in a `routerMode: hash` deck it loads `/3` from the server. Write a markdown link (`[x](3)`) or `<slide-ng-link to="3">`. A plain `<a href="/3">` goes to the slide, as in 1.x.
+- The address leaves out `?clicks=0`.
+
 ### Added
 
 - The interface can be translated: `lang` (or `uiLang`) picks the language, and `locales/<lang>.json` in the deck, a theme or an addon translates it key by key (docs/UI-STRINGS.md). Turkish is built in (`lang: tr`).
@@ -52,7 +69,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - The date on the notes PDF is written in the deck's language instead of the browser's.
 - The address leaves out `?clicks=0`: slide 2 at its first click is `/2` (or `#/2`), not `/2?clicks=0`, as in Slidev. An address with `?clicks=0` still opens.
 - `<html lang>` is written in the usual spelling: `lang: pt_br` gives `pt-BR`.
-- An `<a href="/4">` written as HTML is left as written; only markdown links become slide links (#14).
+- An `<a href="/4">` written as HTML with other attributes than `class`, `id` and `style` (such as `target`) is left as written, with a warning; markdown links and plain `<a href="/4">` become slide links (#14).
 - In a PDF made by `export` or `build --download`, other links to the deck's own site (`/file.pdf`, `<a href="/3">`) are text without a link, instead of links to the temporary server of the export.
 - A `routeAlias` that is a number (`routeAlias: 2`) is refused: the address `/2` is slide 2, so the alias's slide could not be opened.
 - A `routeAlias` that is empty, has `/`, `.`, `?`, `#` or `\`, or is on two slides (also through a `src:` import of several slides) stops the build, naming the slides.
@@ -134,7 +151,24 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - The "go to" box (`g`) finds titles in any case by the deck's language (Turkish `izmir` finds "İzmir", `ışık` finds "Işık") and without accents.
 - Slide titles with `$math$` or markdown escapes are plain text in the tab title, the live region, the "go to" list and the PDF outline (`Karmaşıklık O(1)`, not `$O(1)$`).
 - The page description and the PDF subject made from `info` keep `#`, `_`, `*` and `>` that are not markdown (`C#`, `#42`, `snake_case`).
+- Where the 2.0 features meet:
+  - the presenter's click preview: a click on a greyed-out part goes to its click again (a part not revealed yet is inert);
+  - `<slide-ng-switch transition="...">` builds with a custom transition name;
+  - the sync menu, the click preview, the notes pages, `/overview` and `/notes-edit`, the progress bar's minutes, the presenter's regions and the banner for slides left out are translated;
+  - in a right-to-left deck the sync menu's arrow keys follow the mirrored menu, and the settings menu stays inside a narrow window;
+  - MCP's `goto_slide` moves a window whose clock is ahead of the dev server's;
+  - with two presenter windows, a window that opens no longer takes the older presenter's move;
+  - `<slide-ng-progress-bar>` no longer gets the "not a slide.ng name" warning, `{{ $nav.previousNo }}` gets the uncalled-signal warning, a markdown link to `./overview`, `./entry` or `./notes-edit` no longer gets the dead-link warning, and `slide-ng-click="[2, 4]"` is checked as a range instead of being reported as text.
 - The docs in the package link to the example themes, the tests and SECURITY.md on GitHub; those files are not in the package, so the relative links led nowhere.
+
+### Security
+
+- markdown-it is 14.3.3 and 15.0.3 in the lock file, for its quadratic-time parsing advisories (GHSA-vfgh-jcmw-g37q, GHSA-gfr2-rv44-r23c).
+- `npm audit` on a fresh install still reports 17 advisories (7 high), all in packages that slide.ng's dependencies bring in, none with a fix in the same major version of what slide.ng depends on (the fixes npm audit offers are downgrades):
+  - vite 8.3.0 (its `launch-editor`), pinned exactly by the latest `@angular/build` (22.2.3); it only runs in `slide-ng dev`;
+  - `@slidev/parser` 53.0.0 brings in `@slidev/types` with `unplugin-vue-markdown` (`gray-matter`, `js-yaml`, `argparse`, `sprintf-js`), `vite-plugin-static-copy` (`chokidar` 3, `braces`) and its own `monaco-editor`; slide.ng uses only the parser, at build time, on the deck's own files;
+  - `monaco-editor` 0.57.0 (the latest) pins DOMPurify 3.4.15;
+  - `pptxgenjs` 4.0.1 (the latest) brings in `image-size` 1.x, which reads the pictures of the PPTX export on the machine that exports.
 
 ## [1.0.0] - 2026-10-18
 
