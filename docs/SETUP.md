@@ -120,7 +120,8 @@ Returns a function that draws a diagram with another library, as in Slidev. The 
 config of `setup/mermaid.ts` and the fence's own options, merged in that order) and returns the SVG as a string, or a promise of it. Mermaid
 itself is then not loaded. `scale` is still applied to the SVG, and the export waits for it like for a Mermaid drawing. The setup function may be
 async, and it may return nothing to keep Mermaid. When several roots have the file, the last one that returns a function wins.
-A setup that throws is skipped with a warning in the console, and asked again for the next diagram.
+A setup that throws is skipped with a warning in the console, and asked again for the next diagram. A renderer that throws, or that resolves
+to something other than a string, shows the red error box in place of the diagram.
 
 ```ts
 // setup/mermaid-renderer.ts: Mermaid's hand-drawn look for every diagram
@@ -235,6 +236,8 @@ file itself or be imported from the root (`import { Gallery } from '../component
 one before returned. Angular takes the first route that matches, and Slidev's router the most specific one; to keep that, the app's own routes that
 match any address (`:no`, the slide, and `**`) are moved to the end afterwards, so a page appended to the list is reached. Routes the files add
 stay where they put them, a `:lang` route too; a copy of `:no` or `**` (with a guard added, say) is moved like the original.
+A file that throws, or returns something other than a list, is skipped: the console says `slide-ng: setup/routes.ts threw` (or what it
+returned), and the deck keeps the routes it had before that file, so the slides still open.
 
 ```ts
 // setup/routes.ts

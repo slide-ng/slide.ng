@@ -36,4 +36,25 @@ describe('Mermaid', () => {
     expect(host.getAttribute('data-slide-ng-waitfor')).toBeNull();
     warn.mockRestore();
   });
+
+  it('shows the error box when the renderer resolves to something else than a string', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: MERMAID_RENDERER, useValue: [() => async () => undefined] },
+        { provide: Dark, useValue: { isDark: () => false } },
+      ],
+    });
+    const fixture = TestBed.createComponent(Mermaid);
+    const host = fixture.nativeElement as HTMLElement;
+    fixture.componentRef.setInput('code', 'graph TD; nothing-->here');
+    for (let i = 0; i < 5; i++) {
+      await fixture.whenStable();
+      await new Promise((r) => setTimeout(r));
+    }
+    expect(host.querySelector('.mermaid-error')?.textContent).toContain('SVG string');
+    expect(host.querySelector('.mermaid')).toBeNull();
+    expect(host.getAttribute('data-slide-ng-waitfor')).toBeNull();
+    warn.mockRestore();
+  });
 });

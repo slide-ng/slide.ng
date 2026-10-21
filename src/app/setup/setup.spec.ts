@@ -191,4 +191,27 @@ describe('setup providers', () => {
     expect(result.map((r) => r.path)).toEqual(['about', ':lang', ':no', '**']);
     expect(result.slice(2).every((r) => r.canActivate)).toBe(true);
   });
+
+  it('keeps the routes as they were when a file throws or returns no list, and says which file', () => {
+    @Component({ template: '' })
+    class Page {}
+    const base = [
+      { path: ':no', component: Page },
+      { path: '**', redirectTo: '1' },
+    ];
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const add = (routes: Routes) => [...routes, { path: 'about', component: Page }];
+    const broken = () => {
+      throw new Error('bad routes');
+    };
+    const empty = () => undefined as unknown as Routes;
+    expect(applyRoutesSetups(base, [add, broken, empty]).map((r) => r.path)).toEqual([
+      'about',
+      ':no',
+      '**',
+    ]);
+    expect(error).toHaveBeenCalledTimes(2);
+    expect(String(error.mock.calls[0][0])).toContain('setup/routes.ts');
+    error.mockRestore();
+  });
 });

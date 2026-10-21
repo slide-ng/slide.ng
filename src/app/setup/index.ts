@@ -64,9 +64,24 @@ export const routesProviders = (files: RoutesSetup[]): Providers => [
 ];
 
 /** The app's routes after the `setup/routes.ts` files. Angular takes the first route that matches (Vue's router the most
- * specific one), so the routes that match any address, `:no` and `**`, are moved last: a page a file adds is reached before them. */
+ * specific one), so the routes that match any address, `:no` and `**`, are moved last: a page a file adds is reached before them.
+ * A file that throws or returns no list is reported and skipped: the deck keeps the routes it had before that file. */
 export function applyRoutesSetups(routes: Routes, files: RoutesSetup[]): Routes {
-  const changed = files.reduce((all, f) => f(all), routes);
+  const changed = files.reduce((all, f) => {
+    try {
+      const next = f(all);
+      if (Array.isArray(next)) return next;
+      console.error(
+        `slide-ng: setup/routes.ts must return the list of routes, it returned ${String(next)}; its changes are skipped.`,
+      );
+    } catch (e) {
+      console.error(
+        'slide-ng: setup/routes.ts threw, its changes are skipped and the deck keeps its own routes:',
+        e,
+      );
+    }
+    return all;
+  }, routes);
   // The app's own `:no` and `**`, or a copy of one (same path and target, e.g. with a guard added). A `:lang` page a file
   // adds is the deck's, and stays where the file put it.
   const fallbacks = routes.filter((r) => r.path === '**' || r.path === ':no');

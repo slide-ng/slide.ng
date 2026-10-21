@@ -36,7 +36,13 @@ async function draw(
   if (known) return known;
   const run = async () => {
     if (renderer) {
-      const svg = await renderer(code, config);
+      const svg: unknown = await renderer(code, config);
+      // A renderer that resolves to nothing would draw "undefined": show the error box, as for one that throws.
+      if (typeof svg !== 'string') {
+        throw new Error(
+          `setup/mermaid-renderer.ts: the renderer must resolve to an SVG string, it gave ${String(svg)}`,
+        );
+      }
       cache.set(key, svg);
       return svg;
     }
