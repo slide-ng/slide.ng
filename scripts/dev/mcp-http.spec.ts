@@ -158,6 +158,31 @@ describe('MCP over HTTP on the dev server', () => {
     await client.close();
   });
 
+  it('goto_slide answers the step a window that may not drive reports, and no window follows the report', async () => {
+    const { port } = await start();
+    const client = await connect(port);
+    // A viewer on another machine only follows: it says where it is on the hub's own channel.
+    const viewer = await windowOn(port);
+    const other = await windowOn(port);
+    viewer.socket.on('message', (m) => {
+      const { data } = JSON.parse(String(m));
+      if (data.lastUpdate?.type === 'viewer')
+        viewer.socket.send(
+          JSON.stringify({ channel: 'position', data: { page: data.page, clicks: 2 } }),
+        );
+    });
+    expect((await call(client, 'goto_slide', { no: 3, clicks: 50 })).json).toEqual({
+      no: 3,
+      clicks: 2,
+      windows: 2,
+    });
+    expect((await call(client, 'get_info')).json.current).toEqual({ page: 3, clicks: 2 });
+    expect(other.received.map((m) => m.channel)).toEqual(['shared', 'shared']);
+    viewer.socket.close();
+    other.socket.close();
+    await client.close();
+  });
+
   it('the edit tools write slides.md as with slide-ng mcp', async () => {
     const { root, port } = await start();
     const client = await connect(port);

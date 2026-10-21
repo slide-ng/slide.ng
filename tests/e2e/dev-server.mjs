@@ -602,6 +602,34 @@ try {
   await outsider.close();
   await a.close();
   await b.close();
+  // A viewer on another machine (127.0.0.2 is not a local host name to the app) only follows; goto_slide still learns the
+  // step it took. Slide 2 has no clicks: once after a move to it, once while the window is there already.
+  const far = await browser.newContext({ viewport: { width: 1000, height: 600 } });
+  const farViewer = await far.newPage();
+  await farViewer.goto(`http://127.0.0.2:${RPORT}/3?password=secret`);
+  await farViewer.waitForFunction(
+    () => /^slide 3\/[\s\S]*clicks \d+\/\d+/.test(document.querySelector('#hud')?.innerText ?? ''),
+    null,
+    { timeout: 60000 },
+  );
+  await farViewer.waitForTimeout(1500);
+  const rmcp = new Client({ name: 'dev-test', version: '1.0.0' });
+  await rmcp.connect(
+    new StreamableHTTPClientTransport(new URL(`${rbase}/__mcp`), {
+      requestInit: { headers: { authorization: 'Bearer secret' } },
+    }),
+  );
+  const rgoto = async (args) =>
+    JSON.parse((await rmcp.callTool({ name: 'goto_slide', arguments: args })).content[0].text);
+  const moved = await rgoto({ no: 2, clicks: 50 });
+  const stayed = await rgoto({ no: 2, clicks: 50 });
+  t.ok(
+    '--remote: goto_slide past the last click answers the step a viewer on another machine took',
+    moved.windows === 1 && moved.clicks === 0 && stayed.clicks === 0,
+    JSON.stringify([moved, stayed]),
+  );
+  await rmcp.close();
+  await far.close();
   stop();
   await sleep(2000);
 

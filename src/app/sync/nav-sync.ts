@@ -32,6 +32,11 @@ export function startNavSync(nav: Nav) {
       lastUpdate: { id: sync.id, type, time: Date.now(), ...(via ? { via } : {}) },
     });
   };
+  // After a move from outside that this window could not take as it came (a step past the slide's last click): say where it
+  // is, so the sender (MCP's goto_slide) learns the step it took. A window that may not drive only reports it (the others do
+  // not follow a report).
+  const report = () =>
+    mayShare ? send() : sync.reportPosition({ page: nav.no(), clicks: nav.clicks() });
 
   // Our position changed: tell the others. The very first position of a viewer is not news
   // (a viewer that just opened would drag the presenter back to its own slide).
@@ -44,12 +49,14 @@ export function startNavSync(nav: Nav) {
       if (!mounted) return; // the slide is still being created
       const fromOutside = applied === `${page}:${clicks}`;
       const from = appliedFrom;
+      const followed = applied !== '';
       applied = appliedFrom = '';
       const initial = first;
       first = false;
       // A viewer's move reached the presenter: pass it on, so the other viewers follow too (as Slidev's presenter does).
       if (fromOutside && nav.isPresenter && from) return send(from);
       if (fromOutside || (initial && !nav.isPresenter)) return;
+      if (followed) return report();
       send();
     });
   });
@@ -78,10 +85,10 @@ export function startNavSync(nav: Nav) {
       const before = nav.clicks();
       nav.jump(page, s.clicks);
       // A step past the slide's last click, while this window already sits at the last one: the click does not change, so the
-      // effect above sends nothing. Say where it is, so the sender (MCP's goto_slide) learns the step it took.
+      // effect above does not run.
       if (page === nav.no() && nav.ready() && nav.clicks() === before && before !== s.clicks) {
         applied = appliedFrom = '';
-        send();
+        report();
       }
     });
   });

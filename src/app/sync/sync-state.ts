@@ -54,6 +54,11 @@ export class SyncState {
     this.send('drawings', { [no]: svg });
   }
 
+  /** Where this window is, for the dev server only (MCP's goto_slide): no window follows it. */
+  reportPosition(position: { page: number; clicks: number }) {
+    this.send('position', position);
+  }
+
   /** A window that just opened asks for the current position; presenters answer (see nav-sync). */
   sendHello() {
     this.send('hello', {});

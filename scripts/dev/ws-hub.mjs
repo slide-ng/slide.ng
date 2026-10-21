@@ -3,7 +3,8 @@
 // last slide a window reported (for the MCP `get_info` tool; `goto_slide` waits for the next one), and it can send a message to every window (`goto_slide`).
 import { WebSocketServer } from 'ws';
 
-const CHANNELS = new Set(['shared', 'drawings', 'hello']);
+// `position` is only for the hub: a window that may not drive (a viewer on another machine) says where it is after a move.
+const CHANNELS = new Set(['shared', 'drawings', 'hello', 'position']);
 export const MAX_MESSAGE = 600_000; // a drawing of 500 000 characters fits, a bigger message closes the connection
 
 /** Is this text one message the app could have sent? */
@@ -16,12 +17,13 @@ export function isMessage(text) {
   }
 }
 
-/** The slide and click in a `shared` message, or null. */
+/** The slide and click in a `shared` or `position` message, or null. */
 export function positionOf(text) {
   try {
     const { channel, data } = JSON.parse(text);
     const count = (v) => Number.isInteger(v) && v >= 0 && v < 1e6;
-    if (channel !== 'shared' || !count(data?.page) || data.page < 1) return null;
+    if (!['shared', 'position'].includes(channel) || !count(data?.page) || data.page < 1)
+      return null;
     return { page: data.page, clicks: count(data.clicks) ? data.clicks : 0 };
   } catch {
     return null;
@@ -63,6 +65,7 @@ export function createHub() {
       if (isBinary || !isMessage(text)) return;
       const position = positionOf(text);
       if (position) ((wss.position = position), wss.emit('position', position));
+      if (JSON.parse(text).channel === 'position') return; // for the hub only
       for (const other of wss.clients)
         if (other !== socket && other.readyState === other.OPEN) other.send(text);
     });
