@@ -2,6 +2,7 @@
 // `useIsSlideActive`). Call them in an injection context: a field or the constructor of a component or directive.
 import {
   DestroyRef,
+  ErrorHandler,
   Injector,
   Signal,
   afterNextRender,
@@ -46,11 +47,20 @@ export function onSlideLeave(fn: SlideHook): void {
 }
 
 // Like Slidev's watch on the current slide number, started once mounted: `fn` gets every change of the shown slide.
-function watchShown(fn: SlideHook) {
+function watchShown(hook: SlideHook) {
   const context = inject(RENDER_CONTEXT);
   const nav = inject(Nav, { optional: true });
   const injector = inject(Injector);
   if (!nav || !isLive(context)) return;
+  // A hook that throws is reported and does not stop the other hooks of the slide or the next calls of its own.
+  const errors = inject(ErrorHandler);
+  const fn: SlideHook = (to, from) => {
+    try {
+      hook(to, from);
+    } catch (error) {
+      errors.handleError(error);
+    }
+  };
   // A slide created by a move starts from the slide shown before it, as in Slidev, where slides stay mounted.
   let from: number | undefined;
   // A slide that leaves without a transition is destroyed before its effect sees the new number: tell it then.

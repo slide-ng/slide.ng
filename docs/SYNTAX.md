@@ -618,7 +618,8 @@ Slidev's slide hooks are in `slide-ng/lib/slide-hooks`. Call them in an injectio
 
 `to` and `from` are slide numbers (1-based), `from` is `undefined` when no other slide was shown before. The hooks only run on the slide and presenter pages, not in
 thumbnails, the presenter's next slide preview or the PDF. In the PDF `isSlideActive()` is true for every slide, elsewhere it is false. The deck
-removes a slide it leaves, so a component that should remember something across visits keeps it outside the component.
+removes a slide it leaves, so a component that should remember something across visits keeps it outside the component. A hook that
+throws is reported in the browser console; the other hooks of the slide still run.
 
 ```ts
 import { Component, signal } from '@angular/core';

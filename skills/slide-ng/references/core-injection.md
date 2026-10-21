@@ -58,7 +58,7 @@ Call them in an injection context (a field or the constructor). `fn` gets `(to, 
 - `onSlideLeave(fn)`: when another slide is shown after this one.
 - `isSlideActive()`: a signal, true while the slide is on screen (Slidev's `useIsSlideActive`).
 
-They run on the slide and presenter pages only, not in thumbnails, the next slide preview or the PDF. In the PDF `isSlideActive()` is true for every slide (every slide is drawn at once and `Nav.no()` stays the presented slide, so show content by `SLIDE_NO` there). The deck removes a slide it leaves: keep counts that must survive a visit outside the component.
+They run on the slide and presenter pages only, not in thumbnails, the next slide preview or the PDF. In the PDF `isSlideActive()` is true for every slide (every slide is drawn at once and `Nav.no()` stays the presented slide, so show content by `SLIDE_NO` there). The deck removes a slide it leaves: keep counts that must survive a visit outside the component. A hook that throws is reported in the console and does not stop the other hooks.
 
 <!-- verify-file: components/enter-count.ts -->
 

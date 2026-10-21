@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, ErrorHandler, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { describe, expect, it } from 'vitest';
 import { Nav } from './nav';
@@ -13,6 +13,20 @@ class Hooked {
   constructor() {
     onSlideEnter((to, from) => log.push(`enter ${to} ${from}`));
     onSlideLeave((to, from) => log.push(`leave ${to} ${from}`));
+  }
+}
+
+@Component({ selector: 'test-throwing', template: '' })
+class Throwing {
+  constructor() {
+    onSlideEnter(() => {
+      throw new Error('enter failed');
+    });
+    onSlideLeave(() => {
+      throw new Error('leave failed');
+    });
+    onSlideEnter((to) => log.push(`sibling enter ${to}`));
+    onSlideLeave((to) => log.push(`sibling leave ${to}`));
   }
 }
 
@@ -75,6 +89,43 @@ describe('slide hooks', () => {
     (TestBed.inject(Nav).no as ReturnType<typeof signal<number>>).set(3); // the deck destroys the slide before its effect runs
     fixture.destroy();
     expect(log).toEqual(['enter 2 undefined', 'leave 3 2']);
+  });
+
+  it('reports a hook that throws and still runs the other hooks', async () => {
+    log.length = 0;
+    const errors: unknown[] = [];
+    const shown = signal(2);
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: SLIDE_NO, useValue: 2 },
+        { provide: RENDER_CONTEXT, useValue: 'slide' },
+        { provide: Nav, useValue: { no: shown, previousNo: signal(undefined) } },
+        {
+          provide: ErrorHandler,
+          useValue: { handleError: (error: unknown) => errors.push(error) },
+        },
+      ],
+    });
+    const fixture = TestBed.createComponent(Throwing);
+    await fixture.whenStable();
+    shown.set(3);
+    await fixture.whenStable();
+    shown.set(2);
+    await fixture.whenStable();
+    shown.set(4);
+    fixture.destroy();
+    expect(log).toEqual([
+      'sibling enter 2',
+      'sibling leave 3',
+      'sibling enter 2',
+      'sibling leave 4',
+    ]);
+    expect(errors.map((error) => (error as Error).message)).toEqual([
+      'enter failed',
+      'leave failed',
+      'enter failed',
+      'leave failed',
+    ]);
   });
 
   it('stays quiet in thumbnails, the next slide preview and print', async () => {
