@@ -32,7 +32,7 @@ Make a folder with `slide-ng create <folder>`, then copy the files over. When th
 - Keep `theme`, `colorSchema`, `fonts`, `title`, `info`, `favicon`, `class`, `drawings`, `transition`, `duration`, `layout`, `disabled`, `src`. They work the same. `fonts: { sans: Inter, mono: DM Mono }` loads both from Google Fonts.
 - Delete `comark: true` and `mdc: true`. If the deck uses no `::name`, `{.class}` or `:::` MDC syntax, nothing changes. If it does, rewrite those bits as HTML.
 - Rename the directives: `v-click` to `slide-ng-click` (also on a component: `<angie-storm slide-ng-click />`), `v-click="4"` to `slide-ng-click="4"`, `v-after`, `v-click.hide`, `v-clicks`, `v-mark`, `v-motion`, `v-drag` as in `core-slidev-differences.md`. A `sed 's/\bv-click\b/slide-ng-click/g'` does the common case.
-- Rename tags: `<carbon:bookmark />` to `<carbon-bookmark />`, `<Toc />` to `<slide-ng-toc />`, your own `<CountUp />` to `<count-up />`.
+- Rename tags: `<carbon:bookmark />` to `<carbon-bookmark />`, `<Toc />` to `<slide-ng-toc />`, `<VClick>` to `<div slide-ng-click>`, your own `<CountUp />` to `<count-up />`. The generator lists the built-in names still to rename on every slide in one run.
 - `{{ }}` and `$clicks` in markdown: see the pitfalls below.
 - Slide titles, notes, `disabled`, `hide`, `layout`, `class`, `routeAlias` need no change. A slide with a final HTML comment keeps it as its speaker note.
 

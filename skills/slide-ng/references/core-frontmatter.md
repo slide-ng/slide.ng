@@ -16,7 +16,7 @@ The YAML block at the top of a slide.
 | `hideInToc`                                                            | leave out of `<slide-ng-toc>`                                                                               |
 | `routeAlias`                                                           | extra address: `routeAlias: intro` opens this slide at `/intro` (`print`, `notes`, `presenter` are refused) |
 | `hide`, `disabled`                                                     | slide is left out of the deck                                                                               |
-| `clicks`, `clicksStart`                                                | fix the number of clicks; first click number (default 0)                                                    |
+| `clicks`, `clicksStart`                                                | fix the number of clicks; first click number (default 0). Not a number: ignored; negative `clicksStart`: 0  |
 | `transition`                                                           | transition between this slide and the next                                                                  |
 | `src`                                                                  | take the slides from another markdown file, see `core-import-slides.md`                                     |
 | `image`, `url`, `scale`, `backgroundSize`, `background`, `layoutClass` | props of some layouts                                                                                       |

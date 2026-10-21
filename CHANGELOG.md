@@ -8,9 +8,20 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 - `<slide-ng-title-renderer />` draws a slide's title as HTML, with its inline markdown and `$math$` (Slidev's `<TitleRenderer>`); `no="N"` picks another slide. The table of contents shows the same HTML. Raw HTML in a title is shown as text.
 - `notesAutoRuby: { word: reading }` in the headmatter shows a reading above each listed word in the speaker notes, with `<ruby>` (Slidev's `notesAutoRuby`). Code, tag attributes and existing `<ruby>` are left alone.
+- Warnings, with the slide and line, for click values written as text that cannot work (`slide-ng-click="abc"`, `"0"`, a range as text, `[slide-ng-click]="[2]"`, a range whose end is not after its start, a `<slide-ng-switch>` child with `at="x"`), and for `clicks` / `clicksStart` that are not numbers or are negative.
+
+### Changed
+
+- The old-names check also catches Slidev's PascalCase components (`<Toc />`, `<VClicks>`, `<SlidevVideo>`, `<Youtube>`, `<RenderWhen>`, `<LightOrDark>`, `<Link>`, ...) and `<slidev-video>`, lists the old names of every slide in one run, and tells `<v-click>` / `<v-after>` to become `<div slide-ng-click>` / `<div slide-ng-after>`.
 
 ### Fixed
 
+- A class or size on `<slide-ng-video>` (`class="h-60"`) sizes the video, on screen and in print, instead of only its box.
+- A `{monaco-run}` output with `showOutputAt: '+1'` takes its click in document order, before a `slide-ng-click` that follows it.
+- A negative `clicksStart` counts as 0, so the presenter and the export no longer get steps that change nothing.
+- `dev` no longer prints a red `ws proxy error: ECONNRESET` each time a tab is closed or reloaded.
+- The dev server's error overlay in the page names the deck's or theme's own file instead of its copy in `src/slides/generated/roots/`, and the markdown line of a generated slide.
+- White SVG `<text>` is drawn again in the presenter's next-slide pane and other small previews (Chromium skipped it after the preview's scale changed).
 - A component file that declares a helper component before its exported one gives each selector its own class (it used to pair the helper's selector with the exported class, and the build failed with NG8001).
 
 ## [1.0.0] - 2026-10-18
