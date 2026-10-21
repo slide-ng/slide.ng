@@ -24,6 +24,8 @@ export class PresenterPrefs {
       [layout]: { ...paneSizeOf(all, layout), ...change },
     }));
   }
+  /** The current slide also shows what the next clicks show, greyed out (slide.ng's own, so not a Slidev key). */
+  readonly clickPreview = storedSignal('slide-ng-presenter-click-preview', false);
 
   nextLayout() {
     this.layout.update((l) => (l >= 3 ? 1 : l + 1));
@@ -36,5 +38,8 @@ export class PresenterPrefs {
   }
   toggleCursor() {
     this.showCursor.update((v) => !v);
+  }
+  toggleClickPreview() {
+    this.clickPreview.update((v) => !v);
   }
 }

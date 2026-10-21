@@ -200,6 +200,15 @@ import { presenterEnabled } from '../lib/switches';
             <div class="i-carbon:template"></div>
             <span id="nav-layout-no">{{ prefs.layout() }}</span>
           </button>
+          <button
+            icon-btn
+            id="nav-click-preview"
+            [title]="prefs.clickPreview() ? 'Hide upcoming clicks' : 'Show upcoming clicks'"
+            [active]="prefs.clickPreview()"
+            (click)="prefs.toggleClickPreview()"
+          >
+            <div [class]="prefs.clickPreview() ? 'i-carbon:view-filled' : 'i-carbon:view'"></div>
+          </button>
         }
 
         @if (syncControls) {

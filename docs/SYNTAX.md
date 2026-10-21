@@ -863,6 +863,32 @@ timer: countdown # or stopwatch (default)
 
 The presenter's mouse is shown on the audience page as a pointer or a red laser dot (settings menu, or the bar button).
 
+**Click preview** (slide.ng's own, Slidev has none): the eye button in the presenter's bar, or `u`, draws the whole current slide on the presenter page.
+Parts already shown look as usual, the part of the next click is brighter with a dashed outline, the parts of later clicks are greyed out, and each part
+a later click changes has a badge with that click's number. Click a badge or a greyed-out part to go to that click in every window (a link or button inside a greyed-out part is not run; while drawing, the pen gets the click). Only the presenter's
+current slide changes: the audience, `/notes` and the next-step pane do not. The choice is remembered in the browser (`slide-ng-presenter-click-preview`).
+
+- `slide-ng-click`, `slide-ng-after`, ranges, `<slide-ng-clicks>` items and `{monaco-run}` output (`showOutputAt`) are drawn greyed out until their click; a range on screen is marked again where it ends.
+- `slide-ng-click-hide` stays as it is until it goes, with its badge.
+- Code line steps, magic-move, `slide-ng-mark` and `slide-ng-motion` click variants are drawn as they are at the current click, with a badge for their next change.
+- `<slide-ng-switch>` shows only its current child; the badge on the switch says when it changes.
+- A part with a click animation preset (`.up`, `.left`, `.scale`, ...) or a deck's own hidden style (Slidev's
+  `.slidev-vclick-hidden { transform: scale(0) }`) is drawn at its place and size: while a part is a greyed-out ghost its
+  `transform`, `translate`, `scale` and `rotate` are reset, so a part's own transform is not shown until its click.
+  A ghost always has the ghost opacity, also with a preset that dims or hides it (`fade`, `fade-in`) or a deck's own
+  `.slidev-vclick-hidden.x { opacity: 0 !important }`.
+- A fractional click (`slide-ng-click="1.5"`) has the badge of the whole click it shows at (2), as the nav steps one whole click
+  at a time, also when it is the slide's last click (the nav stops at 1.5, and the counter reads 1.5); a range that no click
+  is in (`[3, 1]`, `[0, 0]`) gets no badge.
+- Content in `@if (clicks.current() > 2) { ... }` (Slidev's `v-if="$clicks > 2"`) is not previewed: it is not on the page until its click, so it has no greyed-out part and no badge.
+  Use `slide-ng-click` (or `slide-ng-click="3"`) for content the preview should show.
+- In a right-to-left deck or part (`dir: rtl`) the badge sits at the part's inline start, its right edge.
+
+Themes change the look with `--slide-ng-ghost-opacity` (0.47, 0.4 in dark mode: about 3:1 for the default text colours), `--slide-ng-ghost-next-opacity` (0.75), `--slide-ng-ghost-next` (unset: the theme's primary colour, also one set with `themeConfig`),
+`--slide-ng-ghost-badge-background` and `--slide-ng-ghost-badge-foreground`. The classes on the parts are `slide-ng-click-ahead` and `slide-ng-click-next`,
+with the click in `data-slide-ng-click-at`. Screen readers skip the greyed-out parts (the next slide pane already has the next click);
+each badge is a button named "Go to click N". The notes PDF (`export-notes`, `/presenter/print`) has no click preview.
+
 ## Progress bar
 
 `progressBar` in the headmatter draws a thin bar along the edge of every slide that fills as the deck goes on: empty on the first slide,
@@ -1097,6 +1123,7 @@ in Slidev: `radius: 6` is `--slidev-theme-radius: 6`, which CSS does not take as
 | `d`                          | dark / light                                             |
 | `g`                          | go to a slide: type a number or part of a title, Enter   |
 | Escape                       | close the overview, dialogs and menus                    |
+| `u`                          | presenter page: show or hide the upcoming clicks         |
 
 In a right-to-left deck the keys stay physical (right is next), the overview arrows follow its mirrored grid, and transitions are
 not mirrored (see [UI-STRINGS.md](UI-STRINGS.md)).

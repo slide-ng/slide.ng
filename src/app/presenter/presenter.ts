@@ -17,6 +17,7 @@ import { NavBar } from '../ui/nav-bar';
 import { Overview } from '../ui/overview';
 import { WebCamera } from '../record/web-camera';
 import { ScreenMirror } from '../record/screen-mirror';
+import { ClickPreviewLayer } from './click-preview-layer';
 import { ClicksSlider } from './clicks-slider';
 import { NextPreview } from './next-preview';
 import { NoteDisplay } from './note-display';
@@ -57,6 +58,7 @@ function readEditing(): boolean {
     TimerBar,
     TimerInlined,
     ClicksSlider,
+    ClickPreviewLayer,
     WebCamera,
     ScreenMirror,
     Overview,
@@ -121,8 +123,11 @@ function readEditing(): boolean {
           </div>
           <div class="relative flex-auto p-2 lg:p-4" [style.display]="mirror() ? 'none' : null">
             <div class="relative h-full w-full">
-              <app-slide-show context="presenter"
-                ><app-drawing-layer /><app-drag-controls /><app-presenter-cursor
+              <app-slide-show context="presenter">
+                @if (prefs.clickPreview()) {
+                  <app-click-preview />
+                }
+                <app-drawing-layer /><app-drag-controls /><app-presenter-cursor
               /></app-slide-show>
             </div>
           </div>

@@ -1,0 +1,64 @@
+---
+title: Click preview deck
+---
+
+# Reveal
+
+<div id="p1" class="gone" slide-ng-click>one</div>
+<div id="p2" class="offset" slide-ng-click>two</div>
+<div id="p2b" slide-ng-after>two, too</div>
+<div id="ph" slide-ng-click="5" slide-ng-click-hide>gone at five</div>
+<div id="pr" [slide-ng-click]="[5, 6]">only at five</div>
+
+<slide-ng-clicks>
+
+- item three
+- item four
+
+</slide-ng-clicks>
+
+<style>
+/* As the fade-in preset (or a deck's own animation) hides a part: the click preview still draws its ghost. */
+.gone.slidev-vclick-hidden {
+  opacity: 0 !important;
+}
+/* As a click animation preset (.up, .scale) draws a hidden part. */
+.offset.slidev-vclick-hidden {
+  translate: 0 20px;
+  scale: 0.9;
+}
+/* Slidev's documented custom click animation: hidden parts shrink to nothing. */
+#p2b.slidev-vclick-hidden {
+  transform: scale(0);
+}
+</style>
+
+---
+
+# Other kinds
+
+```ts {1|2|all}
+const a = 1;
+const b = 2;
+```
+
+<slide-ng-switch>
+<div at="1" id="sw1">switch one</div>
+<div at="2" id="sw2">switch two</div>
+</slide-ng-switch>
+
+````md magic-move
+```js
+let count = 1
+```
+
+```js
+let count = 2
+```
+````
+
+<span id="mk" slide-ng-mark.red.circle="6">marked</span>
+
+<div id="plink" slide-ng-click="7"><a id="plink-a" href="/1">back to one</a></div>
+
+<div id="mo" class="w-20 h-10 bg-blue-300" slide-ng-motion :initial="{ x: 0 }" :enter="{ x: 0 }" :click-7="{ x: 40 }">moves</div>

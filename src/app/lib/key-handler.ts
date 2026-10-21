@@ -6,6 +6,7 @@ import { dropMouseFocus, pressesControl } from './key-focus';
 import { Dark } from './dark';
 import { Fullscreen } from './fullscreen';
 import { Nav } from './nav';
+import { PresenterPrefs } from '../presenter/prefs';
 import { findShortcut, resolveShortcuts } from './shortcuts';
 import { Ui } from './ui-state';
 import { typedJustNow } from '../dev/side-editor-state';
@@ -31,6 +32,7 @@ export function keyHandler(nav: Nav, ui: Ui): (e: KeyboardEvent) => void {
     inject(Fullscreen),
     inject(Drawings),
     inject(DragState),
+    inject(PresenterPrefs),
   );
   const shortcuts = resolveShortcuts(actions);
   document.addEventListener('click', dropMouseFocus);

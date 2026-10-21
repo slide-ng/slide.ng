@@ -32,6 +32,10 @@ export interface ShortcutActions {
   toggleDrawing(): void;
   /** A slide-ng-drag element is selected: the arrow keys nudge it instead of moving through the slides. */
   dragActive(): boolean;
+  /** The page is the presenter page. */
+  isPresenter(): boolean;
+  /** Presenter page: show or hide the upcoming clicks on the current slide (slide.ng's own). */
+  toggleClickPreview(): void;
 }
 
 /** Deck authors provide this to change the list: `{ provide: SHORTCUTS_SETUP, useValue: (a, list) => [...list, mine] }`. */
@@ -73,6 +77,12 @@ export function defaultShortcuts(a: ShortcutActions): Shortcut[] {
     { name: 'hide_overview', key: 'Escape', run: a.closeAll, when: notDrawing },
     { name: 'goto', key: 'g', run: a.toggleGoto, when: notDrawing },
     { name: 'fullscreen', key: 'f', run: a.toggleFullscreen },
+    {
+      name: 'toggle_click_preview',
+      key: 'u',
+      run: a.toggleClickPreview,
+      when: () => a.isPresenter() && notDrawing(),
+    },
     {
       name: 'right_overview',
       key: 'ArrowRight',

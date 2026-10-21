@@ -1,4 +1,5 @@
 import { Drawings } from '../drawing/drawings';
+import { PresenterPrefs } from '../presenter/prefs';
 import { DragState } from '../drag/drag-state';
 import { Dark } from './dark';
 import { Fullscreen } from './fullscreen';
@@ -14,6 +15,7 @@ export function makeActions(
   fullscreen: Fullscreen,
   drawings: Drawings,
   drag: DragState,
+  prefs: PresenterPrefs,
 ): ShortcutActions {
   return {
     next: () => nav.next(),
@@ -34,5 +36,7 @@ export function makeActions(
     drawingEnabled: () => drawings.available && drawings.enabled(),
     toggleDrawing: () => drawings.toggle(),
     dragActive: () => drag.active() !== null,
+    isPresenter: () => nav.isPresenter,
+    toggleClickPreview: () => prefs.toggleClickPreview(),
   };
 }
