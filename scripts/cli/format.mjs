@@ -6,6 +6,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { parse, prettify, stringify } from '@slidev/parser/fs';
 import { parseFlags } from './flags.mjs';
+import { describeYamlError } from '../lib/yaml-errors.mjs';
 
 /** The formatted text of a markdown deck. Throws when formatting would change the number of slides. */
 export async function formatMarkdown(text, filepath = 'slides.md') {
@@ -14,9 +15,15 @@ export async function formatMarkdown(text, filepath = 'slides.md') {
   parsed.slides.forEach((slide, i) => {
     const error = slide.frontmatterDoc?.errors?.[0];
     if (!error) return;
-    const line = slide.start + 1 + (error.linePos?.[0]?.line ?? 1); // start is the `---` line, counted from 0
+    // `start` is the `---` line, counted from 0; the words are the ones dev and build use (yaml-errors.mjs).
+    const { line, message } = describeYamlError(
+      error,
+      slide.frontmatterRaw ?? '',
+      slide.start + 2,
+      i === 0 ? 'headmatter' : 'frontmatter',
+    );
     throw new Error(
-      `${filepath}:${line}: the frontmatter of slide ${i + 1} is not valid YAML: ${error.message.split('\n')[0].replace(/ at line \d+, column \d+:?$/, '')}; fix it and format again (the file is left as it is)`,
+      `${filepath}:${line}: the ${i === 0 ? 'headmatter' : `frontmatter of slide ${i + 1}`} is not valid YAML: ${message}; fix it and format again (the file is left as it is)`,
     );
   });
   // A last slide written `---` then `# B` keeps the `---` in its content; printed again it would make an empty slide.

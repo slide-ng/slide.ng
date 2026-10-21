@@ -121,7 +121,7 @@ Makes a PDF of the speaker notes. Takes `--output`, `--range` and the Chromium f
 
 Tidies `slides.md` in place with the same parser that reads it: blank lines around each slide's content, the frontmatter printed again as
 clean YAML (comments are kept), and the speaker note at the end. Files that `src:` imports are not touched; give them as arguments to format them too.
-It prints `already formatted` when there is nothing to do. Frontmatter that is not valid YAML stops it with the file, line and slide, and the file is left as it is.
+It prints `already formatted` when there is nothing to do. Frontmatter that is not valid YAML stops it with the file, line and slide and what is wrong (in the words `dev` uses), and the file is left as it is.
 
 ## theme eject
 

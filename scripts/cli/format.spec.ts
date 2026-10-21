@@ -57,7 +57,12 @@ describe('formatMarkdown', () => {
   it('names the slide and the line of frontmatter that is not valid YAML', async () => {
     const text = '---\ntitle: t\n---\n\n# A\n\n---\nlayout: center\nfoo: a: b\n---\n\n# B\n';
     await expect(formatMarkdown(text, 'talk.md')).rejects.toThrow(
-      /^talk\.md:9: the frontmatter of slide 2 is not valid YAML: Nested mappings/,
+      /^talk\.md:9: the frontmatter of slide 2 is not valid YAML: the value of "foo" has ": " in it, which reads as a second key; put it in quotes: foo: "a: b"; fix it and format again/,
     );
+  });
+  it('says what is wrong in the words dev and build use', async () => {
+    await expect(
+      formatMarkdown('---\ntitle: a\ntitle: b\n---\n\n# A\n', 'talk.md'),
+    ).rejects.toThrow('talk.md:3: the headmatter is not valid YAML: "title" is set twice');
   });
 });
