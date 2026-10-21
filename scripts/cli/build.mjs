@@ -2,6 +2,7 @@
 //   slide-ng build [slides.md] [--base /talk/] [--out dist] [--download] [--without-notes]
 import { copyFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
+import { moveInlineScripts } from '../build/csp.mjs';
 import { makeOffline } from '../build/offline.mjs';
 import { ogImagePlan, placeOgImage } from '../build/og-image.mjs';
 import { applyOffline } from '../lib/build-options.mjs';
@@ -67,6 +68,8 @@ export async function buildCommand(argv) {
   };
   try {
     const dist = buildDeck({ entry, workDir, base, env });
+    // A host with `script-src 'self'` runs them too (docs/HOSTING.md). A folder opened from disk has no such header.
+    if (!offline) moveInlineScripts(dist);
     await afterBuild({ dist, deck, entry, root, base, workDir, download, flags, offline });
     publishDirectory(dist, out);
     console.log(

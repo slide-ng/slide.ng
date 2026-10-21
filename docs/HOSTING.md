@@ -25,6 +25,7 @@ temporary `.slide-ng/build` folder inside the deck's folder.
 | file                                                    | what for                                                                                     |
 | ------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | `index.html`, `main-*.js`, `chunk-*.js`, `styles-*.css` | the app (Monaco, Mermaid and so on are separate chunks, fetched only when a slide uses them) |
+| `inline-*.js`                                           | the small scripts of `index.html`, as files (see Content-Security-Policy below)              |
 | `404.html`                                              | a copy of `index.html`: GitHub Pages shows it for unknown paths, so `/talk/3` opens the app  |
 | `_redirects`                                            | the same rule for Netlify                                                                    |
 | `<exportFilename>.pdf`                                  | only with `--download` or `download: true` in the headmatter                                 |
@@ -124,6 +125,38 @@ server {
 ```
 
 Under a sub-path build with `--base /talk/`, put the files in `/usr/share/nginx/html/talk/` and use `try_files $uri $uri/ /talk/index.html;`.
+
+## Content-Security-Policy
+
+`index.html` has no inline script: the few lines Angular adds there (they switch the full stylesheet on once the page has loaded)
+are written to `inline-*.js` next to it. A host that sends a strict policy therefore runs the deck, as long as styles may be inline
+(Angular puts the styles of the components in `<style>` elements). This policy was tried with a deck that has Monaco, Mermaid and KaTeX:
+
+```
+Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:
+```
+
+Add what the slides themselves load from elsewhere: `img-src https:` for remote pictures (or `remoteAssets: true`), `frame-src` for
+`<slide-ng-youtube>` and other iframes, `font-src` and `style-src` for a web font provider (or `fonts.selfHost`).
+Only `slide-ng build` moves the scripts (not `--offline`, which is opened from disk); `npm run build` in this repository is the plain Angular build and keeps them inline.
+
+## Embedding the deck in another page
+
+A built deck works in an `<iframe>` on another site. Give the frame the permissions the deck asks for, or the browser logs a
+"Permissions policy violation" and the feature stays off: `fullscreen` for the full screen button and `screen-wake-lock`
+when the wake lock is on (`wakeLock: true` in the headmatter, or switched on in the settings). Leave `wakeLock` off for a
+deck that is mostly shown embedded.
+
+```html
+<iframe
+  src="https://you.github.io/talk/"
+  allow="fullscreen; screen-wake-lock"
+  width="960"
+  height="540"
+></iframe>
+```
+
+A host that sends `frame-ancestors` or `X-Frame-Options` must allow the page that embeds the deck.
 
 ## The PDF download button
 
