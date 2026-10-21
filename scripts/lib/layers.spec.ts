@@ -25,11 +25,13 @@ describe('layersSource', () => {
   });
   it('knows the custom-nav-controls layer', () => {
     const src = layersSource(['custom-nav-controls']);
-    expect(src).toContain("import customNavControls from '../../app/layers/custom-nav-controls';");
-    expect(src).toContain("'custom-nav-controls': customNavControls,");
+    expect(src).toContain("import customNavControls0 from '../../app/layers/custom-nav-controls';");
+    expect(src).toContain('export const NAV_CONTROLS: Type<unknown>[] = [customNavControls0];');
+    expect(src).not.toContain("'custom-nav-controls':");
   });
   it('is valid with no layers at all', () => {
     expect(layersSource([])).not.toContain('import globalTop');
+    expect(layersSource([])).toContain('export const NAV_CONTROLS: Type<unknown>[] = [];');
   });
 });
 
@@ -48,6 +50,29 @@ describe('findLayerFiles', () => {
       'global-top': './roots/theme/layers/global-top',
       'slide-top': './roots/deck/layers/slide-top',
     });
+  });
+  it('keeps the custom-nav-controls of every folder, weakest first', () => {
+    const a = mkdtempSync(join(tmpdir(), 'slide-ng-layers-'));
+    const b = mkdtempSync(join(tmpdir(), 'slide-ng-layers-'));
+    for (const dir of [a, b]) writeFileSync(join(dir, 'custom-nav-controls.ts'), '');
+    const files = findLayerFiles([
+      { dir: a, importDir: './roots/addon/layers' },
+      { dir: b, importDir: './roots/deck/layers' },
+    ]);
+    expect(files).toEqual({
+      'custom-nav-controls': [
+        './roots/addon/layers/custom-nav-controls',
+        './roots/deck/layers/custom-nav-controls',
+      ],
+    });
+    const src = layersSource(files);
+    expect(src).toContain(
+      "import customNavControls0 from './roots/addon/layers/custom-nav-controls';",
+    );
+    expect(src).toContain(
+      "import customNavControls1 from './roots/deck/layers/custom-nav-controls';",
+    );
+    expect(src).toContain('= [customNavControls0, customNavControls1];');
   });
   it('makes layers.ts from a map of import paths', () => {
     const src = layersSource({ 'slide-top': './roots/deck/layers/slide-top' });

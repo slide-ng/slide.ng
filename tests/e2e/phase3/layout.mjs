@@ -26,15 +26,18 @@ export async function run({ t, open, press, hud }) {
     String((await probe()).width),
   );
 
-  // ---- custom-nav-controls: a button from layers/ at the end of the bar, after the slide counter
+  // ---- custom-nav-controls: the buttons of every root's layers/ at the end of the bar, after the slide counter
   const barOrder = await page
     .locator('nav #nav-counter')
     .evaluate(
-      (c) => c.nextElementSibling?.id + '>' + c.nextElementSibling?.querySelector('button')?.id,
+      (c) =>
+        c.nextElementSibling?.id +
+        '>' +
+        [...(c.nextElementSibling?.querySelectorAll('button') ?? [])].map((b) => b.id).join(),
     );
   t.ok(
-    'a button of the custom-nav-controls layer is in the bar, after the counter',
-    barOrder === 'custom-nav-controls>custom-next',
+    'the custom-nav-controls of the addon and the deck are in the bar, after the counter, addon first',
+    barOrder === 'custom-nav-controls>addon-nav,custom-next',
     barOrder,
   );
   await press(page, 'ArrowUp');
@@ -108,7 +111,8 @@ export async function run({ t, open, press, hud }) {
   t.ok(
     'the presenter bar ends with the custom-nav-controls layer',
     lastInBar === 'custom-nav-controls' &&
-      (await presenter.locator('nav #custom-next').count()) === 1,
+      (await presenter.locator('nav #custom-next').count()) === 1 &&
+      (await presenter.locator('nav #addon-nav').count()) === 1,
     lastInBar,
   );
   await presenter.close();

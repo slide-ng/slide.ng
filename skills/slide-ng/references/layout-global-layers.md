@@ -10,7 +10,7 @@ Add any of `layers/global-top.ts`, `global-bottom.ts`, `slide-top.ts`, `slide-bo
 - `global-*` appear once over or under all slides.
 - `slide-*` appear inside every slide; inject `SLIDE_NO` from `slide-ng/lib/slide-context` to know which.
 - Layers let clicks through (`pointer-events: none`); give your own elements `pointer-events: auto` if they need the mouse.
-- `custom-nav-controls` is not on the slide: its content goes at the end of the navigation bar (after the slide counter), on the deck and the presenter page. Use `class="slidev-icon-btn"` and a `title` on a button to match the built-in ones; inject `Nav` from `slide-ng/lib/nav` to move.
+- `custom-nav-controls` is not on the slide: its content goes at the end of the navigation bar (after the slide counter), on the deck and the presenter page. Use `class="slidev-icon-btn"` and a `title` on a button to match the built-in ones; inject `Nav` from `slide-ng/lib/nav` to move. Unlike the other layers (where the deck's file replaces a theme's or addon's), the `custom-nav-controls` of the theme, each addon and the deck are all drawn, in that order.
 - The generator finds them by folder and name, not by selector.
 
 <!-- verify-file: layers/global-top.ts -->

@@ -1,6 +1,6 @@
 import { Component, ElementRef, computed, inject, input } from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
-import { LAYERS } from '../../slides/generated/layers';
+import { NAV_CONTROLS } from '../../slides/generated/layers';
 import { Drawings } from '../drawing/drawings';
 import { Dark } from '../lib/dark';
 import { Download } from '../lib/download';
@@ -220,10 +220,12 @@ import { Settings } from './settings';
           <span class="opacity-50 text-sm"> / {{ nav.total }}</span>
         </div>
 
-        <!-- The deck's, theme's or addon's layers/custom-nav-controls.ts, last as in Slidev -->
-        @if (customControls) {
+        <!-- Every root's layers/custom-nav-controls.ts (theme, addons, deck), last as in Slidev -->
+        @if (customControls.length) {
           <div id="custom-nav-controls" class="flex">
-            <ng-container *ngComponentOutlet="customControls" />
+            @for (controls of customControls; track $index) {
+              <ng-container *ngComponentOutlet="controls" />
+            }
           </div>
         }
       </div>
@@ -242,7 +244,7 @@ export class NavBar {
   protected fullscreen = inject(Fullscreen);
   protected download = inject(Download);
   private view = inject(ViewPrefs);
-  protected customControls = LAYERS['custom-nav-controls'];
+  protected customControls = NAV_CONTROLS;
   protected filtered = computed(() =>
     (Object.keys(defaultFilters) as (keyof Filters)[]).some(
       (k) => this.view.filters()[k] !== defaultFilters[k],
