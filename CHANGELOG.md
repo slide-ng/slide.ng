@@ -112,6 +112,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - Leaving a slide while its TypeScript `{monaco-run}` is being turned into JavaScript no longer logs "Could not find source file".
 - The "twoslash failed" warning gives the reason (Twoslash's own title and description) and the slide; it read "twoslash failed for a ts block ()".
 - A code title icon that its installed set does not have (`~i-carbon:bucket~`) gets a warning that names the slide, instead of an empty box.
+- `r` in the dev server no longer prints an esbuild Go panic ("all goroutines are asleep") into the terminal: the Angular dev server and its esbuild service are stopped together.
 
 ## [1.0.0] - 2026-10-18
 

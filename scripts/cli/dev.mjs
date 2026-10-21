@@ -170,13 +170,16 @@ export async function devCommand(argv) {
     );
     running = { children, watcher };
   };
-  const stopAll = () => running.children.forEach((c) => c.kill());
+  const stopAll = () => running.children.forEach((c) => killTree(c));
   startAll();
-  for (const sig of ['SIGINT', 'SIGTERM'])
+  // The Angular server is in a group of its own (killTree), so the terminal's signals do not reach it: stop it
+  // here, also when the terminal is closed (SIGHUP) or the command ends any other way.
+  for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP'])
     process.on(sig, () => {
       stopAll();
       process.exit(0);
     });
+  process.on('exit', () => stopAll());
 
   // With --bind to one address, that is the only one that answers; list the others only for 0.0.0.0.
   const addresses = !plan.remote
@@ -265,12 +268,30 @@ export function ngServeArgs(plan, restart = false) {
   return args;
 }
 
-// Kills a child process and resolves once it has ended.
+// The Angular dev server runs in a process group of its own (not on Windows), so stopping it also stops the esbuild
+// service it started. Killed with only its parent, esbuild could print a Go panic ("all goroutines are asleep") into
+// the terminal through the stderr it shares (#59, on `r`).
+const ownGroup = process.platform !== 'win32';
+function killTree(child) {
+  child.stopping = true; // its output from now on is not relayed (angularServer)
+  if (child.exitCode !== null || child.signalCode !== null) return;
+  if (ownGroup && child.slideNgGroup) {
+    try {
+      process.kill(-child.pid, 'SIGTERM');
+      return;
+    } catch {
+      // the group is gone already: kill the child alone
+    }
+  }
+  child.kill();
+}
+
+// Kills a child process (and its group, see killTree) and resolves once it has ended.
 const stopChild = (child) =>
   new Promise((done) => {
     if (child.exitCode !== null || child.signalCode !== null) return done();
     child.once('exit', () => done());
-    child.kill();
+    killTree(child);
   });
 
 // The Angular dev server, with its errors pointing at the deck's files (slides.md line, the author's own components/ file)
@@ -280,11 +301,14 @@ function angularServer(ngArgs, { appRoot, env, quiet }) {
     cwd: appRoot,
     env: process.stdout.isTTY ? { ...env, FORCE_COLOR: '1' } : env,
     stdio: ['ignore', 'pipe', 'pipe'],
+    detached: ownGroup,
   });
+  child.slideNgGroup = ownGroup;
+  // Once it is being stopped, what it and its helpers still print (a dying esbuild's panic) is dropped.
   const relay = (from, to) =>
-    createInterface({ input: from }).on('line', (line) =>
-      to.write(`${withSlideSources(line, appRoot)}\n`),
-    );
+    createInterface({ input: from }).on('line', (line) => {
+      if (!child.stopping) to.write(`${withSlideSources(line, appRoot)}\n`);
+    });
   if (!quiet) relay(child.stdout, process.stdout);
   else child.stdout.resume();
   relay(child.stderr, process.stderr);
