@@ -15,7 +15,7 @@ import { T } from '../i18n/t';
       @if (lastGood) {
         {{ 'editor.problem' | t: { problem } }}
       } @else {
-        Some slides could not be read and are left out: {{ problem }}
+        {{ 'editor.problemSlides' | t: { problem } }}
       }
     </div>
   }`,

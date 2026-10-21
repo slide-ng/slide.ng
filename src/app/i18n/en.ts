@@ -100,6 +100,9 @@ export const EN = {
   'presenter.fontSmaller': 'Decrease font size',
   'presenter.clicks': 'Clicks in this slide: {count}',
   'presenter.click': 'Click {no}',
+  'presenter.regionCurrent': 'Current slide',
+  'presenter.regionNext': 'Next step',
+  'presenter.regionNotes': 'Notes',
   'timer.start': 'Start the timer',
   'timer.pause': 'Pause the timer',
   'timer.reset': 'Reset the timer',
@@ -155,6 +158,7 @@ export const EN = {
   'editor.error': 'Could not save',
   'editor.conflict': 'Changed in the file, not saved: copy your text and reopen the slide',
   'editor.problem': 'slides.md could not be read, showing the last good version: {problem}',
+  'editor.problemSlides': 'Some slides could not be read and are left out: {problem}',
 
   // The sync menu, the click preview and the notes pages (sync-controls.ts, click-preview-layer.ts, pane-resizers.ts, note-editor.ts, entry-page.ts, overview-page.ts, notes-edit-page.ts)
   'nav.clickPreviewShow': 'Show upcoming clicks',

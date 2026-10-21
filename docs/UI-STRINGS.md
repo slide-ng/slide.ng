@@ -141,24 +141,27 @@ default; `src/app/i18n/en.ts` holds it and is the source of truth for the keys. 
 
 ### The presenter
 
-| key                      | English                           |
-| ------------------------ | --------------------------------- |
-| `presenter.current`      | Current                           |
-| `presenter.slides`       | Slides                            |
-| `presenter.mirror`       | Screen Mirror                     |
-| `presenter.next`         | Next                              |
-| `presenter.mirrorStart`  | Choose a screen or window to show |
-| `presenter.mirrorStop`   | Stop sharing                      |
-| `presenter.end`          | End of the presentation           |
-| `presenter.noNotes`      | No notes for Slide {no}.          |
-| `presenter.noNotesAtAll` | No notes.                         |
-| `presenter.fontBigger`   | Increase font size                |
-| `presenter.fontSmaller`  | Decrease font size                |
-| `presenter.clicks`       | Clicks in this slide: {count}     |
-| `presenter.click`        | Click {no}                        |
-| `timer.start`            | Start the timer                   |
-| `timer.pause`            | Pause the timer                   |
-| `timer.reset`            | Reset the timer                   |
+| key                       | English                           |
+| ------------------------- | --------------------------------- |
+| `presenter.current`       | Current                           |
+| `presenter.slides`        | Slides                            |
+| `presenter.mirror`        | Screen Mirror                     |
+| `presenter.next`          | Next                              |
+| `presenter.mirrorStart`   | Choose a screen or window to show |
+| `presenter.mirrorStop`    | Stop sharing                      |
+| `presenter.end`           | End of the presentation           |
+| `presenter.noNotes`       | No notes for Slide {no}.          |
+| `presenter.noNotesAtAll`  | No notes.                         |
+| `presenter.fontBigger`    | Increase font size                |
+| `presenter.fontSmaller`   | Decrease font size                |
+| `presenter.clicks`        | Clicks in this slide: {count}     |
+| `presenter.click`         | Click {no}                        |
+| `presenter.regionCurrent` | Current slide                     |
+| `presenter.regionNext`    | Next step                         |
+| `presenter.regionNotes`   | Notes                             |
+| `timer.start`             | Start the timer                   |
+| `timer.pause`             | Pause the timer                   |
+| `timer.reset`             | Reset the timer                   |
 
 ### The minutes of the progress bar (`progressBar: { minutes: true }`)
 
@@ -212,17 +215,18 @@ default; `src/app/i18n/en.ts` holds it and is the source of truth for the keys. 
 
 ### The dev server: the side editor and the banner for a deck that does not read
 
-| key               | English                                                               |
-| ----------------- | --------------------------------------------------------------------- |
-| `editor.slide`    | Slide {no}                                                            |
-| `editor.close`    | Close editor                                                          |
-| `editor.markdown` | Markdown of this slide                                                |
-| `editor.loading`  | Loading...                                                            |
-| `editor.saved`    | Saved                                                                 |
-| `editor.saving`   | Saving...                                                             |
-| `editor.error`    | Could not save                                                        |
-| `editor.conflict` | Changed in the file, not saved: copy your text and reopen the slide   |
-| `editor.problem`  | slides.md could not be read, showing the last good version: {problem} |
+| key                    | English                                                               |
+| ---------------------- | --------------------------------------------------------------------- |
+| `editor.slide`         | Slide {no}                                                            |
+| `editor.close`         | Close editor                                                          |
+| `editor.markdown`      | Markdown of this slide                                                |
+| `editor.loading`       | Loading...                                                            |
+| `editor.saved`         | Saved                                                                 |
+| `editor.saving`        | Saving...                                                             |
+| `editor.error`         | Could not save                                                        |
+| `editor.conflict`      | Changed in the file, not saved: copy your text and reopen the slide   |
+| `editor.problem`       | slides.md could not be read, showing the last good version: {problem} |
+| `editor.problemSlides` | Some slides could not be read and are left out: {problem}             |
 
 ### The sync menu, the click preview and the notes pages
 
