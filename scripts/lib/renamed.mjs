@@ -45,8 +45,8 @@ export const RENAMED_ELEMENTS = {
   monaco: 'slide-ng-monaco',
 };
 
-// Slidev's component names (`<VClick>`, `<Toc />`, `<SlidevVideo>`): each old kebab name in PascalCase, and the two whose
-// kebab form is not an old name here (`link` is an HTML element, KaTeX is written `KaTex`).
+// Slidev's component names (`<VClick>`, `<Toc />`, `<SlidevVideo>`): each old kebab name in PascalCase, and three more
+// (`link` is an HTML element, Slidev writes `KaTex`, and `<TitleRenderer>` had no older name here).
 const pascal = (name) => name.replace(/(^|-)(\w)/g, (_, __, c) => c.toUpperCase());
 export const RENAMED_PASCAL = {
   ...Object.fromEntries(Object.entries(RENAMED_ELEMENTS).map(([o, n]) => [pascal(o), n])),
@@ -61,7 +61,7 @@ const ATTRIBUTE = /\s+([^\s=>"']+)(?:\s*=\s*(?:"[^"]*"|'[^']*'))?/g;
 // `v-click`, `[v-click]`, `v-mark.red.circle` -> the name without binding brackets and modifiers
 const plainName = (attr) => attr.replace(/^\[|\]$/g, '').split('.')[0];
 
-/** The error for old names: generate.mjs collects it from every slide, so one run lists them all. */
+/** The error for old names: slideSources (emit.mjs) collects it from every slide, so one run lists them all. */
 export class RenamedError extends Error {}
 
 /**
