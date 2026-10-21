@@ -163,7 +163,8 @@ export class ClicksContext {
 
   /**
    * Shown from `at` and hidden again from the `hide` click: `slide-ng-click="2" slide-ng-click-hide="3"`. In Slidev
-   * the two directives each register a click, the hide one after the show one, so a relative hide counts from there.
+   * the two directives each register a click, the hide one after the show one, so a relative hide counts on from the
+   * clicks before it plus the show's own relative step (the show click when the show is relative too).
    */
   calculateUntil(at: RawAt, hide: RawSingleAt): ClickInfo | null {
     const info = this.calculate(at);

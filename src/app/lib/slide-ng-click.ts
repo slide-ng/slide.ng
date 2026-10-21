@@ -47,10 +47,10 @@ export class SlideNgClick implements OnInit, OnDestroy {
   /** `slide-ng-click-hide` hides at the next click; `slide-ng-click-hide="3"` at click 3, as Slidev's `v-click-hide="3"`. */
   hideAt = input<RawAt>(undefined, { alias: 'slide-ng-click-hide' });
   hide = computed(() => booleanAttribute(this.hideAt()));
-  /** The click of `slide-ng-click-hide="3"`; undefined for the bare flag. */
+  /** The click of `slide-ng-click-hide="3"`; undefined for the flag (bare, `true` or `"true"`; `"false"` is off). */
   private hideValue = computed(() => {
     const v = this.hideAt();
-    return this.hide() && v !== '' && v !== true ? v : undefined;
+    return this.hide() && v !== '' && v !== true && v !== 'true' ? v : undefined;
   });
   /** The element's own click to show at, if it has one besides the hide click. */
   private showAt = computed(() => this.at() ?? (this.after() ? '+0' : undefined)); // slide-ng-after = same click as the element before

@@ -183,7 +183,7 @@ Clicks reveal things step by step. Add these to any HTML element:
 ```
 
 With a value on both, `slide-ng-click` is the click that shows the element and `slide-ng-click-hide` the click that hides it
-again: the same as `[slide-ng-click]="[2, 3]"`. A relative hide value (`+1`) counts from the show click. With the bare
+again: the same as `[slide-ng-click]="[2, 3]"`. A relative hide value (`+1`) counts on from the clicks before it, as in Slidev: after a relative show (`slide-ng-click="+1"`) that is the show click. With the bare
 `slide-ng-click-hide` flag, the `slide-ng-click` value is the click that hides it.
 
 Two forms exist because of how Angular reads attributes:
