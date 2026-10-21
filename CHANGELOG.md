@@ -32,6 +32,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - The presenter's notes pane can be resized by dragging its borders, with sizes kept per layout; in dev, **Edit Notes** edits the note in place (only the note is written to the markdown) and the side editor opens in the notes pane.
 - An `index.html` next to `slides.md`, or in a theme or addon, is merged into the page like Slidev's: the inside of its `<head>` goes into the head, the inside of its `<body>` after the app (analytics, extra fonts, meta tags). Its `<title>` and `<meta>` replace the headmatter's of the same name and `media` (Open Graph arrays such as several `og:image` are all kept), the attributes of its `<html>` and `<body>` are kept (the headmatter's `lang` and `htmlAttrs` win), and root addresses (`/brand.css`) get the base like `/x.svg` in a slide. `{monaco-write}` cannot save into such an `index.html`, nor into the `setup/`, `layouts/` or other code folders of a theme or addon kept inside the deck's folder.
 - `build`, `export` and `export-notes` take several entries, like Slidev: `slide-ng build a.md b.md` builds each deck into `dist/a/` and `dist/b/` (served under `<base>a/` and `<base>b/`), `slide-ng export a.md b.md` writes one file per deck. The decks run one after another; `--output`, `--dist` and `--url` are refused with more than one entry. A build of several decks owns `--out` as a whole: what an earlier build left there is removed, and a later build of one deck may replace it. `export a.md --dist dist/a` serves that deck's build under the base it was made with (a different `--base` is refused).
+- `slide-ng dev` reads keys in the terminal, like Slidev: `r` restarts, `o` opens the browser, `e` opens the entry in `$EDITOR` (or `code`), `q` quits, and `c` prints a QR code of the `--remote` address with the password. `r` does not open another tab with `--open` and leaves the keys answering without Enter, and on Windows `e` and `o` quote the path for `cmd`. New dependency: `uqr` (the QR library Slidev uses).
 
 ### Changed
 
@@ -51,6 +52,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 ### Fixed
 
 - `<slide-ng-youtube id="luoMHjh-XcQ?start=1234" />` starts at the given time, as in Slidev, instead of failing to find the video. YouTube's embed options in the id (`start`, `end`, `list`, `loop`, ...) are kept and others dropped; `start` and `list` can also be attributes. A start time (`start`, or `t` of a shared link) may be written YouTube's way (`1m30s`); one that is not a time is dropped with a warning.
+- `slide-ng dev --remote` with `routerMode: hash`: the printed addresses and the `c` QR code are `/#/?password=...` and `/#/presenter/1?password=...`, and the page logs in with them. The page also reads `?password=` before the router's first redirect, which dropped it, so an address with the password no longer asks for it again.
 
 ## [1.0.0] - 2026-10-18
 

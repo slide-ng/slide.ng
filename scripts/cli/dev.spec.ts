@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { devPlan } from './dev.mjs';
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { deckRouterMode, devPlan, ngServeArgs } from './dev.mjs';
 
 describe('devPlan', () => {
   it('has sensible defaults', () => {
@@ -66,5 +69,62 @@ describe('devPlan', () => {
     expect(() => devPlan(['--tunnel'])).toThrow('--tunnel is not available');
     expect(() => devPlan(['--base', '/x/'])).toThrow('slide-ng build');
     expect(() => devPlan(['--log', 'loud'])).toThrow('--log must be one of');
+  });
+});
+
+describe('ngServeArgs', () => {
+  it('passes --open on the first start only, not on a restart', () => {
+    const plan = { port: 4230, host: '0.0.0.0', open: true };
+    expect(ngServeArgs(plan)).toEqual(['serve', '--port', '4230', '--host', '0.0.0.0', '--open']);
+    expect(ngServeArgs(plan, true)).toEqual(['serve', '--port', '4230', '--host', '0.0.0.0']);
+    expect(ngServeArgs({ port: 4230, host: null, open: false })).toEqual([
+      'serve',
+      '--port',
+      '4230',
+    ]);
+  });
+});
+
+describe('deckRouterMode', () => {
+  it("reads the entry's headmatter, history when it is missing or broken", () => {
+    const dir = mkdtempSync(join(tmpdir(), 'router-mode-'));
+    const deck = (name: string, text: string) => (
+      writeFileSync(join(dir, name), text),
+      join(dir, name)
+    );
+    expect(deckRouterMode(deck('hash.md', '---\ntitle: x\nrouterMode: hash\n---\n\n# One\n'))).toBe(
+      'hash',
+    );
+    expect(deckRouterMode(deck('crlf.md', '---\r\nrouterMode: hash\r\n---\r\n# One'))).toBe('hash');
+    expect(deckRouterMode(deck('plain.md', '# One\n\n---\nrouterMode: hash\n---\n'))).toBe(
+      'history',
+    );
+    expect(deckRouterMode(deck('bad.md', '---\nrouterMode: [\n---\n'))).toBe('history');
+    expect(deckRouterMode(join(dir, 'missing.md'))).toBe('history');
+  });
+  it('takes routerMode from the theme, set in the headmatter or with --theme, under the deck', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'router-mode-theme-'));
+    mkdirSync(join(dir, 'hash-theme'));
+    writeFileSync(
+      join(dir, 'hash-theme', 'theme.json'),
+      JSON.stringify({ headmatter: { routerMode: 'hash' } }),
+    );
+    const deck = (name: string, text: string) => (
+      writeFileSync(join(dir, name), text),
+      join(dir, name)
+    );
+    expect(
+      deckRouterMode(deck('themed.md', '---\ntheme: ./hash-theme\n---\n# One\n'), undefined),
+    ).toBe('hash');
+    expect(deckRouterMode(deck('plain.md', '# One\n'), join(dir, 'hash-theme'))).toBe('hash');
+    expect(
+      deckRouterMode(
+        deck('own.md', '---\ntheme: ./hash-theme\nrouterMode: history\n---\n'),
+        undefined,
+      ),
+    ).toBe('history');
+    expect(deckRouterMode(deck('lost.md', '---\ntheme: ./nowhere\n---\n'), undefined)).toBe(
+      'history',
+    );
   });
 });

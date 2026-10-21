@@ -509,3 +509,13 @@ Source: an independent review of the repository (nine findings). Each fix has a 
 7. **One deck in several languages is one entry file per language** sharing slides with `src:`, plus `--lang` to set `lang` for a run.
    Switching the language while presenting was not built: it needs both languages in every slide, and short decks can use `@if` on their own.
 8. **The date on the notes PDF follows `LOCALE_ID`** instead of the browser's language, so a Turkish deck prints a Turkish date everywhere.
+
+## Made after 1.0.0
+
+1. **`uqr` draws the QR code of `dev --remote`** (the `c` key in the terminal). It is the library Slidev uses for the same key: MIT,
+   no dependencies of its own, about 20 kB, and only loaded by the command line, never by the app. Writing a QR encoder (Reed-Solomon,
+   masks, version tables) by hand would be a few hundred lines to maintain for one key.
+2. **The terminal keys restart all three dev processes** (`r`): the generator, the companion server and the Angular server stop, then
+   start again with the same port, token and password, so open pages reconnect and logins stay valid. The children get no stdin, so the
+   keys are read only by the command. `e` runs `$VISUAL`, `$EDITOR` or `code` in the same terminal and gives it the keys until it ends,
+   so a terminal editor works too.

@@ -19,7 +19,32 @@ Starts the dev server: the deck at `http://localhost:4230`, the presenter at `/p
 | `--theme`, `-t`       | use this theme (a name or a folder) instead of the headmatter's                                                                                         |
 | `--lang`              | use this language (`tr`, `pt-BR`) instead of the headmatter's `lang`: the interface, the locale of dates and numbers, `<html lang>`                     |
 
+With `--remote` the dev server prints the public slide show, the private one and the presenter for each network address; the
+private addresses carry the password (`http://192.168.1.5:4230/?password=...`, `.../presenter/1?password=...`). The page logs in
+with it, then takes it out of the address bar. A deck with `routerMode: hash` (in its headmatter, or from its theme or addons) gets addresses after `#/` (`/#/?password=...`,
+`/#/presenter/1?password=...`), and the `c` QR code follows the same mode; the page reads the password from the query after the `#`
+too. Opened without a password, the page asks once.
+
+Spaces in the password: the terminal prompt trims the typed password; `SLIDE_NG_PASSWORD` and `--remote=...` keep it as written,
+leading and trailing spaces included. The browser login compares exactly what is typed or in the address (the printed addresses
+encode spaces as `%20`), so a password with spaces at its ends must be typed with them.
+
 `--tunnel` and `--base` are refused with a message (`--base` is for `build`).
+
+On a terminal the dev server also reads keys, as Slidev's does, and prints a line that lists them:
+
+| key | what it does                                                                                                                                                |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `r` | restart the generator, the companion server and the Angular dev server (`--open` opens no new tab); the keys still answer at once afterwards, without Enter |
+| `o` | open `http://localhost:<port>/` in the default browser                                                                                                      |
+| `e` | open the entry file in `$VISUAL`, `$EDITOR` (flags allowed, such as `code -w`) or else `code`                                                               |
+| `q` | quit (Ctrl+C too)                                                                                                                                           |
+| `c` | with `--remote`: print a QR code of the private slide show for each address, so a phone can open it                                                         |
+
+The QR code holds the password, like the private address it encodes: do not show it to people who should not edit the deck.
+
+On Windows `e` and `o` run through `cmd` with every argument quoted, so a deck path with spaces, `&` or `%` stays one
+argument and runs nothing else; a path with a `"` or a line break (Windows paths have neither) is refused with a message.
 
 ## build
 
