@@ -41,5 +41,5 @@ progressBar:
 <slide-ng-progress-bar position="inline" height="10" color="green" track="#ddd" clicks="false" />
 ```
 
-- `<slide-ng-progress-bar />` takes the same options as attributes; `position="inline"` keeps it where it is written instead of on an edge. It also works in a layer (`layers/global-bottom.ts`, import `SlideProgressBar` from `slide-ng/builtin/progress-bar`).
+- `<slide-ng-progress-bar />` takes the same options as attributes; `position="inline"` keeps it where it is written instead of on an edge. It also works in a layer (`layers/global-bottom.ts`): import `SlideProgressBar` from `slide-ng/builtin/progress-bar` and add it to the component's `imports`, since a layer is a plain Angular component.
 - Not in Slidev (its bar is on the presenter page only); do not look for a Slidev equivalent.

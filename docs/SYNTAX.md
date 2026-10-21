@@ -661,6 +661,19 @@ progressBar:
 
 `<slide-ng-progress-bar />` places the same bar yourself, in a slide or a layer, with the same options as attributes;
 `position="inline"` keeps it where it is written instead of on an edge. Not in Slidev, which has the bar on its presenter page only.
+In a layer (a plain Angular component, see Layers below) add it to the component's `imports`:
+
+```ts
+import { Component } from '@angular/core';
+import { SlideProgressBar } from 'slide-ng/builtin/progress-bar';
+
+@Component({
+  selector: 'my-global-bottom',
+  imports: [SlideProgressBar],
+  template: '<slide-ng-progress-bar position="bottom" height="6" />',
+})
+export default class MyGlobalBottom {}
+```
 
 ## Drawing
 
@@ -723,6 +736,7 @@ routerMode: hash # addresses look like /#/3 (default: history)
 
 Layers: add any of `layers/global-top.ts`, `global-bottom.ts`, `slide-top.ts`, `slide-bottom.ts` next to `slides.md` (or in a theme or addon), each `export default` of a standalone component.
 `global-*` appear once over or under all slides, `slide-*` inside every slide (inject `SLIDE_NO` to know which). They let clicks through; give your own elements `pointer-events: auto` if they need the mouse.
+A layer's template is not a slide: the built-in tags are not there by themselves, so import each one it uses (`SlideProgressBar` from `slide-ng/builtin/progress-bar`, for example).
 
 ## Dev-only extras and remote use
 
