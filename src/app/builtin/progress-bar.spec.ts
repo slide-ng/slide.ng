@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { minutesLabel, progressPercent } from './progress-bar';
+import { mergeUiText } from '../i18n/ui-text';
+import { minutesLabel, minutesText, progressPercent } from './progress-bar';
 
 describe('progressPercent', () => {
   it('goes from 0 on the first slide to 100 on the last', () => {
@@ -27,6 +28,13 @@ describe('minutesLabel', () => {
     expect(minutesLabel('countdown', 600, 0)).toBe('10 min left');
     expect(minutesLabel('countdown', 600, 61)).toBe('9 min left');
     expect(minutesLabel('countdown', 600, 601)).toBe('1 min over');
+  });
+  it('speaks the interface language', () => {
+    const tr = minutesText(
+      mergeUiText({ 'progress.minutes': '{n} dk', 'progress.minutesLeft': '{n} dk kaldı' }),
+    );
+    expect(minutesLabel('countdown', 600, 61, tr)).toBe('9 dk kaldı');
+    expect(minutesLabel('countdown', 600, 601, tr)).toBe('1 min over'); // not translated: English
   });
   it('takes its words from one table', () => {
     const text = { passed: '{n} dk', left: '{n} dk kaldı', over: '{n} dk geçti' };

@@ -7,6 +7,8 @@ import {
   input,
   numberAttribute,
 } from '@angular/core';
+import { EN, UiText } from '../i18n/en';
+import { UI_TEXT } from '../i18n/ui-text';
 import { ClicksContext } from '../lib/clicks';
 import { Nav } from '../lib/nav';
 import { LAYER_STEP, SLIDE_NO } from '../lib/slide-context';
@@ -29,20 +31,28 @@ export function progressPercent(
   return ((Math.max(no, 1) - 1 + step) / (total - 1)) * 100;
 }
 
-/** The words of the minutes text, `{n}` the number of minutes: the one place they are written. */
-export const MINUTES_TEXT = {
-  passed: '{n} min',
-  left: '{n} min left',
-  over: '{n} min over',
-} as const;
-export type MinutesText = Readonly<Record<keyof typeof MINUTES_TEXT, string>>;
+/** The words of the minutes text, `{n}` the number of minutes. */
+export interface MinutesText {
+  passed: string;
+  left: string;
+  over: string;
+}
+
+/** The minutes words of an interface dictionary (the deck's `uiLang`; English by default, see docs/UI-STRINGS.md). */
+export function minutesText(dictionary: UiText = EN): MinutesText {
+  return {
+    passed: dictionary['progress.minutes'],
+    left: dictionary['progress.minutesLeft'],
+    over: dictionary['progress.minutesOver'],
+  };
+}
 
 /** The minutes text: what is left of a countdown (or how far over it is), or the minutes passed on a stopwatch. */
 export function minutesLabel(
   mode: 'stopwatch' | 'countdown',
   durationSec: number,
   passedSec: number,
-  text: MinutesText = MINUTES_TEXT,
+  text: MinutesText = minutesText(),
 ): string {
   const say = (key: keyof MinutesText, n: number) => text[key].replace('{n}', String(n));
   if (mode === 'stopwatch') return say('passed', Math.floor(passedSec / 60));
@@ -102,6 +112,7 @@ export class SlideProgressBar {
   private layerStep = inject(LAYER_STEP, { optional: true });
   private nav = inject(Nav, { optional: true });
   private injector = inject(Injector);
+  private words = minutesText(inject(UI_TEXT));
   private total = this.nav?.total ?? 1;
 
   private step = computed(() => {
@@ -130,7 +141,7 @@ export class SlideProgressBar {
   protected minutesText = computed(() => {
     const timer = this.timer();
     if (!timer || timer.status() === 'stopped') return '';
-    return minutesLabel(timer.mode, timer.duration, timer.passed());
+    return minutesLabel(timer.mode, timer.duration, timer.passed(), this.words);
   });
 
   protected hostStyle = computed(() => {

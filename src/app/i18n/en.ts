@@ -104,6 +104,11 @@ export const EN = {
   'timer.pause': 'Pause the timer',
   'timer.reset': 'Reset the timer',
 
+  // The minutes of the progress bar (builtin/progress-bar.ts), {n} the number of minutes
+  'progress.minutes': '{n} min',
+  'progress.minutesLeft': '{n} min left',
+  'progress.minutesOver': '{n} min over',
+
   // The drawing toolbar (drawing-controls.ts)
   'drawing.stylus': 'Draw with stylus',
   'drawing.line': 'Draw a line',
