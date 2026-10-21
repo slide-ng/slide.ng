@@ -13,6 +13,10 @@ export async function run({ t, open, press }) {
     c1.classes.includes('slidev-vclick-anim-up') && c1.translate === '0px 20px',
     JSON.stringify(c1),
   );
+  t.ok(
+    'an element not revealed yet is hidden from screen readers',
+    (await page.locator('#c1').getAttribute('aria-hidden')) === 'true',
+  );
   const c2 = await look('#c2');
   t.ok(
     'slide-ng-click.none: no transition at all',
@@ -23,7 +27,7 @@ export async function run({ t, open, press }) {
   c1 = await look('#c1');
   t.ok(
     'slide-ng-click.up: on its click the element moves up into place',
-    c1.translate === 'none',
+    c1.translate === 'none' && (await page.locator('#c1').getAttribute('aria-hidden')) === null,
     JSON.stringify(c1),
   );
   await press(page, 'ArrowRight', 40);

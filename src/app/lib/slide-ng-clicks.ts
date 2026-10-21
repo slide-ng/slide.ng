@@ -63,6 +63,9 @@ export class SlideNgClicks implements OnInit, OnDestroy {
       effect(
         () => {
           li.classList.toggle('slidev-vclick-hidden', state.hidden());
+          // Also with a preset such as `fade`, which keeps the item visible (see slide-ng-click.ts).
+          if (state.hidden()) li.setAttribute('aria-hidden', 'true');
+          else li.removeAttribute('aria-hidden');
           li.classList.toggle('slidev-vclick-current', state.current());
           li.classList.toggle('slidev-vclick-prior', state.prior());
         },

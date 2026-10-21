@@ -85,3 +85,25 @@ describe('slide-ng-click with slide-ng-click-hide="n"', () => {
     ]);
   });
 });
+
+@Component({
+  imports: [SlideNgClick],
+  providers: [ClicksContext],
+  template: '<div id="a" slide-ng-click click-anim="fade">A</div>',
+})
+class Faded {}
+
+describe('slide-ng-click and screen readers', () => {
+  it('hides an element that is not revealed yet, also when a preset such as fade keeps it visible', async () => {
+    const fixture = TestBed.createComponent(Faded);
+    const ctx = fixture.debugElement.injector.get(ClicksContext);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const a = fixture.nativeElement.querySelector('#a') as HTMLElement;
+    expect(a.classList.contains('slidev-vclick-anim-fade')).toBe(true);
+    expect(a.getAttribute('aria-hidden')).toBe('true');
+    ctx.setCurrent(1);
+    fixture.detectChanges();
+    expect(a.hasAttribute('aria-hidden')).toBe(false);
+  });
+});

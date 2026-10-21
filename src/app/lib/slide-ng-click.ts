@@ -35,6 +35,8 @@ export function stateOf(ctx: ClicksContext, info: () => ClickInfo | null, hide: 
   host: {
     '[class.slidev-vclick-target]': 'info() !== null',
     '[class.slidev-vclick-hidden]': 'state.hidden()',
+    // A preset such as `fade` keeps a hidden element visible; screen readers still skip it until it is revealed.
+    '[attr.aria-hidden]': 'state.hidden() ? "true" : null',
     '[class.slidev-vclick-current]': 'state.current()',
     '[class.slidev-vclick-prior]': 'state.prior()',
     '[attr.data-slidev-clicks-start]': 'info()?.start',
