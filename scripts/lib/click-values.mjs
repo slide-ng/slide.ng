@@ -119,13 +119,14 @@ export function checkClickValues(markdown, warn) {
         else if (start <= 0)
           warn(`[slide-ng-click]="${value}": clicks count from 1, so it starts at click 1`, line);
       } else if (attr === 'at' && inSwitch(tag.index) && !name.startsWith('slide-ng-')) {
-        const range = /^(\d+)(?:-(\d+))?$/.exec(value.trim());
-        if (!range)
+        // As the app reads it (slide-ng-switch.ts parseSlots): digits, or two numbers with a dash.
+        const range = /^\d+$/.test(value) ? [] : value.split('-').map(Number);
+        if (range.length && (range.length !== 2 || !range.every(Number.isFinite)))
           warn(
             `<${name} at="${value}"> in <slide-ng-switch>: write a click (3) or a range (3-5)`,
             line,
           );
-        else if (range[2] != null && +range[2] <= +range[1])
+        else if (range.length && range[1] <= range[0])
           warn(
             `<${name} at="${value}"> in <slide-ng-switch> is never shown: the end must be after the start`,
             line,

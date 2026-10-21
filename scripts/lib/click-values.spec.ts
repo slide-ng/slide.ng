@@ -45,6 +45,7 @@ describe('checkClickValues', () => {
       '<div [slide-ng-click]="range">a</div>',
       '<slide-ng-switch at="2">\n<div at="1">a</div>\n<div at="2-4">b</div>\n</slide-ng-switch>',
       '<p at="x">not in a switch</p>',
+      '<slide-ng-switch>\n<div at="3 - 5">a</div>\n</slide-ng-switch>',
     ];
     for (const md of good) expect(warnings(md)).toEqual([]);
   });
@@ -88,6 +89,9 @@ describe('checkClickValues', () => {
       '1: <div at="x"> in <slide-ng-switch>: write a click (3) or a range (3-5)',
       '2: <div at="5-3"> in <slide-ng-switch> is never shown: the end must be after the start',
     ]);
+    expect(
+      warnings('<slide-ng-switch><div at=" 3">a</div><div at="1-2-3">b</div></slide-ng-switch>'),
+    ).toHaveLength(2);
   });
 
   it('does not look into code, and keeps the line numbers after it', () => {
