@@ -87,7 +87,9 @@ function writeIndexHtml(deck, base) {
     plan.kind === 'file' || plan.kind === 'auto' ? ogImageAddress(deck.headmatter, base) : null;
   const parts = headParts(deck.headmatter, { ogImage, pwa: pwaEnabled(deck.headmatter), warn });
   const page = renderIndexHtml(readFileSync('src/index.html', 'utf8'), parts, warn);
-  write(`${OUT}index.html`, injectIndexHtml(page, rootIndexHtml(deck.roots)));
+  const { lang, htmlAttrs } = deck.headmatter;
+  const defaults = lang || htmlAttrs?.lang ? [] : ['lang'];
+  write(`${OUT}index.html`, injectIndexHtml(page, rootIndexHtml(deck.roots, base), defaults));
 }
 
 // A missing theme or addon: in a terminal the first run offers to install it (like Slidev); otherwise the error stops the run.
