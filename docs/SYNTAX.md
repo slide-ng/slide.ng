@@ -194,7 +194,8 @@ transition:
 ---
 ```
 
-The built-in names keep their own animation unless the object names a class.
+The built-in names keep their own animation unless the object names a class. With `prefers-reduced-motion` the CSS runs in
+0.01ms and a fixed `duration` ends at once, so the slide changes straight away.
 
 ## Clicks
 

@@ -109,7 +109,9 @@ export function classTransition(
   t: ResolvedTransition,
 ): Running {
   const c = transitionClasses(t);
-  const duration = t.duration;
+  // Less motion (styles.css makes CSS durations 0.01ms): a fixed `duration` ends at once too.
+  const reduced = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const duration = reduced && t.duration != null ? 0 : t.duration;
   const enterMs = typeof duration === 'number' ? duration : duration?.enter;
   const leaveMs = typeof duration === 'number' ? duration : duration?.leave;
   const leave = runSide(leaving, c.leaveFromClass, c.leaveActiveClass, c.leaveToClass, leaveMs);

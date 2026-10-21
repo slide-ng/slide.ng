@@ -110,4 +110,16 @@ describe('Stage with a custom transition name', () => {
     expect(made[1].location.nativeElement.className).toBe('');
     vi.useRealTimers();
   });
+
+  it('ends a fixed duration at once for people who ask for less motion', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'requestAnimationFrame', 'cancelAnimationFrame'] });
+    vi.stubGlobal('matchMedia', (query: string) => ({ matches: query.includes('reduce') }));
+    stage.show(1, null);
+    stage.show(2, { name: 'my-fade', duration: 1500 });
+    await vi.advanceTimersByTimeAsync(100);
+    expect(made[0].destroyed).toBe(true);
+    expect(made[1].location.nativeElement.className).toBe('');
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
 });
