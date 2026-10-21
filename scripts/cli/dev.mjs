@@ -9,8 +9,9 @@ import { readFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { hostname, networkInterfaces } from 'node:os';
 import { createInterface } from 'node:readline';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { parse } from 'yaml';
+import { mergeHeadmatter, resolveRoots } from '../lib/roots.mjs';
 import { removeInside } from '../lib/tool-dir.mjs';
 import { randomPassword, randomSecret } from '../dev/config.mjs';
 import { ngBinary, prepareApp } from './app-root.mjs';
@@ -81,12 +82,15 @@ export function devPlan(argv, env = process.env) {
   };
 }
 
-// The headmatter's `routerMode`, read when the remote addresses are printed: a hash deck has its route after `/#/`. Only the
-// entry's headmatter is read (no imports, no setup code); a missing file or invalid YAML is taken as the default, history.
-export function deckRouterMode(entry) {
+// The `routerMode` of the deck, read when the remote addresses are printed: a hash deck has its route after `/#/`. It is the
+// entry's headmatter over that of its theme (`theme.json`, also a `--theme`) and addons, as the generator merges them; no imports
+// and no setup code are read. A missing file, invalid YAML or a root that is not found is taken as the default, history.
+export function deckRouterMode(entry, themeOverride = process.env.SLIDE_NG_THEME || undefined) {
   try {
     const head = /^---\r?\n([\s\S]*?)\r?\n---/.exec(readFileSync(entry, 'utf8'))?.[1];
-    return head && parse(head)?.routerMode === 'hash' ? 'hash' : 'history';
+    const headmatter = (head && parse(head)) || {};
+    const roots = resolveRoots({ deckRoot: dirname(entry), headmatter, themeOverride });
+    return mergeHeadmatter(roots, headmatter).routerMode === 'hash' ? 'hash' : 'history';
   } catch {
     return 'history';
   }

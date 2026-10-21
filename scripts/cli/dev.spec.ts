@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { deckRouterMode, devPlan, ngServeArgs } from './dev.mjs';
@@ -97,5 +97,30 @@ describe('deckRouterMode', () => {
     );
     expect(deckRouterMode(deck('bad.md', '---\nrouterMode: [\n---\n'))).toBe('history');
     expect(deckRouterMode(join(dir, 'missing.md'))).toBe('history');
+  });
+  it('takes routerMode from the theme, set in the headmatter or with --theme, under the deck', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'router-mode-theme-'));
+    mkdirSync(join(dir, 'hash-theme'));
+    writeFileSync(
+      join(dir, 'hash-theme', 'theme.json'),
+      JSON.stringify({ headmatter: { routerMode: 'hash' } }),
+    );
+    const deck = (name: string, text: string) => (
+      writeFileSync(join(dir, name), text),
+      join(dir, name)
+    );
+    expect(
+      deckRouterMode(deck('themed.md', '---\ntheme: ./hash-theme\n---\n# One\n'), undefined),
+    ).toBe('hash');
+    expect(deckRouterMode(deck('plain.md', '# One\n'), join(dir, 'hash-theme'))).toBe('hash');
+    expect(
+      deckRouterMode(
+        deck('own.md', '---\ntheme: ./hash-theme\nrouterMode: history\n---\n'),
+        undefined,
+      ),
+    ).toBe('history');
+    expect(deckRouterMode(deck('lost.md', '---\ntheme: ./nowhere\n---\n'), undefined)).toBe(
+      'history',
+    );
   });
 });

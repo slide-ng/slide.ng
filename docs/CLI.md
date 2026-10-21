@@ -20,7 +20,7 @@ Starts the dev server: the deck at `http://localhost:4230`, the presenter at `/p
 
 With `--remote` the dev server prints the public slide show, the private one and the presenter for each network address; the
 private addresses carry the password (`http://192.168.1.5:4230/?password=...`, `.../presenter/1?password=...`). The page logs in
-with it, then takes it out of the address bar. A deck with `routerMode: hash` gets addresses after `#/` (`/#/?password=...`,
+with it, then takes it out of the address bar. A deck with `routerMode: hash` (in its headmatter, or from its theme or addons) gets addresses after `#/` (`/#/?password=...`,
 `/#/presenter/1?password=...`), and the `c` QR code follows the same mode; the page reads the password from the query after the `#`
 too. Opened without a password, the page asks once.
 
