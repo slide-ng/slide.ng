@@ -7,25 +7,10 @@ import { noteToHtml } from './note-html.mjs';
 import { downloadTarget } from '../export/filename.mjs';
 import { pwaEnabled } from '../build/pwa.mjs';
 import { titleHtml } from './math.mjs';
+import { BIDI_CONTROLS, plainTitle } from './plain-text.mjs';
 import { LAYOUTS } from './registry.mjs';
 
-// Bidi embedding, override and isolate characters: in a title they would reorder the text around it in the table of
-// contents, the tab title or the PDF outline (`annexe\u202Egpj.exe` shows as `annexeexe.jpg`), so titles drop them.
-const BIDI_CONTROLS = /[\u202A-\u202E\u2066-\u2069]/g;
-
-// A heading's markdown as text for the tab title, the outline and the overview: `[a](b)` is `a`, `code` and **b** lose their marks,
-// and HTML tags go.
-export function plainTitle(title) {
-  return String(title)
-    .replace(BIDI_CONTROLS, '')
-    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
-    .replace(/`([^`]*)`/g, '$1')
-    .replace(/(\*\*|\*|~~)(\S(?:.*?\S)?)\1/g, '$2')
-    .replace(/(?<!\w)(__|_)(\S(?:.*?\S)?)\1(?!\w)/g, '$2')
-    .replace(/<(rt|rp)\b[^>]*>[\s\S]*?<\/\1>/gi, '') // a ruby reading is not part of the title text
-    .replace(/<\/?[A-Za-z][^>]*>/g, '') // H<sub>2</sub>O is H2O
-    .trim();
-}
+export { plainTitle };
 
 // What the app needs to know about one slide, besides its component.
 function metaOf(slide, index, rubyMap) {

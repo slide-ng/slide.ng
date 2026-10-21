@@ -4,6 +4,7 @@
 import { themeColor } from '../build/pwa.mjs';
 import { isRtl, normalizeLang } from './lang.mjs';
 import { ROUTER_MODE_META, ROUTER_MODES } from './build-options.mjs';
+import { plainText } from './plain-text.mjs';
 
 const escapeHtml = (text) =>
   String(text)
@@ -69,11 +70,7 @@ const FAVICON_TYPES = {
 
 // A short plain description from the markdown of `info` (the page's description and the PDF's subject).
 export function describe(info) {
-  return String(info)
-    .replace(/[#*_`>]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 300);
+  return plainText(info).slice(0, 300);
 }
 
 /**

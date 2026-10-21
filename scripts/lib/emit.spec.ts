@@ -250,6 +250,12 @@ describe('plainTitle', () => {
       'H2O and 振り仮名',
     );
   });
+  it('keeps the TeX of $math$ without its dollars, and drops markdown escapes', () => {
+    expect(plainTitle('Karmaşıklık $O(1)$')).toBe('Karmaşıklık O(1)');
+    expect(plainTitle('**Fast** $a_1 * b_2$ and $5 or \\*not\\*')).toBe(
+      'Fast a_1 * b_2 and $5 or *not*',
+    );
+  });
   it('drops bidi overrides, which would reorder the table of contents', () => {
     expect(plainTitle('annexe\u202Egpj.exe \u2067x\u2069')).toBe('annexegpj.exe x');
   });

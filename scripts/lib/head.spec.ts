@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { applyTitleTemplate, faviconHref, headParts, pageTitle, renderIndexHtml } from './head.mjs';
+import {
+  applyTitleTemplate,
+  describe as describeInfo,
+  faviconHref,
+  headParts,
+  pageTitle,
+  renderIndexHtml,
+} from './head.mjs';
 
 const template =
   '<!doctype html>\n<html lang="en">\n<head>\n  <title>slide.ng</title>\n  <link rel="icon" type="image/x-icon" href="favicon.ico">\n</head>\n<body></body>\n</html>';
@@ -10,6 +17,15 @@ describe('titles', () => {
     expect(applyTitleTemplate(undefined, 'Intro')).toBe('Intro');
     expect(pageTitle({ title: 'My deck', titleTemplate: '%s | me' })).toBe('My deck | me');
     expect(pageTitle({})).toBe('slide.ng');
+  });
+});
+
+describe('the description from info', () => {
+  it('drops only the marks of markdown, not # or _ in words', () => {
+    expect(describeInfo('Buluşma #42, C# ve snake_case')).toBe('Buluşma #42, C# ve snake_case');
+    expect(describeInfo('## About ##\n\n> A **bold** `talk`\n- one\n- two\n\n---\n2 > 1')).toBe(
+      'About A bold talk one two 2 > 1',
+    );
   });
 });
 
