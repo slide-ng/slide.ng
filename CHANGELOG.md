@@ -8,6 +8,15 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 - `<slide-ng-title-renderer />` draws a slide's title as HTML, with its inline markdown and `$math$` (Slidev's `<TitleRenderer>`); `no="N"` picks another slide. The table of contents shows the same HTML. Raw HTML in a title is shown as text.
 - `notesAutoRuby: { word: reading }` in the headmatter shows a reading above each listed word in the speaker notes, with `<ruby>` (Slidev's `notesAutoRuby`). Code, tag attributes and existing `<ruby>` are left alone.
+- "Did you mean" for a mistyped layout, `slide-ng-*` element or attribute, component tag (Angular's "is not a known element" names the near name instead of `customElements`), CLI command and flag; any unknown `slide-ng-*` name is a warning.
+- A warning for a picture with a leading `/` that `public/` does not have, and for `/public/x.png` (write `/x.png`).
+
+### Fixed
+
+- A broken frontmatter or headmatter names the line of the error (not the slide's `---`) and says what is wrong in plain words, with hints for a value that has `: ` in it and for a missing closing `---`.
+- A mistyped tag that starts like a built-in one (`<slide-ng-tocc>`) no longer imports it (the false "SlideToc is not used" warning).
+- `slide-ng create --force` fills in the name only in the files it adds and keeps an existing `.gitignore`; the new `.gitignore` leaves out the files `export` writes by default.
+- A failed generation prints its reason once, without a second "generating the slides failed" line.
 
 ## [1.0.0] - 2026-10-18
 

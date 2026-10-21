@@ -54,7 +54,8 @@ Count is {{ 1 + 2 }}.
 - The first slide is layout `cover` unless you set one, all others `default`.
 - Slide numbers start at 1 and count every slide, including the first. `hide: true` or `disabled: true` removes a slide.
 - Any frontmatter key that slide.ng does not know is kept in the slide's metadata and ignored.
-- The generator warns (`[slides] ...`) about an unknown layout, an unknown code language and a `::slot::` the layout does not have; the deck still builds.
+- The generator warns (`[slides] ...`) about an unknown layout (naming the nearest one), an unknown `slide-ng-*` element or attribute, a picture with a leading `/` that `public/` does not have (`/public/x.png` is wrong: write `/x.png`), an unknown code language and a `::slot::` the layout does not have; the deck still builds.
+- A broken frontmatter stops the build at the line of the error, in plain words: quote a value that has `: ` in it (`title: "Part 2: more"`), indent with spaces, and close the frontmatter with `---`.
 - A `---` followed directly by `key: value` lines and a closing `---` is frontmatter. For a slide that has no frontmatter, put a blank line after the plain `---` separator so its first lines are not read as YAML.
 
 ## Speaker notes
