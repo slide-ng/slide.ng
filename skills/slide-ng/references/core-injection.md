@@ -5,7 +5,7 @@ description: Slidev's $nav, $clicks, $page in slide markup and through Angular i
 
 # Reading the deck state (`$slidev` and injection)
 
-In a slide's markup, Slidev's names exist and the changing ones are signals, so they are called: `{{ $clicks() }}`, `{{ $page() }}`, `{{ $renderContext() }}`, `{{ $frontmatter.title }}`, `{{ $nav.currentPage() }}`, `{{ $nav.total }}`, `(click)="$nav.next()"`, `{{ $slidev.configs.title }}`, `$slidev.themeConfigs`. `$page()` is the drawn slide, `$nav.currentPage()` the one on screen. The generator warns about uncalled `{{ $clicks }}`.
+In a slide's markup, Slidev's names exist and the changing ones are signals, so they are called: `{{ $clicks() }}`, `{{ $page() }}`, `{{ $renderContext() }}`, `{{ $frontmatter.title }}`, `{{ $nav.currentPage() }}`, `{{ $nav.total }}`, `(click)="$nav.next()"`, `{{ $slidev.configs.title }}`, `$slidev.themeConfigs`. `$page()` is the drawn slide, `$nav.currentPage()` the one on screen. The generator warns about uncalled `{{ $clicks }}` (also in bindings and `@let`); an uncalled one in a comparison (`$page === 2`, `$clicks > 1`) is a build error (TS2367 / TS2365).
 
 A component injects what it needs:
 

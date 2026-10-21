@@ -17,16 +17,20 @@ const UNCALLED = new RegExp(
   `\\$(?:${SIGNALS.join('|')})\\b(?!\\s*\\()|\\$(?:slidev\\.)?nav\\.(?:${NAV_SIGNALS.join('|')})\\b(?!\\s*\\()`,
   'g',
 );
-// Where Angular reads expressions: interpolations, bindings and control flow (the whole condition, up to the
-// block's `{`, so a call such as `$clicks()` inside it does not end the scan).
+// Where Angular reads expressions: interpolations, bindings in either quotes, `@let` and control flow (the whole condition,
+// up to the block's `{`, so a call such as `$clicks()` inside it does not end the scan).
 const EXPRESSIONS =
-  /\{\{([\s\S]*?)\}\}|\s[[(*][\w.-]+[\])]?="([^"]*)"|@(?:if|else if|switch|case|for)\s*\(([^{]*)\)\s*\{/g;
+  /\{\{([\s\S]*?)\}\}|\s[[(*][\w.-]+[\])]?=(?:"([^"]*)"|'([^']*)')|@let\s+[\w$]+\s*=([^;]*);|@(?:if|else if|switch|case|for)\s*\(([^{]*)\)\s*\{/g;
 
 /** The uncalled signals of the global context in `markup` (code samples already removed), each once. */
 export function uncalledGlobals(markup) {
   const found = new Set();
   for (const m of markup.matchAll(EXPRESSIONS))
-    for (const name of (m[1] ?? m[2] ?? m[3]).matchAll(UNCALLED)) found.add(name[0]);
+    for (const name of m
+      .slice(1)
+      .find((g) => g != null)
+      .matchAll(UNCALLED))
+      found.add(name[0]);
   return [...found];
 }
 

@@ -8,6 +8,9 @@ describe('uncalledGlobals', () => {
     expect(uncalledGlobals('@if ($clicks > 2) {\n<b>x</b>\n}')).toEqual(['$clicks']);
     // A call earlier in the condition does not hide an uncalled signal after it.
     expect(uncalledGlobals('@if ($clicks() > 0 && $page === 2) {\n<b>x</b>\n}')).toEqual(['$page']);
+    expect(uncalledGlobals("<div [class.x]='$clicks > 0'></div>")).toEqual(['$clicks']);
+    expect(uncalledGlobals('@let c = $clicks;\n{{ c }}')).toEqual(['$clicks']);
+    expect(uncalledGlobals('@let c = $clicks();\n@let p = $page + 1;')).toEqual(['$page']);
     expect(uncalledGlobals('{{ $nav.currentPage }} {{ $slidev.nav.currentLayout }}')).toEqual([
       '$nav.currentPage',
       '$slidev.nav.currentLayout',

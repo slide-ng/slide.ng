@@ -580,7 +580,9 @@ Shown from the second click.
 ```
 
 Vue reads `$clicks` without the call; here `{{ $clicks }}` would print the signal's function, so the generator warns about the
-uncalled forms (`$clicks`, `$page`, `$renderContext`, `$nav.currentPage`, ...). `{{ clicks.current() }}` is the older spelling of `{{ $clicks() }}`.
+uncalled forms (`$clicks`, `$page`, `$renderContext`, `$nav.currentPage`, ...) in interpolations, bindings (either quotes), `@let` and
+control flow. In a comparison an uncalled signal is more than a warning: `$page === 2` or `@if ($clicks > 1)` stops the build with
+Angular's type error (TS2367 for `===`, TS2365 for `>`), as a signal is not a number. `{{ clicks.current() }}` is the older spelling of `{{ $clicks() }}`.
 `$page()` is the number of the slide that is drawn, `$nav.currentPage()` the one on screen; they differ in thumbnails and the PDF.
 
 ## Showing code that contains braces
