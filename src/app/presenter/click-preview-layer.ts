@@ -73,6 +73,9 @@ export class ClickPreviewLayer {
   private tagged = new Set<Element>();
   /** Greyed-out parts hidden from screen readers here: they are not shown yet, and the next slide pane reads them already. */
   private muted = new Set<Element>();
+  /** Greyed-out parts whose `inert` (slide-ng-click.ts: a part not revealed yet) is taken off while they are ghosts, so a
+   *  click on one reaches clickPart; it is put back when the preview lets go of a part that is still not revealed. */
+  private wokeUp = new Set<Element>();
   private moved = signal(0);
   private resized?: ResizeObserver;
 
@@ -135,6 +138,7 @@ export class ClickPreviewLayer {
       el.classList.remove(AHEAD, NEXT);
       el.removeAttribute(AT);
       this.mute(el, false);
+      this.wake(el, false);
       this.tagged.delete(el);
       this.resized?.unobserve(el);
     }
@@ -148,6 +152,7 @@ export class ClickPreviewLayer {
       el.classList.toggle(NEXT, isNext);
       el.setAttribute(AT, String(at));
       this.mute(el, el.classList.contains('slidev-vclick-hidden'));
+      this.wake(el, el.classList.contains('slidev-vclick-hidden'));
       if (!this.tagged.has(el)) this.resized?.observe(el);
       this.tagged.add(el);
       const r = el.getBoundingClientRect();
@@ -172,5 +177,17 @@ export class ClickPreviewLayer {
       el.setAttribute('aria-hidden', 'true');
       this.muted.add(el);
     } else if (!on && this.muted.delete(el)) el.removeAttribute('aria-hidden');
+  }
+
+  // An inert element takes no clicks at all, so a ghost could not be clicked to go to its click. Only the inert taken off
+  // here is put back, and only on a part that is still not revealed (a revealed one is not inert any more).
+  private wake(el: Element, on: boolean) {
+    if (on) {
+      if (el.hasAttribute('inert')) {
+        el.removeAttribute('inert');
+        this.wokeUp.add(el);
+      }
+    } else if (this.wokeUp.delete(el) && el.classList.contains('slidev-vclick-hidden'))
+      el.setAttribute('inert', '');
   }
 }
