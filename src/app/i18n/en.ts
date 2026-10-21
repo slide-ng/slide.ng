@@ -107,7 +107,8 @@ export const EN = {
   'timer.pause': 'Pause the timer',
   'timer.reset': 'Reset the timer',
 
-  // The minutes of the progress bar (builtin/progress-bar.ts), {n} the number of minutes
+  // The progress bar (builtin/progress-bar.ts): its accessible name, then its minutes, {n} the number of minutes
+  'progress.label': 'Progress through the slides',
   'progress.minutes': '{n} min',
   'progress.minutesLeft': '{n} min left',
   'progress.minutesOver': '{n} min over',

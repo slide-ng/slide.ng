@@ -163,13 +163,14 @@ default; `src/app/i18n/en.ts` holds it and is the source of truth for the keys. 
 | `timer.pause`             | Pause the timer                   |
 | `timer.reset`             | Reset the timer                   |
 
-### The minutes of the progress bar (`progressBar: { minutes: true }`)
+### The progress bar (its name, and its minutes with `progressBar: { minutes: true }`)
 
-| key                    | English      |
-| ---------------------- | ------------ |
-| `progress.minutes`     | {n} min      |
-| `progress.minutesLeft` | {n} min left |
-| `progress.minutesOver` | {n} min over |
+| key                    | English                     |
+| ---------------------- | --------------------------- |
+| `progress.label`       | Progress through the slides |
+| `progress.minutes`     | {n} min                     |
+| `progress.minutesLeft` | {n} min left                |
+| `progress.minutesOver` | {n} min over                |
 
 ### The drawing toolbar
 

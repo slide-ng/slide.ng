@@ -65,6 +65,7 @@ export function minutesLabel(
   host: {
     class: 'slide-ng-progress-bar',
     role: 'progressbar',
+    '[attr.aria-label]': 'label',
     'aria-valuemin': '0',
     'aria-valuemax': '100',
     '[attr.aria-valuenow]': 'percent()',
@@ -112,7 +113,10 @@ export class SlideProgressBar {
   private layerStep = inject(LAYER_STEP, { optional: true });
   private nav = inject(Nav, { optional: true });
   private injector = inject(Injector);
-  private words = minutesText(inject(UI_TEXT));
+  private text = inject(UI_TEXT);
+  private words = minutesText(this.text);
+  /** The bar's accessible name (a progressbar must have one). */
+  protected label = this.text['progress.label'];
   private total = this.nav?.total ?? 1;
 
   private step = computed(() => {

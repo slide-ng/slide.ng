@@ -186,3 +186,26 @@ html[data-presenter='off'] #nav-presenter {
     background-color: GrayText !important;
   }
 }
+
+/* Forced colors: the progress bars draw their fill as a background, which the browser would paint with the page colour,
+   so the bar would vanish. The fill gets the system's highlight colour over the page colour, with a text-coloured edge. */
+@media (forced-colors: active) {
+  .slide-ng-progress-bar,
+  app-progress-bar {
+    forced-color-adjust: none;
+  }
+  .slide-ng-progress-bar {
+    background: Canvas !important;
+    box-shadow: inset 0 0 0 1px CanvasText;
+  }
+  .slide-ng-progress-fill,
+  app-progress-bar .bg-primary {
+    background: Highlight !important;
+  }
+  app-progress-bar .border-main {
+    border-color: CanvasText !important;
+  }
+  .slide-ng-progress-minutes {
+    color: CanvasText;
+  }
+}

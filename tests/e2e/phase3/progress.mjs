@@ -19,6 +19,28 @@ export async function run({ t, base, browser, open, press, windowGroup }) {
     Math.abs(look.bottom - look.canvas) < 1 && look.color === 'rgb(225, 29, 72)',
     JSON.stringify(look),
   );
+  t.ok(
+    'the bar is named for screen readers',
+    (await viewer.locator('#slide-content .deck-progress-bar').getAttribute('aria-label')) ===
+      'Progress through the slides',
+  );
+  // Forced colours (Windows high contrast) would paint the fill with the page colour: it gets Highlight instead.
+  await viewer.emulateMedia({ forcedColors: 'active' });
+  await viewer.waitForTimeout(500); // the fill's colour changes with a transition
+  const forced = await viewer.locator('#slide-content .deck-progress-bar').evaluate((e) => {
+    const probe = document.createElement('div');
+    probe.style.cssText = 'forced-color-adjust: none; background: Highlight';
+    document.body.append(probe);
+    const highlight = getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    return { fill: getComputedStyle(e.firstElementChild).backgroundColor, highlight };
+  });
+  await viewer.emulateMedia({ forcedColors: 'none' });
+  t.ok(
+    'in forced colours the fill is drawn in the highlight colour',
+    forced.fill === forced.highlight,
+    JSON.stringify(forced),
+  );
   await press(viewer, 'ArrowRight', 400);
   t.ok(
     'a click fills part of the way to the next slide',
