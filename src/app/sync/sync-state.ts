@@ -9,6 +9,7 @@ import {
   cleanDrawings,
   cleanShared,
   initialShared,
+  mergeShared,
 } from './shared-state';
 import { SYNC_TRANSPORTS } from './transport';
 
@@ -97,7 +98,7 @@ export class SyncState {
   }
 
   private receive(channel: string, data: unknown) {
-    if (channel === 'shared') this.shared.update((s) => ({ ...s, ...cleanShared(data) }));
+    if (channel === 'shared') this.shared.update((s) => mergeShared(s, cleanShared(data)));
     else if (channel === 'hello') {
       const timer = this.shared().timer;
       if (timer.status !== 'stopped') this.patchShared({ timer });

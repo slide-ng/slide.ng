@@ -96,6 +96,20 @@ export function cleanShared(data: unknown, now = Date.now()): Partial<SharedStat
   return out;
 }
 
+/**
+ * `patch` (from outside, cleaned) applied to `state`. A move older than the one the state holds keeps only its other parts
+ * (timer, cursor): its position and `lastUpdate` are dropped. Messages can come faster than the windows look at the state
+ * (the effects run once for several), so the newest move must win here, not in the order the messages came: two presenter
+ * windows answer a new window's hello, and the older answer may come last.
+ */
+export function mergeShared(state: SharedState, patch: Partial<SharedState>): SharedState {
+  if (patch.lastUpdate && state.lastUpdate && patch.lastUpdate.time < state.lastUpdate.time) {
+    const { page: _p, clicks: _c, clicksTotal: _t, lastUpdate: _u, ...rest } = patch;
+    return { ...state, ...rest };
+  }
+  return { ...state, ...patch };
+}
+
 /** Drawings: slide number -> the SVG markup drauu dumped ('' = nothing drawn). */
 export type DrawingsState = Record<number, string>;
 

@@ -55,6 +55,20 @@ describe('SyncState', () => {
     expect(sync.directions()).toEqual(changed);
   });
 
+  it('an older move from outside does not overwrite a newer one, but its timer and cursor are taken', () => {
+    const { transport, sync } = setup();
+    const move = (time: number) => ({ id: 'a', type: 'presenter', time });
+    transport.deliver('shared', { page: 3, clicks: 1, clicksTotal: 2, lastUpdate: move(500) });
+    const timer = { status: 'running', startedAt: 100, pausedAt: 0 } as const;
+    const cursor = { x: 1, y: 2, style: 'laser' } as const;
+    transport.deliver('shared', { page: 1, clicks: 0, lastUpdate: move(0), timer, cursor });
+    expect(sync.shared()).toMatchObject({ page: 3, clicks: 1, clicksTotal: 2, timer, cursor });
+    expect(sync.shared().lastUpdate?.time).toBe(500);
+    // As old as the one held (MCP's goto_slide sends two moves with one time): taken.
+    transport.deliver('shared', { page: 4, clicks: 0, lastUpdate: move(500) });
+    expect(sync.shared().page).toBe(4);
+  });
+
   it('junk from outside is ignored', () => {
     const { transport, sync } = setup();
     transport.deliver('shared', { page: 'x', hacked: true });

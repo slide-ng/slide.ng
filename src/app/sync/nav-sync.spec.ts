@@ -54,9 +54,10 @@ function viewer() {
   } as unknown as Nav;
   TestBed.runInInjectionContext(() => startNavSync(nav));
   TestBed.tick();
-  const move = (id: string, page: number, time: number, sentAt: number) => {
+  // `tick: false`: the next message comes before the effects run.
+  const move = (id: string, page: number, time: number, sentAt: number, tick = true) => {
     deliver('shared', { page, clicks: 0, lastUpdate: { id, type: 'presenter', time, sentAt } });
-    TestBed.tick();
+    if (tick) TestBed.tick();
     return no();
   };
   return { move };
@@ -69,6 +70,25 @@ describe('startNavSync (a viewer)', () => {
     expect(move('a', 3, now, now)).toBe(3); // presenter A moves to slide 3
     expect(move('b', 1, 0, now + 10)).toBe(3); // presenter B (re)loads on slide 1: not a move
     expect(move('b', 2, now + 20, now + 20)).toBe(2); // B moves: it leads now
+  });
+
+  it('takes the newest of two answers to its hello that come before it looks, in either order', () => {
+    const now = Date.now();
+    for (const [first, second] of [
+      [
+        ['a', 3, now - 5000],
+        ['b', 1, 0],
+      ],
+      [
+        ['b', 1, 0],
+        ['a', 3, now - 5000],
+      ],
+    ] as const) {
+      TestBed.resetTestingModule();
+      const { move } = viewer();
+      move(first[0], first[1], first[2], now, false);
+      expect(move(second[0], second[1], second[2], now)).toBe(3); // A moved last: slide 3, not B's slide 1
+    }
   });
 
   it('follows a newer move of a presenter whose clock is behind, not an older one of a clock that is ahead', () => {
