@@ -352,6 +352,10 @@ describe('WebSocket', () => {
   });
 });
 
+// `!` and the space never appear in the cookie (hex, digits, `.` and base64url), so a random
+// signature cannot contain the password by chance.
+const PASSWORD = 'pass word!';
+
 describe('--remote with a password', () => {
   let remotePort: number, stop: () => void;
   const ask = (
@@ -364,7 +368,7 @@ describe('--remote with a password', () => {
 
   beforeAll(async () => {
     const remote = readConfig(
-      { SLIDE_NG_TOKEN: 'tok2', SLIDE_NG_PASSWORD: 'pw', SLIDE_NG_REMOTE: '1' },
+      { SLIDE_NG_TOKEN: 'tok2', SLIDE_NG_PASSWORD: PASSWORD, SLIDE_NG_REMOTE: '1' },
       root,
     );
     const started = await startServer({ ...remote, port: 0 });
@@ -389,15 +393,15 @@ describe('--remote with a password', () => {
     expect(r.headers['set-cookie']).toBeUndefined();
   });
   it('gives a cookie for the right password', async () => {
-    const r = await ask('POST', '/__slide-ng/login', { password: 'pw' });
+    const r = await ask('POST', '/__slide-ng/login', { password: PASSWORD });
     expect(r.status).toBe(200);
     cookie = String(r.headers['set-cookie']).split(';')[0];
     expect(String(r.headers['set-cookie'])).toMatch(/HttpOnly.*SameSite=Strict/);
-    expect(cookie).not.toContain('pw');
+    expect(cookie).not.toContain(PASSWORD);
   });
   it('the cookie is short lived and different for every login', async () => {
-    const a = await ask('POST', '/__slide-ng/login', { password: 'pw' });
-    const b = await ask('POST', '/__slide-ng/login', { password: 'pw' });
+    const a = await ask('POST', '/__slide-ng/login', { password: PASSWORD });
+    const b = await ask('POST', '/__slide-ng/login', { password: PASSWORD });
     const header = String(a.headers['set-cookie']);
     expect(Number(/Max-Age=(\d+)/.exec(header)?.[1])).toBeLessThanOrEqual(8 * 3600);
     expect(Number(/Max-Age=(\d+)/.exec(header)?.[1])).toBeGreaterThan(0);
@@ -411,7 +415,7 @@ describe('--remote with a password', () => {
       expect(
         (await ask('POST', '/__slide-ng/login', { password: `bad${i}` }, from('9.9.9.9'))).status,
       ).toBe(401);
-    const locked = await ask('POST', '/__slide-ng/login', { password: 'pw' }, from('9.9.9.9'));
+    const locked = await ask('POST', '/__slide-ng/login', { password: PASSWORD }, from('9.9.9.9'));
     expect(locked.status).toBe(429);
     expect(Number(locked.headers['retry-after'])).toBeGreaterThan(0);
     expect(locked.headers['set-cookie']).toBeUndefined();
@@ -419,11 +423,11 @@ describe('--remote with a password', () => {
     const dodge = await ask(
       'POST',
       '/__slide-ng/login',
-      { password: 'pw' },
+      { password: PASSWORD },
       from('1.2.3.4, 9.9.9.9'),
     );
     expect(dodge.status).toBe(429);
-    const other = await ask('POST', '/__slide-ng/login', { password: 'pw' }, from('8.8.8.8'));
+    const other = await ask('POST', '/__slide-ng/login', { password: PASSWORD }, from('8.8.8.8'));
     expect(other.status).toBe(200);
   });
   it('then hands out the token and accepts writes that have it', async () => {
@@ -457,13 +461,14 @@ describe('--remote with a password', () => {
         await ask(
           'POST',
           '/__slide-ng/login',
-          { password: 'pw' },
+          { password: PASSWORD },
           { origin: 'http://evil.example' },
         )
       ).status,
     ).toBe(403);
     expect(
-      (await ask('POST', '/__slide-ng/login', { password: 'pw' }, { host: 'evil.example' })).status,
+      (await ask('POST', '/__slide-ng/login', { password: PASSWORD }, { host: 'evil.example' }))
+        .status,
     ).toBe(403);
   });
   it('accepts a network address as Host (that is how other devices come in), and a local one is the same', async () => {
