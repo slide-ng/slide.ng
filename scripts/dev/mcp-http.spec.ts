@@ -251,14 +251,18 @@ describe('gotoMessages', () => {
     expect(gotoMessages(4, 1, 5)).toEqual([
       {
         channel: 'shared',
-        data: { page: 4, clicks: 1, lastUpdate: { id: 'slide-ng-mcp', type: 'viewer', time: 5 } },
+        data: {
+          page: 4,
+          clicks: 1,
+          lastUpdate: { id: 'slide-ng-mcp', type: 'viewer', time: 5, sentAt: 5 },
+        },
       },
       {
         channel: 'shared',
         data: {
           page: 4,
           clicks: 1,
-          lastUpdate: { id: 'slide-ng-mcp', type: 'presenter', time: 5 },
+          lastUpdate: { id: 'slide-ng-mcp', type: 'presenter', time: 5, sentAt: 5 },
         },
       },
     ]);

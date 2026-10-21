@@ -5,11 +5,12 @@ import { z } from 'zod';
 import { nextPosition, sendToAll } from '../dev/ws-hub.mjs';
 import { parseDeck } from '../lib/parse-deck.mjs';
 
-/** The two `shared` messages that move every window: presenters follow a viewer's move, viewers a presenter's. */
+/** The two `shared` messages that move every window: presenters follow a viewer's move, viewers a presenter's. The move
+ *  carries the server's clock in `sentAt`, as a window's does, so a device whose clock is ahead still takes it as new. */
 export function gotoMessages(page, clicks, time = Date.now()) {
   return ['viewer', 'presenter'].map((type) => ({
     channel: 'shared',
-    data: { page, clicks, lastUpdate: { id: 'slide-ng-mcp', type, time } },
+    data: { page, clicks, lastUpdate: { id: 'slide-ng-mcp', type, time, sentAt: time } },
   }));
 }
 
