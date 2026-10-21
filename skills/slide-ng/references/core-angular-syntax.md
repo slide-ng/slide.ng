@@ -58,7 +58,7 @@ The markdown is converted first, then Angular compiles the result. Follow these 
 - A tag with a binding `[x]`, an event `(x)`, a `#ref` or a `*directive` is passed through untouched. Put it on its own line or inline in a paragraph. It may span several lines when it starts its first line and `>` or `/>` ends the last (`@let` may span lines too). A wrapper tag alone on its line keeps the lines below it as HTML until the next empty line, as a plain HTML tag does: leave an empty line after it to write markdown inside.
 - `{{ ... }}` is passed through untouched. Inside math, `{{` stays math.
 - A single `{`, `}` or `@` in normal text (an email address) is escaped for you.
-- A slide has no component class of its own, so it has no fields. Share state inside a slide with template references (`<app-counter #c />`) or `@let`.
+- A slide has no fields of its own besides the global context (`$clicks()`, `$page()`, `$nav`, ...). Share state inside a slide with template references (`<app-counter #c />`) or `@let`.
 - Code fences and inline code are always plain text: `{{ x }}` and `@if` inside them are shown, not run.
 - Markdown inside a component tag: leave an empty line after the opening tag and before the closing tag, as in `<slide-ng-clicks>` lists.
 
@@ -66,4 +66,4 @@ The markdown is converted first, then Angular compiles the result. Follow these 
 
 Component tags are lower-case with dashes: `<slide-ng-toc />`, `<slide-ng-auto-fit-text>`. `<Toc />` and `<Arrow />` are build errors (NG8001, not a known element). An unknown tag with a dash is also a build error; an unknown attribute is silently ignored.
 
-Everything that a Slidev deck gets from `$slidev`, `$nav` or `$clicks` is Angular injection in a component, see `core-injection.md`.
+`$clicks()`, `$page()`, `$nav`, `$frontmatter` and `$slidev` work in slide markup (signals are called); a component injects the same things, see `core-injection.md`.

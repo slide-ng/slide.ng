@@ -89,3 +89,20 @@ routeAlias: hooks
 # Slide hooks
 
 <hook-counter />
+
+---
+layout: center
+routeAlias: globals
+---
+
+# Global context
+
+<p id="globals">page {{ $page() }} of {{ $nav.total }}, {{ $slidev.configs.title }}, {{ $frontmatter.layout }}, shown {{ $nav.currentPage() }} {{ $nav.currentLayout() }}, {{ $renderContext() }}</p>
+
+<div slide-ng-click>step</div>
+
+@if ($clicks() > 0) {
+<p id="after-click">clicked {{ $clicks() }}</p>
+}
+
+<button id="globals-first" (click)="$nav.go(1)">first</button>

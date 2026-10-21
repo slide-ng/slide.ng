@@ -1,7 +1,8 @@
 import { ComponentRef, Injector, ViewContainerRef } from '@angular/core';
 import { HEADMATTER, SLIDES } from '../../slides/generated';
 import { readZoom } from './canvas';
-import { RENDER_CONTEXT, RenderContext, SLIDE_NO } from './slide-context';
+import { Nav } from './nav';
+import { RENDER_CONTEXT, RenderContext, SLIDE_GLOBALS, SLIDE_NO } from './slide-context';
 import { SlideBase } from './slide-base';
 
 // Creates the component of slide `no` (1-based) inside `host`, telling it where it is drawn.
@@ -15,6 +16,15 @@ export function mountSlide(
     providers: [
       { provide: SLIDE_NO, useValue: no },
       { provide: RENDER_CONTEXT, useValue: context },
+      {
+        provide: SLIDE_GLOBALS,
+        useValue: {
+          nav: host.injector.get(Nav, null),
+          frontmatter: SLIDES[no - 1].frontmatter,
+          configs: HEADMATTER,
+          themeConfigs: (HEADMATTER['themeConfig'] ?? {}) as Record<string, unknown>,
+        },
+      },
     ],
   });
   const ref = host.createComponent(SLIDES[no - 1].component, { injector });

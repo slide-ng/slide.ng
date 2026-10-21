@@ -54,6 +54,10 @@ export class Nav {
   /** The address matches no slide: the 404 layout is shown. */
   readonly notFound = computed(() => this.found() === null);
   readonly meta = computed(() => SLIDES[this.no() - 1]);
+  /** Slidev's names, for `$nav` in slides: the slide on screen, its layout and its frontmatter. */
+  readonly currentPage = this.no;
+  readonly currentLayout = computed(() => this.meta().layout);
+  readonly currentFrontmatter = computed(() => this.meta().frontmatter);
 
   /** Clicks of the slide on screen (set by the deck when it creates the slide). */
   readonly ctx = signal<ClicksContext | null>(null);

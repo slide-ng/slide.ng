@@ -1,5 +1,6 @@
 // Writes the TypeScript source of one generated slide component.
 import { dirname, join, relative } from 'node:path';
+import { warnUncalledGlobals } from './global-context.mjs';
 import { COMPONENTS, LAYOUTS } from './registry.mjs';
 import { layoutName } from './layouts.mjs';
 import { extractStyles, scopeCss } from './scoped-style.mjs';
@@ -225,6 +226,7 @@ export function slideSource(slide, no, deck = {}) {
     no,
     (deck.components ?? []).flatMap((c) => (c.selector ? [c.selector] : [])),
   );
+  warnUncalledGlobals(markup, no);
   // A drag position by name (`slide-ng-drag="square"`, `pos="square"`) is looked up in the slide's `dragPos`.
   const dragPos = slide.frontmatter.dragPos ?? {};
   const named = [

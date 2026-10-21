@@ -18,13 +18,13 @@ slide.ng reads the same `slides.md` shape (Slidev's own parser splits slides and
 | `<Link to="3">`                                                | `<slide-ng-link to="3">`; `link` is an HTML tag, so it was renamed                                                             |
 | `<SlidevVideo>`                                                | `<slide-ng-video>`                                                                                                             |
 | `<carbon:apps />`                                              | `<carbon-apps />` (dash); or the class `i-carbon:apps`                                                                         |
-| `$slidev.nav.currentPage`, `$page`                             | `<slide-ng-current-no />`, or inject `Nav` in a component                                                                      |
+| `$slidev.nav.currentPage`, `$page`                             | `{{ $slidev.nav.currentPage() }}`, `{{ $page() }}` (signals are called)                                                        |
 | `onSlideEnter`, `onSlideLeave`, `useIsSlideActive`             | `onSlideEnter`, `onSlideLeave`, `isSlideActive()` from `slide-ng/lib/slide-hooks`, called in a component (`core-injection.md`) |
 | Vue components in `components/*.vue`                           | Angular standalone components in `components/*.ts`                                                                             |
 | `setup/main.ts` with `defineAppSetup`                          | `setup/main.ts` returns Angular providers                                                                                      |
 | `@slidev/theme-x`, Vue themes and addons                       | `@slide-ng/theme-x`; Slidev themes cannot be used                                                                              |
 | `comark: true` / MDC syntax                                    | not parsed; delete the key (a deck without MDC syntax is unaffected)                                                           |
-| `$clicks`, `$slidev.nav` in markdown                           | no global; a component with `inject(ClicksContext)` or `inject(Nav)` and a `#ref`                                              |
+| `$clicks`, `$slidev.nav` in markdown                           | `{{ $clicks() }}`, `@if ($clicks() > 1)`, `(click)="$slidev.nav.next()"`                                                       |
 | `{{ $slidev.themeConfigs.primary }}`                           | `{{ themeConfig['primary'] }}`; the CSS variables `--slidev-theme-<key>` are the same                                          |
 | `v-pre` on an element with a literal `{{ }}`                   | `ngNonBindable` on the element, or `&#123;&#123;` / `\{\{` in text                                                             |
 | UnoCSS attributify (`flex="~" p="2"`), variant groups, `prose` | not installed; use classes                                                                                                     |

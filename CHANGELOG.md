@@ -37,6 +37,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - `setup/routes.ts` adds pages to the app: it gets the Angular routes and returns the list to use; the app's slide and catch-all routes (or copies of them, say with a guard) stay last, while routes the file adds, `:lang` too, stay where it put them (Slidev's `setup/routes.ts`). A file that throws is reported in the console and skipped, so the slides still open.
 - `setup/mermaid-renderer.ts` returns a function `(code, options) => svg` that draws Mermaid diagrams with another library; a setup that throws is skipped with a warning and the next root or Mermaid draws instead, and a renderer that throws or resolves to a non-string shows the error box (Slidev's `setup/mermaid-renderer.ts`).
 - `onSlideEnter`, `onSlideLeave` and `isSlideActive()` in `slide-ng/lib/slide-hooks` for components in a slide (Slidev's slide hooks). The callbacks get the new and the old slide number and run on the slide and presenter pages only; a hook that throws is reported and does not stop the others.
+- Slidev's global context in slide markup: `$clicks()`, `$page()`, `$renderContext()`, `$frontmatter`, `$nav` (with `currentPage()`, `currentLayout()`, `currentFrontmatter()`) and `$slidev` (`nav`, `configs`, `themeConfigs`). The generator warns about Vue's uncalled forms such as `{{ $clicks }}`, also in bindings and `@let`; in a comparison (`$page === 2`) an uncalled one is a build error.
 
 ### Changed
 
