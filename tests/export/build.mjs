@@ -275,10 +275,15 @@ await strictPage.locator('#hud').waitFor();
 t.ok(
   "under script-src 'self' the full stylesheet is switched on and nothing is refused",
   (await strictPage.evaluate(() =>
-    [...document.querySelectorAll('link[rel=stylesheet]')].every((l) => l.media === 'all'),
+    // The deck's own index.html adds a plain <link rel="stylesheet"> (no media); the app's is switched from print to all.
+    [...document.querySelectorAll('link[rel=stylesheet]')].every(
+      (l) => !l.media || l.media === 'all',
+    ),
   )) && refused.length === 0,
   refused.join(' | '),
 );
+// Requests still in flight (a lazy chunk) would be fulfilled after the close.
+await strict.unrouteAll({ behavior: 'ignoreErrors' });
 await strict.close();
 
 await page.goto(`${served.origin}/talk/2`);
