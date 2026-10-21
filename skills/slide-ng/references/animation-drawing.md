@@ -9,7 +9,7 @@ The pen button in the bar (or the right-click menu) opens a toolbar: pen, line, 
 
 Keys while it is open: `L` line, `A` arrow, `S` stylus, `R` rectangle, `E` ellipse, `C` clear, digits for colours, Ctrl+Z undo, Escape closes.
 
-Drawings are per slide, shared between windows, and kept in the browser (`localStorage`).
+Drawings are per slide, shared between windows, and kept in the browser (`localStorage`, per deck: two decks on one site do not share them).
 
 ```yaml
 drawings:

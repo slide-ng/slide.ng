@@ -20,7 +20,7 @@ What the flag does:
 - No service worker, so `pwa` is ignored.
 - Remote pictures (`remoteAssets`) and web fonts (`fonts.selfHost`) are downloaded into the folder, unless the deck turns them off.
 - Monaco's workers are started from blobs.
-- Presenter at `index.html#/presenter/1`, audience at `index.html#/1` in a second window of the same browser profile and folder; they sync with a BroadcastChannel. Drawings and sync are kept per folder.
+- Presenter at `index.html#/presenter/1`, audience at `index.html#/1` in a second window of the same browser profile and folder; they sync with a BroadcastChannel. Drawings, sync and stored settings are kept per folder (dark mode is shared).
 - The PDF button opens `<exportFilename>.pdf` in a new tab.
 
 Still needs the network: PlantUML, `<slide-ng-youtube>`, `<slide-ng-tweet>`, `<slide-ng-blue-sky>`, and pictures or fonts that could not be downloaded at build time (watch the build for `could not download`).

@@ -2,6 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { storedSignal } from '../lib/stored-signal';
 import { editorEnabled } from '../lib/switches';
 import { DevApi } from './dev-api';
+import { scopedKey } from '../lib/deck-scope';
 
 /** Is the side editor open, and is there a dev server to save to at all? */
 @Injectable({ providedIn: 'root' })
@@ -52,14 +53,14 @@ export interface EditorCaret {
 }
 export function saveCaret(caret: Omit<EditorCaret, 'at'>) {
   try {
-    sessionStorage.setItem(CARET, JSON.stringify({ ...caret, at: Date.now() }));
+    sessionStorage.setItem(scopedKey(CARET), JSON.stringify({ ...caret, at: Date.now() }));
   } catch {
     // no storage: the caret is simply not restored
   }
 }
 export function takeCaret(no: number, field: 'source' | 'note' = 'source'): EditorCaret | null {
   try {
-    const c = JSON.parse(sessionStorage.getItem(CARET) ?? 'null') as EditorCaret | null;
+    const c = JSON.parse(sessionStorage.getItem(scopedKey(CARET)) ?? 'null') as EditorCaret | null;
     if (!c || c.no !== no || (c.field ?? 'source') !== field || Date.now() - c.at > FRESH_MS)
       return null;
     return c;
@@ -70,7 +71,7 @@ export function takeCaret(no: number, field: 'source' | 'note' = 'source'): Edit
 /** True right after typing in the editor (also across a reload): keys that land on the page then are not shortcuts. */
 export function typedJustNow(ms = 3_000): boolean {
   try {
-    const c = JSON.parse(sessionStorage.getItem(CARET) ?? 'null') as EditorCaret | null;
+    const c = JSON.parse(sessionStorage.getItem(scopedKey(CARET)) ?? 'null') as EditorCaret | null;
     return !!c && Date.now() - c.at < ms;
   } catch {
     return false;

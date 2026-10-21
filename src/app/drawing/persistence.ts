@@ -6,12 +6,12 @@ import { createDrawingSaver } from '../dev/dev-persist';
 import { DRAWINGS } from '../../slides/generated';
 import { SyncState } from '../sync/sync-state';
 import { DrawingsState, cleanDrawings } from '../sync/shared-state';
-import { diskScope } from '../lib/disk-scope';
+import { scopedKey } from '../lib/deck-scope';
 
 const RETRY_MS = 5000;
 
-/** The localStorage key; an offline folder (file://) adds its own path, see disk-scope.ts. */
-export const drawingsKey = () => `slide-ng-drawings${diskScope()}`;
+/** The localStorage key, of this deck only (deck-scope.ts). */
+export const drawingsKey = () => scopedKey('slide-ng-drawings');
 
 /** Drawings saved in this browser. Storage may be blocked, then there are none. */
 export function readStored(): DrawingsState {

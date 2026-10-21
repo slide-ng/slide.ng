@@ -12,6 +12,7 @@ import {
   mergeShared,
 } from './shared-state';
 import { SYNC_TRANSPORTS } from './transport';
+import { scopedKey } from '../lib/deck-scope';
 
 const DIRECTIONS_KEY = 'slidev-sync-directions';
 
@@ -66,7 +67,7 @@ export class SyncState {
     // The sync mode chosen in another window of this browser (the presenter's or a viewer's menu) applies here too,
     // and this window must not write its old copy back over it (Slidev's useLocalStorage listens the same way).
     window.addEventListener('storage', (e) => {
-      if (e.key !== DIRECTIONS_KEY || !e.newValue) return;
+      if (e.key !== scopedKey(DIRECTIONS_KEY) || !e.newValue) return;
       try {
         this.directions.update((d) => ({ ...d, ...JSON.parse(e.newValue!) }));
       } catch {

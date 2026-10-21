@@ -4,6 +4,7 @@ import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { HEADMATTER } from '../../slides/generated';
 import { TimerState } from '../sync/shared-state';
 import { SyncState } from '../sync/sync-state';
+import { scopedKey } from '../lib/deck-scope';
 
 /** `30min`, `1h30min`, `90s`, `1.5h` or a plain number of minutes -> seconds. Empty or wrong text gives 30 minutes (Slidev's default). */
 export function parseDuration(value: unknown): number {
@@ -54,7 +55,7 @@ export function clockParts(
 const SAVED = 'slide-ng-timer';
 function readSaved(): TimerState | null {
   try {
-    const t = JSON.parse(sessionStorage.getItem(SAVED) ?? 'null');
+    const t = JSON.parse(sessionStorage.getItem(scopedKey(SAVED)) ?? 'null');
     return t &&
       ['running', 'paused', 'stopped'].includes(t.status) &&
       typeof t.startedAt === 'number'
@@ -95,7 +96,7 @@ export class Timer {
   private set(timer: TimerState) {
     this.sync.patchShared({ timer });
     try {
-      sessionStorage.setItem(SAVED, JSON.stringify(timer));
+      sessionStorage.setItem(scopedKey(SAVED), JSON.stringify(timer));
     } catch {
       // no storage (a private window): the timer just starts over after a reload
     }

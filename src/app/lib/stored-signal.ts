@@ -1,4 +1,5 @@
 import { WritableSignal, effect, signal } from '@angular/core';
+import { scopedKey } from './deck-scope';
 
 function read<T>(key: string, initial: T): T {
   try {
@@ -15,10 +16,12 @@ function read<T>(key: string, initial: T): T {
 }
 
 /**
- * A signal that remembers its value in localStorage (Slidev's useLocalStorage).
+ * A signal that remembers its value in localStorage (Slidev's useLocalStorage), under `key` of this deck only (deck-scope.ts):
+ * two decks on one origin keep their own settings.
  * Call it where Angular allows `effect()`: a constructor or a field initializer.
  */
-export function storedSignal<T>(key: string, initial: T): WritableSignal<T> {
+export function storedSignal<T>(name: string, initial: T): WritableSignal<T> {
+  const key = scopedKey(name);
   const value = signal<T>(read(key, initial));
   effect(() => {
     const current = value();

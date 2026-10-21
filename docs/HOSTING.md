@@ -25,6 +25,11 @@ With several entries each deck is built in turn into its own folder of `--out`, 
 under that name below `--base` (Slidev's multiple builds). The rest of `--out` is emptied, so it holds only these folders. Each folder is a whole site with its own `404.html` and `_redirects`;
 a host that serves only one folder per site needs one site per deck, or a rule that sends `/x/a/*` to `/x/a/index.html`.
 
+Decks on one origin (these folders, or the project sites of one GitHub Pages user) keep to themselves: the windows that
+follow each other, the drawings and the settings kept in the browser (presenter layout, drawing mode, wake lock, sync mode
+and the others) belong to the deck's base path. Only dark mode is shared by every deck of the site, as in Slidev. A deck at
+the root (`/`) keeps the names of earlier versions; settings that a deck under a sub-path saved before 2.0.0 are not read.
+
 ## What is in the build
 
 | file                                                    | what for                                                                                     |

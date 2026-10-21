@@ -22,7 +22,8 @@ type Status =
 const SAVE_DELAY = 600;
 // A saved note rebuilds the deck and reloads this page. What was typed meanwhile is kept for a moment and taken back.
 const DRAFT = 'slide-ng-notes-draft';
-// The keys typed while the page was starting again, kept by src/index.html.
+// The keys typed while the page was starting again, kept by src/index.html. Neither key is scoped by deck (deck-scope.ts):
+// /notes-edit is only in the dev server, which serves one deck, and src/index.html reads them before the app runs.
 const EARLY_KEYS = 'slide-ng-notes-keys';
 const FRESH_MS = 15_000;
 interface Draft {

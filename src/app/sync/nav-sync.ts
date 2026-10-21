@@ -5,6 +5,7 @@ import { DestroyRef, computed, effect, inject, untracked } from '@angular/core';
 import { Nav } from '../lib/nav';
 import { SharedState } from './shared-state';
 import { SyncState } from './sync-state';
+import { scopedKey } from '../lib/deck-scope';
 
 // Slidev's TRUST_ORIGINS: only these hosts may send navigation as a viewer.
 const LOCAL_HOSTS = ['localhost', '127.0.0.1', '[::1]'];
@@ -29,7 +30,7 @@ export function firstMoveTime(saved: unknown, page: number, clicks: number): num
 
 function readSaved(): unknown {
   try {
-    return JSON.parse(sessionStorage.getItem(SAVED) ?? 'null');
+    return JSON.parse(sessionStorage.getItem(scopedKey(SAVED)) ?? 'null');
   } catch {
     return null; // storage blocked or not JSON
   }
@@ -59,7 +60,7 @@ export function startNavSync(nav: Nav) {
       if (nav.isPresenter) {
         try {
           sessionStorage.setItem(
-            SAVED,
+            scopedKey(SAVED),
             JSON.stringify({ page: nav.no(), clicks: nav.clicks(), time: lastMove.time }),
           );
         } catch {

@@ -32,11 +32,12 @@ import { NoteEditor } from './note-editor';
 import { PaneResizers } from './pane-resizers';
 import { SideEditor } from '../dev/side-editor';
 import { SideEditorState } from '../dev/side-editor-state';
+import { scopedKey } from '../lib/deck-scope';
 
 const EDITING_NOTES = 'slide-ng-editing-notes';
 function readEditing(): boolean {
   try {
-    return sessionStorage.getItem(EDITING_NOTES) === '1';
+    return sessionStorage.getItem(scopedKey(EDITING_NOTES)) === '1';
   } catch {
     return false;
   }
@@ -258,8 +259,8 @@ export class Presenter {
   protected setEditingNotes(on: boolean) {
     this.editingNotes.set(on);
     try {
-      if (on) sessionStorage.setItem(EDITING_NOTES, '1');
-      else sessionStorage.removeItem(EDITING_NOTES);
+      if (on) sessionStorage.setItem(scopedKey(EDITING_NOTES), '1');
+      else sessionStorage.removeItem(scopedKey(EDITING_NOTES));
     } catch {
       // no storage: editing just ends with a reload
     }

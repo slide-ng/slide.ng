@@ -1,11 +1,12 @@
-import { diskScope } from '../lib/disk-scope';
+import { scopedKey } from '../lib/deck-scope';
 import { SyncTransport } from './transport';
 
 // Windows of the same browser (same address) talk through a BroadcastChannel.
 // It needs no server, so it also works in a static build.
 export class BroadcastTransport implements SyncTransport {
-  // A folder opened from disk shares channels with every other one, so it adds its path to the name (disk-scope.ts).
-  private channel = new BroadcastChannel(`slide-ng-sync${diskScope()}`);
+  // Every deck of one origin (or every folder opened from disk) would share the channel, so it carries the deck's scope
+  // (deck-scope.ts).
+  private channel = new BroadcastChannel(scopedKey('slide-ng-sync'));
 
   send(channel: string, data: unknown) {
     this.channel.postMessage({ channel, data });

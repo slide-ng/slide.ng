@@ -5,6 +5,7 @@ import {
   PlatformLocation,
 } from '@angular/common';
 import { Injectable, InjectionToken, inject, isDevMode } from '@angular/core';
+import { scopedKey } from './deck-scope';
 
 // Headmatter `routerMode: memory` (Slidev's createMemoryHistory): the router keeps its address in memory, so the address bar
 // never changes and a deep link opens slide 1. Only the print pages (`/print`, `/presenter/print`) are read from the address
@@ -73,7 +74,7 @@ export class MemoryLocationStrategy extends LocationStrategy {
   private kept(): string | null {
     if (!this.keep) return null;
     try {
-      const url = sessionStorage.getItem(KEPT);
+      const url = sessionStorage.getItem(scopedKey(KEPT));
       return url?.startsWith('/') ? url : null;
     } catch {
       return null; // storage blocked
@@ -83,7 +84,7 @@ export class MemoryLocationStrategy extends LocationStrategy {
   private save() {
     if (!this.keep) return;
     try {
-      sessionStorage.setItem(KEPT, this.path());
+      sessionStorage.setItem(scopedKey(KEPT), this.path());
     } catch {
       // storage blocked: the next reload starts at slide 1
     }
