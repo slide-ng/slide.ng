@@ -75,7 +75,14 @@ export function startNavSync(nav: Nav) {
       if (page === nav.no() && s.clicks === nav.clicks()) return;
       applied = `${page}:${s.clicks}`;
       appliedFrom = s.lastUpdate.type === 'viewer' ? s.lastUpdate.id : '';
+      const before = nav.clicks();
       nav.jump(page, s.clicks);
+      // A step past the slide's last click, while this window already sits at the last one: the click does not change, so the
+      // effect above sends nothing. Say where it is, so the sender (MCP's goto_slide) learns the step it took.
+      if (page === nav.no() && nav.ready() && nav.clicks() === before && before !== s.clicks) {
+        applied = appliedFrom = '';
+        send();
+      }
     });
   });
 

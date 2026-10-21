@@ -465,6 +465,13 @@ try {
       ),
     await page.locator('#hud').innerText(),
   );
+  // Slide 3 has no clicks and the window is at its last step (0) already: the step asked for is not taken, and the answer says so.
+  const clamped = await mcpJson('goto_slide', { no: 3, clicks: 50 });
+  t.ok(
+    'mcp: goto_slide past the last click answers the step the window took',
+    clamped.clicks === 0 && (await mcpJson('get_info')).current?.clicks === 0,
+    JSON.stringify(clamped),
+  );
   await mcp.close();
   t.ok(
     'mcp: a foreign Origin is refused',
