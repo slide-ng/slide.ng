@@ -280,7 +280,7 @@ describe('slideSource: drag positions and renamed names', () => {
   it('lists every renamed name of a slide at once', () => {
     expect(() =>
       slideSource(slide({}, '<v-clicks>\n\n- a\n\n</v-clicks>\n\n<div v-click>b</div>'), 2),
-    ).toThrow(/slide 2: "v-clicks" was renamed to .*"v-click" was renamed to/);
+    ).toThrow(/slide 2: "<v-clicks>" was renamed to .*"v-click" was renamed to/);
   });
 });
 

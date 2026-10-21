@@ -8,7 +8,7 @@ import { attr } from './protect.mjs';
 import { toTemplate } from './to-template.mjs';
 import { tagDragSites } from './drag-sites.mjs';
 import { hasRootUrl, rebaseCss, rebaseHtml } from './asset-paths.mjs';
-import { assertNoRenamedNames } from './renamed.mjs';
+import { RenamedError, assertNoRenamedNames } from './renamed.mjs';
 import { commonPipes } from './pipes.mjs';
 import { commonDirectives } from './angular-imports.mjs';
 import { setWarnSlide } from './code/highlighter.mjs';
@@ -308,4 +308,20 @@ ${importLines.join('\n')}
 })
 export default class ${slideClass(no)} extends SlideBase {}
 `;
+}
+
+/** The source of every slide. Old names (renamed.mjs) are collected from all slides first, so one run reports them all. */
+export function slideSources(deck) {
+  const renamed = [];
+  const sources = deck.slides.map((s, i) => {
+    try {
+      return slideSource(s, i + 1, deck);
+    } catch (e) {
+      if (!(e instanceof RenamedError)) throw e;
+      renamed.push(e.message);
+      return '';
+    }
+  });
+  if (renamed.length) throw new RenamedError(renamed.join('\n'));
+  return sources;
 }

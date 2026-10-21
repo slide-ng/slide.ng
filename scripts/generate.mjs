@@ -17,7 +17,7 @@ import { RootNotFoundError } from './lib/roots.mjs';
 import { copyLocalAssets } from './lib/local-assets.mjs';
 import { checkToolDir } from './lib/tool-dir.mjs';
 import { ROOT_FOLDERS } from './lib/roots.mjs';
-import { slideName, slideSource } from './lib/emit.mjs';
+import { slideName, slideSources } from './lib/emit.mjs';
 import { indexSource } from './lib/index-source.mjs';
 import { layoutName } from './lib/layouts.mjs';
 import { makeCss, tsFiles } from './lib/make-css.mjs';
@@ -169,7 +169,7 @@ async function generate() {
   for (const f of readdirSync(OUT)) if (!wanted.has(f)) rmSync(OUT + f, { recursive: true });
   resetMonacoWriteTargets();
   deck.localAssets = new Set();
-  deck.slides.forEach((s, i) => write(`${OUT}${slideName(i + 1)}.ts`, slideSource(s, i + 1, deck)));
+  slideSources(deck).forEach((source, i) => write(`${OUT}${slideName(i + 1)}.ts`, source));
   copyLocalAssets(deck.root, deck.localAssets, `${OUT}local-assets`);
   writeMonacoTargets(deck.root);
   write(`${OUT}index.ts`, indexSource(deck));
