@@ -6,7 +6,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ### Added
 
-- A sync button in the bar opens Slidev's sync mode menu (Bidirectional Sync, Receive Only, Send Only, Disable) for the viewer or the presenter; a choice made in one window reaches the other windows of the browser. The arrow keys move between the modes and Escape closes the menu.
+- A sync button in the bar opens Slidev's sync mode menu (Bidirectional Sync, Receive Only, Send Only, Disable) for the viewer or the presenter; a choice made in one window reaches the other windows of the browser. Opening the menu (with the mouse or the keyboard) focuses the ticked mode, the arrow keys move between the modes and Escape closes the menu.
 - `<slide-ng-title-renderer />` draws a slide's title as HTML, with its inline markdown and `$math$` (Slidev's `<TitleRenderer>`); `no="N"` picks another slide. The table of contents shows the same HTML. Raw HTML in a title is shown as text.
 - `notesAutoRuby: { word: reading }` in the headmatter shows a reading above each listed word in the speaker notes, with `<ruby>` (Slidev's `notesAutoRuby`). Code, tag attributes and existing `<ruby>` are left alone.
 

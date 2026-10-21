@@ -1,4 +1,4 @@
-import { Component, ElementRef, computed, inject } from '@angular/core';
+import { Component, ElementRef, Injector, afterNextRender, computed, inject } from '@angular/core';
 import { Nav } from '../lib/nav';
 import { Ui } from '../lib/ui-state';
 import { SyncState } from '../sync/sync-state';
@@ -55,6 +55,7 @@ import { IconBtn } from './icon-btn';
                 class="sync-mode flex w-full rounded whitespace-nowrap py-1 gap-1 px-2 cursor-default bg-transparent border-0 text-inherit hover:bg-gray-400/10"
                 [attr.data-mode]="m.value"
                 [attr.aria-checked]="mode() === m.value"
+                [attr.tabindex]="mode() === m.value ? 0 : -1"
                 (click)="choose(m.value)"
               >
                 <div
@@ -75,6 +76,7 @@ export class SyncControls {
   private ui = inject(Ui);
   private isPresenter = inject(Nav).isPresenter;
   private el = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+  private injector = inject(Injector);
   protected readonly modes = SYNC_MODES;
   protected readonly role = this.isPresenter ? 'presenter' : 'viewer';
   protected open = this.ui.syncMenu; // in Ui, so Escape (Ui.closeAll) closes it like the settings menu
@@ -83,7 +85,15 @@ export class SyncControls {
 
   protected toggle() {
     this.open.set(!this.open());
-    if (this.open()) this.ui.settings.set(false); // one menu at a time
+    if (!this.open()) return;
+    this.ui.settings.set(false); // one menu at a time
+    // Into the menu, on the ticked mode (as a radio group): the arrow keys then change the mode, not the slide,
+    // whether the menu was opened with the mouse or the keyboard.
+    afterNextRender(() => this.focusMode(this.mode()), { injector: this.injector });
+  }
+
+  private focusMode(mode: SyncMode) {
+    this.el.querySelector<HTMLElement>(`#sync-menu [data-mode="${mode}"]`)?.focus();
   }
 
   protected choose(mode: SyncMode) {
@@ -99,7 +109,7 @@ export class SyncControls {
     const i = this.modes.findIndex((m) => m.value === this.mode());
     const next = this.modes[(i + by + this.modes.length) % this.modes.length].value;
     this.choose(next);
-    this.el.querySelector<HTMLElement>(`[data-mode="${next}"]`)?.focus();
+    this.focusMode(next);
   }
 
   // A click anywhere outside closes the menu (Slidev's onClickOutside).

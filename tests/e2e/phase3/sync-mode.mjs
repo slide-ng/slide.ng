@@ -95,8 +95,20 @@ export async function run({ t, open, press, hud, windowGroup }) {
   );
 
   // The keyboard: arrows inside the menu move between the modes, not through the slides; Escape closes it.
+  // Opening the menu, with the mouse or with Enter on its button, puts the focus on the ticked mode.
+  const focused = () => viewer.evaluate(() => document.activeElement?.getAttribute('data-mode'));
+  await press(viewer, 'Escape', 300);
   await openMenu(viewer);
-  await viewer.locator('#sync-menu [data-mode="bidirectional"]').focus();
+  const byMouse = await focused();
+  await press(viewer, 'Escape', 300);
+  await viewer.locator('#nav-sync').focus();
+  await press(viewer, 'Enter', 300);
+  const byKey = await focused();
+  t.ok(
+    'opening the menu (mouse or Enter) focuses the ticked mode',
+    byMouse === 'bidirectional' && byKey === 'bidirectional',
+    `${byMouse} / ${byKey}`,
+  );
   const before = await hud(viewer);
   await press(viewer, 'ArrowDown', 300);
   t.ok(
