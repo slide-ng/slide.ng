@@ -97,9 +97,14 @@ function readEditing(): boolean {
           [main]="mainSection"
           [next]="nextSection"
         />
-        <div #mainSection class="relative grid-section main flex flex-col">
+        <div
+          #mainSection
+          class="relative grid-section main flex flex-col"
+          role="region"
+          aria-label="Current slide"
+        >
           <div class="flex gap-4 items-center border-b border-main p-1">
-            <span class="op50 px-2">{{ 'presenter.current' | t }}</span>
+            <span class="op65 px-2">{{ 'presenter.current' | t }}</span>
             <div class="flex rounded border border-main overflow-hidden text-sm ms-auto">
               <button
                 type="button"
@@ -142,15 +147,25 @@ function readEditing(): boolean {
             (picked)="nav.ctx()?.setCurrent($event)"
           />
         </div>
-        <div #nextSection class="relative grid-section next flex flex-col p-2 lg:p-4">
+        <div
+          #nextSection
+          class="relative grid-section next flex flex-col p-2 lg:p-4"
+          role="region"
+          aria-label="Next step"
+        >
           <app-next-preview />
           <div
-            class="absolute start-0 top-0 bg-main border-b border-e border-main px-2 py-1 op50 text-sm"
+            class="absolute start-0 top-0 bg-main border-b border-e border-main px-2 py-1 op65 text-sm"
           >
             {{ 'presenter.next' | t }}
           </div>
         </div>
-        <div #noteSection class="relative grid-section note overflow-hidden">
+        <div
+          #noteSection
+          class="relative grid-section note overflow-hidden"
+          role="region"
+          aria-label="Notes"
+        >
           <!-- In dev the side editor can take the place of the notes, as in Slidev -->
           @if (editor.isOpen(true) && editor.available()) {
             <app-side-editor docked />

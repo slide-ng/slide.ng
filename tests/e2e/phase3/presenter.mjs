@@ -62,6 +62,14 @@ export async function run({ t, open, press, hud, pathOf, windowGroup }) {
       return el ? getComputedStyle(el).opacity !== '0' : null;
     }, id);
   t.ok('the next preview shows the next click of this slide', (await nextOf('#c2')) === true);
+  t.ok(
+    'screen readers skip the next preview, and the panes are named regions',
+    (await presenter.locator('#next-canvas').getAttribute('aria-hidden')) === 'true' &&
+      (await presenter
+        .locator('[role=region]')
+        .evaluateAll((l) => l.map((e) => e.getAttribute('aria-label')).join())) ===
+        'Current slide,Next step,Notes',
+  );
   await press(presenter, 'ArrowRight', 400);
   t.ok(
     'at the last click the next preview shows the next slide',
@@ -158,6 +166,13 @@ export async function run({ t, open, press, hud, pathOf, windowGroup }) {
     'the notes page shows the same running time through the shared state',
     /\d/.test(await notesWin.locator('#notes-counter').innerText()),
   );
+  await notesWin.emulateMedia({ colorScheme: 'dark' });
+  await notesWin.waitForTimeout(150);
+  t.ok(
+    'the notes page follows dark mode',
+    await notesWin.evaluate(() => document.documentElement.classList.contains('dark')),
+  );
+  await notesWin.emulateMedia({ colorScheme: 'light' });
   await presenter.locator('#timer').hover();
   await presenter.locator('#timer-toggle').click();
   const paused = await clock();

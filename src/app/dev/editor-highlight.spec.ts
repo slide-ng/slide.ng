@@ -17,4 +17,9 @@ describe('createEditorHighlighter', () => {
     const html = (await createEditorHighlighter())('a\n\nb\n');
     expect((html.match(/class="line"/g) ?? []).length).toBe(4);
   });
+  it('is no Tab stop and is not read out', async () => {
+    const html = (await createEditorHighlighter())('# Title');
+    expect(html).toMatch(/^<pre [^>]*tabindex="-1"/);
+    expect(html).toMatch(/^<pre [^>]*aria-hidden="true"/);
+  });
 });

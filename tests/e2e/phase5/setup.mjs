@@ -79,6 +79,42 @@ export async function run({ t, open, press, base, browser, problems }) {
   await swipe(600, 150, true);
   await page.waitForFunction(() => location.pathname === '/2');
   t.ok('touch: a swipe up goes to the next slide', true);
+  // A touch has no hover: the first tap on the hidden nav bar shows it instead of pressing the button under it.
+  const touchOn = (sel) =>
+    page.evaluate((s) => {
+      const el = document.querySelector(s);
+      const touch = new Touch({ identifier: 2, target: el, clientX: 10, clientY: 10 });
+      const e = new TouchEvent('touchstart', {
+        touches: [touch],
+        changedTouches: [touch],
+        bubbles: true,
+        cancelable: true,
+      });
+      el.dispatchEvent(e);
+      return e.defaultPrevented;
+    }, sel);
+  const barOpacity = () =>
+    page.evaluate(() => document.querySelector('app-nav-bar').parentElement.style.opacity);
+  t.ok(
+    'touch: the first tap on the hidden nav bar only shows it',
+    (await touchOn('#nav-next')) && (await barOpacity()) === '1',
+  );
+  t.ok('touch: the next tap presses the button', !(await touchOn('#nav-next')));
+  await touchOn('h1');
+  t.ok('touch: a touch on the slide hides the bar again', (await barOpacity()) === '');
+  // Forced colors (Windows high contrast): an icon is painted in the text colour, not in the page colour.
+  await page.emulateMedia({ forcedColors: 'active' });
+  const icon = await page
+    .locator('#nav-overview div')
+    .evaluate((e) => [
+      getComputedStyle(e).backgroundColor,
+      getComputedStyle(e.parentElement).color,
+    ]);
+  t.ok(
+    "forced colors: the icons get the button's text colour",
+    icon[0] === icon[1],
+    icon.join(' / '),
+  );
   await page.close();
 
   // Headmatter `presenter: false`: no presenter page, no button, no menu entry.

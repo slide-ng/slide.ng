@@ -166,12 +166,15 @@ export class ShikiMagicMove implements OnInit, OnDestroy {
   }
 
   // Group the rendered tokens into lines at the <br> elements, then highlight like a code block.
+  // The line numbers (`lines: true`) are tokens too; screen readers skip them, as they skip a code block's numbers.
   private highlight(range: string) {
     const tokens = Array.from(this.pre().nativeElement.children)
       .slice(1) // the first child is the renderer's anchor
       .filter((el) => !el.className.includes('shiki-magic-move-leave'));
     const lines: Element[][] = [[]];
     for (const el of tokens) {
+      if (el.classList.contains('shiki-magic-move-line-number'))
+        el.setAttribute('aria-hidden', 'true');
       if (el.tagName === 'BR') lines.push([]);
       else lines[lines.length - 1].push(el);
     }

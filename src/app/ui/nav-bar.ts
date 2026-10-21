@@ -1,4 +1,12 @@
-import { Component, ElementRef, computed, inject, input } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  afterRenderEffect,
+  computed,
+  inject,
+  input,
+  viewChild,
+} from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
 import { NAV_CONTROLS } from '../../slides/generated/layers';
 import { Drawings } from '../drawing/drawings';
@@ -23,7 +31,10 @@ import { presenterEnabled } from '../lib/switches';
 @Component({
   selector: 'app-nav-bar',
   imports: [IconBtn, Settings, RecordingControls, SyncControls, NgComponentOutlet, T],
-  host: { '(document:click)': 'closeSettingsOutside($event)' },
+  host: {
+    '(document:click)': 'closeSettingsOutside($event)',
+    '(window:resize)': 'fitSettings()',
+  },
   template: `
     <nav class="flex flex-col" [attr.data-fullscreen]="fullscreen.isFullscreen()">
       <div
@@ -233,8 +244,9 @@ import { presenterEnabled } from '../lib/switches';
           </button>
           @if (ui.settings()) {
             <div
+              #settingsMenu
               id="settings-menu"
-              class="bg-main text-main shadow-xl absolute bottom-10 start-0 z-menu py-2 border border-main rounded-md"
+              class="bg-main text-main shadow-xl absolute bottom-10 start-0 z-menu py-2 border border-main rounded-md max-w-[calc(100vw-1rem)]"
             >
               <app-settings />
             </div>
@@ -245,7 +257,7 @@ import { presenterEnabled } from '../lib/switches';
 
         <div id="nav-counter" class="px-2 my-auto">
           <span class="text-lg">{{ nav.no() }}</span>
-          <span class="opacity-50 text-sm"> / {{ nav.total }}</span>
+          <span class="opacity-65 text-sm"> / {{ nav.total }}</span>
         </div>
 
         <!-- Every root's layers/custom-nav-controls.ts (theme, addons, deck), last as in Slidev -->
@@ -281,6 +293,26 @@ export class NavBar {
     ),
   );
   private el = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+
+  private settingsMenu = viewChild<ElementRef<HTMLElement>>('settingsMenu');
+
+  constructor() {
+    afterRenderEffect(() => {
+      if (this.settingsMenu()) this.fitSettings();
+    });
+  }
+
+  // The menu opens to the right of its button. On a narrow window (a phone, a page zoomed to 200%) it moves left
+  // as far as it must to stay inside the window; it is never wider than the window (the content scrolls).
+  fitSettings() {
+    const menu = this.settingsMenu()?.nativeElement;
+    if (!menu) return;
+    menu.style.left = '';
+    const r = menu.getBoundingClientRect(),
+      gap = 8;
+    const shift = Math.max(gap - r.left, Math.min(0, window.innerWidth - gap - r.right));
+    if (shift) menu.style.left = `${shift}px`;
+  }
 
   // A click anywhere outside the bar closes the settings menu.
   closeSettingsOutside(e: MouseEvent) {

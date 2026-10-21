@@ -20,7 +20,7 @@ import { Ui } from '../lib/ui-state';
   template: `
     <div
       id="slidev-goto-dialog"
-      class="fixed end-5 transition-all w-90 max-w-90 min-w-90 z-modal text-main"
+      class="fixed end-5 transition-all w-90 max-w-[calc(100vw-2.5rem)] z-modal text-main"
       [class]="ui.goto() ? 'top-5' : '-top-20 op0 pointer-events-none'"
       [attr.aria-hidden]="ui.goto() ? null : 'true'"
     >
@@ -63,7 +63,7 @@ import { Ui } from '../lib/ui-state';
               [class]="i === selected() ? 'bg-active op100' : 'op80'"
               (click)="open(r.no)"
             >
-              <span class="opacity-50 text-sm w-6 text-end">{{ r.no }}</span>
+              <span class="opacity-80 text-sm w-6 text-end">{{ r.no }}</span>
               <span>{{ r.title }}</span>
             </li>
           }

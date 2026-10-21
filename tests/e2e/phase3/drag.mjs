@@ -172,5 +172,33 @@ export async function run({ t, open, press, hud }) {
     `${before} -> ${after}`,
   );
 
+  // ---- a finger on a box or a handle moves it, it is not a swipe to another slide
+  const fingerSwipe = (sel) =>
+    page.evaluate((s) => {
+      const el = document.querySelector(s);
+      const at = (x) => new Touch({ identifier: 1, target: el, clientX: x, clientY: 300 });
+      const event = (type, x) =>
+        new TouchEvent(type, {
+          touches: type === 'touchend' ? [] : [at(x)],
+          changedTouches: [at(x)],
+          bubbles: true,
+        });
+      el.dispatchEvent(event('touchstart', 300));
+      el.dispatchEvent(event('touchmove', 700));
+      el.dispatchEvent(event('touchend', 700));
+    }, sel);
+  await fingerSwipe('#d3');
+  await fingerSwipe('#d4 .drag-grab');
+  await fingerSwipe('.drag-end');
+  await page.waitForTimeout(300);
+  t.ok(
+    'a finger drag on a box, an arrow or a handle stays on the slide',
+    (await hud(page)).startsWith('slide 4/4'),
+    await hud(page),
+  );
+  await fingerSwipe('h1');
+  await page.waitForFunction(() => document.querySelector('#hud').innerText.includes('slide 3/'));
+  t.ok('a finger swipe elsewhere still goes back', true);
+
   await page.close();
 }

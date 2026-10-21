@@ -164,3 +164,25 @@ html[data-presenter='off'] #nav-presenter {
 [dir='rtl'] .rtl-flip {
   transform: scaleX(-1);
 }
+
+/* Forced colors (Windows high contrast): an icon is a mask over `background-color: currentColor`, and the browser
+   would paint that background with the page colour, so the icons would vanish. They get the system's text colours. */
+@media (forced-colors: active) {
+  [class^='i-'],
+  [class*=' i-'] {
+    forced-color-adjust: none;
+    background-color: CanvasText !important;
+  }
+  a [class^='i-'],
+  a [class*=' i-'] {
+    background-color: LinkText !important;
+  }
+  button [class^='i-'],
+  button [class*=' i-'] {
+    background-color: ButtonText !important;
+  }
+  button:disabled [class^='i-'],
+  button:disabled [class*=' i-'] {
+    background-color: GrayText !important;
+  }
+}

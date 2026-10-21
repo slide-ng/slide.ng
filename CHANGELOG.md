@@ -72,6 +72,20 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - White SVG `<text>` is drawn again in the presenter's next-slide pane and other small previews (Chromium skipped it after the preview's scale changed).
 - A component file that declares a helper component before its exported one gives each selector its own class (it used to pair the helper's selector with the exported class, and the build failed with NG8001).
 
+### Fixed
+
+- Icons stay visible in forced colors mode (Windows high contrast); they are drawn in the text colour.
+- A finger drag that starts on a `slide-ng-drag` element or one of its handles moves it and no longer also swipes to another slide.
+- On a touch screen the first tap on the hidden navigation bar shows it instead of pressing the invisible button under the finger.
+- `slide-ng-motion` animates every property it changes; with two or more, only the last one moved and the others jumped.
+- The settings menu, the "go to" box and the slide overview fit in a 320px wide window and at 200% zoom.
+- `/notes` follows dark mode.
+- The drawing toolbar's undo, redo and delete buttons are really disabled when there is nothing to do, not only greyed out.
+- More contrast for the slide counter, the slide numbers in the overview and the "go to" list, the unselected options of the settings menu, the
+  presenter's labels, click numbers and timer buttons.
+- The side editor's coloured copy behind the text is no longer a Tab stop or read out; the presenter's next-step picture and Magic Move line
+  numbers are not read out, and the presenter panes are named regions.
+
 ## [1.0.0] - 2026-10-18
 
 ### Added
