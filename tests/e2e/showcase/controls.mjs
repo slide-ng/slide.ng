@@ -34,6 +34,7 @@ export async function run({ t, open, press, pathOf, style, base, browser, proble
         'Show drawing toolbar',
         'Presenter Mode',
         'Show info',
+        'Change sync settings',
         'More Options',
       ].join('|'),
     titles.join('|'),

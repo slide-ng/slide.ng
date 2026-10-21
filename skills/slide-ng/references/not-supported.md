@@ -31,7 +31,6 @@ If a feature is not listed as present in the other references, assume it is miss
 
 **Presenting**
 
-- The sync mode menu (Slidev's SyncControls: send only, receive only, off). Windows and devices always follow the presenter.
 - A separate camera recording file, mp4 or mkv, cloud upload. No HTTPS for `--remote`.
 - Pinch zoom, touch tuning for drawing and `slide-ng-drag`.
 

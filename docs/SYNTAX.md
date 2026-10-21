@@ -767,6 +767,9 @@ Open `/presenter` (or press the presenter button) for the presenter page: curren
 The audience page (`/3`) in another window or on another device follows it; `/notes` shows only the notes and follows too.
 In notes, `[click]` marks where the next click starts and `[click:3]` moves three clicks on (counted from the marker before it, as in Slidev); double click a marker to jump there. The layout button cycles three arrangements.
 Windows of one browser follow each other with no server; other devices need the dev server (see Remote below).
+The sync button in the bar (up and down arrows, before the settings; there whenever the deck has a presenter) opens Slidev's sync mode menu: Bidirectional Sync, Receive Only, Send Only or Disable.
+It sets how this window takes part in navigation sync. The choice is kept per role (viewer or presenter) in the browser's storage (`slidev-sync-directions`) and applies to every window of that role in the browser.
+Opening the menu, with the mouse or with Enter on the button, puts the focus on the ticked mode; there the arrow keys move between the modes (not through the slides), and Escape closes it and puts the focus back on the sync button.
 
 ```md
 ---

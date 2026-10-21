@@ -38,6 +38,23 @@ describe('SyncState', () => {
     expect(transport.sent).toEqual([]);
   });
 
+  it('takes the sync mode another window chose', () => {
+    const { sync } = setup();
+    const changed = { ...sync.directions(), viewerSend: false };
+    window.dispatchEvent(
+      new StorageEvent('storage', {
+        key: 'slidev-sync-directions',
+        newValue: JSON.stringify(changed),
+      }),
+    );
+    expect(sync.directions()).toEqual(changed);
+    window.dispatchEvent(
+      new StorageEvent('storage', { key: 'slidev-sync-directions', newValue: '{oops' }),
+    );
+    window.dispatchEvent(new StorageEvent('storage', { key: 'other', newValue: '{}' }));
+    expect(sync.directions()).toEqual(changed);
+  });
+
   it('junk from outside is ignored', () => {
     const { transport, sync } = setup();
     transport.deliver('shared', { page: 'x', hacked: true });

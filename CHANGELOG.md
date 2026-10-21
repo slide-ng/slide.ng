@@ -28,6 +28,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - `<slide-ng-switch>` takes `unmount` and `transition`, `<slide-ng-video>` takes `printPoster` and `printTimestamp` (`last` too), and `<slide-ng-render-when>` takes the `visible` context, as in Slidev.
 - `progressBar` in the headmatter draws a progress bar on every slide (top or bottom, height, colours, clicks, and the minutes of the presenter timer; `progressBar: top` is short for the position, and a value that draws no bar is warned about); `<slide-ng-progress-bar />` places one in a slide or a layer.
 - The `custom-nav-controls` layer (`layers/custom-nav-controls.ts` in a deck, theme or addon) adds buttons to the end of the navigation bar, on the deck and on the presenter page (Slidev's fifth global layer). The theme's, each addon's and the deck's are all drawn, in that order.
+- A sync button in the bar opens Slidev's sync mode menu (Bidirectional Sync, Receive Only, Send Only, Disable) for the viewer or the presenter; a choice made in one window reaches the other windows of the browser. Opening the menu (with the mouse or the keyboard) focuses the ticked mode, the arrow keys move between the modes and Escape closes the menu and puts the focus back on the sync button.
 
 ### Changed
 

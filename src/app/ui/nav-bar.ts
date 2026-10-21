@@ -15,12 +15,14 @@ import { IconBtn } from './icon-btn';
 import { SideEditorState } from '../dev/side-editor-state';
 import { RecordingControls } from '../record/recording-controls';
 import { Settings } from './settings';
+import { SyncControls } from './sync-controls';
+import { presenterEnabled } from '../lib/switches';
 
 // The bar at the bottom left (Slidev's NavControls). The deck shows it only while the mouse is
 // over that corner; the presenter page always shows it (`persist`, no frame around it).
 @Component({
   selector: 'app-nav-bar',
-  imports: [IconBtn, Settings, RecordingControls, NgComponentOutlet, T],
+  imports: [IconBtn, Settings, RecordingControls, SyncControls, NgComponentOutlet, T],
   host: { '(document:click)': 'closeSettingsOutside($event)' },
   template: `
     <nav class="flex flex-col" [attr.data-fullscreen]="fullscreen.isFullscreen()">
@@ -199,6 +201,10 @@ import { Settings } from './settings';
           </button>
         }
 
+        @if (syncControls) {
+          <app-sync-controls />
+        }
+
         <div class="flex relative" #menu>
           <button
             icon-btn
@@ -257,6 +263,8 @@ export class NavBar {
   protected download = inject(Download);
   private view = inject(ViewPrefs);
   protected customControls = NAV_CONTROLS;
+  /** As in Slidev, the sync menu is there whenever the deck has a presenter (and so window sync). */
+  protected syncControls = presenterEnabled();
   protected filtered = computed(() =>
     (Object.keys(defaultFilters) as (keyof Filters)[]).some(
       (k) => this.view.filters()[k] !== defaultFilters[k],

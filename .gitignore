@@ -50,6 +50,10 @@ Thumbs.db
 **/.slide-ng/monaco-files.json
 /tests/e2e/dev/.slide-ng/
 
+# Copies the dev server test makes and removes again
+/tests/e2e/dev/work.md
+/tests/e2e/dev/work-snippet.ts
+
 # Build folders that the slide-ng command makes and removes itself
 **/.slide-ng/export-build/
 **/.slide-ng/build/
