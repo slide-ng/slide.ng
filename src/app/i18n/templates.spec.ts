@@ -80,6 +80,17 @@ describe('interface text', () => {
     expect(untranslated('@let x = a(); @else if (b()) { Hello }')).toEqual(['Hello']);
   });
 
+  it('no page title of the app is English written in', () => {
+    const problems: string[] = [];
+    for (const file of files('src/app')) {
+      const source = readFileSync(file, 'utf8');
+      // `setTitle(`Overview - ${title}`)` or `title = `Overview - ${title}``: the words outside `${}` must come from a key.
+      for (const [, text] of source.matchAll(/(?:setTitle\(|\btitle\s*=)\s*`([^`]*)`/g))
+        if (isWords(text.replace(/\$\{[^}]*\}/g, ' '))) problems.push(`${file}: ${text}`);
+    }
+    expect(problems).toEqual([]);
+  });
+
   it('no template of the app has English that is not a translation key', () => {
     const problems: string[] = [];
     for (const file of files('src/app'))

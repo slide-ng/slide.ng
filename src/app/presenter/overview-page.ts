@@ -3,6 +3,7 @@ import { Title } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
 import { HEADMATTER, SLIDES } from '../../slides/generated';
 import { T } from '../i18n/t';
+import { UI_TEXT, uiText } from '../i18n/ui-text';
 import type { UiTextKey } from '../i18n/en';
 import { SideEditorState } from '../dev/side-editor-state';
 import { CLICKS_MAX } from '../lib/clicks';
@@ -99,7 +100,7 @@ type Status = 'editing' | 'saving' | 'saved' | 'conflict' | 'error';
 })
 export class OverviewPage {
   protected readonly slides = SLIDES;
-  protected readonly title = `Overview - ${HEADMATTER['title'] ?? 'slide.ng'}`;
+  protected readonly title = `${uiText(inject(UI_TEXT), 'entry.overview')} - ${HEADMATTER['title'] ?? 'slide.ng'}`;
   // Narrower on a phone, so the slide fits between the page's side paddings.
   protected readonly width = Math.min(340, window.innerWidth - 48);
   protected readonly max = CLICKS_MAX;

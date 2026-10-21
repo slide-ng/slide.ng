@@ -266,3 +266,5 @@ default; `src/app/i18n/en.ts` holds it and is the source of truth for the keys. 
 | `notesEdit.outside`           | Not saved: the notes of a slide imported from outside the project cannot be edited here. |
 | `notesEdit.error`             | Not saved                                                                                |
 | `notesEdit.offline`           | The notes can only be edited while the dev server runs.                                  |
+
+`entry.overview` and `entry.notesEdit` also start the heading and tab title of `/overview` and `/notes-edit` (`Overview - <title>`).

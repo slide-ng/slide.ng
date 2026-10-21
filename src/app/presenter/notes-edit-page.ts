@@ -14,6 +14,7 @@ import { Dark } from '../lib/dark';
 import { NoteStore } from './note-store';
 import { notesToText, textToNotes } from './notes-text';
 import { T } from '../i18n/t';
+import { UI_TEXT, uiText } from '../i18n/ui-text';
 import type { UiTextKey } from '../i18n/en';
 
 type Status =
@@ -86,7 +87,9 @@ export class NotesEditPage {
 
   constructor() {
     inject(Dark);
-    inject(Title).setTitle(`Notes editor - ${HEADMATTER['title'] ?? 'slide.ng'}`);
+    inject(Title).setTitle(
+      `${uiText(inject(UI_TEXT), 'entry.notesEdit')} - ${HEADMATTER['title'] ?? 'slide.ng'}`,
+    );
     // Back after a reload: the text, the caret and the focus return at once, before the notes are read, so the keys typed
     // while they load land in the text too.
     const draft = this.draft;
