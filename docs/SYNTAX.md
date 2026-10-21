@@ -633,7 +633,7 @@ frontmatter. The CSS for the classes you use is built automatically. As in Slide
   (`hover:bg="blue-500"`) and valueless (`<div flex items-center>`). Angular keeps such attributes as they are. Only the deck's own files
   (slides, `components/`, layouts and other files of the deck, themes and addons) are read this way, not slide.ng's own source.
   Some attributes are never read as utilities, because they are inputs or draw an SVG: those of slide.ng's components
-  (`<slide-ng-toc columns="2">`, a diagram's `scale`), the inputs of the deck's own components (a `grid = input(false)` in
+  (`<slide-ng-toc columns="2">`, a diagram's `scale`), the frontmatter keys a layout takes (`scale: 0.8` of `iframe-right`), the inputs of the deck's own components (a `grid = input(false)` in
   `components/stat-row.ts`: `<stat-row grid />` sets the input, it does not make every `[grid]` element a CSS grid), and those of
   SVG elements (`<text font-size="14">`, `<path stroke-width="2">`, inside an `<svg>` or written alone in a `.ts` string, as a
   `setup/mermaid-renderer.ts` does). Use `class` there. An attribute of your component that is not one of its inputs (`<stat-row p="4">`)

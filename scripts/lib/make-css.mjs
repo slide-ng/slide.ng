@@ -68,8 +68,9 @@ export async function makeCss(deckFiles, extraConfigs = [], appFiles = []) {
 
 // The attributes of a slide.ng component are its inputs (`<slide-ng-mermaid scale="0.8">`, `<slide-ng-toc columns="2">`) and
 // those in an inline SVG draw it (`<text font-size="14">`). Read by attributify they would become CSS for every element with
-// that attribute (`[scale~="0.8"]` shrinks every such diagram), so attributify does not see them. Their classes are still
-// found: the deck is also read without attributify.
+// that attribute (`[scale~="0.8"]` shrinks every such diagram), so attributify does not see them. The same goes for the
+// layout element of a slide: `layout: iframe-right` with `scale: 0.8` is written `<sn-iframe-right scale="0.8">`. Their
+// classes are still found: the deck is also read without attributify.
 // The SVG elements are found by name too, outside an `<svg>` literal: a `setup/mermaid-renderer.ts` that builds
 // `<text font-size="14">` in a string would otherwise give `[font-size~="14"]` for the whole page.
 // The inputs of the deck's own components (`components/`, themes, addons; `inputs`, from componentInputs) are hidden the same
@@ -86,7 +87,7 @@ export function withoutForeignAttributes(text, inputs = new Map()) {
       /<svg(?=[\s/>])(?:[^>]*\/>|[\s\S]*?<\/svg>)/g,
       tags(new RegExp(`<([\\w:-]+)${attrsRE}`, 'g')),
     )
-    .replace(new RegExp(`<(slide-ng-[\\w-]+)${attrsRE}`, 'g'), '<$1')
+    .replace(new RegExp(`<((?:slide-ng|sn)-[\\w-]+)${attrsRE}`, 'g'), '<$1')
     .replace(new RegExp(`<(${SVG_ELEMENTS})(?=[\\s/>]|\\\\n)${attrsRE}`, 'g'), '<$1');
   if (inputs.size) {
     const names = [...inputs.keys()].map((n) => n.replace(/[-]/g, '\\-')).join('|');

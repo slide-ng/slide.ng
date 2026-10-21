@@ -87,6 +87,7 @@ class: content-class
 ---
 layout: iframe-right
 url: "data:text/html,<h1 id='framed'>framed page</h1>"
+scale: 0.8
 class: content-class
 ---
 

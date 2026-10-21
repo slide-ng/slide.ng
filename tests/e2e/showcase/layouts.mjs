@@ -82,7 +82,10 @@ export async function run({ t, open, style }) {
       'iframe-right',
       async (p) =>
         (await p.locator('sn-iframe-right iframe').boundingBox()).width > 400 &&
-        (await p.locator('sn-iframe-right .content-class').count()) === 1,
+        (await p.locator('sn-iframe-right .content-class').count()) === 1 &&
+        // `scale: 0.8` scales the frame only: attributify does not make `[scale~="0.8"]` of it.
+        (await style(p, 'sn-iframe-right', 'transform')) === 'none' &&
+        (await p.locator('sn-iframe-right h1').boundingBox()).width > 200,
     ],
     [13, 'none', async (p) => (await p.locator('sn-none .slidev-layout').count()) === 0],
     [14, 'quote', async (p) => (await style(p, 'sn-quote', 'display')) === 'grid'],

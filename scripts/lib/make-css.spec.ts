@@ -39,6 +39,14 @@ describe('withoutForeignAttributes', () => {
       '<slide-ng-toc\\n  />',
     );
   });
+  it('hides the props of the layout element of a slide', async () => {
+    const text = `<sn-iframe-right url="data:text/html,x" scale="0.8" contentClass="p-4"><div p="2"></div></sn-iframe-right>`;
+    const out = await css(withoutForeignAttributes(text));
+    expect(out).not.toContain('[scale~=');
+    expect(withoutForeignAttributes(text)).toBe(
+      '<sn-iframe-right><div p="2"></div></sn-iframe-right>',
+    );
+  });
   it('hides the attributes inside an inline SVG', async () => {
     const text = `<svg width="200"><text x="10" font-size="14" fill="red">Hi</text></svg>`;
     expect(withoutForeignAttributes(text)).toBe('<svg><text>Hi</text></svg>');
