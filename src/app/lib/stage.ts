@@ -113,10 +113,8 @@ export class Stage {
       transition,
     );
     this.running.push(run);
-    run.finished.then(() => {
-      this.running = this.running.filter((r) => r !== run);
-      this.cleanUp(old);
-    });
+    run.left.then(() => this.cleanUp(old)); // a shorter leave does not keep the old slide over the new one
+    run.finished.then(() => (this.running = this.running.filter((r) => r !== run)));
   }
 
   private cleanUp(old: ComponentRef<SlideBase>) {

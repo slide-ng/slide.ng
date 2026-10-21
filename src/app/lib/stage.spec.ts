@@ -1,4 +1,5 @@
 import { ComponentRef, ViewContainerRef } from '@angular/core';
+import { vi } from 'vitest';
 import { SlideBase } from './slide-base';
 import { Stage } from './stage';
 
@@ -96,5 +97,17 @@ describe('Stage with a custom transition name', () => {
     stage.show(3, null);
     expect(made[0].destroyed).toBe(true);
     expect(made[1].location.nativeElement.className).toBe('');
+  });
+
+  it('removes the old slide when its leave ends, while a longer enter still runs', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'requestAnimationFrame', 'cancelAnimationFrame'] });
+    stage.show(1, null);
+    stage.show(2, { name: 'my-fade', duration: { enter: 1000, leave: 200 } });
+    await vi.advanceTimersByTimeAsync(300);
+    expect(made[0].destroyed).toBe(true);
+    expect(made[1].location.nativeElement.classList.contains('my-fade-enter-active')).toBe(true);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(made[1].location.nativeElement.className).toBe('');
+    vi.useRealTimers();
   });
 });

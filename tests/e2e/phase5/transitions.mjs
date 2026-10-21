@@ -46,12 +46,16 @@ export async function run({ t, open, hud }) {
   s = await state();
   t.ok(
     "object form: its own enterActiveClass and enterFromClass replace the names, the others stay Vue's",
-    s.slides.length === 2 &&
-      s.slides[1].includes('grow-run') &&
-      s.slides[1].includes('grow-enter-to') &&
-      !s.slides[1].includes('grow-enter-active') &&
-      s.scale[1] !== 'none' &&
-      s.scale[1] !== '1',
+    s.slides.at(-1).includes('grow-run') &&
+      s.slides.at(-1).includes('grow-enter-to') &&
+      !s.slides.at(-1).includes('grow-enter-active') &&
+      s.scale.at(-1) !== 'none' &&
+      s.scale.at(-1) !== '1',
+    JSON.stringify(s),
+  );
+  t.ok(
+    'object form: the old slide goes as soon as its leave ends (nothing animates it), as in Vue',
+    s.slides.length === 1 && s.slides[0].startsWith('slide-006.'),
     JSON.stringify(s),
   );
   await page.waitForTimeout(800);

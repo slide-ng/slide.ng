@@ -167,7 +167,8 @@ The duration is the CSS variable `--slidev-transition-duration` (0.5s). After a 
 
 Any other name is a custom transition written in CSS, as in Slidev: during the move the entering slide gets Vue's classes
 `<name>-enter-from` and `<name>-enter-active`, a frame later `<name>-enter-to` instead of `-enter-from`, and the leaving slide the same with
-`leave`. The classes are removed when the CSS transition or animation ends (at once when the name has no CSS).
+`leave`. Each slide's classes are removed when its CSS transition or animation ends (at once when the name has no CSS); the leaving
+slide goes when its own side ends, so a short leave does not stay drawn over a longer enter.
 
 ```css
 /* styles/index.css */
