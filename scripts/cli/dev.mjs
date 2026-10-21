@@ -21,7 +21,7 @@ import { packageRoot } from './package-root.mjs';
 import { askPassword } from './prompt.mjs';
 import { editorCommand, keyHint, listenForKeys, openCommand, startProgram } from './dev-keys.mjs';
 import { remoteLines, remoteQrLines } from './remote-info.mjs';
-import { withSlideSources } from './runtime.mjs';
+import { angularOutput, withSlideSources } from './runtime.mjs';
 import { watchChildren } from './watch-children.mjs';
 
 export const DEV_FLAGS = {
@@ -304,10 +304,12 @@ function angularServer(ngArgs, { appRoot, env, quiet }) {
     detached: ownGroup,
   });
   child.slideNgGroup = ownGroup;
+  // One tidier for both streams (angularOutput): Angular writes the rebuild lines and the errors to different ones.
+  const tidy = angularOutput((line, to) => to.write(`${line}\n`));
   // Once it is being stopped, what it and its helpers still print (a dying esbuild's panic) is dropped.
   const relay = (from, to) =>
     createInterface({ input: from }).on('line', (line) => {
-      if (!child.stopping) to.write(`${withSlideSources(line, appRoot)}\n`);
+      if (!child.stopping) tidy.line(withSlideSources(line, appRoot), to);
     });
   if (!quiet) relay(child.stdout, process.stdout);
   else child.stdout.resume();

@@ -44,7 +44,7 @@ let runs = 0;
 let output = '';
 const lines = (d) => {
   output += d;
-  runs = (output.match(/\[slides\] generated \d+ slides/g) ?? []).length;
+  runs = (output.match(/\[slides\] generated \d+ slides?/g) ?? []).length;
 };
 gen.stdout.on('data', lines);
 gen.stderr.on('data', lines);

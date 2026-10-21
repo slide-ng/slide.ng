@@ -110,7 +110,7 @@ if (!has('--no-build')) {
   );
   const noise = `${built.stdout}\n${built.stderr}`
     .split('\n')
-    .filter((l) => /^\[slides\]/.test(l) && !/generated \d+ slides/.test(l));
+    .filter((l) => /^\[slides\]/.test(l) && !/generated \d+ slides?/.test(l));
   if (built.code !== 0 || noise.length) {
     // The escape character is the point of the pattern (colours in the output).
     // eslint-disable-next-line no-control-regex
@@ -118,7 +118,7 @@ if (!has('--no-build')) {
     const lines = text.trim().split('\n');
     // The error blocks of Angular (and our own warnings) first, then the end of the output.
     const errors = lines.filter(
-      (l) => /ERROR|^\[slides\]|slide-\d+\.ts|roots\//.test(l) && !/generated \d+ slides/.test(l),
+      (l) => /ERROR|^\[slides\]|slide-\d+\.ts|roots\//.test(l) && !/generated \d+ slides?/.test(l),
     );
     const tail = [...errors.slice(0, 40), '...', ...lines.slice(-15)].join('\n');
     fail('The combined deck does not build:', [
@@ -127,7 +127,7 @@ if (!has('--no-build')) {
     ]);
   }
   console.log(
-    `built all samples together (${built.stdout.match(/Built (\d+) slides/)?.[1] ?? '?'} slides)`,
+    `built all samples together (${built.stdout.match(/Built (\d+) slides?/)?.[1] ?? '?'} slides)`,
   );
 }
 

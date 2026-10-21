@@ -220,7 +220,9 @@ async function generate() {
       ...tsFiles('src/app'),
     ]),
   );
-  console.log(`[slides] generated ${deck.slides.length} slides`);
+  console.log(
+    `[slides] generated ${deck.slides.length} ${deck.slides.length === 1 ? 'slide' : 'slides'}`,
+  );
   // A file a {monaco-write} editor saves to is not watched: the editor shows it already, and a regeneration on each save would
   // take the focus from the editor while the speaker types.
   const written = new Set(Object.values(monacoWriteTargets()).map((p) => resolve(deck.root, p)));
@@ -257,7 +259,8 @@ if (WATCH) {
     generate()
       .then(watchAll)
       .catch((e) => {
-        console.error(e.message);
+        // The same form as a failed first run: `[slides] slide N: ...`.
+        console.error(`[slides] ${process.env.SLIDE_NG_DEBUG ? e.stack : e.message}`);
         writeProblem(e.message, true);
       }),
   );

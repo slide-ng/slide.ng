@@ -62,13 +62,95 @@ export function withSlideSources(text, appRoot) {
       const near = nearest(tag, (tags ??= knownTags(generated)));
       return near
         ? `${match} (did you mean <${near}>?)`
-        : `${match} (in a layout, layer or component: import the component there, imports: [...], and write an icon as <span class="i-set:name"></span>; a web component: list it in the deck's headmatter, customElements: [${tag}])`;
+        : `${match} (a component of the deck: is its file in components/, with selector '${tag}'? In a layout, layer or component file, also add it to that file's imports: [...]. An icon: <span class="i-set:name"></span>. A web component: list it in the deck's headmatter, customElements: [${tag}])`;
     })
     .replace(
       /Could not resolve "(\.\.\/[^"]*)"/g,
       (match) =>
         `${match} (only the folders ${ROOT_FOLDERS.join(', ')} of a deck or theme are copied into the app: keep shared code inside one of them)`,
     );
+}
+
+// eslint-disable-next-line no-control-regex -- the colour codes Angular writes on a terminal
+const ANSI = /\x1b\[[0-9;]*m/g;
+const BLOCK_START = /^\s*[✘▲] \[(ERROR|WARNING)\]/;
+// A line of an error block: empty, indented, or one of Angular's numbered hints.
+const IN_BLOCK = /^(\s|$|\d+\. )/;
+const UNKNOWN = /NG8001: '([^']+)' is not a known element/;
+const FOLLOW_ON = /NG8002: Can't bind to '[^']+' since it isn't a known property of '([^']+)'/;
+// A failed rebuild that repeats the errors of the one just before within this time is the same change seen twice (deleting
+// components/ rebuilds once for the folder and once for the slides the generator writes again).
+const SAME_WINDOW_MS = 10_000;
+
+/**
+ * Tidies the Angular compiler's output line by line, for `build` and the dev server: Angular's "Can't bind to 'x' since it
+ * isn't a known property of 'y'" (NG8002) is left out when 'y' is an unknown element already (NG8001 says what is wrong),
+ * and a rebuild that fails with the same errors as the one just before says so in one line instead of printing them again.
+ * `write(line, to)` gets the lines to print; `to` is the stream the line came from. Call `flush()` at the end.
+ */
+export function angularOutput(write, { now = Date.now, idleMs = 300 } = {}) {
+  let block = null; // the lines of the error or warning being read: [{ line, to }]
+  let unknown = new Set();
+  let cycle = []; // the error texts of this rebuild
+  let last = null; // those of the rebuild before: { texts, at }
+  let cycleAt = 0; // when the last of them was printed
+  let noted = false;
+  let timer;
+  const endBlock = () => {
+    clearTimeout(timer);
+    if (!block) return;
+    const lines = block;
+    block = null;
+    const text = lines
+      .map((l) => l.line.replace(ANSI, ''))
+      .join('\n')
+      .trimEnd();
+    const name = UNKNOWN.exec(text)?.[1];
+    if (name) unknown.add(name);
+    const follow = FOLLOW_ON.exec(text)?.[1];
+    if (follow && unknown.has(follow)) return;
+    const isError = /^\s*✘/.test(text);
+    if (isError) (cycle.push(text), (cycleAt = now()));
+    if (isError && last && now() - last.at < SAME_WINDOW_MS && last.texts.has(text)) {
+      if (!noted)
+        write(
+          '[slide.ng] the same error as in the rebuild just before (not printed again)',
+          lines[0].to,
+        );
+      noted = true;
+      return;
+    }
+    for (const l of lines) write(l.line, l.to);
+  };
+  const endCycle = () => {
+    if (cycle.length) last = { texts: new Set(cycle), at: cycleAt };
+    cycle = [];
+    unknown = new Set();
+    noted = false;
+  };
+  return {
+    line(line, to) {
+      const plain = line.replace(ANSI, '');
+      if (BLOCK_START.test(plain)) {
+        endBlock();
+        block = [{ line, to }];
+      } else if (block && IN_BLOCK.test(plain)) {
+        block.push({ line, to });
+      } else {
+        endBlock();
+        if (/Changes detected\. Rebuilding|^\s*❯ Building/.test(plain)) endCycle();
+        if (/Application bundle generation complete/.test(plain)) [last, cycle] = [null, []];
+        write(line, to);
+      }
+      // A block that is the last output (nothing follows it yet) is printed after a moment.
+      if (block && idleMs >= 0) {
+        clearTimeout(timer);
+        timer = setTimeout(endBlock, idleMs);
+        timer.unref?.();
+      }
+    },
+    flush: endBlock,
+  };
 }
 
 function run(args, { cwd, env, quiet }) {
@@ -79,10 +161,16 @@ function run(args, { cwd, env, quiet }) {
     stdio: quiet ? 'pipe' : ['inherit', 'inherit', 'pipe'],
     encoding: 'utf8',
   });
-  if (!quiet && result.stderr) process.stderr.write(withSlideSources(result.stderr, cwd));
+  const print = (text) => {
+    const out = [];
+    const tidy = angularOutput((line) => out.push(line), { idleMs: -1 });
+    for (const line of withSlideSources(text, cwd).replace(/\n$/, '').split('\n')) tidy.line(line);
+    tidy.flush();
+    if (out.length) process.stderr.write(`${out.join('\n')}\n`);
+  };
+  if (!quiet && result.stderr) print(result.stderr);
   if (result.status !== 0) {
-    if (quiet)
-      process.stderr.write(withSlideSources(`${result.stdout ?? ''}${result.stderr ?? ''}`, cwd));
+    if (quiet) print(`${result.stdout ?? ''}${result.stderr ?? ''}`);
     const what = args[0].includes('generate') ? 'generating the slides' : 'the Angular build';
     // Killed (by the system, for example out of memory) leaves no output of its own: say that instead of "exit code null".
     // The generator prints why it stopped, so its failure needs no second line (`reported`, see bin/slide-ng.mjs).

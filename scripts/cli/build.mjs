@@ -122,7 +122,7 @@ async function buildOne({ entry, out, base, flags, offline, routerMode, several 
     if (several) rmSync(out, { recursive: true, force: true });
     publishDirectory(dist, out);
     console.log(
-      `\nBuilt ${deck.slides.length} slides into ${out} (${offline ? `offline folder, open ${join(out, 'index.html')}` : `base ${base}`}).`,
+      `\nBuilt ${deck.slides.length} ${deck.slides.length === 1 ? 'slide' : 'slides'} into ${out} (${offline ? `offline folder, open ${join(out, 'index.html')}` : `base ${base}`}).`,
     );
   } finally {
     removeInside(workDir, root); // the folder this command made itself

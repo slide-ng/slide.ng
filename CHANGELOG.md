@@ -113,6 +113,8 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - The "twoslash failed" warning gives the reason (Twoslash's own title and description) and the slide; it read "twoslash failed for a ts block ()".
 - A code title icon that its installed set does not have (`~i-carbon:bucket~`) gets a warning that names the slide, instead of an empty box.
 - `r` in the dev server no longer prints an esbuild Go panic ("all goroutines are asleep") into the terminal: the Angular dev server and its esbuild service are stopped together.
+- Less noise in the terminal: a generator error while the dev server runs has the `[slides]` prefix, as at startup; Angular's follow-on "Can't bind to 'x' since it isn't a known property of 'y'" (NG8002) is left out when `y` is already reported as an unknown element; a dev rebuild that fails with the same errors as the one just before (deleting `components/` rebuilds twice) says so in one line; one slide is "generated 1 slide".
+- The hint for an unknown element in a slide starts with the deck's `components/` folder; it was written for layouts only ("import the component there").
 
 ## [1.0.0] - 2026-10-18
 

@@ -67,7 +67,7 @@ t.ok(
 const built = await run(process.execPath, [bin, 'build'], { cwd: deck, encoding: 'utf8' });
 t.ok(
   'build makes dist/index.html',
-  existsSync(join(deck, 'dist/index.html')) && /Built \d+ slides/.test(built.stdout),
+  existsSync(join(deck, 'dist/index.html')) && /Built \d+ slides?/.test(built.stdout),
   built.stdout.trim().split('\n').pop(),
 );
 t.ok(
