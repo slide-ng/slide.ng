@@ -3,7 +3,7 @@
 // offline folder (`./`) makes it relative to the page, so the folder works from any place on disk.
 
 // Code samples show text, they are not addresses.
-const CODE = /(<pre[\s\S]*?<\/pre>|<code(?:\s[^>]*)?>[\s\S]*?<\/code>)/;
+export const CODE = /(<pre[\s\S]*?<\/pre>|<code(?:\s[^>]*)?>[\s\S]*?<\/code>)/;
 
 const ROOT = '\\/(?!\\/)'; // a slash that is not the start of `//host`
 

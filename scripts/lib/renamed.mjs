@@ -44,10 +44,10 @@ export const RENAMED_ELEMENTS = {
 };
 
 // <tag attributes>, where the attributes may hold quoted `>` characters.
-const TAG = /<([a-z][\w-]*)((?:"[^"]*"|'[^']*'|[^<>"'])*)>/g;
-const ATTRIBUTE = /\s+([^\s=>"']+)(?:\s*=\s*(?:"[^"]*"|'[^']*'))?/g;
+export const TAG = /<([a-z][\w-]*)((?:"[^"]*"|'[^']*'|[^<>"'])*)>/g;
+export const ATTRIBUTE = /\s+([^\s=>"']+)(?:\s*=\s*(?:"[^"]*"|'[^']*'))?/g;
 // `v-click`, `[v-click]`, `v-mark.red.circle` -> the name without binding brackets and modifiers
-const plainName = (attr) => attr.replace(/^\[|\]$/g, '').split('.')[0];
+export const plainName = (attr) => attr.replace(/^\[|\]$/g, '').split('.')[0];
 
 /**
  * Throws when the markup uses an old name. `own` lists the selectors of the deck's own components: a theme or deck

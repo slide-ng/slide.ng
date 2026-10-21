@@ -1,3 +1,6 @@
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { LAYOUTS, layoutName } from './layouts.mjs';
 import {
   closeEntities,
@@ -35,6 +38,14 @@ describe('layoutName', () => {
     expect(layoutName({ layout: 'nope' }, 3)).toBe('default');
     expect(warn.mock.calls[0][0]).toContain('unknown layout "nope"');
     expect(warn.mock.calls[0][0]).toContain('two-cols-header'); // the message lists the real names
+    warn.mockRestore();
+  });
+  it('names the nearest layout for a typo', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(layoutName({ layout: 'image-rigth' }, 3)).toBe('default');
+    expect(warn.mock.calls[0][0]).toContain(
+      'unknown layout "image-rigth", using "default". Did you mean "image-right"?',
+    );
     warn.mockRestore();
   });
   it('knows every Slidev layout', () => {
@@ -257,6 +268,48 @@ describe('slideSource: built-in components are imported when the slide uses them
   it('does not mix <slide-ng-transform> up with the longer names or other words', () => {
     expect(imports('plain text about a transformation')).toBe('DefaultLayout');
   });
+  it('does not import a component for a longer, mistyped tag', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(imports('<slide-ng-tocc />')).toBe('DefaultLayout');
+    expect(imports('<slide-ng-toc />')).toBe('DefaultLayout, SlideToc');
+    warn.mockRestore();
+  });
+});
+
+describe('slideSource: unknown slide-ng names', () => {
+  const warnings = (md: string, components?: { selector: string; test: RegExp }[]) => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    slideSource(slide({}, md), 2, components ? { components } : {});
+    const calls = warn.mock.calls.map((c) => String(c[0]));
+    warn.mockRestore();
+    return calls;
+  };
+  it('names the nearest built-in element or attribute', () => {
+    expect(warnings('<slide-ng-tocc />')).toEqual([
+      '[slides] slide 2: <slide-ng-tocc> is not a slide.ng name. Did you mean <slide-ng-toc>?',
+    ]);
+    expect(warnings('<div slide-ng-clik>a</div>')).toEqual([
+      '[slides] slide 2: slide-ng-clik is not a slide.ng name. Did you mean "slide-ng-click"?',
+    ]);
+  });
+  it('warns for any unknown slide-ng name, and says when an attribute is written as a tag', () => {
+    expect(warnings('<slide-ng-fancy-thing />')).toEqual([
+      '[slides] slide 2: <slide-ng-fancy-thing> is not a slide.ng name.',
+    ]);
+    expect(warnings('<slide-ng-click>a</slide-ng-click>')).toEqual([
+      '[slides] slide 2: <slide-ng-click> is not a slide.ng name. It is an attribute: <div slide-ng-click>.',
+    ]);
+  });
+  it("accepts the built-in names, their bindings and modifiers, and the deck's own slide-ng-* components", () => {
+    expect(
+      warnings(
+        '<slide-ng-clicks>\n\n- a\n\n</slide-ng-clicks>\n\n<span [slide-ng-click]="2" slide-ng-mark.red>b</span>',
+      ),
+    ).toEqual([]);
+    expect(
+      warnings('<slide-ng-badge />', [{ selector: 'slide-ng-badge', test: /<slide-ng-badge/ }]),
+    ).toEqual([]);
+  });
 });
 
 describe('slideSource: drag positions and renamed names', () => {
@@ -375,5 +428,39 @@ describe('warnInlineControlFlow', () => {
     expect(warn).toHaveBeenCalledTimes(1);
     expect(warn.mock.calls[0][0]).toContain('slide 2');
     warn.mockRestore();
+  });
+});
+
+describe('slideSource: pictures that public/ does not have', () => {
+  const root = mkdtempSync(join(tmpdir(), 'slide-ng-public-'));
+  mkdirSync(join(root, 'public/img'), { recursive: true });
+  writeFileSync(join(root, 'public/img/logo.png'), 'png');
+  const warnings = (frontmatter: Record<string, unknown>, md: string) => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    slideSource(slide(frontmatter, md), 2, { root, roots: [{ dir: root }] });
+    const calls = warn.mock.calls.map((c) => String(c[0]));
+    warn.mockRestore();
+    return calls;
+  };
+  it('warns about a root address that is not a file of public/', () => {
+    expect(warnings({}, '![](/img/logo.png)\n\n<img src="/missing.png">')).toEqual([
+      '[slides] slide 2: the picture "/missing.png" is not in public/ (an address that starts with / is a file of the public/ folder next to slides.md)',
+    ]);
+    expect(warnings({ layout: 'image-right', image: '/nope.jpg' }, '# A')).toEqual([
+      expect.stringContaining('the picture "/nope.jpg" is not in public/'),
+    ]);
+  });
+  it('says to leave out /public in the address', () => {
+    expect(warnings({}, '![](/public/img/logo.png)')).toEqual([
+      '[slides] slide 2: "/public/img/logo.png" names the public/ folder, which is the site\'s root: write "/img/logo.png"',
+    ]);
+  });
+  it('leaves remote pictures and code samples alone', () => {
+    expect(
+      warnings(
+        {},
+        '![](https://example.com/a.png) ![](//cdn.example.com/b.png)\n\n`<img src="/x.png">`',
+      ),
+    ).toEqual([]);
   });
 });
