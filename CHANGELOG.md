@@ -9,12 +9,15 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - Markdown links to slides move inside the deck, as in Slidev: `[x](5)`, `[x](./5)`, `[x](#/5)` and `[x](./alias)` become `<slide-ng-link>`, like `/5` and `/alias` before (#14).
 - Markdown links to `http(s)` addresses open in a new tab (`target="_blank" rel="noopener"`), on slides and in speaker notes (#14).
 - A link to a slide points at that slide's page on the print page and in an exported PDF, instead of at the address of the local server (#14).
+- A link to a slide in the speaker notes, clicked in the presenter, moves the presenter to that slide instead of opening the audience page (#14).
 - `<slide-ng-title-renderer />` draws a slide's title as HTML, with its inline markdown and `$math$` (Slidev's `<TitleRenderer>`); `no="N"` picks another slide. The table of contents shows the same HTML. Raw HTML in a title is shown as text.
 - `notesAutoRuby: { word: reading }` in the headmatter shows a reading above each listed word in the speaker notes, with `<ruby>` (Slidev's `notesAutoRuby`). Code, tag attributes and existing `<ruby>` are left alone.
 
 ### Changed
 
 - An `<a href="/4">` written as HTML is left as written; only markdown links become slide links (#14).
+- In a PDF made by `export` or `build --download`, other links to the deck's own site (`/file.pdf`, `<a href="/3">`) are text without a link, instead of links to the temporary server of the export.
+- A `routeAlias` that is a number (`routeAlias: 2`) is refused: the address `/2` is slide 2, so the alias's slide could not be opened.
 
 ## [1.0.0] - 2026-10-18
 

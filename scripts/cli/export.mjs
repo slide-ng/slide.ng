@@ -46,7 +46,8 @@ export async function exportCommand(argv, { notes = false } = {}) {
       dist = buildDeck({ entry, workDir, base, quiet: true, folder: 'app-export' });
     }
     const server = await serveDirectory(dist, base);
-    served = { origin: server.origin, base };
+    // The server goes away after the export, so the PDF must not link to it (export/page.mjs dropServerLinks).
+    served = { origin: server.origin, base, temporary: true };
     close = server.close;
   }
 

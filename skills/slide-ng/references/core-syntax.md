@@ -95,7 +95,7 @@ routeAlias: details
 - `#id` scrolls to an element of the slide; `#5` is such an anchor, not slide 5.
 - `http(s)` links get `target="_blank" rel="noopener"`; `mailto:` and others do not.
 - An `<a href>` written as HTML is left as written. Use `<slide-ng-link to="3">` in HTML.
-- In a PDF a slide link points at that slide's page. In speaker notes a slide link stays a plain address.
+- In a PDF a slide link points at that slide's page; a link to another address of the deck's site has no link there. In speaker notes a slide link stays a plain address; clicked in the presenter it moves the presenter to that slide.
 
 ## Per-slide style
 

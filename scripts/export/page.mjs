@@ -57,6 +57,24 @@ export async function loadPrintPage(page, { url, dark, timeout, waitUntil, wait,
   if (wait) await page.waitForTimeout(wait);
 }
 
+/**
+ * Takes the address off links that lead to `origin`, the temporary server the export reads the deck from (`/3`, `/file.pdf`,
+ * `tokens`): in a PDF they would point at a server that is gone. Links to a slide (`#slide-ng-page-2`) and to other sites stay.
+ */
+export function dropServerLinks(page, origin) {
+  return page.evaluate((origin) => {
+    for (const a of document.querySelectorAll('a[href]')) {
+      if (a.getAttribute('href').startsWith('#')) continue;
+      try {
+        if (new URL(a.getAttribute('href'), document.baseURI).origin === origin)
+          a.removeAttribute('href');
+      } catch {
+        // not an address: Chromium makes no link of it either
+      }
+    }
+  }, origin);
+}
+
 /** The pages of the print page in order: `{ no, id }` for each `.print-slide-container`. */
 export function listPages(page) {
   return page

@@ -164,6 +164,17 @@ export async function run({ t, open, press, hud, pathOf, style }) {
   );
   await page.close();
 
+  // A link to a slide in the speaker notes moves the presenter, not to the audience page.
+  page = await open('/presenter/26?clicks=0');
+  await page.locator('app-note-display a', { hasText: 'notes link to 3' }).click();
+  await page.waitForTimeout(200);
+  t.ok(
+    'a slide link in the notes moves the presenter to that slide',
+    pathOf(page) === '/presenter/3',
+    pathOf(page),
+  );
+  await page.close();
+
   page = await open('/3?clicks=0');
   await page.mouse.move(40, 700);
   await page.waitForTimeout(400);

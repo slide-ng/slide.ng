@@ -91,7 +91,7 @@ async function afterBuild({ dist, deck, entry, root, base, workDir, download, fl
   // The temporary server answers at its root; an offline folder has no base path (its addresses are relative).
   const serverBase = offline ? '/' : base;
   const server = needsBrowser ? await serveDirectory(dist, serverBase) : null;
-  const served = server && { origin: server.origin, base: serverBase };
+  const served = server && { origin: server.origin, base: serverBase, temporary: true };
 
   try {
     // Open Graph picture: the first slide.

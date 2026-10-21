@@ -104,7 +104,7 @@ t.ok(
 );
 t.ok('the pdf has the click elements that are revealed late', text(pdf).includes('two'));
 t.ok(
-  'a markdown link to a slide points at its page in the pdf, a web page keeps its address',
+  'a markdown link to a slide points at its page in the pdf, a web page keeps its address, other links of the site are no links (not the temporary server)',
   links(pdf).join() === '8:2,8:https://example.org/',
   links(pdf).join(),
 );
