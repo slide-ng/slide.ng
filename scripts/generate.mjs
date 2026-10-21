@@ -51,14 +51,12 @@ function write(path, text) {
 }
 
 // Stylesheets of the features that bring their own CSS, added to the app only when the deck uses them: KaTeX's CSS (and fonts),
-// Magic Move's and Twoslash's CSS, and Monaco's CSS (it carries its icon font inside). Monaco's package maps `exports` to JavaScript only, so its CSS is reached by path.
+// Magic Move's and Twoslash's CSS. Monaco's CSS is not here: it comes with the lazy Monaco chunk (src/app/code/monaco/setup.ts).
 function featureCss(features) {
   const imports = [];
   if (features.math) imports.push("@import 'katex/dist/katex.min.css';");
   if (features.magicMove) imports.push("@import '@shikijs/magic-move/style.css';");
   if (features.twoslash) imports.push("@import '@shikijs/twoslash/style-rich.css';");
-  if (features.monaco)
-    imports.push("@import '../../../node_modules/monaco-editor/min/vs/editor/editor.main.css';");
   // Rules after every @import: an @import that follows a rule is ignored by the browser.
   if (features.math)
     imports.push(

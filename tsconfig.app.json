@@ -6,8 +6,8 @@
     "types": []
   },
   // Only main.ts is listed: everything the deck reaches by imports is compiled, and nothing else.
-  // That way Monaco's workers are built only for decks that use an editor.
-  "files": ["src/main.ts"],
+  // That way Monaco's workers are built only for decks that use an editor. css.d.ts types the stylesheet Monaco's chunk imports as text.
+  "files": ["src/main.ts", "src/app/code/monaco/css.d.ts"],
   // Layouts and components are listed too, used or not: when the last slide that binds an input of one stops using it, the
   // dev server's next build failed with "Program does not contain ….ngtypecheck.ts" (an Angular incremental build problem).
   // Not src/app/code: listing the editor would build Monaco's workers for every deck.
