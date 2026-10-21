@@ -20,7 +20,7 @@ export function keyHint(remote) {
 
 /**
  * Calls `actions[name]()` for each key typed on `input`; Ctrl+C calls `actions.interrupt`. Returns `pause` and `resume`
- * (for a program that needs the terminal, such as an editor in it) and `stop`.
+ * (for a program that needs the terminal, such as an editor in it), `restoreRaw` and `stop`.
  * @param {NodeJS.ReadableStream & { isTTY?: boolean, setRawMode?: (on: boolean) => void }} input
  * @param {Record<string, () => unknown>} actions
  * @param {(error: unknown) => void} [onError]
@@ -54,6 +54,13 @@ export function listenForKeys(input, actions, onError = () => {}) {
       paused = false;
       raw(true);
       input.resume();
+    },
+    // A process that ends may put the terminal back as it found it when it started (line mode, echo), as the dev
+    // processes do when `r` stops them. Raw mode is set again (off first: Node skips a mode it believes is set).
+    restoreRaw() {
+      if (paused) return;
+      raw(false);
+      raw(true);
     },
     stop() {
       input.off('keypress', onKey);

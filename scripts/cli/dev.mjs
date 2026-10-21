@@ -186,6 +186,7 @@ export async function devCommand(argv) {
           console.log('[slide.ng] restarting...');
           running.watcher.stop();
           await Promise.all(running.children.map(stopChild));
+          keys.restoreRaw(); // the stopped processes put the terminal back in line mode
           startAll(true);
           restarting = false;
         },

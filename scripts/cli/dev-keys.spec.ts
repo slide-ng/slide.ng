@@ -65,6 +65,15 @@ describe('listenForKeys', () => {
     expect(calls).toEqual(['open']);
     expect(modes).toEqual([true, false, true, false]);
   });
+  it('sets raw mode again after a process put the terminal back in line mode, unless paused', async () => {
+    const { input, modes } = fakeStdin();
+    const keys = listenForKeys(input, {});
+    keys.restoreRaw();
+    expect(modes).toEqual([true, false, true]);
+    keys.pause();
+    keys.restoreRaw();
+    expect(modes).toEqual([true, false, true, false]);
+  });
   it('reports an action that fails instead of throwing', async () => {
     const { input } = fakeStdin();
     const errors: unknown[] = [];
