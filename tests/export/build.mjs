@@ -448,6 +448,16 @@ t.ok(
 );
 await pageMulti.close();
 await servedMulti.close();
+// Exporting one deck of that build: --dist alone serves it under the base it was built with, and a --base that differs is refused.
+const alphaPdf = join(multiDir, 'alpha-from-dist.pdf');
+await cli(
+  ['export', join(multiDir, 'alpha.md'), '--dist', join(siteMulti, 'alpha'), '--output', alphaPdf],
+  multiDir,
+);
+t.ok(
+  'export --dist of one deck of a multi build, without --base, uses the base in its index.html',
+  existsSync(alphaPdf) && readFileSync(alphaPdf).subarray(0, 5).toString() === '%PDF-',
+);
 
 // ---- refusals: a folder with other files, and a base that is not a plain path
 const precious = join(scratch, 'precious');
@@ -472,6 +482,19 @@ t.ok(
   (await refuse(['build', join(dirB, 'slides.md'), '--out', dirB])).includes(
     'contains the current folder',
   ),
+);
+t.ok(
+  'export --dist with a --base other than the one the build was made with is refused',
+  (
+    await refuse([
+      'export',
+      join(multiDir, 'alpha.md'),
+      '--dist',
+      join(siteMulti, 'alpha'),
+      '--base',
+      '/',
+    ])
+  ).includes('which was made with the base /decks/alpha/'),
 );
 t.ok(
   '--base with .. is refused',

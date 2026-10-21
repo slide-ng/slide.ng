@@ -46,6 +46,8 @@ Makes a static site in `dist/`. With several entries (`slide-ng build a.md b.md`
 Makes a PDF (default), PNG files, a PPTX or a Markdown file. It builds the deck first, unless `--dist` or `--url` says where it is.
 With several entries (`slide-ng export a.md b.md`) each deck is built and exported in turn, to its own file named as for one deck;
 `--output`, `--dist` and `--url` name one place, so they are refused then, and so are two decks that would get the same file name.
+To export one deck of such a build, name its folder: `slide-ng export a.md --dist dist/a` serves it under the base it was built with (the
+`<base href>` of its `index.html`); a `--base` that differs from it is refused.
 
 | flag                                                 | what it does                                                                               |
 | ---------------------------------------------------- | ------------------------------------------------------------------------------------------ |
@@ -61,7 +63,7 @@ With several entries (`slide-ng export a.md b.md`) each deck is built and export
 | `--timeout`, `--wait`, `--wait-until`                | how long to wait for each page (ms), extra wait (ms), and the load state to wait for       |
 | `--dist`                                             | export an existing build instead of building                                               |
 | `--url`                                              | export a running server (such as the dev server)                                           |
-| `--base`                                             | the base the build at `--dist` was made with                                               |
+| `--base`                                             | the base the build at `--dist` was made with; read from its `index.html` when left out     |
 | `--theme`, `-t`                                      | use this theme instead of the headmatter's                                                 |
 | `--executable-path`, `--no-sandbox`, `--allow-local` | as for `build`                                                                             |
 

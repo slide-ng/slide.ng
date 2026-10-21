@@ -1,5 +1,6 @@
 // The `export` and `export-notes` commands: build the deck (or use `--dist` / `--url`), serve it, and run the exporter.
 // Several entries are exported one after another, one file each (see entries.mjs).
+import { readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { exportNotes, exportSlides, pagesToExport } from '../export/index.mjs';
 import { outputBase } from '../export/filename.mjs';
@@ -10,6 +11,7 @@ import { applyThemeFlag, parseFlags } from './flags.mjs';
 import { checkToolDir, removeInside } from '../lib/tool-dir.mjs';
 import { checkDistinctOutputs, checkExportFlags, deckEntries } from './entries.mjs';
 import { buildDeck } from './runtime.mjs';
+import { normalizeBase } from './build.mjs';
 
 export async function exportCommand(argv, { notes = false } = {}) {
   const { flags, positionals } = parseFlags(argv, EXPORT_FLAGS);
@@ -41,12 +43,34 @@ async function planExport(entry, flags, notes) {
     dir: process.cwd(),
     suffix: notes ? '-notes' : '',
   });
-  return { entry, deck, options, outBase };
+  return { entry, deck, options, outBase, base: exportBase(flags) };
 }
 
-async function exportOne({ entry, deck, options, outBase }, flags, notes) {
+/** The base a build was made with: the `<base href>` of its index.html, or null when it has no absolute one (an offline folder). */
+export function builtBase(dist) {
+  let html;
+  try {
+    html = readFileSync(join(dist, 'index.html'), 'utf8');
+  } catch {
+    return null;
+  }
+  const href = /<base href="([^"]*)"/.exec(html)?.[1];
+  return href?.startsWith('/') ? href : null;
+}
+
+/** The base to serve the deck under: an existing build (`--dist`) keeps the one it was made with, which `--base` must match. */
+export function exportBase(flags) {
+  const recorded = flags.dist ? builtBase(resolve(flags.dist)) : null;
+  if (!recorded) return flags.base ?? '/';
+  if (flags.base != null && normalizeBase(flags.base) !== recorded)
+    throw new Error(
+      `--base ${flags.base} does not match the build at ${flags.dist}, which was made with the base ${recorded}; leave --base out or build again`,
+    );
+  return recorded;
+}
+
+async function exportOne({ entry, deck, options, outBase, base }, flags, notes) {
   const routerMode = deck.headmatter.routerMode === 'hash' ? 'hash' : 'history';
-  const base = flags.base ?? '/';
 
   // Where the deck is served from: a running server, an existing build, or a build made now.
   let served,
