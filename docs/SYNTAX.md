@@ -1219,7 +1219,8 @@ presses a button, and a touch on the slide hides it again. On a screen taller th
   hidden from them until they show. The presenter page has three named regions (Current slide, Next step, Notes); the next-step picture
   is skipped, so headings are not read twice. Line numbers of code and of Magic Move are skipped too.
 - **Landmarks and headings**: the slide (with the bar) is the page's main landmark; the presenter, `/overview` and `/notes` each have a
-  main landmark and a level-one heading (visually hidden on the presenter and `/notes`).
+  main landmark and a level-one heading (visually hidden on the presenter and `/notes`); `/entry` and the notes print page have a main
+  landmark. The quick overview, the right-click menu and the "go to" box are named dialogs, with all their controls inside.
 - **Keyboard**: in the quick overview (`o`) the arrow keys move the focus from card to card, and each card is named "Go to slide N: title".
   In the presenter's click preview the badges are the keyboard way to a later click (see Click preview). After Edit Notes, Escape gives
   the focus back to the Edit Notes button. On `/overview` (while developing) each note is a named group that says it can be edited:

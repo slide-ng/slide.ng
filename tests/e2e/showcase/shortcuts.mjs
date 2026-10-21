@@ -42,6 +42,11 @@ export async function run({ t, open, press, pathOf, hud }) {
     'g opens the goto box and focuses it',
     await page.locator('#slidev-goto-input').evaluate((e) => e === document.activeElement),
   );
+  t.ok(
+    'the goto box is a labelled dialog (not loose outside the landmarks)',
+    (await page.locator('#slidev-goto-dialog[role="dialog"]').getAttribute('aria-label')) ===
+      'Go to slide',
+  );
   await page.keyboard.type('12');
   await page.waitForTimeout(100);
   t.ok(

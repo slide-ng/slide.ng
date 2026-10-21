@@ -63,6 +63,7 @@ export async function run({ t, base, browser, problems, open, press, until }) {
     labels.join('|') === 'Slides|Presenter|Notes|Overview',
     labels.join('|'),
   );
+  t.ok('/entry has a main landmark', (await page.locator('main #entry').count()) === 1);
   await page.locator('#entry a', { hasText: 'Overview' }).click();
   await page.waitForFunction(() => location.pathname === '/overview');
   t.ok('/entry: a link opens its page', true);

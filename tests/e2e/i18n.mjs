@@ -119,6 +119,10 @@ const title = (page, selector) => page.locator(selector).first().getAttribute('t
     'print: the notes page has a translated title',
     (await notes.title()) === 'xx-notes Interface text',
   );
+  t.ok(
+    'print: the notes page is a main landmark',
+    (await notes.locator('main#notes-print').count()) === 1,
+  );
   await notes.close();
   const print = await openPrint(base, '/print');
   t.ok(

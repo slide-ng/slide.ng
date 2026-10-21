@@ -34,6 +34,8 @@ export function foldForSearch(text: string, lang?: string): string {
   template: `
     <div
       id="slidev-goto-dialog"
+      role="dialog"
+      [attr.aria-label]="'goto.label' | t"
       class="fixed end-5 transition-all w-90 max-w-[calc(100vw-2.5rem)] z-modal text-main"
       [class]="ui.goto() ? 'top-5' : '-top-20 op0 pointer-events-none'"
       [attr.aria-hidden]="ui.goto() ? null : 'true'"

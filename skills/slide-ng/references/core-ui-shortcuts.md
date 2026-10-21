@@ -32,7 +32,7 @@ The deck, `/presenter/<n>` and `/notes` are described in `presenter-view.md`.
 ## Accessibility
 
 - Screen readers hear each new slide's number and title (plain text: markdown marks dropped, `$math$` as its TeX; also the tab title, goto list and PDF outline); elements that wait for a click are hidden until shown. Presenter page: regions Current slide, Next step, Notes; the next-step picture and line numbers are skipped.
-- Landmarks: the slide is in the main landmark; the presenter, `/overview` and `/notes` have a main landmark and an h1 (visually hidden on the presenter and `/notes`).
+- Landmarks: the slide is in the main landmark; the presenter, `/overview` and `/notes` have a main landmark and an h1 (visually hidden on the presenter and `/notes`); `/entry` and `/presenter/print` have a main landmark. The quick overview, the right-click menu and the goto box are named dialogs with all their controls inside.
 - Keyboard: arrows in the quick overview move the focus between cards named "Go to slide N: title"; in the click preview the badges are the keyboard path (a greyed-out part's links are inert); Escape in Edit Notes returns focus to its button; `/overview` notes are named groups that say they are editable (Enter edits).
 - The `progressBar` is a named `progressbar` (`progress.label`) and is filled with the highlight colour in forced colors.
 - Interface text meets 4.5:1 (large 3:1) in light and dark, faded notes of later clicks included (opacity 0.75); icon buttons are at least 24x24 px; the settings and sync menus and the info dialog fit and scroll down to 320x180 (400% zoom).

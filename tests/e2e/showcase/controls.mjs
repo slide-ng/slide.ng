@@ -112,6 +112,11 @@ export async function run({ t, open, press, pathOf, style, base, browser, proble
     'overview cards draw the real slides',
     (await page.locator('.overview-card[data-no="1"] sn-cover h1').innerText()) === 'Showcase',
   );
+  t.ok(
+    'the overview page link and close button are inside the aria-modal dialog',
+    (await page.locator('#overview #overview-page-link').count()) === 1 &&
+      (await page.locator('#overview #overview-close').count()) === 1,
+  );
   const thumb = await page.locator('.overview-card[data-no="1"]').boundingBox();
   t.ok('a thumbnail is 300px wide', Math.abs(thumb.width - 302) < 4, String(thumb.width));
   await page.locator('#overview-close').click();
@@ -191,6 +196,10 @@ export async function run({ t, open, press, pathOf, style, base, browser, proble
   await page.mouse.click(400, 300, { button: 'right' });
   await page.waitForTimeout(200);
   t.ok('right click opens the context menu', (await page.locator('#context-menu').count()) === 1);
+  t.ok(
+    'the context menu sits in a labelled dialog (not loose outside the landmarks)',
+    (await page.locator('[role="dialog"][aria-label="Slide menu"] > #context-menu').count()) === 1,
+  );
   const arrows = await page
     .locator('#context-menu .menu-small')
     .evaluateAll((l) => l.map((e) => e.title));
