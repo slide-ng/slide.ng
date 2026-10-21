@@ -471,7 +471,7 @@ const dirB = join(scratch, 'deck-b');
 mkdirSync(dirB, { recursive: true });
 writeFileSync(
   join(dirB, 'slides.md'),
-  '---\ntitle: Deck B\nrouterMode: hash\n---\n\n# First\n\n---\n\n# Second\n',
+  '---\ntitle: Deck B\nrouterMode: hash\n---\n\n# First\n\n[To the second](2)\n\n---\n\n# Second\n',
 );
 const siteB = join(scratch, 'site-b');
 await cli(['build', join(dirB, 'slides.md'), '--base', 'sub/dir', '--out', siteB], dirB);
@@ -556,6 +556,23 @@ t.ok(
   'memory routing: moving to slide 2 leaves the address as it was',
   pageM.url() === `${servedM.origin}/m/2`,
   pageM.url(),
+);
+// A slide link's href opens its slide in a new tab: memory mode reads `#/<number>` once, then drops it from the address.
+await pageM.keyboard.press('ArrowLeft');
+const linkM = await pageM.locator('slide-ng-link a').getAttribute('href');
+t.ok(
+  "memory routing: a slide link's href is the deck's address with #/2",
+  linkM === '/m/#/2',
+  linkM,
+);
+await pageM.goto(`${servedM.origin}${linkM}`);
+await pageM.waitForFunction(() =>
+  /clicks \d+\/\d+/.test(document.querySelector('#hud')?.innerText ?? ''),
+);
+t.ok(
+  "memory routing: the link's href opened in a new tab shows slide 2, and the address drops the #/2",
+  (await hudM()).startsWith('slide 2/2') && pageM.url() === `${servedM.origin}/m/`,
+  `${await hudM()} ${pageM.url()}`,
 );
 await pageM.close();
 await servedM.close();

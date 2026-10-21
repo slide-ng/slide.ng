@@ -25,10 +25,21 @@ interface Entry {
   readonly state: unknown;
 }
 
-/** The address to start from: a print page as given, anything else slide 1. `path` is the part after the base, with the query. */
-export function memoryStart(path: string): string {
+/**
+ * The address to start from: a print page as given, a slide given as `#/<number>` (the href of a slide link, so a link opened
+ * in a new tab shows its slide), anything else slide 1. `path` is the part after the base, with the query; `hash` is the
+ * address's `#...`.
+ */
+export function memoryStart(path: string, hash = ''): string {
   const clean = '/' + path.replace(/^\/+/, '');
-  return /^\/(presenter\/)?print(?:[/?#]|$)/.test(clean) ? clean.replace(/#.*$/, '') : '/';
+  if (/^\/(presenter\/)?print(?:[/?#]|$)/.test(clean)) return clean.replace(/#.*$/, '');
+  const slide = /^#\/(\d+)(\?clicks=\d+)?$/.exec(hash);
+  return slide ? `/${slide[1]}${slide[2] ?? ''}` : '/';
+}
+
+/** The href of slide `no` in memory mode: the deck's own address with `#/<no>`, which `memoryStart` reads. */
+export function memorySlideHref(baseHref: string, no: number): string {
+  return `${baseHref}#/${no}`;
 }
 
 @Injectable()
@@ -50,7 +61,12 @@ export class MemoryLocationStrategy extends LocationStrategy {
     const below = pathname.startsWith(this.baseHref)
       ? pathname.slice(this.baseHref.length)
       : pathname;
-    const start = memoryStart(below + this.platform.search);
+    const start = memoryStart(below + this.platform.search, this.platform.hash);
+    // A slide read from the hash is taken once: the address bar goes back to the deck's address, so a reload starts
+    // like any other (at slide 1, or at the kept slide in the dev server).
+    if (start !== '/' && this.platform.hash) {
+      this.platform.replaceState(null, '', pathname + this.platform.search);
+    }
     this.entries = [{ url: start === '/' ? (this.kept() ?? start) : start, state: null }];
   }
 

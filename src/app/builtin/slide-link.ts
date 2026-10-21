@@ -1,5 +1,6 @@
 import { LocationStrategy } from '@angular/common';
 import { Component, computed, inject, input } from '@angular/core';
+import { MemoryLocationStrategy, memorySlideHref } from '../lib/memory-location';
 import { Nav, findSlide } from '../lib/nav';
 import { RENDER_CONTEXT } from '../lib/slide-context';
 import { printAnchor } from '../print/print-anchor';
@@ -7,7 +8,8 @@ import { printAnchor } from '../print/print-anchor';
 // A link to another slide of the deck: <slide-ng-link to="3">go to slide 3</slide-ng-link>.
 // `to` is a slide number or a `routeAlias`. (The name is not `link`, which is a built-in HTML tag.)
 // The href is the slide's real address (with the deck's base, or after the # with hash routing), so a new tab or a copied
-// link opens that slide; a plain click moves inside the deck. On the print page (and so in a PDF) it points at the first page
+// link opens that slide; a plain click moves inside the deck. In memory mode, whose addresses all open slide 1, it is the
+// deck's address with `#/<number>`, which the deck reads once when it starts. On the print page (and so in a PDF) it points at the first page
 // of that slide instead.
 @Component({
   selector: 'slide-ng-link',
@@ -32,6 +34,9 @@ export class SlideLink {
   protected href = computed(() => {
     const no = this.target();
     if (this.isPrint) return no ? `#${printAnchor(no)}` : null;
+    if (no && this.location instanceof MemoryLocationStrategy) {
+      return memorySlideHref(this.location.getBaseHref(), no);
+    }
     return this.location.prepareExternalUrl(`/${no ?? this.to()}`);
   });
 

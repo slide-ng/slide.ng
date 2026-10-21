@@ -1,6 +1,11 @@
 import { APP_BASE_HREF, Location, LocationStrategy } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
-import { MEMORY_KEEP, MemoryLocationStrategy, memoryStart } from './memory-location';
+import {
+  MEMORY_KEEP,
+  MemoryLocationStrategy,
+  memorySlideHref,
+  memoryStart,
+} from './memory-location';
 
 describe('memoryStart', () => {
   it('starts every address but the print pages at slide 1', () => {
@@ -8,6 +13,16 @@ describe('memoryStart', () => {
     expect(memoryStart('presenter/3')).toBe('/');
     expect(memoryStart('printer')).toBe('/');
     expect(memoryStart('')).toBe('/');
+  });
+  it("opens the slide of a slide link's href, #/<number>, and only that", () => {
+    expect(memoryStart('', '#/4')).toBe('/4');
+    expect(memoryStart('', '#/4?clicks=2')).toBe('/4?clicks=2');
+    expect(memoryStart('7', '#/4')).toBe('/4');
+    expect(memoryStart('', '#/presenter/1')).toBe('/');
+    expect(memoryStart('', '#/overview')).toBe('/');
+    expect(memoryStart('', '#top')).toBe('/');
+    expect(memoryStart('print', '#/4')).toBe('/print');
+    expect(memorySlideHref('/talk/', 4)).toBe('/talk/#/4');
   });
   it('keeps the print pages the exporter opens', () => {
     expect(memoryStart('print?range=1-3')).toBe('/print?range=1-3');
