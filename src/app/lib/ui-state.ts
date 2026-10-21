@@ -33,11 +33,22 @@ export class Ui {
     this.goto.update((v) => !v);
   }
 
-  /** Moves the overview highlight. Left/right by one card, up/down by one row. */
-  moveOverview(by: 'left' | 'right' | 'up' | 'down', total: number) {
-    const step = { left: -1, right: 1, up: -this.overviewColumns(), down: this.overviewColumns() }[
-      by
-    ];
+  /**
+   * Moves the overview highlight. Left/right by one card, up/down by one row. The keys follow the cards on the screen:
+   * in a right-to-left page the grid is mirrored, so the next card is on the left.
+   */
+  moveOverview(
+    by: 'left' | 'right' | 'up' | 'down',
+    total: number,
+    rtl = getComputedStyle(document.documentElement).direction === 'rtl',
+  ) {
+    const forward = rtl ? -1 : 1;
+    const step = {
+      left: -forward,
+      right: forward,
+      up: -this.overviewColumns(),
+      down: this.overviewColumns(),
+    }[by];
     this.overviewPage.update((p) => Math.min(Math.max(p + step, 1), total));
   }
 

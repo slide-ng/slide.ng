@@ -8,7 +8,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 - The interface can be translated: `lang` (or `uiLang`) picks the language, and `locales/<lang>.json` in the deck, a theme or an addon translates it key by key (docs/UI-STRINGS.md). Turkish is built in (`lang: tr`).
 - `lang` sets Angular's `LOCALE_ID`, so the `date`, `number` and `currency` pipes in slides format for the deck's language.
-- `ar`, `he`, `fa` and `ur` set `dir="rtl"` (unless `htmlAttrs.dir` is given); the bar, menus and presenter mirror.
+- `ar`, `he`, `fa` and `ur` set `dir="rtl"` (unless `htmlAttrs.dir` is given); the bar, menus and presenter mirror. The quick overview's arrow keys follow its mirrored grid; the other keys stay physical. An interface language written the other way than the page keeps the direction of its text, and the dev side editor takes each line's direction from its first letter.
 - `--lang` for `dev`, `build` and `export`, and a recipe for one deck in several languages. `export --lang` is refused with `--dist` and `--url`, whose language is fixed when the deck is built.
 - `<slide-ng-title-renderer />` draws a slide's title as HTML, with its inline markdown and `$math$` (Slidev's `<TitleRenderer>`); `no="N"` picks another slide. The table of contents shows the same HTML. Raw HTML in a title is shown as text.
 - `notesAutoRuby: { word: reading }` in the headmatter shows a reading above each listed word in the speaker notes, with `<ruby>` (Slidev's `notesAutoRuby`). Code, tag attributes and existing `<ruby>` are left alone.

@@ -1,7 +1,8 @@
 // `npm run test:e2e` (last part): the interface language (docs/UI-STRINGS.md). Builds two decks and checks them in a browser:
 //   tests/e2e/i18n/slides.md       `lang: xx`, with locales/xx.json in the deck and in its theme: labels of the bar, the
 //                                  settings menu, goto, overview, info, presenter and print come from the files, the rest is English
-//   tests/e2e/i18n/rtl/slides.md   `lang: ar` with `uiLang: tr`: the built-in Turkish, `dir="rtl"`, a mirrored bar, Arabic dates
+//   tests/e2e/i18n/rtl/slides.md   `lang: ar` with `uiLang: tr`: the built-in Turkish (isolated left to right), `dir="rtl"`, a
+//                                  mirrored bar and overview, Arabic dates
 import { execSync } from 'node:child_process';
 import { launch, reporter, serve } from './browser.mjs';
 import { makeContext } from './helpers.mjs';
@@ -140,10 +141,12 @@ const title = (page, selector) => page.locator(selector).first().getAttribute('t
   const page = await ctx.open('/1');
   const html = await page.evaluate(() => [document.documentElement.lang, document.dir]);
   t.ok('<html lang="ar" dir="rtl">', html[0] === 'ar' && html[1] === 'rtl', html.join('|'));
+  // Turkish runs left to right in a right-to-left page: every text is an LTR isolate (LRI ... PDI), so it keeps its order.
   t.ok(
-    'uiLang: tr shows the built-in Turkish',
-    (await title(page, '#nav-next')) === 'Sonraki slayta git' &&
-      (await title(page, '#nav-settings')) === 'Diğer seçenekler',
+    'uiLang: tr shows the built-in Turkish, isolated left to right',
+    (await title(page, '#nav-next')) === '\u2066Sonraki slayta git\u2069' &&
+      (await title(page, '#nav-settings')) === '\u2066Diğer seçenekler\u2069',
+    await title(page, '#nav-next'),
   );
   t.ok(
     'LOCALE_ID follows lang: the date pipe writes the Arabic month',
@@ -158,6 +161,17 @@ const title = (page, selector) => page.locator(selector).first().getAttribute('t
     'the bar is mirrored: in the right corner, running from right to left',
     bar.x > 640 && full.x > next.x,
     JSON.stringify({ bar: bar.x, full: full.x, next: next.x }),
+  );
+  // The overview grid is mirrored, so its arrows are too: left goes to the next card (on the left).
+  await page.keyboard.press('o');
+  await page.waitForSelector('#overview', { timeout: 5000 });
+  await page.keyboard.press('ArrowLeft');
+  await page.keyboard.press('Enter');
+  await page.waitForURL((url) => url.pathname === '/2', { timeout: 5000 }).catch(() => {});
+  t.ok(
+    'overview: ArrowLeft goes to the next card in a mirrored grid',
+    new URL(page.url()).pathname === '/2',
+    page.url(),
   );
   await page.close();
 

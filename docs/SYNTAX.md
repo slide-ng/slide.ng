@@ -791,6 +791,9 @@ A package name that is not installed stops the run with the command that install
 | `g`                          | go to a slide: type a number or part of a title, Enter   |
 | Escape                       | close the overview, dialogs and menus                    |
 
+In a right-to-left deck the keys stay physical (right is next), the overview arrows follow its mirrored grid, and transitions are
+not mirrored (see [UI-STRINGS.md](UI-STRINGS.md)).
+
 The bar at the bottom left (fullscreen, previous, next, overview, dark mode, drawing, presenter mode, info, settings, counter)
 shows when the mouse is there. Drawing, presenter mode, camera and recording (when `record` is on) and the dev-only editor button are live. Right click opens a menu with the same actions;
 hold Shift while right clicking for the browser's own menu. Click the dark area beside the slide: right half = next, left half = previous.
@@ -836,7 +839,8 @@ a key that does not exist and about a lost placeholder.
 
 `lang` also sets Angular's `LOCALE_ID`, so `{{ price | currency: 'EUR' }}`, `{{ day | date }}` and `{{ n | number }}` in slides are
 written for that language (only that locale's data goes into the build). A right-to-left language (`ar`, `he`, `fa`, `ur`) sets `dir="rtl"`
-on the page, unless `htmlAttrs.dir` says otherwise, and the bar, the menus and the presenter are mirrored.
+on the page, unless `htmlAttrs.dir` says otherwise, and the bar, the menus and the presenter are mirrored. An interface language
+written the other way (`uiLang: en` in an Arabic deck) keeps the direction of its text.
 
 ### One deck in several languages
 

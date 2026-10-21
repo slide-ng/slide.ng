@@ -23,6 +23,15 @@ default; `src/app/i18n/en.ts` holds it and is the source of truth for the keys. 
 - **Locale.** `lang` also sets `LOCALE_ID` for the `date`, `number`, `currency` and `percent` pipes, when Angular has data for it
   (`pt-BR`, else `pt`); only that locale's data is added to the build. `ar`, `he`, `fa` and `ur` set `dir="rtl"` on the page unless
   `htmlAttrs.dir` is given; the bar, menus, goto box and presenter use logical CSS (`start`, `end`), so they mirror.
+- **Direction of the interface text.** When `uiLang` is written the other way than the page (`lang: ar` with `uiLang: en`, or
+  `uiLang: he` in a left-to-right deck), every interface text is a bidi isolate of the interface language's direction (the Unicode
+  marks LRI or RLI ... PDI, added by `mergeUiText` from `UI_DIR` of the generated `ui-text.ts`), so "2 slides" and "No notes for
+  slide 2." keep their order. The layout still follows the page. The dev side editor and the notes editor take each line's
+  direction from its first letter (`unicode-bidi: plaintext`), so a line that mixes Arabic and Latin is not reordered.
+- **Keys in a right-to-left page.** Left and right stay physical, as in Slidev: right (and space) is the next click, left the
+  previous one, and a selected `slide-ng-drag` element moves the way the arrow points. In the quick overview the arrows follow the
+  mirrored grid: left goes to the next card, which is on the left. Transitions are not mirrored: `slide-left` still slides to the
+  left.
 - **Built-in translations.** Turkish (`tr`). A built-in translation must have every key (the unit test checks it).
 
 ## Keys

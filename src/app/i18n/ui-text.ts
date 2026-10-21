@@ -12,11 +12,23 @@ export const UI_TEXT = new InjectionToken<UiText>('UI_TEXT', {
   factory: () => EN,
 });
 
-/** English with `translations` over it, key by key. Keys English does not have are left out. */
-export function mergeUiText(translations: Readonly<Record<string, string>>): UiText {
+/**
+ * English with `translations` over it, key by key. Keys English does not have are left out. With `dir` (the interface
+ * language runs the other way than the page, UI_DIR of the generated ui-text.ts) every text is a bidi isolate of that
+ * direction, so an English text in an Arabic deck keeps its order ("2 slides", not "slides 2") and the other way round.
+ */
+export function mergeUiText(
+  translations: Readonly<Record<string, string>>,
+  dir: '' | 'ltr' | 'rtl' = '',
+): UiText {
   const merged: Record<string, string> = { ...EN };
   for (const [key, value] of Object.entries(translations))
     if (key in EN && typeof value === 'string') merged[key] = value;
+  if (dir) {
+    // LRI or RLI ... PDI: the Unicode marks of `<bdi dir>`, which also work in attributes and the tab title.
+    const open = dir === 'rtl' ? '\u2067' : '\u2066';
+    for (const key of Object.keys(merged)) merged[key] = `${open}${merged[key]}\u2069`;
+  }
   return merged as UiText;
 }
 

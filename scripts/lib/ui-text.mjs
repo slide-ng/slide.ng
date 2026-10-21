@@ -6,7 +6,7 @@ import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { transform } from 'esbuild';
-import { angularLocale, baseLang, normalizeLang, uiLangOf } from './lang.mjs';
+import { angularLocale, baseLang, isRtl, normalizeLang, uiLangOf } from './lang.mjs';
 
 /** Where the translations that come with slide.ng live (a `locales/` folder like a root's). */
 export const BUILT_IN_LOCALES = 'src/app/i18n';
@@ -90,7 +90,7 @@ export async function readEnglish(file = ENGLISH_FILE) {
 }
 
 /** `src/slides/generated/ui-text.ts`: the translated texts and the locale of the pipes, whose data is registered here. */
-export function uiTextSource({ locale, translations }) {
+export function uiTextSource({ locale, translations, dir = '' }) {
   const data =
     locale === 'en-US'
       ? ''
@@ -106,7 +106,23 @@ export const LOCALE = ${JSON.stringify(locale)};
 
 /** The translated texts; every other key is English (src/app/i18n/en.ts). */
 export const UI_TRANSLATIONS: Record<string, string> = ${JSON.stringify(translations, null, 2)};
+
+/** The direction of the interface language when the page runs the other way (an English interface in an Arabic deck), else ''. */
+export const UI_DIR: '' | 'ltr' | 'rtl' = ${JSON.stringify(dir)};
 `;
+}
+
+/**
+ * The direction the interface text needs of its own: `rtl` or `ltr` when the interface language (`uiLang`) is written the
+ * other way than the page (`htmlAttrs.dir`, else `lang`), else ''. An `htmlAttrs.dir` of `auto` gives ''.
+ */
+export function uiDirection(headmatter) {
+  const set = headmatter.htmlAttrs?.dir;
+  const page =
+    set == null ? (isRtl(headmatter.lang) ? 'rtl' : 'ltr') : String(set).trim().toLowerCase();
+  if (page !== 'ltr' && page !== 'rtl') return '';
+  const ui = isRtl(uiLangOf(headmatter)) ? 'rtl' : 'ltr';
+  return ui === page ? '' : ui;
 }
 
 /**
@@ -131,5 +147,5 @@ export async function deckUiText(deck, warn) {
     warn(
       `lang: ${deck.headmatter.lang} has no Angular locale data, so dates and numbers are formatted in English`,
     );
-  return { lang, locale, translations };
+  return { lang, locale, translations, dir: uiDirection(deck.headmatter) };
 }

@@ -16,6 +16,13 @@ describe('interface text', () => {
     expect('nav.nope' in text).toBe(false);
   });
 
+  it('makes every text an isolate of the interface direction when the page runs the other way', () => {
+    const ltr = mergeUiText({}, 'ltr');
+    expect(ltr['presenter.noNotes']).toBe(`\u2066${EN['presenter.noNotes']}\u2069`);
+    expect(mergeUiText({ 'nav.next': 'التالي' }, 'rtl')['nav.next']).toBe('\u2067التالي\u2069');
+    expect(mergeUiText({})['nav.next']).toBe(EN['nav.next']);
+  });
+
   it('splits a text around a placeholder drawn as markup', () => {
     expect(splitAt('Made with {name}, inspired by Slidev', 'name')).toEqual([
       'Made with ',

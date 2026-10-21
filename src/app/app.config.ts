@@ -9,7 +9,7 @@ import {
 import { provideRouter, withHashLocation } from '@angular/router';
 import { HEADMATTER } from '../slides/generated';
 import { SETUP_PROVIDERS } from '../slides/generated/setup';
-import { LOCALE, UI_TRANSLATIONS } from '../slides/generated/ui-text';
+import { LOCALE, UI_DIR, UI_TRANSLATIONS } from '../slides/generated/ui-text';
 import { routes } from './app.routes';
 import { DevApi } from './dev/dev-api';
 import { presenterEnabled } from './lib/switches';
@@ -23,7 +23,8 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     // The headmatter's `lang` (or `uiLang`) picks the interface text and the locale of the date, number and currency pipes.
-    { provide: UI_TEXT, useValue: mergeUiText(UI_TRANSLATIONS) },
+    // UI_DIR: the interface text keeps its own direction when the page runs the other way.
+    { provide: UI_TEXT, useValue: mergeUiText(UI_TRANSLATIONS, UI_DIR) },
     { provide: LOCALE_ID, useValue: LOCALE },
     // Headmatter `presenter: false`: the page is marked so the nav bar hides its presenter button (styles/controls.css).
     provideEnvironmentInitializer(() => {

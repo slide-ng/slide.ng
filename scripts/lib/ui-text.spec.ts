@@ -18,6 +18,7 @@ import {
   localeFiles,
   readEnglish,
   readTranslations,
+  uiDirection,
   uiTextSource,
 } from './ui-text.mjs';
 
@@ -126,6 +127,21 @@ describe('locale files', () => {
   });
 });
 
+describe('uiDirection', () => {
+  it('is the interface direction only when the page runs the other way', () => {
+    expect(uiDirection({ lang: 'ar', uiLang: 'en' })).toBe('ltr');
+    expect(uiDirection({ lang: 'en', uiLang: 'he' })).toBe('rtl');
+    expect(uiDirection({ uiLang: 'fa' })).toBe('rtl');
+    expect(uiDirection({ lang: 'ar' })).toBe('');
+    expect(uiDirection({ lang: 'tr' })).toBe('');
+    expect(uiDirection({})).toBe('');
+    // htmlAttrs.dir decides the page: an Arabic interface on a page set to rtl needs nothing, `auto` is left alone.
+    expect(uiDirection({ lang: 'en', uiLang: 'ar', htmlAttrs: { dir: 'rtl' } })).toBe('');
+    expect(uiDirection({ lang: 'ar', htmlAttrs: { dir: 'ltr' } })).toBe('rtl');
+    expect(uiDirection({ lang: 'ar', uiLang: 'en', htmlAttrs: { dir: 'auto' } })).toBe('');
+  });
+});
+
 describe('uiTextSource', () => {
   it('registers the data of a locale other than en-US and lists the translations', () => {
     const tr = uiTextSource({ locale: 'tr', translations: { 'nav.next': 'Sonraki' } });
@@ -135,6 +151,8 @@ describe('uiTextSource', () => {
     expect(tr).toContain('"nav.next": "Sonraki"');
     const en = uiTextSource({ locale: 'en-US', translations: {} });
     expect(en).not.toContain('registerLocaleData');
+    expect(en).toContain(`export const UI_DIR: '' | 'ltr' | 'rtl' = "";`);
+    expect(uiTextSource({ locale: 'ar', translations: {}, dir: 'ltr' })).toContain('= "ltr";');
     expect(existsSync('node_modules/@angular/common/locales/tr.js')).toBe(true);
   });
 });
