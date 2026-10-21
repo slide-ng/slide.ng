@@ -66,6 +66,23 @@ export default { shortcuts: { 'my-muted': 'op60 text-sm' } };
 provider and merged with the deck's own `fonts`). A `colorSchema` of `light` or `dark` says the theme has colours for that mode only:
 decks that use it keep that mode. Leave it out when the theme styles both. Keys outside `"name"`, `"headmatter"` and `"layouts"` are not read. Pictures go in `public/`.
 
+Settings a deck may change, such as the accent colour, go in `themeConfig`, as in Slidev. Each one is the CSS variable
+`--slidev-theme-<key>` on `<body>`, and the deck's `themeConfig: { accent: '#22c55e' }` replaces your default. A number
+is written without a unit (`radius: 6` is `6`, not a length), so give lengths as text with their unit (`"radius": "6px"`):
+
+```json
+{ "headmatter": { "themeConfig": { "accent": "#f59e0b" } } }
+```
+
+```css
+.my-quote {
+  border-left: 4px solid var(--slidev-theme-accent);
+}
+```
+
+`primary` is the colour of the built-in accent (`text-primary`, the progress bar). In a component, `inject(THEME_CONFIG)` (from
+`slide-ng/lib/theme-config`) gives the whole map. Details and the rules for values are in [THEMES.md](THEMES.md#themeconfig).
+
 Dark mode is the class `dark` on `<html>`: write `html.dark .my-quote { ... }` for the dark palette. The core styles dim the paragraph
 right after a heading (`h1 + p`, a subtitle); set its `opacity` in your CSS if your theme should not.
 

@@ -139,6 +139,12 @@ t.ok(
     .evaluate((e) => getComputedStyle(e).backgroundColor)) === 'rgb(245, 158, 11)',
 );
 t.ok(
+  'the themeConfig default of theme.json is the CSS variable --slidev-theme-accent',
+  (await page.evaluate(() =>
+    getComputedStyle(document.body).getPropertyValue('--slidev-theme-accent').trim(),
+  )) === '#f59e0b',
+);
+t.ok(
   'the theme headmatter sets the colour schema (dark)',
   await page.evaluate(() => document.documentElement.classList.contains('dark')),
 );
@@ -196,7 +202,8 @@ t.ok(
 
 // ---- a theme by name from node_modules: a copy of the example theme stands in for the package @slide-ng/theme-demo
 // (the way the official themes of the slide-ng/themes repository are found), and its eject
-const named = deck('named', 'theme: demo\n', true);
+// The deck also changes the theme's `themeConfig.accent`.
+const named = deck('named', "theme: demo\nthemeConfig:\n  accent: '#22c55e'\n", true);
 cpSync(themeDir, join(named, 'node_modules/@slide-ng/theme-demo'), { recursive: true });
 const namedSite = await build(named);
 const namedJs = readdirSync(namedSite)
@@ -207,6 +214,14 @@ t.ok(
   'theme: demo is found as @slide-ng/theme-demo in node_modules and its layouts and component are built',
   namedJs.includes('minimal-cover') && namedJs.includes('minimal-callout'),
 );
+v = await look(namedSite, '/1');
+t.ok(
+  "the deck's themeConfig.accent recolours the theme's CSS",
+  (await v.page
+    .locator('.minimal-cover-line')
+    .evaluate((e) => getComputedStyle(e).backgroundColor)) === 'rgb(34, 197, 94)',
+);
+await v.close();
 const namedEject = await cli(['theme', 'eject'], named);
 t.ok(
   'theme eject of a package name copies the package folder',

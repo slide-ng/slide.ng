@@ -13,6 +13,7 @@ There is no global `$slidev`, `$nav`, `$clicks` or `$page` in markdown. A compon
 | `$clicks`, `$slidev.nav.clicks`                    | `ClicksContext` from `slide-ng/lib/clicks`: `current()`, `total()` signals (one per slide)                                                                                                   |
 | `$renderContext`                                   | `RENDER_CONTEXT` from `slide-ng/lib/slide-context`: `'slide'`, `'presenter'`, `'previewNext'`, `'print'`, `'overview'`                                                                       |
 | slide number of this slide                         | `SLIDE_NO` from `slide-ng/lib/slide-context`                                                                                                                                                 |
+| `$slidev.themeConfigs`                             | `THEME_CONFIG` from `slide-ng/lib/theme-config`: the merged `themeConfig` map; in a slide's markdown it is `themeConfig` (`{{ themeConfig['primary'] }}`)                                    |
 | `onSlideEnter`, `onSlideLeave`, `useIsSlideActive` | missing: use `effect()` on `Nav.no()` and `SLIDE_NO`. In the PDF and the overview every slide is drawn at once and `Nav.no()` stays the presented slide, so show content by `SLIDE_NO` there |
 
 In markdown itself use `<slide-ng-current-no />`, `<slide-ng-total />` and `<slide-ng-render-when>`.

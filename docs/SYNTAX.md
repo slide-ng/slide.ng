@@ -62,6 +62,7 @@ In the headmatter (the frontmatter of the first slide) you can also set:
 | `codeCopy`, `magicMoveCopy`                                                      | `false` hides the copy button on every code block, or only on Magic Move blocks                       |
 | `contextMenu`, `presenter`                                                       | `true` (default), `false`, `dev` or `build`: the right-click menu, and the presenter page and button  |
 | `editor`                                                                         | `false` hides the side editor (dev server only)                                                       |
+| `themeConfig`                                                                    | settings for the theme, e.g. `themeConfig: { primary: '#5d8392' }`; see "Themes and addons" below     |
 
 Other keys are kept in the slide's metadata and ignored, unless a theme or a component reads them.
 
@@ -807,6 +808,27 @@ addons: [./charts]
 A theme or addon can bring layouts, components, layers, CSS, public files, UnoCSS settings, default headmatter and Angular providers (for example shortcuts). Folders next to your `slides.md`
 (`layouts/`, `components/`, `layers/`, `styles/`, `public/`, `setup/`) work the same way and win over the theme. `slide-ng theme eject` copies the theme you use into `./theme`.
 A package name that is not installed stops the run with the command that installs it (in a terminal it asks first, like Slidev). The full contract is in THEMES.md, a walk-through in WRITING-A-THEME.md.
+
+`themeConfig` sets values the theme reads, as in Slidev. Each key with a text or number value becomes a CSS variable
+`--slidev-theme-<key>` on `<body>` (the key as written: `primary` is `--slidev-theme-primary`, `accentDark` is
+`--slidev-theme-accentDark`), in the page, the presenter, the PDF and offline builds. `primary` recolours the built-in
+accent (`text-primary`, `bg-primary`, `border-primary`, the progress bar and the controls):
+
+<!-- prettier-ignore -->
+```md
+---
+themeConfig:
+  primary: '#5d8392'
+---
+```
+
+The theme's `theme.json` can give defaults; the deck's keys win, key by key. A key must be letters, digits, `-` and `_`, and a
+value that could leave the CSS declaration (`;`, `{`, `}`, `<`, `>`, `\`, a comment, a line break, unclosed quotes or brackets) is
+skipped with a warning, and so is a `url(...)` or `image-set(...)` (the generated CSS cannot find the file; name pictures in
+the theme's or the deck's CSS). The value is the same in light and dark mode. A number is written as it is, without a unit, as
+in Slidev: `radius: 6` is `--slidev-theme-radius: 6`, which CSS does not take as a length; write `radius: 6px` for one (or
+`calc(var(--slidev-theme-radius) * 1px)` in the CSS). A slide reads the whole map as `themeConfig`
+(`{{ themeConfig['primary'] }}`, Slidev's `$slidev.themeConfigs`); lists and objects are kept there but are not CSS variables.
 
 ## Keys, mouse and the interface
 

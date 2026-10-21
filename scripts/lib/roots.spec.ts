@@ -226,6 +226,13 @@ describe('mergeHeadmatter', () => {
     });
     expect(merged).toMatchObject({ fonts: { sans: 'PT Serif', mono: 'Fira Code' } });
   });
+  it('merges themeConfig of the theme, the addons and the deck key by key', () => {
+    const merged = mergeHeadmatter(
+      [root({ themeConfig: { primary: '#111', accent: '#222' } }), root({ themeConfig: { x: 1 } })],
+      { themeConfig: { primary: '#333' } },
+    );
+    expect(merged).toMatchObject({ themeConfig: { primary: '#333', accent: '#222', x: 1 } });
+  });
   it('keeps the mode of a theme made for one mode', () => {
     expect(
       mergeHeadmatter([root({ colorSchema: 'light' })], { colorSchema: 'auto' }),

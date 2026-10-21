@@ -24,6 +24,7 @@ A theme is a folder (or an npm package) with any of: `layouts/`, `components/`, 
 ```
 
 - `headmatter`: defaults for the deck; the deck's own wins. `defaults`, `fonts`, `drawings`, `htmlAttrs`, `themeConfig` are merged key by key.
+- `headmatter.themeConfig`: settings a deck may change. Each text or number key is `--slidev-theme-<key>` on `<body>` (after the theme's CSS, so it wins over `:root` and `html.dark`). Use it in rules on elements (`border-color: var(--slidev-theme-accent)`) or alias it on `body`; an alias on `:root` does not see it. Numbers get no unit: give lengths as `"6px"`. In code, `inject(THEME_CONFIG)` from `slide-ng/lib/theme-config` gives the whole map.
 - `colorSchema: light` or `dark` here means the theme has colours for that mode only: every deck using it keeps that mode (the generator warns when a deck asks for another). Leave it out when the theme styles both.
 - `layouts.<name>`: `props` become inputs, `slots` are accepted after `::name::`, `classProp: true` sends the slide's `class` to the input `contentClass`.
 - Angular providers: `setup/main.ts` (or `setup/providers.ts` default-exporting an array). Tokens: `SHORTCUTS_SETUP`, `CODE_RUNNERS` (`slide-ng/code/runners`), `SYNC_TRANSPORTS` (`slide-ng/sync/transport`).
@@ -36,7 +37,7 @@ A theme is a folder (or an npm package) with any of: `layouts/`, `components/`, 
 ```json
 {
   "name": "my-theme",
-  "headmatter": { "transition": "fade" },
+  "headmatter": { "transition": "fade", "themeConfig": { "accent": "#f59e0b" } },
   "layouts": { "quote": { "props": ["author"], "slots": [], "classProp": false } }
 }
 ```
@@ -78,7 +79,7 @@ export class MyCallout {
 .my-callout {
   display: block;
   padding: 0.5rem 1rem;
-  border-left: 4px solid orange;
+  border-left: 4px solid var(--slidev-theme-accent);
 }
 .my-quote-by {
   opacity: 0.6;

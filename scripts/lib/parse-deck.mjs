@@ -7,6 +7,7 @@ import { injectPreparserExtensionLoader, load } from '@slidev/parser/fs';
 import { assertReadable, allowsOutsideRoot } from './outside-root.mjs';
 import { mergeHeadmatter, resolveRoots } from './roots.mjs';
 import { preparserExtensions } from './setup/node-setups.mjs';
+import { themeConfigVars } from './theme-config.mjs';
 
 // `sources` is optional: a { path: text } map that replaces reading files (used by tests).
 // `options.theme` is the `--theme` flag. The result has `roots` (theme, addons, the deck's own folder) and a headmatter
@@ -81,6 +82,9 @@ export async function parseDeck(file = 'slides.md', sources, options = {}) {
       problems.push(
         `${entry}: \`${key}: true\` is not supported (MDC syntax such as :span[x]{.c} stays text); use HTML with classes instead`,
       );
+
+  // `themeConfig` keys that cannot be a CSS variable are skipped (lib/theme-config.mjs); the theme's defaults are checked too.
+  for (const p of themeConfigVars(headmatter.themeConfig).problems) problems.push(`${entry}: ${p}`);
 
   // Old Slidev decks pick Prism; code here is always Shiki, so Prism theme CSS no longer applies.
   if (data.headmatter.highlighter && data.headmatter.highlighter !== 'shiki')

@@ -1,5 +1,6 @@
 // `npm run test:e2e` (sixth part): builds tests/e2e/phase5/slides.md, a deck with a setup/ folder (docs/SETUP.md),
-// and checks in a real browser that every setup hook changed the output. `node tests/e2e/phase5.mjs setup` runs one topic.
+// and checks in a real browser that every setup hook changed the output and that `themeConfig` reaches the CSS and the slides.
+// `node tests/e2e/phase5.mjs setup` runs one topic.
 import { execSync } from 'node:child_process';
 import { launch, reporter, serve } from './browser.mjs';
 import { makeContext } from './helpers.mjs';
@@ -21,7 +22,7 @@ const t = reporter();
 const ctx = makeContext(`http://localhost:${port}`, browser, t);
 
 const only = process.argv[2];
-for (const topic of ['setup']) {
+for (const topic of ['setup', 'theme-config']) {
   if (only && only !== topic) continue;
   console.log(`\n== ${topic}`);
   await (await import(`./phase5/${topic}.mjs`)).run(ctx);

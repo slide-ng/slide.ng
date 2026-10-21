@@ -16,6 +16,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - Markdown links to `http(s)` addresses open in a new tab (`target="_blank" rel="noopener"`), on slides and in speaker notes (#14).
 - A link to a slide points at that slide's page on the print page and in an exported PDF, instead of at the address of the local server (#14).
 - A link to a slide in the speaker notes, clicked in the presenter, moves the presenter to that slide instead of opening the audience page (#14).
+- `themeConfig` in the headmatter (or a theme's `theme.json`) is applied as in Slidev: each text or number key becomes the CSS variable `--slidev-theme-<key>`, so `themeConfig: { primary: '#5d8392' }` recolours `text-primary`, the progress bar and the controls. Values that could break out of the CSS, and `url()` or `image-set()` values, are skipped with a warning. Numbers are written without a unit, as in Slidev (`radius: 6px` for a length). Themes and components read the whole map with the `THEME_CONFIG` token, slides as `themeConfig`. `examples/theme-minimal` takes its accent colour from `themeConfig.accent`.
 
 ### Changed
 
