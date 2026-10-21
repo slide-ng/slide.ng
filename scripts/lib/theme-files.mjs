@@ -117,7 +117,7 @@ export async function applyRoots(deck, out, write, warn) {
   const uno = await unoGenerator(unoConfigs);
 
   const generated = resolve(out);
-  syncRoots(deck.roots, generated, await stylesWithDirectives(deck.roots, uno));
+  syncRoots(deck.roots, generated, await stylesWithDirectives(deck.roots, uno), warn);
   // Where each copy came from, so a build error in `roots/deck/components/x.ts` can name the author's own file (cli/runtime.mjs).
   write(
     `${out}roots.json`,

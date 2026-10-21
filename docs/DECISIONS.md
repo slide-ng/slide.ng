@@ -152,13 +152,15 @@ Nothing else was added: footnotes, alerts, the PlantUML encoding and the code ru
     it starts Monaco's two workers with `new Worker(new URL(...))` (editor worker and TypeScript worker, small files in `src/app/code/monaco/`),
     which Angular's esbuild builder compiles into separate `worker-*.js` files (`webWorkerTsConfig` in `angular.json`). No AMD loader, no CDN.
     JSON, CSS and HTML get colours but no language server (no workers for them, to keep the output smaller). Setup needed in `angular.json`:
-    `"loader": { ".ttf": "file" }` (the icon font) and `webWorkerTsConfig`.
+    `"loader": { ".ttf": "file" }` (the icon font) and `webWorkerTsConfig`. Its stylesheet comes with the chunk too ("Made while measuring the
+    first load", 1).
 18. **`tsconfig.app.json` lists only `src/main.ts`** (no `include`), so only files the deck imports are compiled. Without this the builder
     found the `new Worker(...)` calls in every file and put 7 MB of workers into every build, also decks without an editor.
-19. **Monaco's CSS goes through `features.css` (by path, with its icon font inside) when the deck has an editor.** The CSS that Monaco's JavaScript
-    imports is written next to the output as unused `.css` files (about 190 kB each, not linked). Mapping `.css` to `empty` in `angular.json`
-    removed them but broke the unit tests, so they stay. Editors use Monaco's own `vs` / `vs-dark` themes following the colour mode, not the Shiki
-    themes (that would need `@shikijs/monaco`, one more dependency).
+19. **Monaco's CSS comes with the lazy Monaco chunk** ("Made while measuring the first load", 1); it no longer goes through `features.css`.
+    The production configuration maps `.css` to `empty` in `angular.json`, so the unused `.css` files that Monaco's JavaScript imports are no
+    longer written next to the output. The loader is set only for production, as setting it for every build broke the unit tests. Editors use
+    Monaco's own `vs` / `vs-dark` themes following the colour mode, not the Shiki themes (that would need `@shikijs/monaco`, one more
+    dependency).
 20. **`{monaco-run}` runs code in a sandboxed `<iframe srcdoc sandbox="allow-scripts">`** (no `allow-same-origin`): it cannot reach the slides,
     their storage or cookies; it posts back what `console.log` printed. A run is cut off after 5 seconds. TypeScript is turned into JavaScript by
     Monaco's own TypeScript worker, so the 9 MB `typescript` package is not added a second time. Not supported: `import` in the code (Slidev maps a few
@@ -534,3 +536,26 @@ Source: an independent review of the repository (nine findings). Each fix has a 
    follow) and one as a presenter (viewers follow), because a window ignores moves made by its own kind. It answers the click step
    a window reports back; a viewer on another machine may not drive, so it reports on a `position` channel that only the hub reads
    (no window follows it).
+
+## Made while measuring the first load
+
+1. **Monaco's stylesheet comes with the Monaco chunk, not with the deck's styles.** It is about 390 kB (125 kB compressed, the icon font
+   is inside) and a stylesheet in the page holds up the first paint, so one `{monaco}` block anywhere made every slide wait for it (first
+   paint of a 10-slide deck on slow 3G: 10.6 s before, 4.9 s after). `src/app/code/monaco/setup.ts` imports the file as text
+   (`with { loader: 'text' }`) and adds it as a `<style>` after the app's stylesheet, so the cascade order against the reset stays the
+   same. Monaco's own modules import their stylesheets one by one; Angular wrote those as three CSS files that nothing loaded (about
+   560 kB in `dist/`), so a production build loads every `.css` that JavaScript imports as empty (`loader` in `angular.json`).
+2. **Dev-only code is not in a production build, and the other pages stay in the first bundle.** The side editor and the dev server's
+   providers (WebSocket sync, drag saving) are replaced by empty files in a production build (`side-editor.prod.ts`,
+   `dev-providers.prod.ts`), as the editor's highlighter already was. Making presenter, notes, notes print and print lazy routes
+   (`loadComponent`) was tried and measured: the first load got 2 kB smaller (compressed), but the bundler split the code those pages
+   share with the slides into six more files that the page needs at once, and on slow 3G the first paint of the same deck went from
+   4.9 s to 7.1 s (one more round trip). So they stay eager.
+3. **Slides are still all in the first bundle** (phase 1, decision 16). Loading each slide lazily would make the first slide smaller for
+   long decks, but every navigation, the overview, print and export would then wait for chunks; not done.
+4. **A root folder that is a symbolic link (`public -> ../pictures`) is still not followed**, like every other link in a root (phase 4,
+   decision 14: a theme could point a link anywhere on the disk). The generator now warns instead of leaving the files out silently; the
+   fix is a real folder.
+5. **Mermaid 12 lays out flowcharts with ELK by default**, so a plain `graph LR` downloads the ELK chunk (about 350 kB compressed). This
+   is Mermaid's own default (`layout: elk` in its config), not a slide.ng setting; `{layout:'dagre'}` on the fence (or in
+   `setup/mermaid.ts`) uses the smaller dagre layout.
