@@ -878,7 +878,9 @@ frontmatter. The CSS for the classes you use is built automatically. As in Slide
   `components/stat-row.ts`: `<stat-row grid />` sets the input, it does not make every `[grid]` element a CSS grid), and those of
   SVG elements (`<text font-size="14">`, `<path stroke-width="2">`, inside an `<svg>` or written alone in a `.ts` string, as a
   `setup/mermaid-renderer.ts` does). Use `class` there. An attribute of your component that is not one of its inputs (`<stat-row p="4">`)
-  still styles the component's element.
+  still styles the component's element. Plain HTML attributes are read too: `<table border="1">` gets a border, `<span font="bold">`
+  is bold, `<div m="4">` gets a margin. `unocss: { attributify: false }` in the headmatter turns attributify off for the deck
+  (a deck written for 1.x that uses such attributes as HTML); classes and variant groups still work.
 - **Typography**: `class="prose"` styles long text (headings, lists, links, quotes), `dark:prose-invert` for dark mode, `not-prose` to opt out.
 - **Directives** in `<style>` and `styles/`: see Per-slide styles.
   Responsive prefixes (`md:`, `lg:`) follow the browser window, not the slide, which keeps its own size and is scaled: the same slide

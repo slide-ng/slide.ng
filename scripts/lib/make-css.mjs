@@ -45,10 +45,18 @@ const withoutAttributify = (config) => ({
   presets: config.presets.filter((p) => p.name !== '@unocss/preset-attributify'),
 });
 
-export async function makeCss(deckFiles, extraConfigs = [], appFiles = []) {
+/** Headmatter `unocss: { attributify: false }` turns attributify off for the deck (a 1.x deck's `<table border>` stays plain). */
+export const attributifyOn = (headmatter) => headmatter?.unocss?.attributify !== false;
+
+export async function makeCss(
+  deckFiles,
+  extraConfigs = [],
+  appFiles = [],
+  { attributify = true } = {},
+) {
   const merged = mergeUnoConfigs(config, extraConfigs);
-  const uno = await createGenerator(merged);
   const plain = await createGenerator(withoutAttributify(merged));
+  const uno = attributify ? await createGenerator(merged) : plain;
   // UnoCSS finds class names in plain text, so we hand it the files as one string. A generated slide holds its template as a
   // JSON string: `\"` is read as `"`, so attributify (`flex=\"~\"`) is found there too.
   const read = (files) => {

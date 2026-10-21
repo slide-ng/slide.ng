@@ -13,7 +13,7 @@ import { ROOT_FOLDERS } from './lib/roots.mjs';
 import { slideName, slideSources, sourcePathsModule } from './lib/emit.mjs';
 import { indexSource } from './lib/index-source.mjs';
 import { layoutName } from './lib/layouts.mjs';
-import { makeCss, tsFiles } from './lib/make-css.mjs';
+import { attributifyOn, makeCss, tsFiles } from './lib/make-css.mjs';
 import { slideStyleDirectives } from './lib/uno-directives.mjs';
 import { detectFeatures } from './lib/features.mjs';
 import { initHighlighter } from './lib/code/highlighter.mjs';
@@ -216,9 +216,12 @@ async function generate() {
   const slideFiles = deck.slides.map((_, i) => `${OUT}${slideName(i + 1)}.ts`);
   write(
     `${OUT}uno.css`,
-    await makeCss([...deck.files, ...slideFiles, ...tsFiles(`${OUT}roots`)], unoConfigs, [
-      ...tsFiles('src/app'),
-    ]),
+    await makeCss(
+      [...deck.files, ...slideFiles, ...tsFiles(`${OUT}roots`)],
+      unoConfigs,
+      [...tsFiles('src/app')],
+      { attributify: attributifyOn(deck.headmatter) },
+    ),
   );
   console.log(
     `[slides] generated ${deck.slides.length} ${deck.slides.length === 1 ? 'slide' : 'slides'}`,

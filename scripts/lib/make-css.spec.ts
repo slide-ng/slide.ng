@@ -1,7 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { createGenerator } from '@unocss/core';
 import config from '../../uno.config.mjs';
-import { boundClasses, componentInputs, withoutForeignAttributes } from './make-css.mjs';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import {
+  attributifyOn,
+  boundClasses,
+  componentInputs,
+  makeCss,
+  withoutForeignAttributes,
+} from './make-css.mjs';
 
 const css = async (classes: string) =>
   (await (await createGenerator(config)).generate(classes)).css;
@@ -90,5 +99,21 @@ describe('withoutForeignAttributes', () => {
     const out = await css(withoutForeignAttributes(text));
     expect(out).toContain('[flex~="col"]');
     expect(out).toContain('[p~="\\34 "]');
+  });
+});
+
+describe('unocss: { attributify: false }', () => {
+  it('reads plain attributes as utilities unless the headmatter turns attributify off', async () => {
+    const file = join(mkdtempSync(join(tmpdir(), 'uno-')), 'slides.md');
+    writeFileSync(file, '<table border="1" class="p-2"><tr><td m="4">x</td></tr></table>');
+    const on = await makeCss([file]);
+    expect(on).toContain('[border~="\\31 "]');
+    const off = await makeCss([file], [], [], {
+      attributify: attributifyOn({ unocss: { attributify: false } }),
+    });
+    expect(off).not.toContain('[border');
+    expect(off).not.toContain('[m~=');
+    expect(off).toContain('.p-2');
+    expect(attributifyOn({})).toBe(true);
   });
 });
