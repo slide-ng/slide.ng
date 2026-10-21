@@ -10,14 +10,14 @@ import { Ui } from '../lib/ui-state';
   template: `
     @if (ui.info()) {
       <div id="info-dialog" class="fixed inset-0 grid z-modal">
-        <div class="absolute inset-0 -z-1 bg-black/80" (click)="ui.info.set(false)"></div>
+        <div class="absolute inset-0 bg-black/80" (click)="ui.info.set(false)"></div>
         <div
           #box
           role="dialog"
           aria-modal="true"
           [attr.aria-label]="title"
           tabindex="-1"
-          class="outline-none slidev-layout m-auto rounded-md bg-main text-main shadow dark:border dark:border-gray/20 px-6 py-4 flex flex-col gap-4 text-base max-w-150"
+          class="outline-none slidev-layout relative m-auto rounded-md bg-main text-main shadow dark:border dark:border-gray/20 px-6 py-4 flex flex-col gap-4 text-base max-w-150 max-h-[calc(100dvh-1rem)] overflow-y-auto"
           style="height: auto"
         >
           @if (infoHtml) {
@@ -26,7 +26,7 @@ import { Ui } from '../lib/ui-state';
             <div class="text-xl font-bold">{{ title }}</div>
           }
           <div id="info-credit" class="flex gap-1 items-center text-sm">
-            <span class="opacity-50 mr-2">{{ credit[0] }}</span>
+            <span class="opacity-75 mr-2">{{ credit[0] }}</span>
             <svg class="w-5 h-5" viewBox="13 6 102 113" fill="none" aria-hidden="true">
               <path
                 d="M64 11L110 27 103 88 64 114 25 88 18 27Z"
@@ -47,7 +47,7 @@ import { Ui } from '../lib/ui-state';
               <path d="M50.25 71h12.7" stroke="#8F300A" stroke-width="5.5" stroke-linecap="round" />
             </svg>
             <b>slide.ng</b>
-            <span class="opacity-50">{{ credit[1] }}</span>
+            <span class="opacity-75">{{ credit[1] }}</span>
           </div>
         </div>
       </div>

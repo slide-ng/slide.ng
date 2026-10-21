@@ -216,4 +216,49 @@ export async function run({ t, open }) {
   await play.evaluate(() => localStorage.removeItem('slidev-cursor-style'));
   await play.close();
   await page.close();
+
+  // At 400% zoom (a 1280x720 window is 320x180 CSS pixels) the menus and the info dialog stay inside the window and
+  // scroll (WCAG 1.4.10).
+  const zoomed = await open('/1');
+  await zoomed.setViewportSize({ width: 320, height: 180 });
+  await zoomed.waitForTimeout(300);
+  const inside = (sel) =>
+    zoomed.locator(sel).evaluate((e) => {
+      const r = e.getBoundingClientRect();
+      const fits = r.top >= 0 && r.left >= 0 && r.bottom <= innerHeight && r.right <= innerWidth;
+      return {
+        fits,
+        scrolls:
+          e.scrollHeight <= e.clientHeight + 1 || getComputedStyle(e).overflowY !== 'visible',
+        r: [r.top, r.bottom].map(Math.round),
+      };
+    });
+  t.ok(
+    'the settings button says whether its menu is open',
+    (await zoomed.locator('#nav-settings').getAttribute('aria-expanded')) === 'false' &&
+      (await zoomed.locator('#nav-settings').getAttribute('aria-haspopup')) === 'true',
+  );
+  for (const [button, box] of [
+    ['#nav-settings', '#settings-menu'],
+    ['#nav-sync', '#sync-menu'],
+    ['#nav-info', '#info-dialog [role="dialog"]'],
+  ]) {
+    await zoomed.locator(button).focus();
+    await zoomed.keyboard.press('Enter');
+    await zoomed.waitForTimeout(400);
+    const fit = await inside(box);
+    t.ok(
+      `at 400% zoom ${box} stays inside the window`,
+      fit.fits && fit.scrolls,
+      JSON.stringify(fit),
+    );
+    if (button === '#nav-settings')
+      t.ok(
+        'the settings button says its menu is open',
+        (await zoomed.locator('#nav-settings').getAttribute('aria-expanded')) === 'true',
+      );
+    await zoomed.keyboard.press('Escape');
+    await zoomed.waitForTimeout(300);
+  }
+  await zoomed.close();
 }

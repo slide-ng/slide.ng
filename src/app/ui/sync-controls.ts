@@ -1,6 +1,7 @@
 import { Component, ElementRef, Injector, afterNextRender, computed, inject } from '@angular/core';
 import { Nav } from '../lib/nav';
 import { Ui } from '../lib/ui-state';
+import { fitMenu } from '../lib/fit-menu';
 import { SyncState } from '../sync/sync-state';
 import {
   SYNC_MODES,
@@ -18,14 +19,20 @@ import { T } from '../i18n/t';
 @Component({
   selector: 'app-sync-controls',
   imports: [IconBtn, T],
-  host: { class: 'flex relative', '(document:click)': 'closeOutside($event)' },
+  host: {
+    class: 'flex relative',
+    '(document:click)': 'closeOutside($event)',
+    '(window:resize)': 'fit()',
+  },
   template: `
     <button
       icon-btn
       id="nav-sync"
       [title]="'nav.sync' | t"
       [active]="open()"
+      aria-haspopup="true"
       [attr.aria-expanded]="open()"
+      [attr.aria-controls]="open() ? 'sync-menu' : null"
       (click)="toggle()"
     >
       <div
@@ -41,7 +48,7 @@ import { T } from '../i18n/t';
       <div
         id="sync-menu"
         (keydown)="menuKey($event)"
-        class="bg-main text-main shadow-xl absolute bottom-10 left-0 z-menu py-2 border border-main rounded-md"
+        class="bg-main text-main shadow-xl absolute bottom-10 left-0 z-menu py-2 border border-main rounded-md max-w-[calc(100vw-1rem)] overflow-y-auto"
       >
         <div class="text-sm flex flex-col gap-2">
           <div class="px-3 whitespace-nowrap">
@@ -70,7 +77,7 @@ import { T } from '../i18n/t';
                   class="i-carbon:checkmark text-green-500 my-auto"
                   [class.op0]="mode() !== m.value"
                 ></div>
-                <div [class.op50]="mode() !== m.value">{{ m.label | t }}</div>
+                <div [class.op75]="mode() !== m.value">{{ m.label | t }}</div>
               </button>
             }
           </div>
@@ -97,7 +104,19 @@ export class SyncControls {
     this.ui.settings.set(false); // one menu at a time
     // Into the menu, on the ticked mode (as a radio group): the arrow keys then change the mode, not the slide,
     // whether the menu was opened with the mouse or the keyboard.
-    afterNextRender(() => this.focusMode(this.mode()), { injector: this.injector });
+    afterNextRender(
+      () => {
+        this.fit();
+        this.focusMode(this.mode());
+      },
+      { injector: this.injector },
+    );
+  }
+
+  // Inside the window, however narrow or short it is (lib/fit-menu.ts).
+  protected fit() {
+    const menu = this.el.querySelector<HTMLElement>('#sync-menu');
+    if (menu) fitMenu(menu);
   }
 
   private focusMode(mode: SyncMode) {

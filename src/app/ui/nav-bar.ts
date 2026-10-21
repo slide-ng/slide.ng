@@ -18,6 +18,7 @@ import { Nav } from '../lib/nav';
 import { ViewPrefs } from '../lib/view-prefs';
 import { PresenterPrefs } from '../presenter/prefs';
 import { Ui } from '../lib/ui-state';
+import { fitMenu } from '../lib/fit-menu';
 import { T } from '../i18n/t';
 import { IconBtn } from './icon-btn';
 import { SideEditorState } from '../dev/side-editor-state';
@@ -232,6 +233,9 @@ import { presenterEnabled } from '../lib/switches';
             id="nav-settings"
             [title]="'nav.settings' | t"
             [active]="ui.settings()"
+            aria-haspopup="true"
+            [attr.aria-expanded]="ui.settings()"
+            [attr.aria-controls]="ui.settings() ? 'settings-menu' : null"
             (click)="ui.settings.set(!ui.settings())"
           >
             <div class="i-carbon:settings-adjust"></div>
@@ -246,7 +250,7 @@ import { presenterEnabled } from '../lib/switches';
             <div
               #settingsMenu
               id="settings-menu"
-              class="bg-main text-main shadow-xl absolute bottom-10 start-0 z-menu py-2 border border-main rounded-md max-w-[calc(100vw-1rem)]"
+              class="bg-main text-main shadow-xl absolute bottom-10 start-0 z-menu py-2 border border-main rounded-md max-w-[calc(100vw-1rem)] overflow-y-auto"
             >
               <app-settings />
             </div>
@@ -302,18 +306,10 @@ export class NavBar {
     });
   }
 
-  // The menu opens at the inline start of its button (to the right of it, to the left in a right-to-left deck). On a narrow
-  // window (a phone, a page zoomed to 200%) it moves as far as it must to stay inside the window; it is never wider than
-  // the window (the content scrolls). It is moved with `translate`, which works the same in both directions: `left` would
-  // stretch a menu that is placed by its `right` edge.
+  // Inside the window, however narrow or short it is (lib/fit-menu.ts).
   fitSettings() {
     const menu = this.settingsMenu()?.nativeElement;
-    if (!menu) return;
-    menu.style.translate = '';
-    const r = menu.getBoundingClientRect(),
-      gap = 8;
-    const shift = Math.max(gap - r.left, Math.min(0, window.innerWidth - gap - r.right));
-    if (shift) menu.style.translate = `${shift}px`;
+    if (menu) fitMenu(menu);
   }
 
   // A click anywhere outside the bar closes the settings menu.
