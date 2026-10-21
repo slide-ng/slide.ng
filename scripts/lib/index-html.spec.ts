@@ -99,8 +99,20 @@ describe('injectIndexHtml', () => {
     const html = injectIndexHtml(own, parts);
     expect(html).toContain('<html lang="en" class="dark brand" data-site="conf">');
     expect(html).toContain('<body class="has-banner">');
-    // `lang="en"` is only the default when the headmatter sets no `lang`.
-    expect(injectIndexHtml(own, parts, ['lang'])).toContain('<html class="dark brand" lang="de"');
+  });
+  it("never takes the lang of an index.html: the headmatter's (or English) stays, with a warning when they differ", () => {
+    const warnings: string[] = [];
+    const parts = { head: '', body: '', htmlAttrs: { lang: 'de' } };
+    expect(
+      injectIndexHtml('<html lang="en"><body></body></html>', parts, (m) => warnings.push(m)),
+    ).toBe('<html lang="en"><body></body></html>');
+    expect(warnings).toEqual([
+      'the lang="de" of an index.html is not used: set `lang` (or `uiLang`) in the headmatter',
+    ]);
+    injectIndexHtml('<html lang="de" dir="ltr"><body></body></html>', parts, (m) =>
+      warnings.push(m),
+    );
+    expect(warnings).toHaveLength(1);
   });
   it('leaves the page alone without parts, and keeps $ signs as they are', () => {
     expect(injectIndexHtml(page, { head: '', body: '' })).toBe(page);

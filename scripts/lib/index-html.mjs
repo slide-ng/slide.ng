@@ -116,14 +116,27 @@ export function replaceHeadTags(page, added) {
 /**
  * Puts the parts into the page: the head before </head> (its `<title>` and `<meta>` replace the page's, see replaceHeadTags), the body after
  * the app's element, and the attributes on <html> and <body>. The page's own attributes (from the headmatter: `lang`,
- * `htmlAttrs`) win, except those named in `defaults` (the `lang="en"` the headmatter did not ask for); `class` values are joined.
+ * `htmlAttrs`) win; `class` values are joined. The `lang` of <html> always comes from the headmatter (or `--lang`, else
+ * English), as it also picks the interface language, the locale and the direction: an index.html's `lang` is left out, and
+ * `warn` says so when it differs from the page's.
+ * @param {string} page
+ * @param {{ head?: string, body?: string, htmlAttrs?: Record<string, string | true>, bodyAttrs?: Record<string, string | true> }} parts
+ * @param {(message: string) => void} [warn]
  */
 export function injectIndexHtml(
   page,
   { head, body, htmlAttrs = {}, bodyAttrs = {} },
-  defaults = [],
+  warn = () => {},
 ) {
   let html = page;
+  if (typeof htmlAttrs.lang === 'string') {
+    const own = parseAttributes(/<html\b([^>]*)>/i.exec(page)?.[1] ?? '').lang;
+    if (String(own).toLowerCase() !== htmlAttrs.lang.toLowerCase())
+      warn(
+        `the lang="${htmlAttrs.lang}" of an index.html is not used: set \`lang\` (or \`uiLang\`) in the headmatter`,
+      );
+  }
+  htmlAttrs = Object.fromEntries(Object.entries(htmlAttrs).filter(([name]) => name !== 'lang'));
   if (head) {
     const replaced = replaceHeadTags(html, head);
     html = replaced.page.replace(/<\/head>/i, () => `${replaced.added}\n</head>`);
@@ -135,9 +148,7 @@ export function injectIndexHtml(
   ]) {
     if (!Object.keys(attrs).length) continue;
     html = html.replace(new RegExp(`<${tag}\\b([^>]*)>`, 'i'), (_, own) => {
-      const pageAttrs = parseAttributes(own);
-      for (const name of defaults) if (name in attrs) delete pageAttrs[name];
-      const merged = { ...pageAttrs };
+      const merged = parseAttributes(own);
       for (const [name, value] of Object.entries(attrs))
         if (name === 'class' || !(name in merged)) mergeAttributes(merged, { [name]: value });
       return `<${tag} ${attributeText(merged)}>`;

@@ -116,8 +116,10 @@ made from the headmatter or from an earlier root: the later one wins. A light an
 and so are tags meant to repeat, the Open Graph arrays (`og:image`, `og:video`, `og:audio`, `og:locale:alternate`,
 `article:tag`, `article:author`, `book:tag`, `book:author`, `music:*`, `video:actor`,
 `video:director`, `video:writer`, `video:tag`): every copy from every root stays. While the deck runs, the tab's title still follows the slides' titles. The
-attributes of its `<html>` and `<body>` are added to the page's tags; the headmatter's `lang` and `htmlAttrs` win over them, and
-`class` values are joined. A root address (`src="/analytics.js"`, `href="/brand.css"`, files of `public/`) gets the base in front
+attributes of its `<html>` and `<body>` are added to the page's tags; the headmatter's `htmlAttrs` win over them, and
+`class` values are joined. `lang` comes from the headmatter only (`lang`, or `--lang`, else `en`), because it also picks the
+interface language, the date and number locale and the direction: the `lang` of an `index.html` is not used, and the generator
+warns when it differs from the page's. A root address (`src="/analytics.js"`, `href="/brand.css"`, files of `public/`) gets the base in front
 like `/x.svg` in a slide (`/talk/analytics.js` with `--base /talk/`, `analytics.js` in an offline folder); `//host/...` and
 `https://...` stay as they are. Its stylesheets are loaded as written: Angular's critical-CSS step is told to skip them
 (`data-beasties-skip`), as it cannot find the files of `public/` while it runs. The file is the
