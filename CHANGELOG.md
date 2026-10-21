@@ -118,6 +118,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - More did-you-mean in the CLI: `--verison`, `-P` (for `-p`), `format --chekc` (format takes no flags), `theme ejcet` and `skills instal`; `build --with-clicks` says it is a flag of `export`; `present` says to open `/presenter`; `--range 2-x` says it is not a range instead of "matches no slide". `slide-ng --help` lists `--lang` for `dev`.
 - A click animation preset one or two letters away from a built-in one (`slide-ng-click.fadee`) gets a warning with the name meant, unless the deck's styles define it.
 - An `<a href="/3">` written as HTML (also `./3`, `#/3` and a `routeAlias`) goes to the slide as a markdown link does, also with `routerMode: hash`, a base or offline, where it loaded `/3` from the server and showed slide 1 (1.0 wrote `#/3`). With other attributes (`target`) it is left as it is, with a warning.
+- The dev server's "watching" line names the deck's own folders (`layouts`, `components`, ...) and its themes, instead of `src/app`, which in an installed package is inside `node_modules`.
 - `e` in `npm run dev` or `npx slide-ng dev` opens `code` when it is installed instead of always vi: npm sets `EDITOR=vi` (`notepad.exe` on Windows) for the programs it starts, and that value now counts as unset there. `$VISUAL` and an `EDITOR` of your own still win.
 
 ## [1.0.0] - 2026-10-18

@@ -289,5 +289,13 @@ if (WATCH) {
   };
   watchAll({ files, folders });
   watchFolder('src/app', onChange, { tree: true }); // layouts may use new class names
-  console.log(`[slides] watching ${INPUT} (and its imports), its theme folders and src/app`);
+  // In the author's words: the deck's own folders and its themes. src/app (the app itself) only matters when slide.ng is
+  // worked on from its own checkout, not in an installed package.
+  const themes = folders.some((f) => !ROOT_FOLDERS.some((name) => basename(f) === name))
+    ? ' and its theme folders'
+    : '';
+  const app = /[\\/]node_modules[\\/]/.test(import.meta.dirname) ? '' : ', and src/app';
+  console.log(
+    `[slides] watching ${INPUT} (and its imports), the deck's ${ROOT_FOLDERS.join(', ')} folders${themes}${app}`,
+  );
 }
