@@ -5,7 +5,7 @@ import { renderUnicodeCompact } from 'uqr';
 
 /** @param {{ port: number, password: string, addresses: string[], routerMode?: string, generated?: boolean, fromArgv?: boolean }} info */
 export function remoteLines({ port, password, addresses, routerMode, generated, fromArgv }) {
-  const slash = routerMode === 'hash' ? '/#/' : '/';
+  const slash = rootPath(routerMode);
   const query = passwordQuery(password);
   const lines = [''];
   lines.push('[slide.ng] remote access is ON');
@@ -33,15 +33,19 @@ export function remoteLines({ port, password, addresses, routerMode, generated, 
 
 const passwordQuery = (password) => `?password=${encodeURIComponent(password)}`;
 
+// With headmatter `routerMode: hash` the route and its query come after a `#`: `/#/?password=...`, `/#/presenter/1?password=...`.
+/** @param {string | undefined} routerMode */
+const rootPath = (routerMode) => (routerMode === 'hash' ? '/#/' : '/');
+
 /**
  * The `c` key of `slide-ng dev --remote`: a QR code of the private slide show for each address, password included, so a
  * phone can open it with its camera (Slidev's `c`). Drawn with half blocks, two rows of the code per line of text.
- * @param {{ port: number, password: string, addresses: string[] }} info
+ * @param {{ port: number, password: string, addresses: string[], routerMode?: string }} info
  */
-export function remoteQrLines({ port, password, addresses }) {
+export function remoteQrLines({ port, password, addresses, routerMode }) {
   if (!addresses.length) return ['[slide.ng] no network address found for a QR code'];
   return addresses.flatMap((host) => {
-    const url = `http://${host}:${port}/${passwordQuery(password)}`;
+    const url = `http://${host}:${port}${rootPath(routerMode)}${passwordQuery(password)}`;
     return ['', `[slide.ng] ${url}`, renderUnicodeCompact(url, { border: 2 }), ''];
   });
 }

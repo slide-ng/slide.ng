@@ -18,6 +18,16 @@ Starts the dev server: the deck at `http://localhost:4230`, the presenter at `/p
 | `--force`, `-f`       | clear the Angular build cache first                                                                                                                     |
 | `--theme`, `-t`       | use this theme (a name or a folder) instead of the headmatter's                                                                                         |
 
+With `--remote` the dev server prints the public slide show, the private one and the presenter for each network address; the
+private addresses carry the password (`http://192.168.1.5:4230/?password=...`, `.../presenter/1?password=...`). The page logs in
+with it, then takes it out of the address bar. A deck with `routerMode: hash` gets addresses after `#/` (`/#/?password=...`,
+`/#/presenter/1?password=...`), and the `c` QR code follows the same mode; the page reads the password from the query after the `#`
+too. Opened without a password, the page asks once.
+
+Spaces in the password: the terminal prompt trims the typed password; `SLIDE_NG_PASSWORD` and `--remote=...` keep it as written,
+leading and trailing spaces included. The browser login compares exactly what is typed or in the address (the printed addresses
+encode spaces as `%20`), so a password with spaces at its ends must be typed with them.
+
 `--tunnel` and `--base` are refused with a message (`--base` is for `build`).
 
 On a terminal the dev server also reads keys, as Slidev's does, and prints a line that lists them:

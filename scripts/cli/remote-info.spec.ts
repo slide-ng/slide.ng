@@ -9,6 +9,19 @@ describe('remoteLines', () => {
     expect(text).toContain('private slide show: http://192.168.1.5:4230/?password=sec%20ret');
     expect(text).toContain('presenter/1?password=sec%20ret');
   });
+  it('puts the addresses after #/ for a deck with routerMode: hash', () => {
+    const text = remoteLines({
+      port: 4230,
+      password: 'x y',
+      routerMode: 'hash',
+      addresses: ['192.168.1.5'],
+    }).join('\n');
+    expect(text).toContain('public slide show:  http://192.168.1.5:4230/#/\n');
+    expect(text).toContain('private slide show: http://192.168.1.5:4230/#/?password=x%20y');
+    expect(text).toContain(
+      'presenter mode:     http://192.168.1.5:4230/#/presenter/1?password=x%20y',
+    );
+  });
   it('says what remote mode allows: editing slides and listed files, not only following', () => {
     const text = remoteLines({ port: 1, password: 'x', addresses: [] }).join('\n');
     expect(text).toContain('can edit your slides.md');
@@ -54,6 +67,15 @@ describe('remoteQrLines', () => {
     const code = lines[2].split('\n');
     expect(code.length).toBeGreaterThan(10);
     expect(code.every((row) => /^[ ▀▄█]+$/.test(row))).toBe(true);
+  });
+  it('encodes the hash address for a deck with routerMode: hash', () => {
+    const text = remoteQrLines({
+      port: 4230,
+      password: 'p',
+      routerMode: 'hash',
+      addresses: ['10.0.0.2'],
+    }).join('\n');
+    expect(text).toContain('http://10.0.0.2:4230/#/?password=p');
   });
   it('says so when there is no address', () => {
     expect(remoteQrLines({ port: 1, password: 'x', addresses: [] })[0]).toContain(

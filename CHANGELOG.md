@@ -10,6 +10,10 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - `notesAutoRuby: { word: reading }` in the headmatter shows a reading above each listed word in the speaker notes, with `<ruby>` (Slidev's `notesAutoRuby`). Code, tag attributes and existing `<ruby>` are left alone.
 - `slide-ng dev` reads keys in the terminal, like Slidev: `r` restarts, `o` opens the browser, `e` opens the entry in `$EDITOR` (or `code`), `q` quits, and `c` prints a QR code of the `--remote` address with the password. `r` does not open another tab with `--open` and leaves the keys answering without Enter, and on Windows `e` and `o` quote the path for `cmd`. New dependency: `uqr` (the QR library Slidev uses).
 
+### Fixed
+
+- `slide-ng dev --remote` with `routerMode: hash`: the printed addresses and the `c` QR code are `/#/?password=...` and `/#/presenter/1?password=...`, and the page logs in with them. The page also reads `?password=` before the router's first redirect, which dropped it, so an address with the password no longer asks for it again.
+
 ## [1.0.0] - 2026-10-18
 
 ### Added

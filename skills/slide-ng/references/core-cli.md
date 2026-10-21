@@ -30,7 +30,7 @@ description: The slide-ng command, its subcommands, flags and how to check that 
 | `create`         | `<folder>`, `--force`/`-f`                                                                                                                                                                                                                                                                                      |
 | `skills install` | `--dir <folder>` (default `.agents/skills`; the skill goes in `<dir>/slide-ng`), `--force`/`-f`                                                                                                                                                                                                                 |
 
-In a terminal, `dev` reads keys: `r` restart, `o` open the browser, `e` open the entry in `$EDITOR` (else `code`), `q` quit, `c` (with `--remote`) a QR code of the private address, password included. A restart does not repeat `--open`.
+In a terminal, `dev` reads keys: `r` restart, `o` open the browser, `e` open the entry in `$EDITOR` (else `code`), `q` quit, `c` (with `--remote`) a QR code of the private address, password included. A restart does not repeat `--open`. With `--remote` the printed private addresses carry `?password=`; with `routerMode: hash` they are `/#/?password=...` and `/#/presenter/1?password=...` (the QR code too). The prompt trims the typed password, `SLIDE_NG_PASSWORD` and `--remote=...` keep spaces, the browser login compares exactly.
 
 An unknown flag is an error. `--tunnel` and dev `--base` are refused with a message; `build --router-mode` does not exist (use `routerMode` in the headmatter).
 

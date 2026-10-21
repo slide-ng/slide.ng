@@ -5,10 +5,12 @@
 //   slide-ng [dev] [slides.md] [--port 4230] [--open] [--remote[=password]] [--bind 0.0.0.0] [--log info] [--force]
 // On a terminal it also reads keys: r restart, o open, e edit, q quit, c QR code (dev-keys.mjs).
 import { spawn, spawnSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { hostname, networkInterfaces } from 'node:os';
 import { createInterface } from 'node:readline';
 import { join, resolve } from 'node:path';
+import { parse } from 'yaml';
 import { removeInside } from '../lib/tool-dir.mjs';
 import { randomPassword, randomSecret } from '../dev/config.mjs';
 import { ngBinary, prepareApp } from './app-root.mjs';
@@ -77,6 +79,17 @@ export function devPlan(argv, env = process.env) {
     force: Boolean(flags.force),
     theme: flags.theme,
   };
+}
+
+// The headmatter's `routerMode`, read when the remote addresses are printed: a hash deck has its route after `/#/`. Only the
+// entry's headmatter is read (no imports, no setup code); a missing file or invalid YAML is taken as the default, history.
+export function deckRouterMode(entry) {
+  try {
+    const head = /^---\r?\n([\s\S]*?)\r?\n---/.exec(readFileSync(entry, 'utf8'))?.[1];
+    return head && parse(head)?.routerMode === 'hash' ? 'hash' : 'history';
+  } catch {
+    return 'history';
+  }
 }
 
 // A free port for the companion server (it only listens on this machine).
@@ -166,6 +179,7 @@ export async function devCommand(argv) {
         generated: plan.passwordGenerated,
         fromArgv: plan.passwordFrom === 'argv',
         addresses,
+        routerMode: deckRouterMode(plan.entry),
       }).join('\n'),
     );
 
@@ -212,7 +226,12 @@ export async function devCommand(argv) {
         qrcode: () =>
           console.log(
             plan.remote
-              ? remoteQrLines({ port: plan.port, password: plan.password, addresses }).join('\n')
+              ? remoteQrLines({
+                  port: plan.port,
+                  password: plan.password,
+                  addresses,
+                  routerMode: deckRouterMode(plan.entry),
+                }).join('\n')
               : '[slide.ng] the QR code is for --remote (start with slide-ng --remote)',
           ),
       },

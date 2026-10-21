@@ -476,7 +476,8 @@ try {
   const presenter = await a.newPage(),
     viewer = await b.newPage();
   await presenter.goto(`${rbase}/presenter/1?password=secret`);
-  await viewer.goto(`${rbase}/1?password=secret`);
+  // The viewer opens the root: the router's redirect to /1 drops the query, the password must be read before it.
+  await viewer.goto(`${rbase}/?password=secret`);
   for (const p of [presenter, viewer])
     await p.waitForFunction(
       () => /clicks \d+\/\d+/.test(document.querySelector('#hud')?.innerText ?? ''),
@@ -526,7 +527,12 @@ try {
   await sleep(2000);
 
   // ===================================================================== --remote without a password: a random one is made
+  // (on a deck with `routerMode: hash`, whose addresses have the route and the password after `#/`)
   fresh();
+  writeFileSync(
+    WORK,
+    read().replace('title: Dev write test', 'title: Dev write test\nrouterMode: hash'),
+  );
   const OPORT = 4232,
     obase = `http://127.0.0.1:${OPORT}`;
   stop = startDev(OPORT, ['--remote'], true);
@@ -548,9 +554,33 @@ try {
     made,
   );
   t.ok(
-    '--remote without a password: the presenter address carries it',
-    stop.output().includes(`/presenter/1?password=${encodeURIComponent(made)}`),
+    '--remote without a password: the presenter address carries it, after #/ for a hash deck',
+    stop.output().includes(`/#/presenter/1?password=${encodeURIComponent(made)}`) &&
+      stop.output().includes(`:${OPORT}/#/?password=${encodeURIComponent(made)}`),
   );
+  // The printed hash address logs in: no password prompt, the WebSocket of the deck is accepted, the password leaves the address.
+  const hashContext = await browser.newContext({ viewport: { width: 1000, height: 600 } });
+  const hashPage = await hashContext.newPage();
+  const prompts = [];
+  hashPage.on('dialog', (d) => (prompts.push(d.message()), d.dismiss()));
+  await hashPage.goto(`${obase}/#/?password=${encodeURIComponent(made)}`);
+  await hashPage.waitForFunction(
+    () => /clicks \d+\/\d+/.test(document.querySelector('#hud')?.innerText ?? ''),
+    null,
+    { timeout: 60000 },
+  );
+  await hashPage
+    .waitForFunction(() => !location.href.includes('password'), null, { timeout: 15000 })
+    .catch(() => {});
+  t.ok(
+    '--remote with routerMode hash: the printed /#/?password= address logs in without a prompt',
+    prompts.length === 0 &&
+      !hashPage.url().includes('password') &&
+      new URL(hashPage.url()).hash.startsWith('#/') &&
+      (await hashContext.cookies()).length > 0,
+    `${hashPage.url()} ${prompts.join()}`,
+  );
+  await hashContext.close();
   t.ok(
     '--remote without a password: there is no passwordless mode, the session needs the login',
     (await api(OPORT, '/session')).status === 401,

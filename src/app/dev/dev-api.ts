@@ -4,6 +4,36 @@ import { Injectable, isDevMode, signal } from '@angular/core';
 export const API = '/__slide-ng';
 
 /**
+ * The `?password=` of an address: in the query (`/presenter/1?password=x`) or, with `routerMode: hash`, in the query after
+ * the `#` (`/#/presenter/1?password=x`). Null when there is none.
+ */
+export function passwordInAddress(address: { search: string; hash: string }): string | null {
+  const inHash = address.hash.indexOf('?');
+  return (
+    new URLSearchParams(address.search).get('password') ??
+    (inHash < 0 ? null : new URLSearchParams(address.hash.slice(inHash + 1)).get('password'))
+  );
+}
+
+/** The address without its `password` parameter (in the query and in the hash's query). */
+export function withoutPassword(href: string): string {
+  const url = new URL(href);
+  url.searchParams.delete('password');
+  const inHash = url.hash.indexOf('?');
+  if (inHash >= 0) {
+    const query = new URLSearchParams(url.hash.slice(inHash + 1));
+    query.delete('password');
+    const rest = query.toString();
+    url.hash = url.hash.slice(0, inHash) + (rest ? `?${rest}` : '');
+  }
+  return url.href;
+}
+
+// Read when this file loads, before the router's first navigation: a redirect (`/` to `/1`, `#/` to `#/1`) drops the query, and
+// the page would ask for the password it was opened with.
+const passwordAtStart = typeof location === 'undefined' ? null : passwordInAddress(location);
+
+/**
  * The page's door to the dev companion server (scripts/dev/server.mjs). Only a dev build uses it: in a static
  * build `enabled` is false and nothing is ever requested. It logs in with `?password=` (or asks once), then
  * fetches the session token that every write needs.
@@ -23,7 +53,7 @@ export class DevApi {
 
   private async connect(): Promise<string | null> {
     try {
-      const fromUrl = new URLSearchParams(location.search).get('password');
+      const fromUrl = passwordAtStart ?? passwordInAddress(location);
       if (fromUrl) {
         await this.login(fromUrl);
         this.forgetPasswordInUrl();
@@ -53,9 +83,8 @@ export class DevApi {
 
   // The password should not stay in the address bar, the history or a shared link.
   private forgetPasswordInUrl() {
-    const url = new URL(location.href);
-    url.searchParams.delete('password');
-    history.replaceState(history.state, '', url);
+    const url = withoutPassword(location.href);
+    if (url !== location.href) history.replaceState(history.state, '', url);
   }
 
   /** POST or PUT a JSON body. Resolves true when the server accepted it. */

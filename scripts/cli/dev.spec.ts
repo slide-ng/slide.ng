@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { devPlan, ngServeArgs } from './dev.mjs';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { deckRouterMode, devPlan, ngServeArgs } from './dev.mjs';
 
 describe('devPlan', () => {
   it('has sensible defaults', () => {
@@ -75,5 +78,24 @@ describe('ngServeArgs', () => {
       '--port',
       '4230',
     ]);
+  });
+});
+
+describe('deckRouterMode', () => {
+  it("reads the entry's headmatter, history when it is missing or broken", () => {
+    const dir = mkdtempSync(join(tmpdir(), 'router-mode-'));
+    const deck = (name: string, text: string) => (
+      writeFileSync(join(dir, name), text),
+      join(dir, name)
+    );
+    expect(deckRouterMode(deck('hash.md', '---\ntitle: x\nrouterMode: hash\n---\n\n# One\n'))).toBe(
+      'hash',
+    );
+    expect(deckRouterMode(deck('crlf.md', '---\r\nrouterMode: hash\r\n---\r\n# One'))).toBe('hash');
+    expect(deckRouterMode(deck('plain.md', '# One\n\n---\nrouterMode: hash\n---\n'))).toBe(
+      'history',
+    );
+    expect(deckRouterMode(deck('bad.md', '---\nrouterMode: [\n---\n'))).toBe('history');
+    expect(deckRouterMode(join(dir, 'missing.md'))).toBe('history');
   });
 });
