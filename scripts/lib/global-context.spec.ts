@@ -9,6 +9,7 @@ describe('uncalledGlobals', () => {
     // A call earlier in the condition does not hide an uncalled signal after it.
     expect(uncalledGlobals('@if ($clicks() > 0 && $page === 2) {\n<b>x</b>\n}')).toEqual(['$page']);
     expect(uncalledGlobals("<div [class.x]='$clicks > 0'></div>")).toEqual(['$clicks']);
+    expect(uncalledGlobals('<div [style.width.%]="$page"></div>')).toEqual(['$page']);
     expect(uncalledGlobals('@let c = $clicks;\n{{ c }}')).toEqual(['$clicks']);
     expect(uncalledGlobals('@let c = $clicks();\n@let p = $page + 1;')).toEqual(['$page']);
     expect(uncalledGlobals('{{ $nav.currentPage }} {{ $slidev.nav.currentLayout }}')).toEqual([
@@ -19,7 +20,7 @@ describe('uncalledGlobals', () => {
 
   it('accepts the called forms and the plain values', () => {
     const markup =
-      '{{ $clicks() }} {{ $page() + 1 }} {{ $nav.currentPage() }} {{ $nav.total }} {{ $frontmatter.title }} {{ $slidev.configs.title }} <button (click)="$nav.next()">';
+      '{{ $clicks() }} {{ $page() + 1 }} {{ $nav.currentPage() }} {{ $nav.total }} {{ $frontmatter.title }} {{ $slidev.configs.title }} <button (click)="$nav.next()"> {{ $nav.clicksTotal?.() }}';
     expect(uncalledGlobals(markup)).toEqual([]);
   });
 

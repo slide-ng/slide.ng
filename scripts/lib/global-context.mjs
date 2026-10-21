@@ -13,14 +13,15 @@ const NAV_SIGNALS = [
   'hasPrev',
   'no',
 ];
+// A call may be optional (`$nav.clicksTotal?.()`).
 const UNCALLED = new RegExp(
-  `\\$(?:${SIGNALS.join('|')})\\b(?!\\s*\\()|\\$(?:slidev\\.)?nav\\.(?:${NAV_SIGNALS.join('|')})\\b(?!\\s*\\()`,
+  `\\$(?:${SIGNALS.join('|')})\\b(?!\\s*(?:\\?\\.\\s*)?\\()|\\$(?:slidev\\.)?nav\\.(?:${NAV_SIGNALS.join('|')})\\b(?!\\s*(?:\\?\\.\\s*)?\\()`,
   'g',
 );
 // Where Angular reads expressions: interpolations, bindings in either quotes, `@let` and control flow (the whole condition,
 // up to the block's `{`, so a call such as `$clicks()` inside it does not end the scan).
 const EXPRESSIONS =
-  /\{\{([\s\S]*?)\}\}|\s[[(*][\w.-]+[\])]?=(?:"([^"]*)"|'([^']*)')|@let\s+[\w$]+\s*=([^;]*);|@(?:if|else if|switch|case|for)\s*\(([^{]*)\)\s*\{/g;
+  /\{\{([\s\S]*?)\}\}|\s[[(*][\w.%-]+[\])]?=(?:"([^"]*)"|'([^']*)')|@let\s+[\w$]+\s*=([^;]*);|@(?:if|else if|switch|case|for)\s*\(([^{]*)\)\s*\{/g;
 
 /** The uncalled signals of the global context in `markup` (code samples already removed), each once. */
 export function uncalledGlobals(markup) {
