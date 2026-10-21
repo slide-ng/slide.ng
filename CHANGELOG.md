@@ -110,6 +110,7 @@ Node (22.22.3 or newer) and Angular (22.2) are the same as in 1.x. These changes
   numbers are not read out, and the presenter panes are named regions.
 - With two presenter windows, a window that opens later or a presenter page that opens or reloads no longer moves the audience to the other presenter's slide: the audience stays with the newest move, also when the devices' clocks are not set alike.
 - Several decks on one origin (built together with `build a.md b.md`, or the project sites of one GitHub Pages user) no longer follow each other's slides or share drawings and stored settings: the sync channel and every storage key carry the deck's base path, as folders opened from disk already did. Dark mode stays shared; a deck at `/` keeps its old keys.
+- The dev server's MCP endpoint takes a `--remote` password that is not ASCII (`--remote=şifre`) as a bearer token sent as UTF-8, as `curl` sends it; only Latin-1 worked.
 - MCP's `goto_slide` moves presenter windows every time; when its two messages (one for the presenters, one for the audience) came at once, a presenter window sometimes stayed where it was.
 - A presenter tab that was closed and opened again gets the running timer back from any other window of the deck, or from the dev server, and keeps it when the dev server restarts (`r`): every tab keeps the timer it shows, not only the one it started.
 - The timer shows the same time on devices whose clocks differ: it is shared with the sender's clock and moved onto the receiver's.

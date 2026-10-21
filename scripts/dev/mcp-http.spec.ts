@@ -3,6 +3,7 @@
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { request } from 'node:http';
+import { connect as connectTcp } from 'node:net';
 import { join } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
@@ -231,6 +232,37 @@ describe('MCP over HTTP on the dev server', () => {
     expect((await post(port, { authorization: 'Bearer my talk pw' })).status).toBe(200);
     expect((await post(port, { authorization: 'Bearer my talk' })).status).toBe(401);
     expect((await post(port, { authorization: 'Bearer my' })).status).toBe(401);
+  });
+
+  it('takes a password that is not ASCII, sent as UTF-8 (curl) or as Latin-1 (fetch)', async () => {
+    // The status of a POST whose Authorization header carries these exact bytes (node:http would change them).
+    const raw = (port: number, password: Buffer) =>
+      new Promise<number>((done, fail) => {
+        const body = JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' });
+        const socket = connectTcp(port, '127.0.0.1', () =>
+          socket.write(
+            Buffer.concat([
+              Buffer.from(
+                `POST /__mcp HTTP/1.1\r\nHost: 127.0.0.1:${port}\r\nContent-Type: application/json\r\n` +
+                  `Accept: application/json, text/event-stream\r\nContent-Length: ${body.length}\r\n` +
+                  'Connection: close\r\nAuthorization: Bearer ',
+              ),
+              password,
+              Buffer.from(`\r\n\r\n${body}`),
+            ]),
+          ),
+        );
+        let text = '';
+        socket.on('data', (d) => (text += d.toString('latin1')));
+        socket.on('end', () => done(Number(/^HTTP\/1\.1 (\d+)/.exec(text)?.[1])));
+        socket.on('error', fail);
+      });
+    const { port } = await start({ SLIDE_NG_REMOTE: '1', SLIDE_NG_PASSWORD: 'p@ss wörd şifre' });
+    expect(await raw(port, Buffer.from('p@ss wörd şifre', 'utf8'))).toBe(200);
+    expect(await raw(port, Buffer.from('p@ss word sifre', 'utf8'))).toBe(401);
+    const latin = await start({ SLIDE_NG_REMOTE: '1', SLIDE_NG_PASSWORD: 'wörd' });
+    expect(await raw(latin.port, Buffer.from('wörd', 'utf8'))).toBe(200);
+    expect((await post(latin.port, { authorization: 'Bearer wörd' })).status).toBe(200);
   });
 
   it('ignores the spaces around the password, which HTTP cannot carry', async () => {

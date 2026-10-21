@@ -26,7 +26,11 @@ export function mcpDenied(req, ctx) {
   // HTTP drops the spaces around a header value (and `\s+` those after "Bearer"), so the spaces around the password
   // never arrive: compare with the password without them. Spaces inside it count.
   const bearer = /^Bearer\s+(.+)$/i.exec(String(req.headers.authorization ?? '').trim())?.[1];
-  if (bearer && safeEqual(bearer, ctx.password.trim())) {
+  // Node reads a header's bytes as Latin-1. A client that sends the password as UTF-8 (curl, most SDKs) gives other
+  // characters for anything that is not ASCII, so its UTF-8 reading counts too; `fetch` sends Latin-1 where it can.
+  const password = ctx.password.trim();
+  const utf8 = bearer && Buffer.from(bearer, 'latin1').toString('utf8');
+  if (bearer && (safeEqual(bearer, password) || safeEqual(utf8, password))) {
     ctx.loginGuard.ok(client);
     return null;
   }
