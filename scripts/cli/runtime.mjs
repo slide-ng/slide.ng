@@ -87,8 +87,10 @@ const SAME_WINDOW_MS = 10_000;
  * isn't a known property of 'y'" (NG8002) is left out when 'y' is an unknown element already (NG8001 says what is wrong),
  * and a rebuild that fails with the same errors as the one just before says so in one line instead of printing them again.
  * `write(line, to)` gets the lines to print; `to` is the stream the line came from. Call `flush()` at the end.
+ * `onBuild` hears how each build ends: `{ ok: true }`, `{ ok: false }` when it fails, then `{ ok: false, error }` with the
+ * text of its first error (ANSI colours taken out).
  */
-export function angularOutput(write, { now = Date.now, idleMs = 300 } = {}) {
+export function angularOutput(write, { now = Date.now, idleMs = 300, onBuild } = {}) {
   let block = null; // the lines of the error or warning being read: [{ line, to }]
   let unknown = new Set();
   let cycle = []; // the error texts of this rebuild
@@ -110,6 +112,7 @@ export function angularOutput(write, { now = Date.now, idleMs = 300 } = {}) {
     const follow = FOLLOW_ON.exec(text)?.[1];
     if (follow && unknown.has(follow)) return;
     const isError = /^\s*✘/.test(text);
+    if (isError && !cycle.length) onBuild?.({ ok: false, error: text });
     if (isError) (cycle.push(text), (cycleAt = now()));
     if (isError && last && now() - last.at < SAME_WINDOW_MS && last.texts.has(text)) {
       if (!noted)
@@ -139,7 +142,11 @@ export function angularOutput(write, { now = Date.now, idleMs = 300 } = {}) {
       } else {
         endBlock();
         if (/Changes detected\. Rebuilding|^\s*❯ Building/.test(plain)) endCycle();
-        if (/Application bundle generation complete/.test(plain)) [last, cycle] = [null, []];
+        if (/Application bundle generation complete/.test(plain)) {
+          [last, cycle] = [null, []];
+          onBuild?.({ ok: true });
+        }
+        if (/Application bundle generation failed/.test(plain)) onBuild?.({ ok: false });
         write(line, to);
       }
       // A block that is the last output (nothing follows it yet) is printed after a moment.

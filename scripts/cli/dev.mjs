@@ -9,11 +9,13 @@ import { readFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { hostname, networkInterfaces } from 'node:os';
 import { createInterface } from 'node:readline';
+import { pathToFileURL } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
 import { parse } from 'yaml';
 import { mergeHeadmatter, resolveRoots } from '../lib/roots.mjs';
 import { checkToolDir, removeInside } from '../lib/tool-dir.mjs';
 import { randomPassword, randomSecret } from '../dev/config.mjs';
+import { startWaitingPage } from '../dev/waiting-page.mjs';
 import { ngBinary, prepareApp } from './app-root.mjs';
 import { checkPortFree, takeDevLock } from './dev-lock.mjs';
 import { applyLangFlag, applyThemeFlag, parseFlags } from './flags.mjs';
@@ -151,15 +153,50 @@ export async function devCommand(argv) {
   // stop does not end the command).
   let running;
   const startAll = (restart = false) => {
+    // The companion gets the Angular build errors over IPC, for a page that is opened or reloaded while one stands.
+    const companion = spawn(process.execPath, [join(packageRoot, 'scripts/dev/server.mjs')], {
+      cwd: appRoot,
+      env,
+      stdio: [...stdio, 'ipc'],
+    });
+    const tellCompanion = (message) => {
+      if (companion.connected) companion.send(message, () => {});
+    };
+    // Until its first good build the Angular server does not listen: a page on the port says why meanwhile.
+    const secret = randomSecret();
+    let waiting = null;
+    let served = false;
+    const onBuild = ({ ok, error }) => {
+      if (ok) {
+        served = true;
+        waiting?.close();
+        tellCompanion({ buildError: null });
+        return;
+      }
+      if (!served && !waiting)
+        waiting = startWaitingPage({
+          port: plan.port,
+          host: plan.host,
+          remote: plan.remote,
+          secret,
+          onRelease: () => (served = true),
+        });
+      if (error) {
+        waiting?.show(error);
+        tellCompanion({ buildError: error });
+      }
+    };
     const children = [
       spawn(process.execPath, [generate, '--watch'], { cwd: appRoot, env, stdio }),
-      spawn(process.execPath, [join(packageRoot, 'scripts/dev/server.mjs')], {
-        cwd: appRoot,
-        env,
-        stdio,
+      companion,
+      angularServer([ngBinary(), ...ngServeArgs(plan, restart)], {
+        appRoot,
+        env: { ...env, SLIDE_NG_WAIT_PORT: String(plan.port), SLIDE_NG_WAIT_SECRET: secret },
+        quiet,
+        onBuild,
       }),
-      angularServer([ngBinary(), ...ngServeArgs(plan, restart)], { appRoot, env, quiet }),
     ];
+    children[2].once('exit', () => waiting?.close());
     const watcher = watchChildren(
       [
         { name: 'the slide generator', child: children[0] },
@@ -296,8 +333,10 @@ const stopChild = (child) =>
 
 // The Angular dev server, with its errors pointing at the deck's files (slides.md line, the author's own components/ file)
 // instead of the generated copies, as the build does (runtime.mjs). Its colours stay when the terminal has them.
-function angularServer(ngArgs, { appRoot, env, quiet }) {
-  const child = spawn(process.execPath, ngArgs, {
+function angularServer(ngArgs, { appRoot, env, quiet, onBuild }) {
+  // wait-for-port.mjs lets the waiting page (waiting-page.mjs) hand the port over when the first good build is done.
+  const preload = pathToFileURL(join(packageRoot, 'scripts/dev/wait-for-port.mjs')).href;
+  const child = spawn(process.execPath, ['--import', preload, ...ngArgs], {
     cwd: appRoot,
     env: process.stdout.isTTY ? { ...env, FORCE_COLOR: '1' } : env,
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -305,14 +344,14 @@ function angularServer(ngArgs, { appRoot, env, quiet }) {
   });
   child.slideNgGroup = ownGroup;
   // One tidier for both streams (angularOutput): Angular writes the rebuild lines and the errors to different ones.
-  const tidy = angularOutput((line, to) => to.write(`${line}\n`));
+  // With --log error or silent its normal output is read (for how each build ends) but not printed.
+  const tidy = angularOutput((line, to) => to?.write(`${line}\n`), { onBuild });
   // Once it is being stopped, what it and its helpers still print (a dying esbuild's panic) is dropped.
   const relay = (from, to) =>
     createInterface({ input: from }).on('line', (line) => {
       if (!child.stopping) tidy.line(withSlideSources(line, appRoot), to);
     });
-  if (!quiet) relay(child.stdout, process.stdout);
-  else child.stdout.resume();
+  relay(child.stdout, quiet ? null : process.stdout);
   relay(child.stderr, process.stderr);
   return child;
 }

@@ -42,6 +42,12 @@ const real = (path) => {
 const self = real(fileURLToPath(import.meta.url));
 if (self && process.argv[1] && self === real(process.argv[1])) {
   const ctx = readConfig(process.env);
+  // `slide-ng dev` says how each Angular build ended (cli/dev.mjs), so a page opened or reloaded while the build is broken
+  // can show the error again (GET /build-error); Angular sends it only once, to the pages open at the time.
+  process.on('message', (m) => {
+    if (m && typeof m === 'object' && 'buildError' in m)
+      ctx.buildError = typeof m.buildError === 'string' ? m.buildError : '';
+  });
   const { port } = await startServer(ctx);
   console.log(
     `[dev-server] listening on 127.0.0.1:${port}${ctx.remote ? ' (remote: password required)' : ''}`,

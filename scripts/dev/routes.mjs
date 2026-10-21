@@ -83,6 +83,9 @@ export function createHandler(ctx, { hub } = {}) {
         return json(res, 200, { ok: true });
       }
     }
+    // The Angular build error that stands now ('' when the last build was good), for a page that opens meanwhile.
+    if (path === '/build-error' && method === 'GET')
+      return json(res, 200, { error: ctx.buildError ?? '' });
     if (path === '/notes' && method === 'GET')
       return json(res, 200, { notes: await readNotes(ctx) });
     if ((m = /^\/slides\/(\d+)\/note$/.exec(path)) && method === 'PUT') {

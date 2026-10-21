@@ -51,6 +51,9 @@ names the running one; a port that is already in use stops it too. Run two decks
 A server that was killed leaves `.slide-ng/dev.lock` behind; the next start sees that its process is gone and takes over.
 The dev server keeps watching after an editor saves by renaming a new file over the old one (vim, JetBrains, `git checkout`), and a
 `src:` or theme folder that is deleted and made again is watched again.
+When Angular's first build fails (an unknown element, say), the port shows a page with the error until the build works; an open
+tab then loads the slides by itself. A page opened or reloaded while a later build is broken shows the error overlay again. With
+`--remote` that page leaves the error's details to the terminal.
 
 ## build
 

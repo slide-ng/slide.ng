@@ -73,8 +73,9 @@ Other keys are kept in the slide's metadata and ignored, unless a theme or a com
 ### Reading errors and warnings
 
 Messages start with the file and line they are about (`slides.md:12: ...`), or with the slide (`[slides] slide 4: ...`); a
-warning keeps the deck running, an error stops the build (in the dev server a red banner shows the message and the last good
-slides stay on screen until the file is fixed). The usual YAML slips in a frontmatter, and what the message says:
+warning keeps the deck running, an error stops the build (in the dev server a red banner or Angular's error overlay shows the
+message and the last good slides stay on screen until the file is fixed; when the very first build fails, the page shows the error
+and opens the slides by itself once it is fixed). The usual YAML slips in a frontmatter, and what the message says:
 
 - a value with `: ` in it, `title: Part 2: the plan`, reads as a second key: quote it, `title: "Part 2: the plan"`;
 - a line indented with a tab: YAML needs spaces;
@@ -526,7 +527,7 @@ console.log('runs on a click and the result appears');
 - `{monaco}`: an editor with the code. Options (flat, after the braces): `lines`, `readonly`, `height` (`initial`, `auto` or a CSS size).
 - `{monaco-diff}`: two texts side by side, split by a line that holds only `~~~`.
 - `{monaco-run}`: an editor and a **Run** result below it. `autorun` is `true`, `false` or `'once'`; `showOutputAt:'+1'` shows the output after a click.
-  The code runs in a sandboxed frame with no access to the slides, and stops after 5 seconds. Pressing run again, or leaving the slide, stops a run that is still going at once (an endless loop, say), so the next run does not wait for it. TypeScript is turned into JavaScript for you. `import` is not supported.
+  The code runs in a sandboxed frame with no access to the slides, and stops after 5 seconds. Pressing run again, or leaving the slide, stops a run that is still going at once (an endless loop, say), so the next run does not wait for it. Another `{monaco-run}` that runs meanwhile on the same slide still waits for the cut-off. TypeScript is turned into JavaScript for you. `import` is not supported.
 - `{monaco-write}`: use it on a snippet line, `<<< ./snippets/demo.ts {monaco-write}` (a whole file inside the deck's folder). While the dev server runs (`slide-ng dev`, `npm run dev` in a deck made with `slide-ng create`), edits are saved into that file about half a second after you stop typing. A region, a plain code block or a static build gets a normal editor (the generator warns for the first two).
   Only text-like files inside the deck's folder can be written: an extension from a fixed list (`.ts .js .json .css .html .md .txt .yaml .py` and similar, see `scripts/lib/monaco-targets.mjs`), never `setup/`, `layouts/`, `components/`, `theme/` or `index.html` at the top of the deck's folder or of a theme or addon folder in it, `.git/`, `node_modules/`, `package.json`, lock files, config files, hidden files or `.slide-ng/`. The generator warns and shows a normal editor for any other file, and the dev server checks the target again at every write.
 

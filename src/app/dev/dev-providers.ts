@@ -8,6 +8,7 @@ import {
 import { ROOT_DIRS, SLIDE_SOURCES } from '../../slides/generated/source-paths';
 import { DRAG_SAVER } from '../drag/drag-state';
 import { SYNC_TRANSPORTS } from '../sync/transport';
+import { showStandingBuildError } from './build-error';
 import { DevApi } from './dev-api';
 import { watchErrorOverlay } from './error-overlay-paths';
 import { WebSocketTransport } from './ws-transport';
@@ -18,6 +19,8 @@ export const DEV_PROVIDERS: (Provider | EnvironmentProviders)[] = isDevMode()
   ? [
       // The dev server's error overlay names the author's files, not the generated copies.
       provideEnvironmentInitializer(() => watchErrorOverlay(ROOT_DIRS, SLIDE_SOURCES)),
+      // A build error that stands when the page opens or reloads is shown again (Angular sends it only once).
+      provideEnvironmentInitializer(() => void showStandingBuildError(inject(DevApi))),
       {
         provide: SYNC_TRANSPORTS,
         multi: true,
