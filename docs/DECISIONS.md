@@ -519,3 +519,11 @@ Source: an independent review of the repository (nine findings). Each fix has a 
    start again with the same port, token and password, so open pages reconnect and logins stay valid. The children get no stdin, so the
    keys are read only by the command. `e` runs `$VISUAL`, `$EDITOR` or `code` in the same terminal and gives it the keys until it ends,
    so a terminal editor works too.
+3. **MCP over HTTP is stateless and lives in the companion server** (`/__mcp`, proxied like `/__slide-ng`). Each POST gets a new
+   server and transport, so nothing is kept between requests and a restart loses nothing; GET (a server stream) and DELETE (end a
+   session) answer 405. It does not need the session token: a program cannot fetch it, and the token is there against other web pages,
+   which the Origin check already stops (a browser sends Origin on every POST). With `--remote` a program sends the password as a bearer
+   token, counted by the same limit on wrong passwords as the login; spaces at the password's start or end are left out of the compare, as HTTP cannot carry them in a header. `goto_slide` sends two `shared` messages, one as a viewer (presenters
+   follow) and one as a presenter (viewers follow), because a window ignores moves made by its own kind. It answers the click step
+   a window reports back; a viewer on another machine may not drive, so it reports on a `position` channel that only the hub reads
+   (no window follows it).

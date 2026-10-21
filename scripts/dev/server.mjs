@@ -1,5 +1,5 @@
 // The dev companion server: what the Angular dev server cannot do. It writes to slides.md, saves drawings,
-// and passes sync messages between windows (WebSocket). It listens on 127.0.0.1 only; the Angular dev server
+// passes sync messages between windows (WebSocket), and serves MCP at `/__mcp` (mcp-http.mjs). It listens on 127.0.0.1 only; the Angular dev server
 // proxies `/__slide-ng/*` to it (proxy.conf.mjs), so the page uses the same address and the same origin for everything.
 // Even with `--remote` this server is not reachable from the network by itself: only through the proxy, with the same checks.
 import { createServer } from 'node:http';
@@ -11,8 +11,8 @@ import { createHandler } from './routes.mjs';
 import { createHub } from './ws-hub.mjs';
 
 export function startServer(ctx) {
-  const server = createServer(createHandler(ctx));
   const hub = createHub();
+  const server = createServer(createHandler(ctx, { hub }));
   // A WebSocket starts as an HTTP request: it gets the same checks as a write (host, origin, password, token).
   server.on('upgrade', (req, socket, head) => {
     const path = new URL(req.url, 'http://x').pathname;

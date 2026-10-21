@@ -126,6 +126,15 @@ and sets `theme: ./theme`, so it can be edited. See [THEMES.md](THEMES.md).
 
 `slide-ng mcp [slides.md]` starts the MCP server on stdio, so an agent can list, read and edit slides. See [ARCHITECTURE.md](ARCHITECTURE.md).
 
+`slide-ng dev` serves the same tools over HTTP at `/__mcp` (the streamable HTTP transport, stateless, POST only), plus `get_info` (entry, title,
+slide count, files, the dev address, the current slide) and `goto_slide` (moves every open window and answers the click step they took: a step past the slide's last click becomes the last, also for a viewer on another machine with `--remote`). It has the dev server's rules: the Host and
+Origin checks, and with `--remote` the password, sent as `Authorization: Bearer <password>` with the spaces inside it as they are; spaces at its start or end are ignored, since HTTP drops them (wrong ones are limited like the login).
+`mcp: false` in the headmatter turns it off. A client configuration:
+
+```json
+{ "mcpServers": { "slide-ng": { "type": "http", "url": "http://localhost:4230/__mcp" } } }
+```
+
 ## skills install
 
 `slide-ng skills install [--dir <folder>] [--force]` copies the agent skill into the project (`.agents/skills/slide-ng` by default).

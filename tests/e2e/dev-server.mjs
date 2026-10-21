@@ -3,6 +3,8 @@
 // and {monaco-write} edits are saved to files, bad requests are refused, and `--remote` needs its password.
 import { spawn } from 'node:child_process';
 import { copyFileSync, existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { WebSocket } from 'ws';
 import { launch, reporter } from './browser.mjs';
 
@@ -489,6 +491,69 @@ try {
     (await ws(`?token=${session.token}`, { origin: 'http://evil.example' })) === '403',
   );
   t.ok('WebSocket with the token is accepted', (await ws(`?token=${session.token}`)) === 'open');
+
+  // ---- MCP over HTTP at /__mcp, through the proxy
+  // The page is still on slide 3 from the {monaco-write} check; open slide 1 so goto_slide really has to move it.
+  await page.goto(`${base}/1`);
+  await page.waitForFunction(() =>
+    /^slide 1\//.test(document.querySelector('#hud')?.innerText ?? ''),
+  );
+  const mcp = await new Client({ name: 'dev-test', version: '1.0.0' });
+  await mcp.connect(new StreamableHTTPClientTransport(new URL(`${base}/__mcp`)));
+  const mcpTools = (await mcp.listTools()).tools.map((x) => x.name);
+  t.ok(
+    'mcp: /__mcp answers through the proxy with the slide tools, get_info and goto_slide',
+    ['list_slides', 'update_slide', 'get_info', 'goto_slide'].every((n) => mcpTools.includes(n)),
+    mcpTools.join(),
+  );
+  const mcpJson = async (name, args = {}) =>
+    JSON.parse((await mcp.callTool({ name, arguments: args })).content[0].text);
+  const info = await mcpJson('get_info');
+  t.ok(
+    'mcp: get_info names the entry, the slide count and the address',
+    info.entry.endsWith('work.md') && info.slides > 2 && info.url === `${base}/`,
+    JSON.stringify(info),
+  );
+  await page.bringToFront();
+  await mcpJson('goto_slide', { no: 3 });
+  t.ok(
+    'mcp: goto_slide moves the open window',
+    await page
+      .waitForFunction(
+        () => /^slide 3\//.test(document.querySelector('#hud')?.innerText ?? ''),
+        null,
+        {
+          timeout: 10000,
+        },
+      )
+      .then(
+        () => true,
+        () => false,
+      ),
+    await page.locator('#hud').innerText(),
+  );
+  // Slide 3 has no clicks and the window is at its last step (0) already: the step asked for is not taken, and the answer says so.
+  const clamped = await mcpJson('goto_slide', { no: 3, clicks: 50 });
+  t.ok(
+    'mcp: goto_slide past the last click answers the step the window took',
+    clamped.clicks === 0 && (await mcpJson('get_info')).current?.clicks === 0,
+    JSON.stringify(clamped),
+  );
+  await mcp.close();
+  t.ok(
+    'mcp: a foreign Origin is refused',
+    (
+      await fetch(`${base}/__mcp`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          accept: 'application/json, text/event-stream',
+          origin: 'http://evil.example',
+        },
+        body: '{"jsonrpc":"2.0","id":1,"method":"tools/list"}',
+      })
+    ).status === 403,
+  );
   await page.close();
   stop();
   await sleep(2000);
@@ -500,6 +565,21 @@ try {
   stop = startDev(RPORT, ['--remote=secret']);
   await waitFor(rbase);
   t.ok('--remote: no password, no session', (await api(RPORT, '/session')).status === 401);
+  const mcpPost = (headers) =>
+    fetch(`${rbase}/__mcp`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        accept: 'application/json, text/event-stream',
+        ...headers,
+      },
+      body: '{"jsonrpc":"2.0","id":1,"method":"tools/list"}',
+    });
+  t.ok(
+    '--remote: /__mcp needs the password, given as a bearer token',
+    (await mcpPost({})).status === 401 &&
+      (await mcpPost({ authorization: 'Bearer secret' })).status === 200,
+  );
   t.ok(
     '--remote: a wrong password is refused',
     (await api(RPORT, '/login', { method: 'POST', body: { password: 'wrong' } })).status === 401,
@@ -590,6 +670,34 @@ try {
   await outsider.close();
   await a.close();
   await b.close();
+  // A viewer on another machine (127.0.0.2 is not a local host name to the app) only follows; goto_slide still learns the
+  // step it took. Slide 2 has no clicks: once after a move to it, once while the window is there already.
+  const far = await browser.newContext({ viewport: { width: 1000, height: 600 } });
+  const farViewer = await far.newPage();
+  await farViewer.goto(`http://127.0.0.2:${RPORT}/3?password=secret`);
+  await farViewer.waitForFunction(
+    () => /^slide 3\/[\s\S]*clicks \d+\/\d+/.test(document.querySelector('#hud')?.innerText ?? ''),
+    null,
+    { timeout: 60000 },
+  );
+  await farViewer.waitForTimeout(1500);
+  const rmcp = new Client({ name: 'dev-test', version: '1.0.0' });
+  await rmcp.connect(
+    new StreamableHTTPClientTransport(new URL(`${rbase}/__mcp`), {
+      requestInit: { headers: { authorization: 'Bearer secret' } },
+    }),
+  );
+  const rgoto = async (args) =>
+    JSON.parse((await rmcp.callTool({ name: 'goto_slide', arguments: args })).content[0].text);
+  const moved = await rgoto({ no: 2, clicks: 50 });
+  const stayed = await rgoto({ no: 2, clicks: 50 });
+  t.ok(
+    '--remote: goto_slide past the last click answers the step a viewer on another machine took',
+    moved.windows === 1 && moved.clicks === 0 && stayed.clicks === 0,
+    JSON.stringify([moved, stayed]),
+  );
+  await rmcp.close();
+  await far.close();
   stop();
   await sleep(2000);
 

@@ -216,11 +216,11 @@ Angular control flow works.
 
 ## Tools
 
-| Feature       | Description         | Reference                                    |
-| ------------- | ------------------- | -------------------------------------------- |
-| MCP server    | `slide-ng mcp`      | [mcp-server](references/mcp-server.md)       |
-| MCP tools     | the seven tools     | [mcp-tools](references/mcp-tools.md)         |
-| Not supported | what does not exist | [not-supported](references/not-supported.md) |
+| Feature       | Description                                 | Reference                                    |
+| ------------- | ------------------------------------------- | -------------------------------------------- |
+| MCP server    | `slide-ng mcp`                              | [mcp-server](references/mcp-server.md)       |
+| MCP tools     | the seven tools, two more on the dev server | [mcp-tools](references/mcp-tools.md)         |
+| Not supported | what does not exist                         | [not-supported](references/not-supported.md) |
 
 ## Common Patterns
 
