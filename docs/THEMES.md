@@ -67,17 +67,18 @@ folders listed below; the rest of it (your markdown, `node_modules`, ...) is nev
 
 ## What a root can contain
 
-| Folder or file       | What it does                                                                                                                                                                       |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `layouts/<name>.ts`  | A layout. `<name>` is what a slide writes in `layout:`. The same name replaces a built-in layout.                                                                                  |
-| `components/*.ts`    | Components that slides can use as tags. Found by their `selector`.                                                                                                                 |
-| `layers/<name>.ts`   | A layer component: `global-top`, `global-bottom`, `slide-top`, `slide-bottom` (default export).                                                                                    |
-| `styles/index.css`   | CSS. Added after the app's styles, so it can override them.                                                                                                                        |
-| `public/`            | Files served from the site root (`/logo.png`). Merged; the later root wins on the same name.                                                                                       |
-| `setup/*.ts`         | Setup hooks: `shiki`, `katex`, `transformers`, `preparser`, `mermaid`, `monaco`, `code-runners`, `shortcuts`, `context-menu`, `main`, `root`. Written out in [SETUP.md](SETUP.md). |
-| `setup/providers.ts` | Angular providers (default export: an array; `setup/main.ts` is the newer way). See "Setup hooks".                                                                                 |
-| `uno.config.mjs`     | UnoCSS settings (default export). Merged into the app's: `presets`, `rules`, `safelist`, `variants` are added; `shortcuts` and `theme` are merged key by key.                      |
-| `theme.json`         | Name, default headmatter and layout inputs. See below.                                                                                                                             |
+| Folder or file        | What it does                                                                                                                                                                       |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `layouts/<name>.ts`   | A layout. `<name>` is what a slide writes in `layout:`. The same name replaces a built-in layout.                                                                                  |
+| `components/*.ts`     | Components that slides can use as tags. Found by their `selector`.                                                                                                                 |
+| `layers/<name>.ts`    | A layer component: `global-top`, `global-bottom`, `slide-top`, `slide-bottom` (default export).                                                                                    |
+| `styles/index.css`    | CSS. Added after the app's styles, so it can override them.                                                                                                                        |
+| `public/`             | Files served from the site root (`/logo.png`). Merged; the later root wins on the same name.                                                                                       |
+| `setup/*.ts`          | Setup hooks: `shiki`, `katex`, `transformers`, `preparser`, `mermaid`, `monaco`, `code-runners`, `shortcuts`, `context-menu`, `main`, `root`. Written out in [SETUP.md](SETUP.md). |
+| `setup/providers.ts`  | Angular providers (default export: an array; `setup/main.ts` is the newer way). See "Setup hooks".                                                                                 |
+| `locales/<lang>.json` | Translations of the interface (the bar, menus, presenter), flat `"key": "text"` pairs. Merged key by key; the later root wins. See below.                                          |
+| `uno.config.mjs`      | UnoCSS settings (default export). Merged into the app's: `presets`, `rules`, `safelist`, `variants` are added; `shortcuts` and `theme` are merged key by key.                      |
+| `theme.json`          | Name, default headmatter and layout inputs. See below.                                                                                                                             |
 
 ### Layouts
 
@@ -122,6 +123,19 @@ import { SHORTCUTS_SETUP } from 'slide-ng/lib/shortcuts';
   A slot's content reaches the layout as an element with the slot's name as an attribute, so the layout places it with
   `<ng-content select="[name]" />` (the built-in `two-cols` uses `select="[left]"` and `select="[right]"`).
 - The deck's own folder can have a `theme.json` too, to declare the inputs and slots of its own layouts.
+
+### Translating the interface: `locales/`
+
+A theme or addon can translate slide.ng's own interface for its users. `locales/tr.json` (or `pt.json` and `pt-BR.json`) holds the keys
+listed in [UI-STRINGS.md](UI-STRINGS.md), with their `{name}` placeholders kept:
+
+```json
+{ "nav.next": "Sonraki slayta git", "presenter.noNotes": "{no}. slayt için not yok." }
+```
+
+The deck's `lang` (or `uiLang`) picks the file. The built-in translations come first, then the theme, the addons and the deck, key by key,
+so a deck can change one text of its theme. A theme's own components can show the same texts with the `t` pipe:
+`import { T } from 'slide-ng/i18n/t'`, then `{{ 'nav.next' | t }}`.
 
 ## Setup hooks
 

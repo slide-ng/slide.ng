@@ -1,10 +1,12 @@
 import { Component, inject } from '@angular/core';
 import { Filters, defaultFilters } from '../lib/filters';
+import { UiTextKey } from '../i18n/en';
+import { T } from '../i18n/t';
 import { ViewPrefs } from '../lib/view-prefs';
 
 type Slider = {
   key: Exclude<keyof Filters, 'invert'>;
-  label: string;
+  label: UiTextKey;
   min: number;
   max: number;
   step: number;
@@ -13,10 +15,11 @@ type Slider = {
 // Slidev's slide filters: Invert and five sliders, each with a number box.
 @Component({
   selector: 'app-filter-settings',
+  imports: [T],
   template: `
     <label class="slidev-form-item">
       <span class="slidev-form-title">
-        Invert
+        {{ 'settings.invert' | t }}
         @if (prefs.filters().invert) {
           <i class="slidev-form-dot"></i>
         }
@@ -34,7 +37,7 @@ type Slider = {
     @for (f of sliders; track f.key) {
       <label class="slidev-form-item">
         <span class="slidev-form-title" (dblclick)="set(f.key, defaults[f.key])">
-          {{ f.label }}
+          {{ f.label | t }}
           @if (prefs.filters()[f.key] !== defaults[f.key]) {
             <i class="slidev-form-dot"></i>
           }
@@ -59,7 +62,7 @@ type Slider = {
           type="number"
           class="slidev-number"
           [id]="'filter-' + f.key + '-number'"
-          [attr.aria-label]="f.label + ' value'"
+          [attr.aria-label]="'settings.filterValue' | t: { name: (f.label | t) }"
           [min]="f.min"
           [max]="f.max"
           [step]="f.step"
@@ -74,11 +77,11 @@ export class FilterSettings {
   protected prefs = inject(ViewPrefs);
   protected defaults = defaultFilters;
   protected sliders: Slider[] = [
-    { key: 'brightness', label: 'Brightness', min: 0.5, max: 1.5, step: 0.02 },
-    { key: 'contrast', label: 'Contrast', min: 0.5, max: 1.5, step: 0.02 },
-    { key: 'saturate', label: 'Saturation', min: 0.5, max: 1.5, step: 0.02 },
-    { key: 'sepia', label: 'Sepia', min: -2, max: 2, step: 0.02 },
-    { key: 'hueRotate', label: 'Hue Rotate', min: -180, max: 180, step: 0.1 },
+    { key: 'brightness', label: 'settings.brightness', min: 0.5, max: 1.5, step: 0.02 },
+    { key: 'contrast', label: 'settings.contrast', min: 0.5, max: 1.5, step: 0.02 },
+    { key: 'saturate', label: 'settings.saturation', min: 0.5, max: 1.5, step: 0.02 },
+    { key: 'sepia', label: 'settings.sepia', min: -2, max: 2, step: 0.02 },
+    { key: 'hueRotate', label: 'settings.hueRotate', min: -180, max: 180, step: 0.1 },
   ];
 
   protected set<K extends keyof Filters>(key: K, value: Filters[K]) {

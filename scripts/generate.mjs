@@ -32,6 +32,8 @@ import { applyRoots } from './lib/theme-files.mjs';
 import { monacoWriteTargets, resetMonacoWriteTargets } from './lib/code/monaco.mjs';
 import { applyOffline, buildOptions, wantsRemoteAssets } from './lib/build-options.mjs';
 import { headParts, renderIndexHtml } from './lib/head.mjs';
+import { deckUiText, uiTextSource } from './lib/ui-text.mjs';
+import { langOverride } from './lib/lang.mjs';
 import { bundleRemoteAssets, emptyFolder } from './lib/remote-assets.mjs';
 import { bundleFonts, wantsFontFiles } from './lib/font-bundle.mjs';
 import { ogImageAddress, ogImagePlan } from './build/og-image.mjs';
@@ -39,6 +41,8 @@ import { pwaEnabled } from './build/pwa.mjs';
 
 // `slide-ng --theme <name|path>` reaches the generator through this variable.
 const THEME = process.env.SLIDE_NG_THEME || undefined;
+// `slide-ng build --lang tr` sets the headmatter's `lang` and `uiLang` for this run (docs/UI-STRINGS.md).
+const LANG = process.env.SLIDE_NG_LANG || undefined;
 
 // SLIDES_FILE lets tests build another deck.
 const INPUT = process.env.SLIDES_FILE ?? 'slides.md';
@@ -112,6 +116,7 @@ async function generate() {
       s.note = null;
     });
   if (build.offline) applyOffline(deck.headmatter);
+  langOverride(deck.headmatter, LANG);
   deck.assetBase = build.building ? build.base : '/';
   mkdirSync(OUT, { recursive: true });
   // Remote pictures are fetched into the build only for a production build with `remoteAssets: true`.
@@ -163,6 +168,7 @@ async function generate() {
         'roots',
         'roots.json',
         'problem.ts',
+        'ui-text.ts',
         'public',
       ),
   );
@@ -173,6 +179,11 @@ async function generate() {
   copyLocalAssets(deck.root, deck.localAssets, `${OUT}local-assets`);
   writeMonacoTargets(deck.root);
   write(`${OUT}index.ts`, indexSource(deck));
+  // The interface language, its translations and the locale of the pipes (lib/ui-text.mjs).
+  write(
+    `${OUT}ui-text.ts`,
+    uiTextSource(await deckUiText(deck, (m) => console.warn(`[slides] ${m}`))),
+  );
   // The dev server shows a generator error in the page (dev/problem-banner.ts); a good run clears it.
   write(`${OUT}problem.ts`, "export const PROBLEM = '';\n");
   write(`${OUT}features.css`, featureCss(features));

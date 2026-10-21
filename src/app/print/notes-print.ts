@@ -1,11 +1,12 @@
-import { DOCUMENT } from '@angular/common';
-import { Component, DestroyRef, inject } from '@angular/core';
+import { DOCUMENT, formatDate } from '@angular/common';
+import { Component, DestroyRef, LOCALE_ID, inject } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 import { HEADMATTER, SLIDES } from '../../slides/generated';
 import { Dark } from '../lib/dark';
 import { parseRange } from '../lib/range';
 import { NoteDisplay } from '../presenter/note-display';
+import { UI_TEXT, uiText } from '../i18n/ui-text';
 
 // The route /presenter/print: the notes of every slide that has some, as one A4 document (`slide-ng export-notes`).
 // `?range=1,3-5` keeps only those slides.
@@ -36,7 +37,8 @@ import { NoteDisplay } from '../presenter/note-display';
 export class NotesPrint {
   protected readonly total = SLIDES.length;
   protected readonly title = String(HEADMATTER['title'] ?? 'slide.ng');
-  protected readonly date = new Date().toLocaleString();
+  // In the deck's language (`lang`), like the `date` pipe in slides.
+  protected readonly date = formatDate(new Date(), 'medium', inject(LOCALE_ID));
   private readonly pages = new Set(
     parseRange(SLIDES.length, inject(ActivatedRoute).snapshot.queryParamMap.get('range')),
   );
@@ -47,7 +49,7 @@ export class NotesPrint {
   })).filter((s) => s.html && this.pages.has(s.no));
 
   constructor() {
-    inject(Title).setTitle(`Notes - ${this.title}`);
+    inject(Title).setTitle(uiText(inject(UI_TEXT), 'notes.pageTitle', { title: this.title }));
     inject(Dark);
     const doc = inject(DOCUMENT);
     doc.documentElement.classList.add('print');

@@ -49,6 +49,7 @@ dist/slide-ng/browser
 | `lib/roots.mjs`                                                                        | the roots of a deck (theme, addons, deck folder): find them, read `theme.json`, merge default headmatter                                |
 | `lib/scan-roots.mjs`, `sync-roots.mjs`, `theme-files.mjs`                              | find layouts and components in the roots, copy the roots into `generated/roots`, write `layers.ts`, `setup.ts`, `theme.css`             |
 | `lib/head.mjs`                                                                         | tags for `<head>` from the headmatter (title, description, Open Graph, favicon, `htmlAttrs`), escaped                                   |
+| `lib/ui-text.mjs`, `lang.mjs`                                                          | the interface language: `locales/<lang>.json` of the roots merged and checked against `en.ts`, the Angular locale, writes `ui-text.ts`  |
 | `lib/remote-assets.mjs`, `build-options.mjs`                                           | download remote pictures for a build; read the `SLIDE_NG_*` variables that `slide-ng build` sets                                        |
 | `lib/frontmatter-edit.mjs`                                                             | set one key in a deck's headmatter and keep the rest of the file (`theme eject` uses it)                                                |
 
@@ -117,6 +118,7 @@ The `<style>` text goes into the slide component's `styles`, wrapped in `slide-0
 | `builtin/*.ts` (phase 2)                                                                     | `arrow`, `transform`, `slide-ng-auto-fit-text`, `youtube`, `slide-ng-video`, `tweet`, `slide-ng-blue-sky`                                                                                                                            |
 | `layouts/*.ts`                                                                               | one small component per layout (`background.ts` and `frame.ts` are helpers)                                                                                                                                                          |
 | `builtin/*.ts`                                                                               | `slide-ng-toc`, `slide-ng-link`, `slide-ng-current-no`, `slide-ng-total`, `slide-ng-light-or-dark`, `slide-ng-render-when`                                                                                                           |
+| `i18n/*.ts`                                                                                  | the interface text: `en.ts` (every key), the `UI_TEXT` token, the `t` pipe; `locales/` holds the built-in translations (docs/UI-STRINGS.md)                                                                                          |
 | `ui/*.ts`                                                                                    | nav bar, context menu, overview and thumbnail, goto box, info dialog, settings menu, icon button                                                                                                                                     |
 
 ### Clicks

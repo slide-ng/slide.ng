@@ -5,11 +5,14 @@ import { Nav } from '../lib/nav';
 import { presenterEnabled } from '../lib/switches';
 import { Ui } from '../lib/ui-state';
 import { CONTEXT_MENU_SETUP } from '../setup/tokens';
+import { T } from '../i18n/t';
+import { splitAt } from '../i18n/ui-text';
 
 // The right-click menu (Slidev's ContextMenu): four arrows, then a list of actions.
 
 @Component({
   selector: 'app-context-menu',
+  imports: [T],
   host: {
     '(document:mousedown)': 'onMouseDown($event)',
     '(document:click)': 'onClickOutside($event)',
@@ -21,7 +24,7 @@ import { CONTEXT_MENU_SETUP } from '../setup/tokens';
         #menu
         id="context-menu"
         role="menu"
-        aria-label="Slide menu"
+        [attr.aria-label]="'menu.label' | t"
         class="slidev-glass-effect fixed z-context-menu w-60 flex flex-wrap justify-items-start p-1 rounded-md shadow overflow-hidden select-none text-main"
         [style.left.px]="left()"
         [style.top.px]="top()"
@@ -47,7 +50,7 @@ import { CONTEXT_MENU_SETUP } from '../setup/tokens';
           <button
             type="button"
             role="menuitem"
-            class="slidev-menu-item w-full text-left"
+            class="slidev-menu-item w-full text-start"
             [class.disabled]="item.disabled"
             [attr.aria-disabled]="item.disabled"
             (click)="press(item)"
@@ -58,8 +61,8 @@ import { CONTEXT_MENU_SETUP } from '../setup/tokens';
         }
         <div class="w-full my-1 border-t border-main"></div>
         <div class="w-full text-xs p-2 opacity-50">
-          Hold <kbd class="border px-1 py-0.5 border-main rounded text-primary">Shift</kbd> and
-          right click to open the native context menu
+          {{ hint[0] }}<kbd class="border px-1 py-0.5 border-main rounded text-primary">Shift</kbd
+          >{{ hint[1] }}
         </div>
       </div>
     }
@@ -72,29 +75,31 @@ export class ContextMenu {
   private drawings = inject(Drawings);
   private setup = inject(CONTEXT_MENU_SETUP); // setup/context-menu.ts of the roots
   private menu = viewChild<ElementRef<HTMLElement>>('menu');
+  // The key is drawn as a <kbd>, so the text is drawn in two parts around it.
+  protected hint = splitAt(this.ui.text('menu.nativeHint'), 'key');
 
   protected arrows = computed(() => [
     {
-      icon: 'i-carbon:arrow-left',
-      title: 'Previous Click',
+      icon: 'i-carbon:arrow-left rtl-flip',
+      title: this.ui.text('menu.prevClick'),
       run: () => this.nav.prev(),
       disabled: !this.nav.hasPrev(),
     },
     {
-      icon: 'i-carbon:arrow-right',
-      title: 'Next Click',
+      icon: 'i-carbon:arrow-right rtl-flip',
+      title: this.ui.text('menu.nextClick'),
       run: () => this.nav.next(),
       disabled: !this.nav.hasNext(),
     },
     {
       icon: 'i-carbon:arrow-up',
-      title: 'Previous Slide',
+      title: this.ui.text('menu.prevSlide'),
       run: () => this.nav.prevSlide(),
       disabled: this.nav.no() <= 1,
     },
     {
       icon: 'i-carbon:arrow-down',
-      title: 'Next Slide',
+      title: this.ui.text('menu.nextSlide'),
       run: () => this.nav.nextSlide(),
       disabled: this.nav.no() >= this.nav.total,
     },
@@ -106,7 +111,7 @@ export class ContextMenu {
         ? [
             {
               icon: 'i-carbon:pen',
-              label: this.drawings.enabled() ? 'Hide drawing toolbar' : 'Show drawing toolbar',
+              label: this.ui.text(this.drawings.enabled() ? 'nav.drawingHide' : 'nav.drawingShow'),
               run: () => this.drawings.toggle(),
               disabled: false,
             },
@@ -114,7 +119,7 @@ export class ContextMenu {
         : []),
       {
         icon: 'i-carbon:apps',
-        label: 'Show slide overview',
+        label: this.ui.text('nav.overview'),
         run: () => this.ui.toggleOverview(),
         disabled: false,
       },
@@ -123,13 +128,13 @@ export class ContextMenu {
             this.nav.isPresenter
               ? {
                   icon: 'i-carbon:presentation-file',
-                  label: 'Exit Presenter Mode',
+                  label: this.ui.text('menu.presenterExit'),
                   run: () => this.nav.exitPresenter(),
                   disabled: false,
                 }
               : {
                   icon: 'i-carbon:user-speaker',
-                  label: 'Enter Presenter Mode',
+                  label: this.ui.text('menu.presenterEnter'),
                   run: () => this.nav.enterPresenter(),
                   disabled: false,
                 },
@@ -137,7 +142,9 @@ export class ContextMenu {
         : []),
       {
         icon: this.fullscreen.isFullscreen() ? 'i-carbon:minimize' : 'i-carbon:maximize',
-        label: this.fullscreen.isFullscreen() ? 'Close fullscreen' : 'Enter fullscreen',
+        label: this.ui.text(
+          this.fullscreen.isFullscreen() ? 'nav.fullscreenExit' : 'nav.fullscreenEnter',
+        ),
         run: () => this.fullscreen.toggle(),
         disabled: false,
       },

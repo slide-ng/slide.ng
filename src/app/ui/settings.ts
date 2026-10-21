@@ -7,19 +7,20 @@ import { WakeLock } from '../lib/wake-lock';
 import { PresenterPrefs } from '../presenter/prefs';
 import { DevicesSelectors } from '../record/devices-selectors';
 import { Devices } from '../record/devices';
+import { T } from '../i18n/t';
 import { FilterSettings } from './filter-settings';
 import { SegmentControl } from './segment-control';
 
 // The content of the settings menu ("More Options").
 @Component({
   selector: 'app-settings',
-  imports: [DevicesSelectors, FilterSettings, SegmentControl],
+  imports: [DevicesSelectors, FilterSettings, SegmentControl, T],
   template: `
     <div class="text-sm select-none flex flex-col gap-1 min-w-30 px-4 max-h-[70vh] overflow-auto">
       <app-filter-settings />
       <div class="h-1px op5 bg-current w-full my-2"></div>
       <div class="slidev-form-item">
-        <span class="slidev-form-title">Cursor Style</span>
+        <span class="slidev-form-title">{{ 'settings.cursorStyle' | t }}</span>
         <app-segment-control
           [options]="cursorOptions"
           [value]="prefs.cursorStyle()"
@@ -28,7 +29,7 @@ import { SegmentControl } from './segment-control';
       </div>
       @if (!nav.isPresenter) {
         <div class="slidev-form-item">
-          <span class="slidev-form-title">Slide Scale</span>
+          <span class="slidev-form-title">{{ 'settings.slideScale' | t }}</span>
           <app-segment-control
             [options]="scaleOptions"
             [value]="ui.slideScale()"
@@ -38,7 +39,7 @@ import { SegmentControl } from './segment-control';
       }
       @if (wake.supported) {
         <label class="slidev-form-item">
-          <span class="slidev-form-title">Wake Lock</span>
+          <span class="slidev-form-title">{{ 'settings.wakeLock' | t }}</span>
           <span class="slidev-checkbox">
             <i class="i-carbon:checkmark" [class.op0]="!wake.enabled()"></i>
             <input
@@ -53,7 +54,7 @@ import { SegmentControl } from './segment-control';
       }
       @if (!nav.isPresenter) {
         <label class="slidev-form-item">
-          <span class="slidev-form-title">Hide Idle Cursor</span>
+          <span class="slidev-form-title">{{ 'settings.hideIdleCursor' | t }}</span>
           <span class="slidev-checkbox">
             <i class="i-carbon:checkmark" [class.op0]="!ui.hideIdleCursor()"></i>
             <input
@@ -67,7 +68,7 @@ import { SegmentControl } from './segment-control';
       }
       @if (nav.isPresenter) {
         <label class="slidev-form-item">
-          <span class="slidev-form-title">Show Presenter Cursor</span>
+          <span class="slidev-form-title">{{ 'settings.presenterCursor' | t }}</span>
           <span class="slidev-checkbox">
             <i class="i-carbon:checkmark" [class.op0]="!prefs.showCursor()"></i>
             <input
@@ -82,7 +83,7 @@ import { SegmentControl } from './segment-control';
       @if (!dark.isFixed) {
         <div class="h-1px op5 bg-current w-full my-2"></div>
         <label class="slidev-form-item">
-          <span class="slidev-form-title">Dark Mode</span>
+          <span class="slidev-form-title">{{ 'settings.darkMode' | t }}</span>
           <span class="slidev-checkbox">
             <i class="i-carbon:checkmark" [class.op0]="!dark.isDark()"></i>
             <input
@@ -101,18 +102,18 @@ import { SegmentControl } from './segment-control';
       @if (download.wanted) {
         <div class="h-1px op5 bg-current w-full my-2"></div>
         @if (download.available()) {
-          <button type="button" id="download-pdf" class="text-left" (click)="download.save()">
-            Download as PDF
+          <button type="button" id="download-pdf" class="text-start" (click)="download.save()">
+            {{ 'nav.download' | t }}
           </button>
         } @else {
           <button
             type="button"
             id="download-pdf"
-            class="text-left op40 cursor-not-allowed"
+            class="text-start op40 cursor-not-allowed"
             disabled
-            title="The PDF is added by: slide-ng build --download"
+            [title]="'settings.downloadHint' | t"
           >
-            Download as PDF
+            {{ 'nav.download' | t }}
           </button>
         }
       }
@@ -127,12 +128,23 @@ export class Settings {
   protected wake = inject(WakeLock);
   protected download = inject(Download);
   protected devices = inject(Devices);
+  // `hue` keeps each badge's colour the same in every language (it is made from the English name).
   protected cursorOptions = [
-    { id: 'cursor-style-cursor', label: 'Cursor', value: 'cursor' },
-    { id: 'cursor-style-laser', label: 'Laser', value: 'laser' },
+    {
+      id: 'cursor-style-cursor',
+      label: this.ui.text('settings.cursor'),
+      hue: 'Cursor',
+      value: 'cursor',
+    },
+    {
+      id: 'cursor-style-laser',
+      label: this.ui.text('settings.laser'),
+      hue: 'Laser',
+      value: 'laser',
+    },
   ];
   protected scaleOptions = [
-    { id: 'scale-fit', label: 'Fit', value: 0 },
+    { id: 'scale-fit', label: this.ui.text('settings.fit'), hue: 'Fit', value: 0 },
     { id: 'scale-1', label: '1:1', value: 1 },
   ];
 }

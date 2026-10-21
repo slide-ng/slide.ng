@@ -1,4 +1,5 @@
 import { resolve } from 'node:path';
+import { normalizeLang } from '../lib/lang.mjs';
 
 // A small command line reader, so every command parses flags the same way.
 //   spec = { port: { type: 'number', alias: 'p' }, open: { type: 'boolean' }, format: { type: 'string' } }
@@ -59,6 +60,15 @@ export function applyThemeFlag(flags) {
   // A path given on the command line is relative to where the command runs, not to the deck.
   if (flags.theme)
     process.env.SLIDE_NG_THEME = flags.theme.startsWith('.') ? resolve(flags.theme) : flags.theme;
+}
+
+/** `--lang tr` sets the headmatter's `lang` (and replaces `uiLang`) for this run (a second language of the same deck). The generator reads the same variable. */
+export function applyLangFlag(flags) {
+  if (flags.lang === undefined) return;
+  const lang = normalizeLang(flags.lang);
+  if (!lang)
+    throw new Error(`--lang must be a language tag such as tr or pt-BR, got "${flags.lang}"`);
+  process.env.SLIDE_NG_LANG = lang;
 }
 
 function splitOnce(text, sep) {

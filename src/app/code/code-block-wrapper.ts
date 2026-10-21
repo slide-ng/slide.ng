@@ -10,12 +10,14 @@ import {
   input,
   signal,
 } from '@angular/core';
+import { T } from '../i18n/t';
 import { copyText } from './copy';
 import { RangedBlock } from './ranged-block';
 import { highlightLines } from './ranges';
 
 @Component({
   selector: 'slide-ng-code-block-wrapper',
+  imports: [T],
   host: {
     class: 'slidev-code-wrapper relative group',
     '[class.slidev-code-line-numbers]': 'lines()',
@@ -36,7 +38,7 @@ import { highlightLines } from './ranges';
       <button
         class="slidev-code-copy absolute right-0 transition opacity-0 group-hover:opacity-20 hover:!opacity-100"
         [class]="title() ? 'top-10' : 'top-0'"
-        [attr.title]="copied() ? 'Copied' : 'Copy'"
+        [attr.title]="(copied() ? 'code.copied' : 'code.copy') | t"
         (click)="copy()"
       >
         <span

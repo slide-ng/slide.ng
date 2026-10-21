@@ -10,6 +10,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
+import { UI_TEXT, uiText } from '../i18n/ui-text';
 import { MARK, prepareNote } from './note-marks';
 
 // The speaker notes of one slide. `html` was made while generating (markdown, with click markers).
@@ -35,7 +36,7 @@ import { MARK, prepareNote } from './note-marks';
 })
 export class NoteDisplay {
   html = input<string | null>(null);
-  placeholder = input('No notes.');
+  placeholder = input(uiText(inject(UI_TEXT), 'presenter.noNotesAtAll'));
   /** The current click; leave out to show the notes without highlighting. */
   clicks = input<number | null>(null);
   autoScroll = input(false);

@@ -63,6 +63,10 @@ one can be written. The decisions are in DECISIONS.md ("Made while testing for 1
 - Security fixes (docs/SECURITY-MODEL.md, decisions "Made while fixing the security review"): tested with unit tests and local servers only. NOT VERIFIED: a real LAN with a second device; the request filter of the exporter against a DNS name whose answer changes after the check; real Google Fonts with the new provider rules; `npm audit` output (no network when this was written); the password prompt on a real terminal.
 - Recording: no separate camera file, no mp4 or mkv, no cloud upload. No HTTPS for `--remote` (as before).
 - Phase 2 and phase 3 lists still apply (Monaco and Mermaid limits, `slide-ng-motion` limits, footnote limits, resizing a rotated `slide-ng-drag` box, `{monaco-write}` limits, imported slides outside the deck's folder cannot be edited by the dev server).
+- Interface language (docs/UI-STRINGS.md): Turkish is the only built-in translation. Error messages that come from the browser (camera, recording,
+  screen sharing) and generator warnings stay English. In a right-to-left deck the bar, menus and presenter are mirrored, but the arrow keys,
+  swipes and the drawing toolbar's position are not. There is no way to switch the language while presenting; one entry file per language is
+  the recipe (SYNTAX.md "One deck in several languages").
 - Agent skill: the samples prove that decks generate and compile, not that they look right. In the combined build only the `theme`, `addons` and `codeAliases` of the samples' headmatter are applied; other headmatter keys are checked by the generator alone (`--each` builds every sample alone, slow, run by hand). Features that need a network, a browser or a device are described in the skill, not run. The skill is written by hand; the drift guard only notices that a document changed, not whether the skill was updated well.
 
 ## Problems found and fixed along the way

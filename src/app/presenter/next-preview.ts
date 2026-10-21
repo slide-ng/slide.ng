@@ -15,12 +15,13 @@ import { mountSlide } from '../lib/mount-slide';
 import { Nav } from '../lib/nav';
 import { SlideBase } from '../lib/slide-base';
 import { SlideLayer } from '../lib/slide-layer';
+import { T } from '../i18n/t';
 
 // The next step as a small picture: the next click of this slide, or the next slide when the
 // clicks are used up. It is the real slide component with its click set to that step.
 @Component({
   selector: 'app-next-preview',
-  imports: [DrawingPreview, SlideLayer],
+  imports: [DrawingPreview, SlideLayer, T],
   host: { class: 'block relative h-full w-full overflow-hidden' },
   template: `
     @if (frame(); as f) {
@@ -32,7 +33,7 @@ import { SlideLayer } from '../lib/slide-layer';
       </div>
     } @else if (nav.ready()) {
       <div class="h-full flex justify-center items-center">
-        <div class="text-gray-500">End of the presentation</div>
+        <div class="text-gray-500">{{ 'presenter.end' | t }}</div>
       </div>
     }
   `,

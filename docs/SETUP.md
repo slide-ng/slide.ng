@@ -165,7 +165,7 @@ export default (actions: ShortcutActions, list: Shortcut[]): Shortcut[] => [
 ## Context menu: `setup/context-menu.ts`
 
 Gets the entries of the right-click menu and returns the list to show. An entry is `{ icon, label, run, disabled? }`; `icon` is an icon class such as
-`i-carbon:star`. The roots are chained.
+`i-carbon:star`. The roots are chained. The built-in labels are in the deck's language (UI-STRINGS.md), so pick an entry by its `icon`, not its label.
 
 ```ts
 // setup/context-menu.ts

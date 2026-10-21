@@ -11,7 +11,7 @@ import { join, resolve } from 'node:path';
 import { removeInside } from '../lib/tool-dir.mjs';
 import { randomPassword, randomSecret } from '../dev/config.mjs';
 import { ngBinary, prepareApp } from './app-root.mjs';
-import { applyThemeFlag, parseFlags } from './flags.mjs';
+import { applyLangFlag, applyThemeFlag, parseFlags } from './flags.mjs';
 import { packageRoot } from './package-root.mjs';
 import { askPassword } from './prompt.mjs';
 import { remoteLines } from './remote-info.mjs';
@@ -28,6 +28,7 @@ export const DEV_FLAGS = {
   tunnel: { type: 'optional' },
   base: { type: 'string' },
   theme: { type: 'string', alias: 't' },
+  lang: { type: 'string' },
 };
 
 const LOG_LEVELS = ['error', 'warn', 'info', 'silent'];
@@ -74,6 +75,7 @@ export function devPlan(argv, env = process.env) {
     log,
     force: Boolean(flags.force),
     theme: flags.theme,
+    lang: flags.lang,
   };
 }
 
@@ -95,6 +97,7 @@ export async function devCommand(argv) {
       Object.assign(plan, { password: typed, passwordFrom: 'prompt', passwordGenerated: false });
   }
   applyThemeFlag(plan);
+  applyLangFlag(plan);
   const appRoot = prepareApp(plan.entry);
   if (plan.force) removeInside(join(appRoot, '.angular', 'cache'), appRoot); // the build cache is the only thing --force clears
   const companionPort = process.env.SLIDE_NG_DEV_PORT || String(await freePort());

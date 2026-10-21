@@ -13,9 +13,11 @@ import {
 } from '@angular/core';
 import { ClickInfo, ClicksContext, RawSingleAt } from '../lib/clicks';
 import type { RunResult } from './monaco/run-js';
+import { T } from '../i18n/t';
 
 @Component({
   selector: 'code-runner',
+  imports: [T],
   host: {
     class: 'slidev-runner relative flex flex-col rounded-b border-t border-main',
     '[class.slidev-vclick-hidden]': 'hidden()',
@@ -23,9 +25,9 @@ import type { RunResult } from './monaco/run-js';
   },
   template: `
     @if (running()) {
-      <div class="text-sm text-center opacity-50">Running...</div>
+      <div class="text-sm text-center opacity-50">{{ 'code.running' | t }}</div>
     } @else if (!result()) {
-      <div class="text-sm text-center opacity-50">Click the play button to run the code</div>
+      <div class="text-sm text-center opacity-50">{{ 'code.idle' | t }}</div>
     } @else {
       <div class="slidev-runner-output">
         @for (line of result()!.lines; track $index) {
@@ -39,7 +41,7 @@ import type { RunResult } from './monaco/run-js';
     @if (code().trim()) {
       <button
         class="slidev-runner-run absolute right-1 top-1 w-8 h-8 flex justify-center items-center"
-        title="Run code"
+        [title]="'code.run' | t"
         (click)="run()"
       >
         <div class="i-carbon:play"></div>

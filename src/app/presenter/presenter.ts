@@ -8,6 +8,7 @@ import { DrawingControls } from '../drawing/drawing-controls';
 import { DrawingLayer } from '../drawing/drawing-layer';
 import { Nav } from '../lib/nav';
 import { SlideShow } from '../lib/slide-show';
+import { T } from '../i18n/t';
 import { Ui } from '../lib/ui-state';
 import { startNavSync } from '../sync/nav-sync';
 import { ContextMenu } from '../ui/context-menu';
@@ -48,6 +49,7 @@ import { TimerInlined } from './timer-inlined';
     Overview,
     Goto,
     ContextMenu,
+    T,
   ],
   providers: [Nav, Ui, Drawings],
   host: { '(window:keydown)': 'key($event)', class: 'block h-full' },
@@ -71,8 +73,8 @@ import { TimerInlined } from './timer-inlined';
       >
         <div class="relative grid-section main flex flex-col">
           <div class="flex gap-4 items-center border-b border-main p-1">
-            <span class="op50 px-2">Current</span>
-            <div class="flex rounded border border-main overflow-hidden text-sm ml-auto">
+            <span class="op50 px-2">{{ 'presenter.current' | t }}</span>
+            <div class="flex rounded border border-main overflow-hidden text-sm ms-auto">
               <button
                 type="button"
                 id="main-slides"
@@ -80,7 +82,7 @@ import { TimerInlined } from './timer-inlined';
                 [class.bg-active]="!mirror()"
                 (click)="mirror.set(false)"
               >
-                Slides
+                {{ 'presenter.slides' | t }}
               </button>
               <button
                 type="button"
@@ -89,7 +91,7 @@ import { TimerInlined } from './timer-inlined';
                 [class.bg-active]="mirror()"
                 (click)="mirror.set(true)"
               >
-                Screen Mirror
+                {{ 'presenter.mirror' | t }}
               </button>
             </div>
           </div>
@@ -114,9 +116,9 @@ import { TimerInlined } from './timer-inlined';
         <div class="relative grid-section next flex flex-col p-2 lg:p-4">
           <app-next-preview />
           <div
-            class="absolute left-0 top-0 bg-main border-b border-r border-main px-2 py-1 op50 text-sm"
+            class="absolute start-0 top-0 bg-main border-b border-e border-main px-2 py-1 op50 text-sm"
           >
-            Next
+            {{ 'presenter.next' | t }}
           </div>
         </div>
         <div class="relative grid-section note overflow-hidden">
@@ -125,7 +127,7 @@ import { TimerInlined } from './timer-inlined';
               <app-note-display
                 [html]="nav.meta().noteHtml"
                 [clicks]="nav.clicks()"
-                [placeholder]="'No notes for Slide ' + nav.no() + '.'"
+                [placeholder]="'presenter.noNotes' | t: { no: nav.no() }"
                 (markerDblclick)="nav.ctx()?.setCurrent($event)"
               />
             </div>
@@ -133,7 +135,7 @@ import { TimerInlined } from './timer-inlined';
               <button
                 icon-btn
                 id="notes-bigger"
-                title="Increase font size"
+                [title]="'presenter.fontBigger' | t"
                 (click)="prefs.bigger()"
               >
                 <div class="i-carbon:zoom-in"></div>
@@ -141,7 +143,7 @@ import { TimerInlined } from './timer-inlined';
               <button
                 icon-btn
                 id="notes-smaller"
-                title="Decrease font size"
+                [title]="'presenter.fontSmaller' | t"
                 (click)="prefs.smaller()"
               >
                 <div class="i-carbon:zoom-out"></div>
@@ -170,19 +172,22 @@ import { TimerInlined } from './timer-inlined';
 })
 export class Presenter {
   protected nav = inject(Nav);
+  private ui = inject(Ui);
   protected announcement = computed(() => {
     const no = this.nav.no();
     const title = SLIDES[no - 1]?.title;
-    return `Slide ${no} of ${this.nav.total}${title ? `: ${title}` : ''}`;
+    const total = this.nav.total;
+    return this.ui.text(title ? 'deck.announceTitle' : 'deck.announce', { no, total, title });
   });
   protected prefs = inject(PresenterPrefs);
-  private ui = inject(Ui);
   /** The main pane shows a shared screen instead of the slides. */
   protected mirror = signal(false);
   protected key = keyHandler(this.nav, this.ui);
 
   constructor() {
-    inject(Title).setTitle(`Presenter - ${HEADMATTER['title'] ?? 'slide.ng'}`);
+    inject(Title).setTitle(
+      this.ui.text('presenter.pageTitle', { title: String(HEADMATTER['title'] ?? 'slide.ng') }),
+    );
     startNavSync(this.nav);
   }
 

@@ -32,7 +32,8 @@ const COMMAND_HELP = {
   --bind <address>      the address to listen on with --remote (default 0.0.0.0)
   --log <level>         error, warn, info (default) or silent
   --force, -f           clear the Angular build cache first
-  --theme, -t <name>    use this theme instead of the headmatter's`,
+  --theme, -t <name>    use this theme instead of the headmatter's
+  --lang <tag>          use this language instead of the headmatter's lang`,
   build: `slide-ng build [slides.md]  make a static site
   --out, -o <dir>       output folder (default dist)
   --base </path/>       the path the site is served from
@@ -40,6 +41,7 @@ const COMMAND_HELP = {
   --download            also make the PDF and offer it in the bar
   --without-notes       leave the speaker notes out
   --theme, -t <name>    use this theme instead of the headmatter's
+  --lang <tag>          use this language instead of the headmatter's lang
   --executable-path, --no-sandbox, --allow-local, --timeout   Chromium for the PDF and the Open Graph picture`,
   export: `slide-ng export [slides.md]  make a PDF, PNG, PPTX or Markdown file
   --format <f>          pdf (default), png, pptx or md
@@ -50,7 +52,7 @@ const COMMAND_HELP = {
   --per-slide, --with-toc, --scale <n>, --omit-background
   --timeout <ms>, --wait <ms>, --wait-until <state>
   --dist <dir> | --url <address>   export a build or a running server instead of building
-  --base, --theme, -t, --executable-path, --no-sandbox, --allow-local`,
+  --base, --theme, -t, --lang, --executable-path, --no-sandbox, --allow-local`,
   'export-notes': `slide-ng export-notes [slides.md]  make a PDF of the speaker notes
   --output, -o <file>, --range <1,3-5>, and the Chromium flags of export`,
   format: 'slide-ng format [slides.md ...]  tidy the markdown files in place',

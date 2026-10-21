@@ -1,4 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
+import { UiTextKey } from '../i18n/en';
+import { T } from '../i18n/t';
 import { IconBtn } from '../ui/icon-btn';
 import { Draggable } from './draggable';
 import { BRUSH_COLORS, Drawings, ToolMode } from './drawings';
@@ -6,7 +8,7 @@ import { BRUSH_COLORS, Drawings, ToolMode } from './drawings';
 // The drawing toolbar (Slidev's DrawingControls): tools, stroke width, colours, undo / redo / clear.
 @Component({
   selector: 'app-drawing-controls',
-  imports: [Draggable, IconBtn],
+  imports: [Draggable, IconBtn, T],
   template: `
     @if (drawings.available && (drawings.enabled() || drawings.pinned())) {
       <app-draggable
@@ -18,7 +20,7 @@ import { BRUSH_COLORS, Drawings, ToolMode } from './drawings';
           <button
             icon-btn
             [id]="'tool-' + tool.mode"
-            [title]="tool.title"
+            [title]="tool.title | t"
             [class.shallow]="drawings.mode() !== tool.mode"
             [active]="drawings.mode() === tool.mode"
             (click)="drawings.pickTool(tool.mode)"
@@ -31,7 +33,7 @@ import { BRUSH_COLORS, Drawings, ToolMode } from './drawings';
           <button
             icon-btn
             id="stroke-width"
-            title="Adjust stroke width"
+            [title]="'drawing.width' | t"
             [class.shallow]="drawings.mode() === 'eraseLine'"
             (click)="widthOpen.set(!widthOpen())"
           >
@@ -74,7 +76,7 @@ import { BRUSH_COLORS, Drawings, ToolMode } from './drawings';
               </div>
               <input
                 id="stroke-range"
-                aria-label="Stroke width"
+                [attr.aria-label]="'drawing.widthValue' | t"
                 type="range"
                 min="1"
                 max="15"
@@ -89,7 +91,7 @@ import { BRUSH_COLORS, Drawings, ToolMode } from './drawings';
             icon-btn
             class="color-btn"
             [attr.data-color]="color"
-            [title]="'Brush color: ' + colorNames[color]"
+            [title]="'drawing.color' | t: { color: (colorNames[color] | t) }"
             [active]="drawings.brush().color === color && drawings.mode() !== 'eraseLine'"
             (click)="drawings.pickColor(color)"
           >
@@ -109,7 +111,7 @@ import { BRUSH_COLORS, Drawings, ToolMode } from './drawings';
         <button
           icon-btn
           id="draw-undo"
-          title="Undo"
+          [title]="'drawing.undo' | t"
           [class.disabled]="!drawings.canUndo()"
           (click)="drawings.undo()"
         >
@@ -118,7 +120,7 @@ import { BRUSH_COLORS, Drawings, ToolMode } from './drawings';
         <button
           icon-btn
           id="draw-redo"
-          title="Redo"
+          [title]="'drawing.redo' | t"
           [class.disabled]="!drawings.canRedo()"
           (click)="drawings.redo()"
         >
@@ -127,7 +129,7 @@ import { BRUSH_COLORS, Drawings, ToolMode } from './drawings';
         <button
           icon-btn
           id="draw-clear"
-          title="Delete"
+          [title]="'drawing.clear' | t"
           [class.disabled]="!drawings.canClear()"
           (click)="drawings.clear()"
         >
@@ -137,7 +139,7 @@ import { BRUSH_COLORS, Drawings, ToolMode } from './drawings';
         <button
           icon-btn
           id="draw-pin"
-          [title]="drawings.pinned() ? 'Unpin drawing' : 'Pin drawing'"
+          [title]="(drawings.pinned() ? 'drawing.unpin' : 'drawing.pin') | t"
           [class.shallow]="!drawings.pinned()"
           (click)="drawings.pinned.set(!drawings.pinned())"
         >
@@ -151,11 +153,7 @@ import { BRUSH_COLORS, Drawings, ToolMode } from './drawings';
           <button
             icon-btn
             id="draw-close"
-            [title]="
-              drawings.pinned()
-                ? 'Close the drawing tools (the drawing stays)'
-                : 'Close the drawing tools'
-            "
+            [title]="(drawings.pinned() ? 'drawing.closeKeep' : 'drawing.close') | t"
             (click)="drawings.enabled.set(false)"
           >
             <div [class]="drawings.pinned() ? 'i-carbon:error' : 'i-carbon:close-outline'"></div>
@@ -169,22 +167,22 @@ export class DrawingControls {
   protected drawings = inject(Drawings);
   protected colors = BRUSH_COLORS;
   // Each colour button says which colour it is (a screen reader would hear seven equal buttons otherwise).
-  protected colorNames: Record<string, string> = {
-    '#ff595e': 'red',
-    '#ffca3a': 'yellow',
-    '#8ac926': 'green',
-    '#1982c4': 'blue',
-    '#6a4c93': 'purple',
-    '#ffffff': 'white',
-    '#000000': 'black',
+  protected colorNames: Record<string, UiTextKey> = {
+    '#ff595e': 'drawing.red',
+    '#ffca3a': 'drawing.yellow',
+    '#8ac926': 'drawing.green',
+    '#1982c4': 'drawing.blue',
+    '#6a4c93': 'drawing.purple',
+    '#ffffff': 'drawing.white',
+    '#000000': 'drawing.black',
   };
   protected widthOpen = signal(false);
-  protected tools: { mode: ToolMode; title: string; icon: string }[] = [
-    { mode: 'stylus', title: 'Draw with stylus', icon: 'i-carbon:pen' },
-    { mode: 'line', title: 'Draw a line', icon: 'i-carbon:subtract transform -rotate-45' },
-    { mode: 'arrow', title: 'Draw an arrow', icon: 'i-carbon:arrow-up-right' },
-    { mode: 'ellipse', title: 'Draw an ellipse', icon: 'i-carbon:radio-button' },
-    { mode: 'rectangle', title: 'Draw a rectangle', icon: 'i-carbon:checkbox' },
-    { mode: 'eraseLine', title: 'Erase', icon: 'i-carbon:erase' },
+  protected tools: { mode: ToolMode; title: UiTextKey; icon: string }[] = [
+    { mode: 'stylus', title: 'drawing.stylus', icon: 'i-carbon:pen' },
+    { mode: 'line', title: 'drawing.line', icon: 'i-carbon:subtract transform -rotate-45' },
+    { mode: 'arrow', title: 'drawing.arrow', icon: 'i-carbon:arrow-up-right' },
+    { mode: 'ellipse', title: 'drawing.ellipse', icon: 'i-carbon:radio-button' },
+    { mode: 'rectangle', title: 'drawing.rectangle', icon: 'i-carbon:checkbox' },
+    { mode: 'eraseLine', title: 'drawing.erase', icon: 'i-carbon:erase' },
   ];
 }

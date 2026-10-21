@@ -9,16 +9,18 @@ import {
   viewChild,
 } from '@angular/core';
 import { Nav } from '../lib/nav';
+import { T } from '../i18n/t';
 import { Ui } from '../lib/ui-state';
 
 // "Go to slide" box (key `g`, like Slidev's Goto). Type a number or part of a title,
 // move with the up and down keys, Enter goes to the highlighted result, Escape closes.
 @Component({
   selector: 'app-goto',
+  imports: [T],
   template: `
     <div
       id="slidev-goto-dialog"
-      class="fixed right-5 transition-all w-90 max-w-90 min-w-90 z-modal text-main"
+      class="fixed end-5 transition-all w-90 max-w-90 min-w-90 z-modal text-main"
       [class]="ui.goto() ? 'top-5' : '-top-20 op0 pointer-events-none'"
       [attr.aria-hidden]="ui.goto() ? null : 'true'"
     >
@@ -28,8 +30,8 @@ import { Ui } from '../lib/ui-state';
           id="slidev-goto-input"
           type="text"
           class="outline-none bg-transparent w-full"
-          placeholder="Goto..."
-          aria-label="Go to slide"
+          [placeholder]="'goto.placeholder' | t"
+          [attr.aria-label]="'goto.label' | t"
           role="combobox"
           aria-autocomplete="list"
           aria-controls="goto-results"
@@ -49,7 +51,7 @@ import { Ui } from '../lib/ui-state';
         <ul
           id="goto-results"
           role="listbox"
-          aria-label="Slides"
+          [attr.aria-label]="'goto.results' | t"
           class="bg-main shadow mt-1 rounded border border-transparent dark:border-gray/20 overflow-auto max-h-80"
         >
           @for (r of results(); track r.no; let i = $index) {
@@ -61,7 +63,7 @@ import { Ui } from '../lib/ui-state';
               [class]="i === selected() ? 'bg-active op100' : 'op80'"
               (click)="open(r.no)"
             >
-              <span class="opacity-50 text-sm w-6 text-right">{{ r.no }}</span>
+              <span class="opacity-50 text-sm w-6 text-end">{{ r.no }}</span>
               <span>{{ r.title }}</span>
             </li>
           }
