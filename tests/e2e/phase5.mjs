@@ -22,7 +22,7 @@ const t = reporter();
 const ctx = makeContext(`http://localhost:${port}`, browser, t);
 
 const only = process.argv[2];
-for (const topic of ['setup', 'theme-config', 'transitions']) {
+for (const topic of ['setup', 'theme-config', 'transitions', 'hooks']) {
   if (only && only !== topic) continue;
   console.log(`\n== ${topic}`);
   await (await import(`./phase5/${topic}.mjs`)).run(ctx);

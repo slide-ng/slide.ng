@@ -1,6 +1,6 @@
 // Navigation: which slide is on screen and how to move. Port of the useNav.ts parts that
 // matter for playing a deck. It is provided by the Deck component, so it can read the route.
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 import { Location } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -68,6 +68,19 @@ export class Nav {
 
   /** 1 while moving forward, -1 backward (for transitions and `forward:` / `backward:` classes). */
   readonly direction = signal(0);
+
+  /** The slide shown before the one on screen (undefined at first): the `from` of the slide hooks (lib/slide-hooks.ts). */
+  readonly previousNo = signal<number | undefined>(undefined);
+  constructor() {
+    let shown: number | undefined;
+    effect(() => {
+      const no = this.no();
+      untracked(() => {
+        if (shown !== undefined && shown !== no) this.previousNo.set(shown);
+        shown = no;
+      });
+    });
+  }
 
   readonly clicks = computed(() => this.ctx()?.current() ?? 0);
   readonly clicksTotal = computed(() => this.ctx()?.total() ?? 0);

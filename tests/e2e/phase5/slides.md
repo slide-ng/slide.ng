@@ -81,3 +81,11 @@ transition:
 ---
 
 # After the object form
+
+---
+routeAlias: hooks
+---
+
+# Slide hooks
+
+<hook-counter />

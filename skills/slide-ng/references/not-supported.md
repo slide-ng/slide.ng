@@ -13,7 +13,6 @@ If a feature is not listed as present in the other references, assume it is miss
 - `:emoji:` shortcodes (type the emoji itself).
 - `<script setup>`, Vue directives other than the slide.ng ones, a Vue-to-Angular converter.
 - `selectable`, `PoweredBySlidev`.
-- Slide hooks `onSlideEnter`, `onSlideLeave`, `useIsSlideActive`.
 - `<slide-ng-click>` as a tag, PascalCase tags, `--uno` in `<style>`.
 - UnoCSS attributify (`flex="~"`), variant groups (`hover:(a b)`), the typography preset (`prose`), `transformerDirectives`. Use plain classes.
 - markdown-it typographer (smart quotes, `--`, `...`) and `v-pre` (use `ngNonBindable`, or `&#123;&#123;` for a literal `{{`).
@@ -48,4 +47,4 @@ If a feature is not listed as present in the other references, assume it is miss
 
 **Not checked** (may work, was never tried): Firefox and Safari for exports and offline folders, real devices over a LAN, a real screen-share picker, wake lock, real Google Fonts for self-hosting, GitHub Pages / Netlify hosting, addons built end to end, a deck installed from the npm registry with this version (a new deck gets the published `@slide-ng/core` 0.1.0).
 
-When a request needs one of these, say it is not available and offer the nearest thing that exists (for example a component instead of a slide hook).
+When a request needs one of these, say it is not available and offer the nearest thing that exists (for example a component instead of a Vue directive).
