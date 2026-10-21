@@ -126,6 +126,17 @@ export async function run({ t, open, press, hud }) {
     'autoplay once: the second plays when its click comes',
     (await calls()).includes('play:vid-once'),
   );
+  // Slidev's `<SlidevVideo class="h-60">` puts the class on the video: here the class sizes the element and the video fits it.
+  const box = await page.locator('#vid-once').evaluate((host) => {
+    const h = host.getBoundingClientRect();
+    const v = host.querySelector('video').getBoundingClientRect();
+    return { host: h.height, video: v.height, inside: v.bottom <= h.bottom + 0.5 };
+  });
+  t.ok(
+    'a height class on slide-ng-video sizes the video',
+    box.inside && Math.abs(box.video - box.host) < 1,
+    JSON.stringify(box),
+  );
   await press(page, 'ArrowLeft');
   await press(page, 'ArrowLeft');
   t.ok(
