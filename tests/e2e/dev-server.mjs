@@ -421,6 +421,11 @@ try {
   await page.locator('#note-editor').press('Escape');
   await page.waitForSelector('.slidev-note-click-mark', { timeout: 30000 });
   t.ok(
+    'Escape ends editing and gives the focus back to the Edit Notes button',
+    await page.evaluate(() => document.activeElement?.id === 'notes-edit'),
+    await page.evaluate(() => document.activeElement?.outerHTML.slice(0, 80)),
+  );
+  t.ok(
     'after editing the notes show the new text with a working click marker',
     (await page.locator('.grid-section.note .slidev-note').innerText()).includes(
       'Edited in the presenter.',
@@ -476,6 +481,15 @@ try {
   await firstNote.focus();
   await page.keyboard.press('Enter');
   await page.locator('.overview-note-edit').waitFor({ timeout: 10000 });
+  t.ok(
+    '/overview: the note and its text box are named, and the note says it can be edited',
+    (await firstNote.getAttribute('role')) === 'group' &&
+      (await firstNote.getAttribute('aria-label')) === 'Notes of slide 1' &&
+      (
+        await page.locator(`#${await firstNote.getAttribute('aria-describedby')}`).textContent()
+      ).includes('Editable') &&
+      (await page.locator('.overview-note-edit').getAttribute('aria-label')) === 'Notes of slide 1',
+  );
   await page.keyboard.type('Not kept.');
   await page.keyboard.press('Escape');
   await sleep(500);

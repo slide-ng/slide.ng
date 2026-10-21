@@ -67,8 +67,45 @@ export async function run({ t, base, browser, problems, open, press }) {
   t.ok('/notes-edit is only there while developing', true);
   await page.close();
 
+  // Landmarks and headings: each page has one main landmark and a level-one heading (visually hidden where the page
+  // shows none); on the audience page the slide is inside the main landmark.
+  const landmarks = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  for (const [path, ready] of [
+    ['/overview', '.overview-row'],
+    ['/notes', '#notes-scroller'],
+    ['/presenter/1', '#hud'],
+    ['/1', '#hud'],
+  ]) {
+    await landmarks.goto(`${base}${path}`);
+    await landmarks.locator(ready).first().waitFor({ timeout: 15000 });
+    const found = await landmarks.evaluate(() => ({
+      main: document.querySelectorAll('main, [role="main"]').length,
+      h1: document.querySelectorAll('h1').length > 0,
+      slideInMain:
+        !document.querySelector('#slide-content') ||
+        !!document.querySelector('#slide-content').closest('main, [role="main"]'),
+    }));
+    t.ok(
+      `${path} has one main landmark and a level-one heading, with the slide inside it`,
+      found.main === 1 && found.h1 && found.slideInMain,
+      JSON.stringify(found),
+    );
+  }
+  await landmarks.close();
+
   const deck = await open('/1');
   await press(deck, 'o');
+  t.ok(
+    'quick overview: a card is named with the slide title',
+    (await deck.locator('.overview-card[data-no="2"]').getAttribute('aria-label')) ===
+      'Go to slide 2: Clicks and notes',
+  );
+  await press(deck, 'ArrowRight');
+  t.ok(
+    'quick overview: the arrow keys move the focus with the highlight',
+    await deck.evaluate(() => document.activeElement?.getAttribute('data-no') === '2'),
+    await deck.evaluate(() => document.activeElement?.outerHTML.slice(0, 80)),
+  );
   await deck.locator('#overview-page-link').click();
   await deck.waitForFunction(() => location.pathname === '/overview');
   t.ok('the quick overview links to /overview', true);

@@ -52,7 +52,7 @@ import { Overview } from './ui/overview';
     '(click)': 'anchor($event)',
   },
   template: `
-    <div
+    <main
       class="stage"
       [style.right.px]="editor.open() && editor.available() ? editor.width : 0"
       [class.slidev-nav-go-forward]="nav.direction() > 0"
@@ -74,7 +74,7 @@ import { Overview } from './ui/overview';
         <app-nav-bar />
       </div>
       <app-offline-badge />
-    </div>
+    </main>
     <app-drawing-controls />
     <app-web-camera />
     <app-side-editor />

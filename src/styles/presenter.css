@@ -133,7 +133,7 @@ html.dark .slidev-presenter .grid-section {
   transition: opacity 0.2s;
 }
 .slidev-note-with-clicks .slidev-note-fade {
-  opacity: 0.4;
+  opacity: 0.75;
 }
 .slidev-note-click-mark {
   display: inline-block;

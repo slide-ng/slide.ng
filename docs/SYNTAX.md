@@ -1207,14 +1207,27 @@ presses a button, and a touch on the slide hides it again. On a screen taller th
 
 ## Accessibility
 
-- **Screen readers** hear the number and title of each new slide (a polite live region). Elements that wait for a click are hidden from them
-  until they show. The presenter page has three named regions (Current slide, Next step, Notes); the next-step picture is skipped, so
-  headings are not read twice. Line numbers of code and of Magic Move are skipped too.
+- **Screen readers** hear the number and title of each new slide (a polite live region). A title is read as plain text: its markdown marks
+  go and `$math$` is its TeX (the same text is the tab title, the "go to" list and the PDF outline). Elements that wait for a click are
+  hidden from them until they show. The presenter page has three named regions (Current slide, Next step, Notes); the next-step picture
+  is skipped, so headings are not read twice. Line numbers of code and of Magic Move are skipped too.
+- **Landmarks and headings**: the slide (with the bar) is the page's main landmark; the presenter, `/overview` and `/notes` each have a
+  main landmark and a level-one heading (visually hidden on the presenter and `/notes`).
+- **Keyboard**: in the quick overview (`o`) the arrow keys move the focus from card to card, and each card is named "Go to slide N: title".
+  In the presenter's click preview the badges are the keyboard way to a later click (see Click preview). After Edit Notes, Escape gives
+  the focus back to the Edit Notes button. On `/overview` (while developing) each note is a named group that says it can be edited:
+  Enter or a double click edits it.
+- **Progress bar**: `progressBar` is a `progressbar` named "Progress through the slides" (translatable: `progress.label`).
+- **Contrast and size**: the interface's text is at least 4.5:1 (3:1 for large text) in light and dark mode, also the notes of later
+  clicks, which are faded to 0.75; its icon buttons are at least 24 by 24 pixels. A theme that changes the colours or `.slidev-note-fade`
+  has to keep that. The settings and sync menus and the info dialog stay inside the window down to 320 by 180 pixels (400% zoom) and
+  scroll.
 - **Reduced motion**: when the system asks for less motion (`prefers-reduced-motion: reduce`), slide transitions, click fades,
   `slide-ng-motion` and Magic Move change at once (every CSS transition and animation is cut to almost zero). JavaScript timers in your own
   components are not changed; check `matchMedia('(prefers-reduced-motion: reduce)')` there.
 - **Forced colors** (Windows high contrast): the browser's colours replace the deck's. The interface's icons are drawn in the text colour,
-  so the buttons stay visible; colours you set on your own icons are not kept in that mode.
+  so the buttons stay visible, and the progress bars are filled with the system's highlight colour; colours you set on your own icons are
+  not kept in that mode.
 - **Pictures**: write the text alternative with markdown (`![A red bridge at night](/bridge.jpg)`) or `<img alt="...">`. A picture given as
   `image:` or `background:` in the frontmatter is a CSS background and cannot have one: when it carries meaning, put an `<img alt>` in the
   slide or say it in the text.

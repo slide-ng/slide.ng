@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, Injector, afterNextRender, computed, inject, signal } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { HEADMATTER, SLIDES } from '../../slides/generated';
 import { keyHandler } from '../lib/key-handler';
@@ -13,6 +13,7 @@ import { Ui } from '../lib/ui-state';
 import { startNavSync } from '../sync/nav-sync';
 import { ContextMenu } from '../ui/context-menu';
 import { Goto } from '../ui/goto';
+import { IconBtn } from '../ui/icon-btn';
 import { NavBar } from '../ui/nav-bar';
 import { Overview } from '../ui/overview';
 import { WebCamera } from '../record/web-camera';
@@ -54,6 +55,7 @@ function readEditing(): boolean {
     NextPreview,
     NoteDisplay,
     NavBar,
+    IconBtn,
     ProgressBar,
     TimerBar,
     TimerInlined,
@@ -72,9 +74,10 @@ function readEditing(): boolean {
   providers: [Nav, Ui, Drawings],
   host: { '(window:keydown)': 'key($event)', class: 'block h-full' },
   template: `
-    <div
+    <main
       class="bg-main text-main h-full slidev-presenter grid grid-rows-[max-content_1fr] of-hidden"
     >
+      <h1 class="sr-only">{{ title }}</h1>
       <div>
         <app-progress-bar
           [current]="nav.no()"
@@ -173,7 +176,7 @@ function readEditing(): boolean {
             <div class="h-full grid grid-rows-[1fr_min-content]">
               <div class="overflow-auto" [style.font-size.em]="prefs.fontSize()">
                 @if (editingNotes() && editor.canWrite()) {
-                  <app-note-editor [no]="nav.no()" (done)="setEditingNotes(false)" />
+                  <app-note-editor [no]="nav.no()" (done)="stopEditingNotes()" />
                 } @else {
                   <app-note-display
                     [html]="nav.meta().noteHtml"
@@ -222,7 +225,7 @@ function readEditing(): boolean {
           <app-timer-inlined />
         </div>
       </div>
-    </div>
+    </main>
     <app-drawing-controls />
     <app-web-camera />
     <app-goto />
@@ -261,14 +264,30 @@ export class Presenter {
       // no storage: editing just ends with a reload
     }
   }
+  // Editing ended in the box (Escape, or a click on something that takes no focus): the focus goes back to the
+  // Edit Notes button instead of being lost on the page.
+  protected stopEditingNotes() {
+    this.setEditingNotes(false);
+    afterNextRender(
+      () => {
+        const active = document.activeElement;
+        if (!active || active === document.body)
+          document.querySelector<HTMLElement>('#notes-edit')?.focus();
+      },
+      { injector: this.injector },
+    );
+  }
+  private injector = inject(Injector);
   /** The main pane shows a shared screen instead of the slides. */
   protected mirror = signal(false);
   protected key = keyHandler(this.nav, this.ui);
 
+  protected readonly title = this.ui.text('presenter.pageTitle', {
+    title: String(HEADMATTER['title'] ?? 'slide.ng'),
+  });
+
   constructor() {
-    inject(Title).setTitle(
-      this.ui.text('presenter.pageTitle', { title: String(HEADMATTER['title'] ?? 'slide.ng') }),
-    );
+    inject(Title).setTitle(this.title);
     startNavSync(this.nav);
   }
 

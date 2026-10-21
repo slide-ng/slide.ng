@@ -35,7 +35,11 @@ import { Thumbnail } from './thumbnail';
                 class="overview-card inline-block text-start border rounded overflow-hidden bg-main hover:border-primary transition cursor-pointer"
                 [class]="ui.overviewPage() === $index + 1 ? 'border-primary' : 'border-main'"
                 [attr.data-no]="$index + 1"
-                [attr.aria-label]="'overview.goTo' | t: { no: $index + 1 }"
+                [attr.aria-label]="
+                  slide.title
+                    ? ('overview.goToTitle' | t: { no: $index + 1, title: slide.title })
+                    : ('overview.goTo' | t: { no: $index + 1 })
+                "
                 [attr.aria-current]="nav.no() === $index + 1 ? 'true' : null"
                 (click)="go($index + 1, $event)"
               >
@@ -120,6 +124,17 @@ export class Overview {
           Math.max(1, Math.floor((this.width() - this.padding()) / (this.cardWidth() + 32))),
         );
       });
+    });
+    // The arrow keys move the highlight (Ui.overviewPage); once the focus is in the overview it moves with it, so a screen
+    // reader says which slide is highlighted. Just opened, the dialog itself keeps the focus.
+    effect(() => {
+      const no = this.ui.overviewPage();
+      if (!this.ui.overview()) return;
+      const dialog = this.dialog();
+      const active = document.activeElement;
+      if (!dialog || !(active === dialog || active?.classList.contains('overview-card'))) return;
+      const card = dialog.querySelector<HTMLElement>(`.overview-card[data-no="${no}"]`);
+      if (card && card !== active) card.focus();
     });
   }
 

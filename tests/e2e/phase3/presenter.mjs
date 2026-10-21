@@ -140,6 +140,15 @@ export async function run({ t, open, press, hud, pathOf, windowGroup }) {
       .locator('app-note-display')
       .evaluate((e) => getComputedStyle(e.parentElement).fontSize);
   const before = parseFloat(await fs());
+  // WCAG 2.5.8: the small buttons under the notes are at least 24 by 24 pixels.
+  const sizes = await presenter
+    .locator('#notes-bigger, #notes-smaller')
+    .evaluateAll((l) => l.map((e) => e.getBoundingClientRect()).map((r) => [r.width, r.height]));
+  t.ok(
+    'the notes buttons are at least 24 by 24 pixels',
+    sizes.length === 2 && sizes.flat().every((n) => n >= 24),
+    JSON.stringify(sizes),
+  );
   await presenter.locator('#notes-bigger').click();
   await presenter.waitForTimeout(150);
   t.ok('the notes font grows', parseFloat(await fs()) > before);

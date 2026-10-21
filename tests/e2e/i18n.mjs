@@ -86,7 +86,7 @@ const title = (page, selector) => page.locator(selector).first().getAttribute('t
   t.ok(
     'overview: translated dialog label and card labels',
     (await page.locator('#overview').getAttribute('aria-label')) === 'xx-overview-dialog' &&
-      (await page.locator('.overview-card').nth(1).getAttribute('aria-label')) === 'xx-go 2',
+      (await page.locator('.overview-card').nth(1).getAttribute('aria-label')) === 'xx-go 2: Two',
   );
   await press(page, 'Escape');
 

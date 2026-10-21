@@ -100,14 +100,15 @@ default; `src/app/i18n/en.ts` holds it and is the source of truth for the keys. 
 
 ### The overview and the goto dialog
 
-| key                | English          |
-| ------------------ | ---------------- |
-| `overview.label`   | Slide overview   |
-| `overview.goTo`    | Go to slide {no} |
-| `overview.close`   | Close            |
-| `goto.placeholder` | Goto...          |
-| `goto.label`       | Go to slide      |
-| `goto.results`     | Slides           |
+| key                  | English                   |
+| -------------------- | ------------------------- |
+| `overview.label`     | Slide overview            |
+| `overview.goTo`      | Go to slide {no}          |
+| `overview.goToTitle` | Go to slide {no}: {title} |
+| `overview.close`     | Close                     |
+| `goto.placeholder`   | Goto...                   |
+| `goto.label`         | Go to slide               |
+| `goto.results`       | Slides                    |
 
 ### The right-click menu
 
@@ -260,6 +261,8 @@ default; `src/app/i18n/en.ts` holds it and is the source of truth for the keys. 
 | `pages.all`                   | All pages                                                                                |
 | `overviewPage.count`          | {count} slides                                                                           |
 | `overviewPage.noNotesEdit`    | No notes. Double click to add some.                                                      |
+| `overviewPage.notesOf`        | Notes of slide {no}                                                                      |
+| `overviewPage.editHint`       | Editable: press Enter or double click to edit.                                           |
 | `overviewPage.editing`        | Editing; leave the text to save, Escape to cancel.                                       |
 | `overviewPage.saved`          | Saved.                                                                                   |
 | `overviewPage.conflict`       | Not saved: the note changed in the file. Reload the page.                                |

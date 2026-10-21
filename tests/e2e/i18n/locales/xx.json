@@ -6,6 +6,7 @@
   "goto.placeholder": "xx-goto",
   "overview.label": "xx-overview-dialog",
   "overview.goTo": "xx-go {no}",
+  "overview.goToTitle": "xx-go {no}: {title}",
   "info.credit": "xx {name} xx-credit",
   "presenter.next": "xx-next-step",
   "presenter.noNotes": "xx-no-notes {no}",

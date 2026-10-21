@@ -31,9 +31,13 @@ The deck, `/presenter/<n>` and `/notes` are described in `presenter-view.md`.
 
 ## Accessibility
 
-- Screen readers hear each new slide's number and title; elements that wait for a click are hidden until shown. Presenter page: regions Current slide, Next step, Notes; the next-step picture and line numbers are skipped.
+- Screen readers hear each new slide's number and title (plain text: markdown marks dropped, `$math$` as its TeX; also the tab title, goto list and PDF outline); elements that wait for a click are hidden until shown. Presenter page: regions Current slide, Next step, Notes; the next-step picture and line numbers are skipped.
+- Landmarks: the slide is in the main landmark; the presenter, `/overview` and `/notes` have a main landmark and an h1 (visually hidden on the presenter and `/notes`).
+- Keyboard: arrows in the quick overview move the focus between cards named "Go to slide N: title"; in the click preview the badges are the keyboard path (a greyed-out part's links are inert); Escape in Edit Notes returns focus to its button; `/overview` notes are named groups that say they are editable (Enter edits).
+- The `progressBar` is a named `progressbar` (`progress.label`) and is filled with the highlight colour in forced colors.
+- Interface text meets 4.5:1 (large 3:1) in light and dark, faded notes of later clicks included (opacity 0.75); icon buttons are at least 24x24 px; the settings and sync menus and the info dialog fit and scroll down to 320x180 (400% zoom).
 - `prefers-reduced-motion: reduce`: transitions, click fades, `slide-ng-motion` and Magic Move happen at once (CSS durations cut to ~0). JS timers in own components are not changed.
-- Forced colors (Windows high contrast): the interface icons use the text colour; own icon colours are not kept.
+- Forced colors (Windows high contrast): the interface icons use the text colour and progress bars the highlight colour; own icon colours are not kept.
 - Alt text: `![text](/a.png)` or `<img alt>`. `image:` / `background:` in the frontmatter are CSS backgrounds and cannot have alt text: add an `<img alt>` or say it in the text.
 - Mermaid: `accTitle:` and `accDescr:` lines become the SVG's title and description.
 - Math is read as its TeX source (no MathML); say important formulas in words.

@@ -20,7 +20,8 @@ import { TimerBar } from './timer-bar';
   imports: [ProgressBar, TimerBar, NoteDisplay, ClicksSlider, IconBtn, T],
   host: { class: 'block h-full' },
   template: `
-    <div class="bg-main text-main h-full flex flex-col">
+    <main class="bg-main text-main h-full flex flex-col">
+      <h1 class="sr-only">{{ title }}</h1>
       <app-progress-bar
         [current]="page()"
         [clicks]="state().clicks"
@@ -75,7 +76,7 @@ import { TimerBar } from './timer-bar';
           </div>
         </div>
       </div>
-    </div>
+    </main>
     <div id="hud" aria-hidden="true">
       slide {{ page() }}/{{ total }} clicks {{ state().clicks }}/{{ state().clicksTotal }}
     </div>
@@ -91,9 +92,12 @@ export class NotesPage {
   protected page = computed(() => Math.min(Math.max(this.state().page, 1), this.total));
   protected html = computed(() => SLIDES[this.page() - 1].noteHtml);
 
+  protected readonly title = uiText(inject(UI_TEXT), 'notes.pageTitle', {
+    title: String(HEADMATTER['title'] ?? 'slide.ng'),
+  });
+
   constructor() {
-    const title = String(HEADMATTER['title'] ?? 'slide.ng');
-    inject(Title).setTitle(uiText(inject(UI_TEXT), 'notes.pageTitle', { title }));
+    inject(Title).setTitle(this.title);
     inject(Dark); // the deck's colour scheme (colorSchema, the system or the last choice) on <html>
     this.sync.sendHello(); // the presenter answers with where it is
   }
