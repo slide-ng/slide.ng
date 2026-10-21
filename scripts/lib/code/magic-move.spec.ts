@@ -1,6 +1,6 @@
 import { inflateRawSync } from 'node:zlib';
 import { initHighlighter } from './highlighter.mjs';
-import { isMagicMove, renderMagicMove } from './magic-move.mjs';
+import { isMagicMove, magicMoveOptions, renderMagicMove } from './magic-move.mjs';
 import { extractFences } from '../fences.mjs';
 
 beforeAll(() => initHighlighter({ langs: ['js', 'ts'] }));
@@ -28,5 +28,62 @@ describe('magic move', () => {
     expect(steps[0].code).toBe('let a = 1');
     expect(steps[1].lineNumbers).toBe(true);
     expect(steps[1].tokens.every((t: { key: string }) => t.key)).toBe(true);
+  });
+
+  it('passes the headmatter shiki.magicMove options to the component', () => {
+    const shiki = { magicMove: { stagger: 5, easing: 'linear', splitTokens: true, duration: 999 } };
+    const html = renderMagicMove(fence(), { headmatter: { shiki } });
+    const text = /options="([^"]+)"/.exec(html)![1];
+    const options = text
+      .replace(/&quot;/g, '"')
+      .replace(/&#(\d+);/g, (_, c) => String.fromCharCode(c));
+    expect(JSON.parse(options)).toEqual({
+      stagger: 5,
+      easing: 'linear',
+      splitTokens: true,
+    });
+  });
+  it('the block duration wins, then magicMoveDuration, then shiki.magicMove.duration', () => {
+    const shiki = { magicMove: { duration: 999 } };
+    const plain = (
+      extractFences('````md magic-move\n```js\nlet a = 1\n```\n````') as { fences: any[] }
+    ).fences[0];
+    expect(renderMagicMove(fence(), { headmatter: { shiki, magicMoveDuration: 500 } })).toContain(
+      'duration="300"',
+    );
+    expect(renderMagicMove(plain, { headmatter: { shiki, magicMoveDuration: 500 } })).toContain(
+      'duration="500"',
+    );
+    expect(renderMagicMove(plain, { headmatter: { shiki } })).toContain('duration="999"');
+    expect(renderMagicMove(plain, { headmatter: { shiki } })).not.toContain('options=');
+  });
+});
+
+describe('magicMoveOptions', () => {
+  it('keeps every Slidev option of the right type', () => {
+    const all = {
+      duration: 1,
+      stagger: 2,
+      delayMove: 0.1,
+      delayLeave: 0.2,
+      delayEnter: 0.3,
+      delayContainer: 0.4,
+      easing: 'ease-in',
+      animateContainer: true,
+      containerStyle: false,
+      splitTokens: true,
+      enhanceMatching: true,
+    };
+    expect(magicMoveOptions(all)).toEqual(all);
+  });
+  it('drops unknown keys and wrong types with a warning', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(magicMoveOptions({ stagger: '5', colour: 'red', easing: 'linear' })).toEqual({
+      easing: 'linear',
+    });
+    expect(warn).toHaveBeenCalledTimes(2);
+    expect(magicMoveOptions('fast')).toEqual({});
+    expect(magicMoveOptions(undefined)).toEqual({});
+    warn.mockRestore();
   });
 });

@@ -2,6 +2,10 @@
 title: slide.ng phase 2 showcase
 plantUmlServer: /plantuml
 lineNumbers: false
+shiki:
+  magicMove:
+    easing: linear
+    delayMove: 0.5
 ---
 
 # Phase 2 showcase
