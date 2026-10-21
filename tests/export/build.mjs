@@ -158,10 +158,13 @@ has(
 has('<meta name="twitter:card" content="summary_large_image">', 'twitter:card');
 has('<link rel="icon" href="favicon.ico" type="image/x-icon">', 'favicon');
 has('<link rel="manifest" href="manifest.webmanifest">', 'manifest link');
+// The deck's inline script is moved to a file like the others (a host may send script-src 'self'), right where it was.
+const deckScript = /<\/app-root>\s*<script src="(inline-\w+\.js)"><\/script>/.exec(html)?.[1];
 t.ok(
   "index.html: the deck's index.html head goes into the head, its body after the app",
   /<meta name="deck-index" content="from the deck">[\s\S]*<\/head>/.test(html) &&
-    /<\/app-root>\s*<script>window.__deckIndex = 'ran';<\/script>/.test(html),
+    !!deckScript &&
+    readFileSync(join(site, deckScript), 'utf8').includes("window.__deckIndex = 'ran';"),
 );
 t.ok(
   "index.html has no inline script (a host may send script-src 'self')",
