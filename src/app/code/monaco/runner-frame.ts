@@ -50,7 +50,11 @@ const sandboxConsole = {
   try {
     await new Function('console', 'return (async () => {' + ${strict ? `'"use strict";' + ` : ''}${safe(js)} + '\\n})()')(sandboxConsole);
   } catch (e) {
-    send({ error: String(e) });
+    // Strict mode refuses \`total = 1\` without a declaration, which ran before 2.0 (headmatter monacoRunUseStrict).
+    const hint = ${strict ? 'true' : 'false'} && e instanceof ReferenceError && / is not defined$/.test(e.message)
+      ? ' (the code runs in strict mode: declare it with let or const, or set monacoRunUseStrict: false in the headmatter)'
+      : '';
+    send({ error: String(e) + hint });
   }
   send({ done: true });
 })();
