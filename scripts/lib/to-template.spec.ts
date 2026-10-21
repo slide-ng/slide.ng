@@ -86,7 +86,10 @@ describe('toTemplate: links', () => {
   it('warns about a link to a slide that is not there, naming the slide', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const ctx = { aliases: ['intro'], total: 3, hiddenAliases: ['ghost'], slide: { no: 2 } };
-    toTemplate('[a](99) [b](./nope) [c](./ghost) [d](/about) [e](3) [f](./intro)', ctx as any);
+    toTemplate(
+      '[a](99) [b](./nope) [c](./ghost) [d](/about) [e](3) [f](./intro) [g](./overview) [h](#/presenter)',
+      ctx as any,
+    );
     expect(warn.mock.calls.map((c) => c[0])).toEqual([
       '[slides] slide 2: the link "99" goes to slide 99, but the deck has 3 slides (it opens slide 3)',
       '[slides] slide 2: the link "./nope" names no slide (no slide has routeAlias "nope"), so it is a plain link',

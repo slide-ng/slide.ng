@@ -1,6 +1,7 @@
 // How a markdown link is written out, as in Slidev: a link to a slide moves inside the deck, a link to a web page opens a
 // new tab. Only links written in markdown; an <a> written as HTML is left as it is.
 import { Renderer } from 'marked';
+import { RESERVED } from './route-alias.mjs';
 
 const DIGITS = /^\d+$/;
 // `/5`, `./5`, `#/5` (the address with hash routing), or the same with a routeAlias. A `#part` after it is dropped. An alias
@@ -40,6 +41,8 @@ export function brokenSlideLink(href, { aliases = [], total, hidden = [] }) {
   if (aliases.includes(to)) return null;
   if (hidden.includes(to))
     return `the link "${href}" names the routeAlias of a slide with hide: or disabled:, which is not in the deck`;
+  // `./overview`, `./presenter`, ... are pages of the app: a plain link opens them.
+  if (RESERVED.includes(to)) return null;
   return /^(?:\.\/|#\/)/.test(href)
     ? `the link "${href}" names no slide (no slide has routeAlias "${to}"), so it is a plain link`
     : null;
