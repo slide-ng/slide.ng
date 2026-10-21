@@ -1,4 +1,4 @@
-import { titleIcon } from './title-icon.mjs';
+import { titleIcon, titleIconProblem } from './title-icon.mjs';
 
 describe('titleIcon', () => {
   it('uses an icon written as ~icon~, whether or not its set is installed', () => {
@@ -39,5 +39,26 @@ describe('titleIcon', () => {
     expect(icon('.eslintrc.json')).toBe('i-vscode-icons:file-type-eslint');
     expect(icon('.vscode/settings.json')).toBe('i-vscode-icons:file-type-vscode');
     expect(icon('(.env)')).toBe('i-vscode-icons:file-type-dotenv');
+  });
+});
+
+describe('titleIconProblem', () => {
+  const carbon = (set: string) =>
+    set === 'carbon' ? new Set(['code', 'bucket-2', 'logo-github']) : null;
+  it('names an icon its installed set does not have, with near names', () => {
+    expect(titleIconProblem('~i-carbon:bucket~ a.ts', carbon)).toBe(
+      'the code title icon "i-carbon:bucket" is not in the installed carbon icon set, so nothing is drawn (did you mean "i-carbon:bucket-2"?)',
+    );
+  });
+  it('says nothing for a known icon, a set that is not installed or no ~icon~', () => {
+    expect(titleIconProblem('~i-carbon:code~', carbon)).toBe('');
+    expect(titleIconProblem('~i-logos:vue~', carbon)).toBe('');
+    expect(titleIconProblem('package.json', carbon)).toBe('');
+  });
+  it('checks the sets that are really installed', () => {
+    expect(titleIconProblem('~i-carbon:code~')).toBe('');
+    expect(titleIconProblem('~i-carbon:no-such-icon-here~')).toContain(
+      'not in the installed carbon',
+    );
   });
 });

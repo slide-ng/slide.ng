@@ -1,7 +1,8 @@
 // The icon in front of a code block, code group or Magic Move title. Port of Slidev's TitleIcon.vue:
 // `~i-logos:vue~` in the title names the icon; otherwise a known name in the title (`npm`, `package.json`, `.ts`, ...)
 // picks one from @iconify-json/vscode-icons, but only when that set is installed (an icon of a missing set draws nothing).
-import { installedSets } from '../icons.mjs';
+import { iconNames, installedSets } from '../icons.mjs';
+import { warnSlidePrefix } from './highlighter.mjs';
 
 // Slidev's table, as written in TitleIcon.vue (two of its entries lacked the `i-` prefix; it is added here).
 const BUILTIN_ICONS = {
@@ -93,4 +94,27 @@ export function titleIcon(title, sets) {
   const icon = BUILTIN_ICONS[name];
   const set = /^i-([^:]+):/.exec(icon)[1];
   return (sets ?? installedSets()).includes(set) ? icon : '';
+}
+
+/**
+ * Why the `~icon~` written in a title draws nothing, or ''. Only an icon of an installed set is checked (its name is not
+ * in the set); a set that is not installed may still be a collection of the deck's own UnoCSS setup.
+ * @param {string} title @param {(set: string) => Set<string> | null} [names] the names of an installed set
+ */
+export function titleIconProblem(title, names = iconNames) {
+  const written = /~([^~]+)~/.exec(title);
+  const icon = written?.[1].trim() ?? '';
+  const parts = /^i-([a-z0-9-]+):([a-z0-9-]+)$/.exec(icon);
+  if (!parts) return '';
+  const [, set, name] = parts;
+  const known = names(set);
+  if (!known || known.has(name)) return '';
+  const near = [...known].filter((n) => n.startsWith(name) || name.startsWith(n)).slice(0, 3);
+  return `the code title icon "${icon}" is not in the installed ${set} icon set, so nothing is drawn${near.length ? ` (did you mean ${near.map((n) => `"i-${set}:${n}"`).join(', ')}?)` : ''}`;
+}
+
+/** Warns about a `~icon~` in a code title that draws nothing (an icon its installed set does not have). */
+export function warnTitleIcon(title) {
+  const problem = title ? titleIconProblem(title) : '';
+  if (problem) console.warn(`[slides] ${warnSlidePrefix()}${problem}`);
 }

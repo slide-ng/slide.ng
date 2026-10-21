@@ -80,6 +80,8 @@ export const twoslashTransformer = () => twoslash;
 // The slide being generated, for the warning below (the generator sets it, see emit.mjs).
 let warnSlide = 0;
 export const setWarnSlide = (no) => (warnSlide = no);
+/** `slide N: ` for a warning about the slide being generated, or nothing outside a slide. */
+export const warnSlidePrefix = () => (warnSlide ? `slide ${warnSlide}: ` : '');
 
 // The language to draw with, or 'text' (and a warning) when it is not loaded.
 function usableLang(lang) {
@@ -91,7 +93,7 @@ function usableLang(lang) {
   )
     return name;
   console.warn(
-    `[slides] ${warnSlide ? `slide ${warnSlide}: ` : ''}code language "${lang}" is not loaded, showing it as plain text (Shiki has no such language: name a close one with codeAliases, or add it in setup/shiki.ts)`,
+    `[slides] ${warnSlidePrefix()}code language "${lang}" is not loaded, showing it as plain text (Shiki has no such language: name a close one with codeAliases, or add it in setup/shiki.ts)`,
   );
   return 'text';
 }

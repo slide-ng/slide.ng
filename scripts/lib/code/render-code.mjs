@@ -1,9 +1,9 @@
 // A normal code fence -> highlighted HTML inside a <slide-ng-code-block-wrapper> component.
 // The wrapper (src/app/code/code-block-wrapper.ts) adds the copy button, the title bar, the
 // click-stepped line highlights and the maximum height.
-import { codeToHtml, twoslashTransformer } from './highlighter.mjs';
+import { codeToHtml, twoslashTransformer, warnSlidePrefix } from './highlighter.mjs';
 import { cleanTitle, parseInfo } from './meta.mjs';
-import { titleIcon } from './title-icon.mjs';
+import { titleIcon, warnTitleIcon } from './title-icon.mjs';
 import { attrs, protect } from '../protect.mjs';
 
 const slidevCode = {
@@ -29,17 +29,30 @@ export function highlightedPre(code, lang, info = '') {
   } catch (e) {
     // A code error in a twoslash block must not stop the whole build.
     console.warn(
-      `[slides] twoslash failed for a ${lang} block (${e.message.split('\n')[0]}), showing it without types`,
+      `[slides] ${warnSlidePrefix()}twoslash failed for a ${lang} block (${twoslashReason(e)}), showing it without types`,
     );
     html = codeToHtml(code, lang, { transformers: [slidevCode] });
   }
   return protect(html).replace('<pre ', '<pre ngNonBindable ');
 }
 
+// Twoslash's own errors have a title and a description, and their message starts with an empty line.
+export function twoslashReason(e) {
+  if (e?.title || e?.description) return [e.title, e.description].filter(Boolean).join(': ');
+  const message = String(e?.message ?? e);
+  return (
+    message
+      .split('\n')
+      .map((l) => l.replace(/^#+\s*/, '').trim())
+      .find(Boolean) ?? 'unknown error'
+  );
+}
+
 // `ctx.headmatter` gives the deck-wide defaults (`lineNumbers`, `codeCopy`).
 export function renderCode(fence, ctx = {}) {
   const { lang, title, ranges, options } = parseInfo(fence.info);
   const head = ctx.headmatter ?? {};
+  warnTitleIcon(title);
   const wrapperAttrs = attrs({
     ranges: ranges.join('|'),
     title: cleanTitle(title),

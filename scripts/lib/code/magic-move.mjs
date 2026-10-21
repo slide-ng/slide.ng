@@ -4,7 +4,7 @@
 import { toKeyedTokens } from '@shikijs/magic-move/core';
 import { codeToTokens, themeOptions } from './highlighter.mjs';
 import { cleanTitle, parseInfo, parseOptions } from './meta.mjs';
-import { titleIcon } from './title-icon.mjs';
+import { titleIcon, warnTitleIcon } from './title-icon.mjs';
 import { extractFences } from '../fences.mjs';
 import { attrs, attr } from '../protect.mjs';
 import { pack } from '../pack.mjs';
@@ -78,6 +78,7 @@ export function renderMagicMove(fence, ctx = {}) {
   const packed = pack(steps);
   // The duration is its own input, so the block's `{duration}` and `magicMoveDuration` win over `shiki.magicMove.duration`.
   const { duration, ...moveOptions } = magicMoveOptions(head.shiki?.magicMove);
+  warnTitleIcon(title);
   const a = attrs({
     title: cleanTitle(title),
     icon: title ? titleIcon(title) : undefined,
