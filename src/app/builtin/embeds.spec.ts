@@ -69,6 +69,9 @@ describe('youtubeEmbedSrc', () => {
     expect(youtubeSeconds('1h2m3s')).toBe(3723);
     expect(youtubeSeconds('2m')).toBe(120);
     expect(youtubeSeconds(12.7)).toBe(12);
+    expect(youtubeSeconds('12.5')).toBe(12);
+    expect(youtubeSeconds('1m30.9s')).toBe(90);
+    expect(youtubeEmbedSrc('luoMHjh-XcQ?start=12.5')).toBe(`${embed}luoMHjh-XcQ?start=12`);
     for (const bad of ['', 'soon', '1:30', '-5', '1m30x', 's'])
       expect(youtubeSeconds(bad)).toBeUndefined();
     expect(youtubeEmbedSrc('luoMHjh-XcQ', '1m30s')).toBe(`${embed}luoMHjh-XcQ?start=90`);

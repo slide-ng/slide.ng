@@ -23,14 +23,14 @@ const EMBED_PARAMS = new Set([
 ]);
 
 /**
- * A start time in seconds, written the ways YouTube takes it: `90`, `90s`, `1m30s`, `1h2m3s`. Undefined for anything else.
+ * A start time in seconds, written the ways YouTube takes it: `90`, `90s`, `1m30s`, `1h2m3s`; a part of a second is dropped (`12.5` is 12). Undefined for anything else.
  */
 export function youtubeSeconds(value: string | number): number | undefined {
   if (typeof value === 'number')
     return Number.isFinite(value) && value >= 0 ? Math.floor(value) : undefined;
-  const m = /^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s?)?$/i.exec(value.trim());
+  const m = /^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+(?:\.\d+)?)s?)?$/i.exec(value.trim());
   if (!m || !value.trim()) return undefined;
-  return Number(m[1] ?? 0) * 3600 + Number(m[2] ?? 0) * 60 + Number(m[3] ?? 0);
+  return Number(m[1] ?? 0) * 3600 + Number(m[2] ?? 0) * 60 + Math.floor(Number(m[3] ?? 0));
 }
 
 /**
