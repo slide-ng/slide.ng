@@ -15,7 +15,7 @@ description: Headmatter switches for presenter, editor, record, contextMenu, wak
 | `drawings`    | object                          | see `animation-drawing.md`                |
 | `colorSchema` | `auto`, `light`, `dark`         | see `core-headmatter.md`                  |
 
-The wake lock is also a settings menu entry; a choice already stored in the browser wins over `wakeLock: true`.
+The wake lock is on by default and is also a settings menu entry; a choice already stored in the browser wins over the headmatter.
 
 <!-- verify -->
 
