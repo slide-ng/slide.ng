@@ -49,3 +49,38 @@ describe('slide-ng-click-hide with a value', () => {
     expect(el('n').getAttribute('data-slidev-clicks-start')).toBe('2');
   });
 });
+
+@Component({
+  imports: [SlideNgClick],
+  providers: [ClicksContext],
+  template:
+    '<div id="r" slide-ng-click="2" slide-ng-click-hide="3">R</div>' +
+    '<div id="f" slide-ng-click="2" slide-ng-click-hide>F</div><div id="x" slide-ng-click="4">X</div>',
+})
+class ShowThenHide {}
+
+describe('slide-ng-click with slide-ng-click-hide="n"', () => {
+  it('shows at the click and hides at the hide click, like v-click="2" v-click-hide="3" in Slidev', async () => {
+    const fixture = TestBed.createComponent(ShowThenHide);
+    const ctx = fixture.debugElement.injector.get(ClicksContext);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const el = (id: string) => fixture.nativeElement.querySelector(`#${id}`) as HTMLElement;
+    const hidden = (id: string) => el(id).classList.contains('slidev-vclick-hidden');
+    expect(el('r').getAttribute('data-slidev-clicks-start')).toBe('2');
+    expect(el('r').getAttribute('data-slidev-clicks-end')).toBe('3');
+    const shown = [0, 1, 2, 3, 4].map((c) => {
+      ctx.setCurrent(c);
+      fixture.detectChanges();
+      return [!hidden('r'), !hidden('f')];
+    });
+    // r: only at click 2; f (a bare hide flag): the click value is when it hides, as before.
+    expect(shown).toEqual([
+      [false, true],
+      [false, true],
+      [true, false],
+      [false, false],
+      [false, false],
+    ]);
+  });
+});

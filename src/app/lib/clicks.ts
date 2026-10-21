@@ -161,6 +161,28 @@ export class ClicksContext {
     return Array.isArray(at) ? this.calculateRange(at) : this.calculateSince(at);
   }
 
+  /**
+   * Shown from `at` and hidden again from the `hide` click: `slide-ng-click="2" slide-ng-click-hide="3"`. In Slidev
+   * the two directives each register a click, the hide one after the show one, so a relative hide counts from there.
+   */
+  calculateUntil(at: RawAt, hide: RawSingleAt): ClickInfo | null {
+    const info = this.calculate(at);
+    const h = normalizeSingle(hide);
+    if (!info || h == null) return info;
+    const relative = typeof h === 'string';
+    const hideStart = relative ? this.currentOffset + info.delta + +h : h;
+    const start = info.start,
+      end = Math.min(info.end, hideStart);
+    return {
+      start,
+      end,
+      max: Math.max(info.max, hideStart),
+      delta: info.delta + (relative ? +h : 0),
+      isActive: (c) => start <= c && c < end,
+      isCurrent: (c) => c === start,
+    };
+  }
+
   register(key: unknown, info: Pick<ClickInfo, 'delta' | 'max'> | null) {
     if (!info) return;
     this.relativeSizeMap.set(key, info.delta);

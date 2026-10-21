@@ -179,7 +179,12 @@ Clicks reveal things step by step. Add these to any HTML element:
 <div slide-ng-click="2" slide-ng-click-hide>Visible first, hides at click 2</div>
 <div slide-ng-click-hide="3">Visible first, hides at click 3 (as v-click-hide="3")</div>
 <div slide-ng-click.hide="2">Visible first, hides at click 2 (as v-click.hide="2")</div>
+<div slide-ng-click="2" slide-ng-click-hide="3">Shows at click 2, hides at click 3 (as v-click="2" v-click-hide="3")</div>
 ```
+
+With a value on both, `slide-ng-click` is the click that shows the element and `slide-ng-click-hide` the click that hides it
+again: the same as `[slide-ng-click]="[2, 3]"`. A relative hide value (`+1`) counts from the show click. With the bare
+`slide-ng-click-hide` flag, the `slide-ng-click` value is the click that hides it.
 
 Two forms exist because of how Angular reads attributes:
 
