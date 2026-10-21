@@ -305,18 +305,18 @@ setup file, a theme file) next to the samples of the same page. Fragments that c
       "sources": {
         "docs/PARITY.md": "8d46207e14659aada8d7ffbf2ed4f1df2703c8eec70e76e839213073afffc564",
         "docs/SYNTAX.md": "f95ee4e97bc6ac598c40374f399e2b3f0f6b2407685b05335e52d7b3359ff42a",
-        "docs/THEMES.md": "ee4cdec970bbd4baa9c3a654d99e0909d93d19028736afcafe0cc9a27b9465c6",
+        "docs/THEMES.md": "2882d0a3d698e7d8af1f40a6201e4b08694c5c19cf45531f573beafb0034aa8f",
         "docs/WRITING-A-THEME.md": "e3dc9f1d02c6c6bbff98af713df1e132fe6c49f0cd233cefec21924027709f1e"
       },
-      "hash": "5c6c57c934c0b0498dbe31e536394226bfa8e984801ef9c39adae1372e06ba77"
+      "hash": "58c191db8f126e16b6341a7a3ba68444e9d02c031e457ed7bd4dfa43ff6b40e8"
     },
     "references/core-fonts.md": {
       "sources": {
         "docs/HOSTING.md": "2862f026f1dfa8e4fb663e433b39275b79a100865e8413dfa46be4c2f1efd5b7",
         "docs/SYNTAX.md": "f95ee4e97bc6ac598c40374f399e2b3f0f6b2407685b05335e52d7b3359ff42a",
-        "docs/THEMES.md": "ee4cdec970bbd4baa9c3a654d99e0909d93d19028736afcafe0cc9a27b9465c6"
+        "docs/THEMES.md": "2882d0a3d698e7d8af1f40a6201e4b08694c5c19cf45531f573beafb0034aa8f"
       },
-      "hash": "e036c445a2a7b9775b077fc367786ac1a9ab56ecd38062316bfeff86453c4a68"
+      "hash": "28f374c400bd36392e5dbc9f9699c516f3b985756e74bbb92996259eea9dac37"
     },
     "references/core-frontmatter.md": {
       "sources": {
@@ -448,10 +448,10 @@ setup file, a theme file) next to the samples of the same page. Fragments that c
     },
     "references/layout-custom.md": {
       "sources": {
-        "docs/THEMES.md": "ee4cdec970bbd4baa9c3a654d99e0909d93d19028736afcafe0cc9a27b9465c6",
+        "docs/THEMES.md": "2882d0a3d698e7d8af1f40a6201e4b08694c5c19cf45531f573beafb0034aa8f",
         "docs/WRITING-A-THEME.md": "e3dc9f1d02c6c6bbff98af713df1e132fe6c49f0cd233cefec21924027709f1e"
       },
-      "hash": "b94b2d9f73db172ed4c7196a7510185b1b3fc0ec0a56f6364841367c441360f4"
+      "hash": "a3151e57ab8b154217171b4e05aa40b808949d8a6d2db5e7dd07fff207ef52cf"
     },
     "references/layout-draggable.md": {
       "sources": {
@@ -462,9 +462,9 @@ setup file, a theme file) next to the samples of the same page. Fragments that c
     "references/layout-global-layers.md": {
       "sources": {
         "docs/SYNTAX.md": "f95ee4e97bc6ac598c40374f399e2b3f0f6b2407685b05335e52d7b3359ff42a",
-        "docs/THEMES.md": "ee4cdec970bbd4baa9c3a654d99e0909d93d19028736afcafe0cc9a27b9465c6"
+        "docs/THEMES.md": "2882d0a3d698e7d8af1f40a6201e4b08694c5c19cf45531f573beafb0034aa8f"
       },
-      "hash": "66643c6a9f16c254b4857341b2c5f2edcdbcf4d25ab4a42d1cd06219592e9657"
+      "hash": "faca4098d58910c0912f74c20c9581901cdd4c0584006567cce72e3282ff2790"
     },
     "references/layout-slots.md": {
       "sources": {
@@ -649,35 +649,35 @@ setup file, a theme file) next to the samples of the same page. Fragments that c
     "references/theme-eject.md": {
       "sources": {
         "README.md": "96f827d00181f582605e7dd73d89bba40f6e55fba2cd076ffe6aa2367dd3fa17",
-        "docs/THEMES.md": "ee4cdec970bbd4baa9c3a654d99e0909d93d19028736afcafe0cc9a27b9465c6"
+        "docs/THEMES.md": "2882d0a3d698e7d8af1f40a6201e4b08694c5c19cf45531f573beafb0034aa8f"
       },
-      "hash": "fa393559ef3513c74c43a924c82d01078c69a0b1c521ec459647662ea62f5b5e"
+      "hash": "caa9e570dc85103c3aff641b7e71edd9b12fc90349c158fe31b2a47ba3fafe98"
     },
     "references/theme-official.md": {
       "sources": {
         "README.md": "96f827d00181f582605e7dd73d89bba40f6e55fba2cd076ffe6aa2367dd3fa17",
-        "docs/THEMES.md": "ee4cdec970bbd4baa9c3a654d99e0909d93d19028736afcafe0cc9a27b9465c6"
+        "docs/THEMES.md": "2882d0a3d698e7d8af1f40a6201e4b08694c5c19cf45531f573beafb0034aa8f"
       },
-      "hash": "fa393559ef3513c74c43a924c82d01078c69a0b1c521ec459647662ea62f5b5e"
+      "hash": "caa9e570dc85103c3aff641b7e71edd9b12fc90349c158fe31b2a47ba3fafe98"
     },
     "references/theme-structure.md": {
       "sources": {
-        "docs/THEMES.md": "ee4cdec970bbd4baa9c3a654d99e0909d93d19028736afcafe0cc9a27b9465c6"
+        "docs/THEMES.md": "2882d0a3d698e7d8af1f40a6201e4b08694c5c19cf45531f573beafb0034aa8f"
       },
-      "hash": "56f44b22d9fb1925143e21c59eb828cfd6e72272590575dbf09f18b7ce279c04"
+      "hash": "7cb70d5d534ae28e4747f7f4f9f074f204c396983b62594affda8a8079d6dd40"
     },
     "references/theme-use.md": {
       "sources": {
-        "docs/THEMES.md": "ee4cdec970bbd4baa9c3a654d99e0909d93d19028736afcafe0cc9a27b9465c6"
+        "docs/THEMES.md": "2882d0a3d698e7d8af1f40a6201e4b08694c5c19cf45531f573beafb0034aa8f"
       },
-      "hash": "56f44b22d9fb1925143e21c59eb828cfd6e72272590575dbf09f18b7ce279c04"
+      "hash": "7cb70d5d534ae28e4747f7f4f9f074f204c396983b62594affda8a8079d6dd40"
     },
     "references/theme-write.md": {
       "sources": {
-        "docs/THEMES.md": "ee4cdec970bbd4baa9c3a654d99e0909d93d19028736afcafe0cc9a27b9465c6",
+        "docs/THEMES.md": "2882d0a3d698e7d8af1f40a6201e4b08694c5c19cf45531f573beafb0034aa8f",
         "docs/WRITING-A-THEME.md": "e3dc9f1d02c6c6bbff98af713df1e132fe6c49f0cd233cefec21924027709f1e"
       },
-      "hash": "b94b2d9f73db172ed4c7196a7510185b1b3fc0ec0a56f6364841367c441360f4"
+      "hash": "a3151e57ab8b154217171b4e05aa40b808949d8a6d2db5e7dd07fff207ef52cf"
     }
   }
 }
