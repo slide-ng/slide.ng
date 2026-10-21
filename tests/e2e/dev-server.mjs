@@ -448,6 +448,162 @@ try {
         'work-snippet.ts',
   );
 
+  // ---- notes: /overview edits one note, /notes-edit all of them in one text
+  await page.goto(`${base}/overview`);
+  const firstNote = page.locator('.overview-row[data-no="1"] .overview-note');
+  await firstNote.waitFor({ timeout: 60000 });
+  await sleep(1000); // the page has asked the server for its token
+  const beforeKeys = read();
+  await firstNote.focus();
+  await page.keyboard.press('Enter');
+  await page.locator('.overview-note-edit').waitFor({ timeout: 10000 });
+  await page.keyboard.type('Not kept.');
+  await page.keyboard.press('Escape');
+  await sleep(500);
+  t.ok(
+    '/overview: Enter on a note edits it, Escape cancels and gives the focus back to the note',
+    (await page.locator('.overview-note-edit').count()) === 0 &&
+      (await firstNote.evaluate((e) => e === document.activeElement)) &&
+      read() === beforeKeys,
+  );
+  await firstNote.dblclick();
+  await page.locator('.overview-note-edit').waitFor({ timeout: 10000 });
+  await page.locator('.overview-note-edit').fill('Said in the overview.');
+  await page.locator('header h1').click(); // leaving the text saves it
+  t.ok(
+    'a note edited in /overview is saved into the markdown file',
+    await waitForFile((s) =>
+      /# One\n\nFirst slide\.\n\n<!--\nSaid in the overview\.\n-->\n/.test(s),
+    ),
+    read().slice(0, 200),
+  );
+  await sleep(4000); // the deck is rebuilt and the page reloads
+  await page.goto(`${base}/notes-edit`);
+  const area = page.locator('#notes-edit-text');
+  await page.waitForFunction(
+    () => document.querySelector('#notes-edit-text')?.value.includes('Said in the overview.'),
+    null,
+    { timeout: 60000 },
+  );
+  const notesText = await area.inputValue();
+  t.ok(
+    '/notes-edit shows every note after its --- #N line',
+    /^--- #1\n\nSaid in the overview\.\n\n--- #2\n[\s\S]*--- #3\n$/.test(notesText),
+    notesText,
+  );
+  const beforeNotes = read();
+  await area.fill(notesText.replace(/--- #3\n$/, '--- #3\n\nTyped for three.\n'));
+  t.ok(
+    'typing in /notes-edit saves the changed note into its slide',
+    await waitForFile((s) => s.includes('<!--\nTyped for three.\n-->')),
+  );
+  t.ok(
+    'and leaves the other slides as they were',
+    read().trimEnd() === `${beforeNotes.trimEnd()}\n\n<!--\nTyped for three.\n-->`,
+  );
+  await sleep(4000);
+  await page.waitForFunction(
+    () => document.querySelector('#notes-edit-status')?.dataset.status === 'saved',
+    null,
+    { timeout: 60000 },
+  );
+  const afterThree = read();
+  await area.fill((await area.inputValue()).replace('--- #2', 'two'));
+  await sleep(1500);
+  t.ok(
+    '/notes-edit refuses a text whose --- #N lines changed, and writes nothing',
+    (await page.locator('#notes-edit-status').getAttribute('data-status')) === 'invalid' &&
+      read() === afterThree,
+  );
+  // A --> in a note is written -- >, as the presenter's note editor does, instead of being refused.
+  await page.evaluate(() => sessionStorage.clear()); // no draft of the broken text
+  await page.goto(`${base}/notes-edit`);
+  await page.waitForFunction(
+    () => document.querySelector('#notes-edit-status')?.dataset.status === 'saved',
+    null,
+    { timeout: 60000 },
+  );
+  await area.fill((await area.inputValue()).replace('Typed for three.', 'Arrow --> here.'));
+  t.ok(
+    '/notes-edit writes --> in a note as -- >',
+    await waitForFile((s) => s.includes('<!--\nArrow -- > here.\n-->')),
+    read().slice(-80),
+  );
+  await sleep(4000); // the deck is rebuilt and the page reloads
+  // Keys typed while the page reads the notes again after a reload are kept (the notes answer late here).
+  await page.waitForFunction(
+    () => document.querySelector('#notes-edit-status')?.dataset.status === 'saved',
+    null,
+    { timeout: 60000 },
+  );
+  await page.evaluate(() => {
+    const text = document.querySelector('#notes-edit-text').value.replace('here.', 'here. draft');
+    const at = text.indexOf('draft') + 'draft'.length;
+    sessionStorage.setItem(
+      'slide-ng-notes-draft',
+      JSON.stringify({ text, start: at, end: at, at: Date.now() }),
+    );
+  });
+  await page.route('**/__slide-ng/notes', async (route) => {
+    await sleep(2500);
+    await route.continue().catch(() => {}); // unrouted meanwhile: Playwright has let it through
+  });
+  await page.reload();
+  await page.locator('#notes-edit-text:not([disabled])').waitFor({ timeout: 60000 });
+  const whileLoading = await page.locator('#notes-edit-status').getAttribute('data-status');
+  await page.keyboard.type(' typed', { delay: 50 });
+  t.ok(
+    '/notes-edit keeps the keys typed while the notes load after a reload',
+    whileLoading === 'loading' &&
+      (await waitForFile((s) => s.includes('<!--\nArrow -- > here. draft typed\n-->'))),
+    `${whileLoading} ${read().slice(-80)}`,
+  );
+  await page.unroute('**/__slide-ng/notes');
+  await sleep(4000);
+  // Keys typed before the app has started again (its script answers late here) are kept by index.html and typed in then.
+  await page.waitForFunction(
+    () => document.querySelector('#notes-edit-status')?.dataset.status === 'saved',
+    null,
+    { timeout: 60000 },
+  );
+  await page.route('**/main.js', async (route) => {
+    await sleep(2500);
+    await route.continue().catch(() => {});
+  });
+  await page.reload({ waitUntil: 'commit' });
+  await page.waitForFunction(() => typeof window.slideNgEarlyKeys === 'function', null, {
+    timeout: 60000,
+  });
+  const early = await page.locator('#notes-edit-text').count();
+  await page.keyboard.type(' early', { delay: 50 });
+  t.ok(
+    '/notes-edit keeps the keys typed before the app is back after a reload',
+    early === 0 &&
+      (await waitForFile((s) => s.includes('<!--\nArrow -- > here. draft typed early\n-->'))),
+    `${early} ${read().slice(-80)}`,
+  );
+  await page.unroute('**/main.js');
+  await sleep(4000);
+  // Keys pressed on another page while the draft is still fresh are not typed into the notes when /notes-edit opens by a link.
+  await page.goto(`${base}/entry`);
+  await page.locator('a[href$="/notes-edit"]').waitFor({ timeout: 60000 });
+  const keptOnEntry = await page.evaluate(() => typeof window.slideNgEarlyKeys);
+  await page.keyboard.type('foreign', { delay: 30 });
+  await page.locator('a[href$="/notes-edit"]').click();
+  await page.waitForFunction(
+    () => document.querySelector('#notes-edit-status')?.dataset.status === 'saved',
+    null,
+    { timeout: 60000 },
+  );
+  await sleep(2000);
+  t.ok(
+    '/notes-edit does not type in keys pressed on another page',
+    keptOnEntry === 'undefined' &&
+      !(await page.locator('#notes-edit-text').inputValue()).includes('foreign') &&
+      !read().includes('foreign'),
+    `${keptOnEntry} ${read().slice(-80)}`,
+  );
+
   // ---- bad requests, through the proxy
   const drag = (headers, extra = {}) =>
     api(PORT, '/slides/2/drag', {

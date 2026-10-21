@@ -49,6 +49,7 @@ for (const topic of [
   'settings',
   'drag',
   'progress',
+  'overview',
   'layout',
   'preload',
 ]) {

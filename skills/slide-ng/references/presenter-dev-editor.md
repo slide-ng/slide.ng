@@ -11,6 +11,7 @@ While `slide-ng dev` runs (a static build has none of this and makes no requests
 - **Edit Notes** on the presenter page edits only the slide's note (the last HTML comment after the slide's frontmatter; a comment inside the frontmatter is not a note).
 - `slide-ng-drag` moves and drawings (`drawings.persist`) are written to files.
 - `{monaco-write}` saves into the snippet file.
+- Notes: a double click on a note in `/overview`, or Enter on it, edits it (leaving the text saves, Escape cancels). `/notes-edit` has all notes in one text after `--- #N` lines, saved as you type; changing the `--- #N` lines blocks saving. A saved note reloads the page; `/notes-edit` keeps what is typed meanwhile. A `-->` in a note is written `-- >`.
 - Edits of a slide that was imported from a file outside the deck's folder are refused.
 - A companion server writes only to the deck's files, loopback only, with Host and Origin checks.
 

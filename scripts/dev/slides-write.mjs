@@ -6,12 +6,19 @@ import { parseDeck } from '../lib/parse-deck.mjs';
 import { confine, safeWrite } from './auth.mjs';
 import { assertNoWidening } from './escalation.mjs';
 import { HttpError } from './http-error.mjs';
-import { dragEdit, replaceSource, sourceOf } from './slide-source.mjs';
+import {
+  dragEdit,
+  escapeNote,
+  noteOf,
+  replaceNote,
+  replaceSource,
+  sourceOf,
+} from './slide-source.mjs';
 
 /** The slide, the markdown file it is in, and that file's text, read now. */
-async function locate(ctx, no) {
+async function locate(ctx, no, deck = undefined) {
   if (!Number.isInteger(no) || no < 1) throw new HttpError(400, 'bad slide number');
-  const deck = await parseDeck(ctx.entry);
+  deck ??= await parseDeck(ctx.entry);
   const slide = deck.slides[no - 1];
   if (!slide?.source) throw new HttpError(404, 'no such slide');
   const file = confine(ctx.root, relative(ctx.root, slide.source.filepath), {
@@ -54,4 +61,33 @@ export async function writeSlide(ctx, no, raw, base) {
   if (typeof base === 'string' && sourceOf(text, slide) !== base)
     throw new HttpError(409, `slide ${no} changed in the file since the editor read it`);
   await save(ctx, file, replaceSource(text, slide, raw));
+}
+
+/** The notes of all slides as written in the files ('' for none; null for a slide outside the project's files), for the notes editor. */
+export async function readNotes(ctx) {
+  const deck = await parseDeck(ctx.entry);
+  const notes = [];
+  for (let no = 1; no <= deck.slides.length; no++) {
+    try {
+      const { slide, text } = await locate(ctx, no, deck);
+      notes.push(noteOf(sourceOf(text, slide)));
+    } catch (e) {
+      if (!(e instanceof HttpError)) throw e;
+      notes.push(null);
+    }
+  }
+  return notes;
+}
+
+/**
+ * The overview or the notes editor saved a note. `base` is the note as the page last read it; when the file has another note
+ * now (an edit elsewhere, or slide `no` became another slide), nothing is written (409).
+ */
+export async function writeNote(ctx, no, note, base) {
+  const { slide, file, text } = await locate(ctx, no);
+  const raw = sourceOf(text, slide);
+  // A `-->` in the note is written `-- >` (replaceNote); a base that had one was written that way too.
+  if (typeof base === 'string' && noteOf(raw) !== base.trim() && noteOf(raw) !== escapeNote(base))
+    throw new HttpError(409, `the note of slide ${no} changed in the file since the page read it`);
+  await save(ctx, file, replaceSource(text, slide, replaceNote(raw, note)));
 }

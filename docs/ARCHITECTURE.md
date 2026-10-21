@@ -145,7 +145,8 @@ Slides get their number and render context (`slide`, `overview`) from two inject
 ### Overview
 
 `ui/overview.ts` draws one `ui/thumbnail.ts` per slide inside `@defer (on viewport)`, so slides far down the page are
-only created when scrolled to. A thumbnail is the real slide component, set to its last click and scaled with CSS.
+only created when scrolled to. A thumbnail is the real slide component, set to its last click (or the `clicks` it is given) and scaled with CSS.
+The `/overview` page (`presenter/overview-page.ts`) uses the same thumbnails in a list, with a clicks slider and the notes beside each.
 
 ### Transitions
 
@@ -159,7 +160,7 @@ the running one at once.
 | folder         | job                                                                                                                                                                                                       |
 | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `sync/`        | `SyncState` (signals `shared` and `drawings`), the `SyncTransport` interface, `BroadcastTransport`, `nav-sync.ts` (presenter drives, viewers follow), `shared-state.ts` (cleaning of everything received) |
-| `presenter/`   | `/presenter/:no` and `/notes` pages, timer, notes with click markers, next-step preview, clicks slider, presenter cursor and laser, `PresenterPrefs`                                                      |
+| `presenter/`   | `/presenter/:no`, `/notes`, `/overview`, `/notes-edit` and `/entry` pages, timer, notes with click markers, next-step preview, clicks slider, presenter cursor and laser, `PresenterPrefs`                |
 | `drawing/`     | drauu wrapper `Drawings`, toolbar, layer, sanitiser, persistence (localStorage, dev files)                                                                                                                |
 | `record/`      | `Devices`, `Recorder` (MediaRecorder), camera bubble, recording buttons, screen mirror                                                                                                                    |
 | `drag/`        | `slide-ng-drag` directive, `<slide-ng-drag>`, `<slide-ng-drag-arrow>`, the handles (`drag-controls.ts`), pure math (`drag-math.ts`)                                                                       |
@@ -183,14 +184,14 @@ browser --/__slide-ng/*--> ng serve (0.0.0.0 with --remote) --proxy--> companion
                                                                         check: Host, Origin, cookie, token
 ```
 
-| file                                     | job                                                                                                                                     |
-| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `auth.mjs`                               | `check` (Host, Origin, password cookie, token), `confine` (path inside the deck folder), `readBody` (size limit), constant-time compare |
-| `routes.mjs`                             | the HTTP routes: `/session`, `/login`, `/slides/:n/drag`, `/slides/:n/source`, `/drawings/:n`, `/monaco/:id`                            |
-| `slide-source.mjs`                       | pure text edits of one slide inside its file (drag positions, frontmatter `dragPos`, whole-slide replace)                               |
-| `slides-write.mjs`                       | finds the slide and its file with the parser, then writes                                                                               |
-| `drawings-store.mjs`, `monaco-write.mjs` | drawing files (`<integer>.svg`), listed `{monaco-write}` files                                                                          |
-| `ws-hub.mjs`                             | passes `{channel, data}` between connected pages                                                                                        |
+| file                                     | job                                                                                                                                       |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `auth.mjs`                               | `check` (Host, Origin, password cookie, token), `confine` (path inside the deck folder), `readBody` (size limit), constant-time compare   |
+| `routes.mjs`                             | the HTTP routes: `/session`, `/login`, `/slides/:n/drag`, `/slides/:n/source`, `/slides/:n/note`, `/notes`, `/drawings/:n`, `/monaco/:id` |
+| `slide-source.mjs`                       | pure text edits of one slide inside its file (drag positions, frontmatter `dragPos`, whole-slide replace)                                 |
+| `slides-write.mjs`                       | finds the slide and its file with the parser, then writes                                                                                 |
+| `drawings-store.mjs`, `monaco-write.mjs` | drawing files (`<integer>.svg`), listed `{monaco-write}` files                                                                            |
+| `ws-hub.mjs`                             | passes `{channel, data}` between connected pages                                                                                          |
 
 Rules, each covered by tests (`server.spec.ts`, `auth.spec.ts`, `tests/e2e/dev-server.mjs`):
 the server listens on loopback only; `Host` and `Origin` are checked for every request and every WebSocket upgrade; writes need the random session token and a JSON content type;

@@ -43,7 +43,7 @@ Keys slide.ng understands:
 | `src`                                                                  | take the slides from another markdown file, see Importing slides                                                                                            |
 | `image`, `url`, `scale`, `backgroundSize`, `background`, `layoutClass` | props of some layouts                                                                                                                                       |
 
-A `routeAlias` stops the build when it is `print`, `notes` or `presenter` (pages of the app), a number (`/2` is slide 2), empty, has `/`, `.`,
+A `routeAlias` stops the build when it is `print`, `notes`, `presenter`, `overview`, `entry` or `notes-edit` (pages of the app), a number (`/2` is slide 2), empty, has `/`, `.`,
 `?`, `#` or `\` (an address does not keep them in one name), or is on two slides; one set on a `src:` import of several slides lands on each of
 them, so it is refused too. A page a deck adds itself is not seen by the build: give it a name no slide uses as an alias.
 
@@ -824,6 +824,8 @@ can show another column count on a phone, in the presenter preview or in the PDF
 
 Open `/presenter` (or press the presenter button) for the presenter page: current slide, next step, notes with click markers, a clicks slider and the timer.
 The audience page (`/3`) in another window or on another device follows it; `/notes` shows only the notes and follows too.
+`/overview` lists every slide with its notes beside it and a clicks slider under it (the button at the top of the quick overview, `o`,
+goes there); `/entry` links to the slides, presenter, notes and overview pages.
 In notes, `[click]` marks where the next click starts and `[click:3]` moves three clicks on (counted from the marker before it, as in Slidev); double click a marker to jump there. The layout button cycles three arrangements.
 Drag the borders of the notes pane to change its width and height; each layout keeps its own sizes in the browser (240 to 720 px wide, at most 70% of the page; at least 160 px high, at most 75%). Layout 1 on a tall, narrow screen has no handles.
 In dev, **Edit Notes** (the pencil next to the font size buttons) turns the notes into a text box: what you type is saved as the slide's note in the markdown (only the note, half a second after you stop; Ctrl/Cmd+S at once). Escape, a click outside or the pencil ends editing, and the click markers work again. The bar's editor button shows the side editor in the notes pane. Neither is in a build.
@@ -958,6 +960,13 @@ A layer's template is not a slide: the built-in tags are not there by themselves
 ## Dev-only extras and remote use
 
 While the dev server runs (`slide-ng dev`, or `npm start` in this repository): the **edit** button in the bar opens a side editor with the current slide's markdown (saved as you type; on the presenter page it takes the notes pane), the presenter's notes can be edited in place, slide-ng-drag and drawings are written to files, and `{monaco-write}` saves.
+A double click on a note in `/overview`, or Enter on it (Tab reaches it), edits it (leaving the text saves it, Escape cancels). On a narrow screen the notes are below each slide. `/notes-edit` has every note in one text,
+each after a `--- #N` line; the notes that changed are saved after a short pause, and a text whose `--- #N` lines were changed is not saved.
+Saving a note rebuilds the deck and reloads the page; `/notes-edit` keeps the caret and what was typed meanwhile, also while the
+page starts again (`src/index.html` keeps those keys until the text is back, only on a load of `/notes-edit` itself) and while the notes are read again; only a key pressed
+in the instant the browser swaps the page is lost. Both note editors take each line's direction from its first letter
+(`unicode-bidi: plaintext`), so a line mixing Arabic and Latin keeps its order in either kind of deck.
+A `-->` in a note would end the comment early, so it is written `-- >`, as the presenter's note editor does.
 A static build has none of this and makes no requests.
 
 ```sh
@@ -967,7 +976,7 @@ SLIDE_NG_PASSWORD=secret npm start -- --remote   # keeps the password out of the
 ```
 
 It prints the public and private deck addresses and the presenter address (`/presenter/1?password=secret`). Use that address on the presenter's device; a viewer opens `http://<your address>:4230/1?password=secret`.
-The password lets a device sync and write (slides, drawings and the `{monaco-write}` files), and opens the presenter and notes pages: without it they go to the slides. It is sent without encryption, so use it on a network you trust. See [SECURITY-MODEL.md](SECURITY-MODEL.md).
+The password lets a device sync and write (slides, drawings and the `{monaco-write}` files), and opens the presenter, notes, overview and notes editor pages: without it they go to the slides. It is sent without encryption, so use it on a network you trust. See [SECURITY-MODEL.md](SECURITY-MODEL.md).
 
 The dev server also serves MCP over HTTP at `http://localhost:4230/__mcp` (streamable HTTP, as Slidev's): the slide tools of `slide-ng mcp`,
 plus `get_info` and `goto_slide`, which moves every open window. With `--remote` a client sends the password as `Authorization: Bearer <password>` (spaces inside it included; spaces at its start or end are ignored).

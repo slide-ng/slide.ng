@@ -213,6 +213,32 @@ describe('writes to slides.md', () => {
     ).toBe(200);
     writeFileSync(join(root, 'slides.md'), SLIDES);
   });
+  it('reads every note and writes one for the overview and the notes editor', async () => {
+    expect((await call('GET', '/__slide-ng/notes')).json.notes).toEqual(['', '']);
+    expect(
+      (await call('PUT', '/__slide-ng/slides/2/note', { note: 'Say hello.', base: '' })).status,
+    ).toBe(200);
+    const file = readFileSync(join(root, 'slides.md'), 'utf8');
+    expect(file).toBe(SLIDES.replace('# Two\n', '# Two\n\n<!--\nSay hello.\n-->\n'));
+    expect((await call('GET', '/__slide-ng/notes')).json.notes).toEqual(['', 'Say hello.']);
+    writeFileSync(join(root, 'slides.md'), SLIDES);
+  });
+  it('refuses a note that changed in the file since the page read it', async () => {
+    const stale = await call('PUT', '/__slide-ng/slides/1/note', { note: 'x', base: 'older' });
+    expect(stale.status).toBe(409);
+    expect((await call('PUT', '/__slide-ng/slides/1/note', { note: 3 })).status).toBe(400);
+    expect(readFileSync(join(root, 'slides.md'), 'utf8')).toBe(SLIDES);
+  });
+  it('writes --> in a note as -- >, and takes a base with --> for the note it wrote', async () => {
+    const put = (note: string, base: string) =>
+      call('PUT', '/__slide-ng/slides/1/note', { note, base });
+    expect((await put('--> <b>x</b>', '')).status).toBe(200);
+    expect(readFileSync(join(root, 'slides.md'), 'utf8')).toContain('<!--\n-- > <b>x</b>\n-->');
+    expect((await call('GET', '/__slide-ng/notes')).json.notes[0]).toBe('-- > <b>x</b>');
+    expect((await put('y', '--> <b>x</b>')).status).toBe(200);
+    expect((await call('GET', '/__slide-ng/notes')).json.notes[0]).toBe('y');
+    writeFileSync(join(root, 'slides.md'), SLIDES);
+  });
 });
 
 describe('{monaco-write}', () => {

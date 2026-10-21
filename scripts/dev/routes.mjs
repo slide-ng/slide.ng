@@ -5,7 +5,7 @@ import { writeDrawing, MAX_DRAWING } from './drawings-store.mjs';
 import { HttpError } from './http-error.mjs';
 import { MCP_PATH, handleMcp } from './mcp-http.mjs';
 import { MAX_FILE, writeMonaco } from './monaco-write.mjs';
-import { readSlide, writeDrag, writeSlide } from './slides-write.mjs';
+import { readNotes, readSlide, writeDrag, writeNote, writeSlide } from './slides-write.mjs';
 import { canvasSize } from '../lib/canvas-size.mjs';
 import { parseDeck } from '../lib/parse-deck.mjs';
 
@@ -82,6 +82,14 @@ export function createHandler(ctx, { hub } = {}) {
         await serial(() => writeSlide(ctx, number(m[1]), raw, base));
         return json(res, 200, { ok: true });
       }
+    }
+    if (path === '/notes' && method === 'GET')
+      return json(res, 200, { notes: await readNotes(ctx) });
+    if ((m = /^\/slides\/(\d+)\/note$/.exec(path)) && method === 'PUT') {
+      const { note, base } = await body(req, MAX_FILE * 2);
+      if (typeof note !== 'string') throw new HttpError(400, 'note must be text');
+      await serial(() => writeNote(ctx, number(m[1]), note, base));
+      return json(res, 200, { ok: true });
     }
     if ((m = /^\/drawings\/(\d+)$/.exec(path)) && method === 'PUT') {
       const { svg } = await body(req, MAX_DRAWING + 1_000);

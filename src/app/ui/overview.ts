@@ -1,4 +1,5 @@
 import { Component, ElementRef, effect, inject, signal, untracked, viewChild } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { focusWhileOpen } from '../lib/dialog-focus';
 import { Nav } from '../lib/nav';
 import { Ui } from '../lib/ui-state';
@@ -10,7 +11,7 @@ import { Thumbnail } from './thumbnail';
 // Click a card to go there. Arrows move the highlight, Enter goes, Escape closes (see shortcuts.ts).
 @Component({
   selector: 'app-overview',
-  imports: [Thumbnail, IconBtn, T],
+  imports: [Thumbnail, IconBtn, T, RouterLink],
   host: { '(window:resize)': 'measure()', '(window:blur)': 'keepFocus()' },
   template: `
     @if (ui.overview()) {
@@ -52,7 +53,18 @@ import { Thumbnail } from './thumbnail';
           }
         </div>
       </div>
-      <div class="fixed top-4 end-4 z-modal text-gray-400">
+      <div class="fixed top-4 end-4 z-modal text-gray-400 flex gap-1">
+        <a
+          #pageLink
+          id="overview-page-link"
+          class="slidev-icon-btn text-2xl"
+          title="Open the overview page, with the notes"
+          aria-label="Open the overview page, with the notes"
+          routerLink="/overview"
+          (click)="close()"
+        >
+          <div class="i-carbon:list-boxes"></div>
+        </a>
         <button
           #closeButton
           icon-btn
@@ -74,6 +86,7 @@ export class Overview {
   protected cardWidth = 300;
   private dialog = viewChild<ElementRef<HTMLElement>>('dialog');
   private closeButton = viewChild('closeButton', { read: ElementRef<HTMLElement> });
+  private pageLink = viewChild<ElementRef<HTMLElement>>('pageLink');
 
   // A page in a thumbnail's iframe that focuses itself would take the keys (Escape, arrows) away from the overview; the
   // thumbnails are inert, but a frame's own script can still focus it. Take the focus back.
@@ -89,7 +102,7 @@ export class Overview {
     focusWhileOpen(
       this.ui.overview,
       () => this.dialog()?.nativeElement,
-      () => [this.closeButton()?.nativeElement],
+      () => [this.pageLink()?.nativeElement, this.closeButton()?.nativeElement],
     );
     effect(() => {
       // Every time the overview opens, highlight the slide on screen, and tell the keys how wide a row is.
