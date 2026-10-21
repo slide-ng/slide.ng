@@ -44,6 +44,7 @@
     "!**/*.spec.ts",
     "!src/slides/generated",
     "!docs/screenshots",
+    "!docs/assets",
     "!docs/contributing",
     "!scripts/resign-history.sh",
     "!scripts/commit-message.mjs",

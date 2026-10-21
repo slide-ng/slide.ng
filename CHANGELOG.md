@@ -66,6 +66,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - The old-names check also catches Slidev's PascalCase components (`<Toc />`, `<VClicks>`, `<SlidevVideo>`, `<Youtube>`, `<RenderWhen>`, `<LightOrDark>`, `<Link>`, ...) and `<slidev-video>`, lists the old names of every slide in one run, and tells `<v-click>` / `<v-after>` to become `<div slide-ng-click>` / `<div slide-ng-after>`.
 - Monaco's stylesheet (with its icon font, about 125 kB compressed) comes with the lazy Monaco chunk instead of the deck's styles: a deck with one `{monaco}` block no longer waits for it on the first slide (first paint of a 10-slide deck on slow 3G: 10.6 s before, 4.9 s after; the first load went from 241 kB to 133 kB compressed). The three Monaco CSS files that nothing loaded are no longer in `dist/`.
 - A static build no longer contains the side editor or the dev server's sync and drag saving.
+- The npm package no longer contains the README's pictures (`docs/assets/`, 540 kB, a fifth of the unpacked size); the README loads them from GitHub.
 
 ### Fixed
 

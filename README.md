@@ -1,6 +1,6 @@
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme-banner-dark.png">
-  <img alt="slide.ng" src="docs/assets/readme-banner-light.png" width="800">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/slide-ng/slide.ng/main/docs/assets/readme-banner-dark.png">
+  <img alt="slide.ng" src="https://raw.githubusercontent.com/slide-ng/slide.ng/main/docs/assets/readme-banner-light.png" width="800">
 </picture>
 
 # slide.ng
@@ -11,7 +11,7 @@
 Presentations written in markdown, with real Angular template syntax inside. Inspired by [Slidev](https://sli.dev), built for Angular.
 
 <p align="center">
-  <img alt="Typing a slides.md file while the slides take shape next to it" src="docs/assets/how-it-works.gif" width="420">
+  <img alt="Typing a slides.md file while the slides take shape next to it" src="https://raw.githubusercontent.com/slide-ng/slide.ng/main/docs/assets/how-it-works.gif" width="420">
   <br>
   <sub>Type markdown, get slides.</sub>
 </p>
