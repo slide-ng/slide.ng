@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { modeStep, syncMode, withSyncMode } from './sync-mode';
+import { effectiveMode, modeStep, syncMode, withSyncMode } from './sync-mode';
 
 const all = { viewerSend: true, viewerReceive: true, presenterSend: true, presenterReceive: true };
 
@@ -38,5 +38,15 @@ describe('modeStep', () => {
     expect(
       ['ArrowDown', 'ArrowUp', 'ArrowRight', 'ArrowLeft'].map((k) => modeStep(k, true)),
     ).toEqual([1, -1, -1, 1]);
+  });
+});
+
+describe('effectiveMode', () => {
+  it('a window that may not send only receives, or does nothing', () => {
+    expect(effectiveMode('bidirectional', false)).toBe('receive-only');
+    expect(effectiveMode('send-only', false)).toBe('off');
+    expect(effectiveMode('receive-only', false)).toBe('receive-only');
+    expect(effectiveMode('off', false)).toBe('off');
+    expect(effectiveMode('send-only', true)).toBe('send-only');
   });
 });

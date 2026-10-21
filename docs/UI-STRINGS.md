@@ -246,6 +246,7 @@ default; `src/app/i18n/en.ts` holds it and is the source of truth for the keys. 
 | `sync.receiveOnly`            | Receive Only                                                                             |
 | `sync.sendOnly`               | Send Only                                                                                |
 | `sync.off`                    | Disable                                                                                  |
+| `sync.cannotSendHere`         | This window is on another device: it can follow the presenter, but not move the others.  |
 | `overview.openPage`           | Open the overview page, with the notes                                                   |
 | `presenter.goToClick`         | Go to click {no}                                                                         |
 | `presenter.resizeNotes`       | Resize notes panel                                                                       |

@@ -1,5 +1,5 @@
 // The sync mode menu of the bar (Slidev's SyncControls): both ways, receive only, send only, off.
-export async function run({ t, open, press, hud, windowGroup }) {
+export async function run({ t, base, open, press, hud, windowGroup }) {
   const group = await windowGroup();
   const presenter = await open('/presenter/1', undefined, undefined, group);
   const viewer = await open('/1', undefined, undefined, group);
@@ -128,4 +128,28 @@ export async function run({ t, open, press, hud, windowGroup }) {
       (await viewer.evaluate(() => document.activeElement?.id)) === 'nav-sync',
   );
   await group.close();
+
+  // A viewer on another machine (a host that is not localhost, phase3.mjs maps remote.test here) only follows
+  // (nav-sync.ts): the modes that send are disabled and the menu says why; the button's up arrow is off.
+  const elsewhere = await windowGroup();
+  const far = await elsewhere.newPage();
+  await far.goto(base.replace('localhost', 'remote.test') + '/1');
+  await far.waitForSelector('#hud');
+  await openMenu(far);
+  const disabled = await far
+    .locator('#sync-menu .sync-mode:disabled')
+    .evaluateAll((l) => l.map((e) => e.getAttribute('data-mode')).join());
+  const why = await far.locator('#sync-receive-only-here').innerText();
+  const farArrows = await far
+    .locator('#nav-sync > div')
+    .evaluateAll((l) => l.map((e) => (e.classList.contains('op30') ? 'off' : 'on')).join());
+  t.ok(
+    'a viewer on another machine cannot pick a mode that sends, and is told why',
+    disabled === 'bidirectional,send-only' &&
+      /another device/.test(why) &&
+      (await checked(far)) === 'receive-only' &&
+      farArrows === 'off,on',
+    `${disabled} / ${why} / ${await checked(far)} / ${farArrows}`,
+  );
+  await elsewhere.close();
 }

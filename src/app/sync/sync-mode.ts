@@ -38,6 +38,15 @@ export function syncMode(d: SyncDirections, isPresenter: boolean): SyncMode {
   return 'off';
 }
 
+/** A mode that sends: a window that may not send (a viewer on another machine, see nav-sync.ts) cannot take it. */
+export const sends = (mode: SyncMode) => mode === 'bidirectional' || mode === 'send-only';
+
+/** What `mode` really does in a window that may not send: it only receives, or does nothing. */
+export function effectiveMode(mode: SyncMode, maySend: boolean): SyncMode {
+  if (maySend) return mode;
+  return mode === 'bidirectional' ? 'receive-only' : mode === 'send-only' ? 'off' : mode;
+}
+
 /** The directions with this role's pair set to `mode`; the other role keeps its own. */
 export function withSyncMode(
   d: SyncDirections,

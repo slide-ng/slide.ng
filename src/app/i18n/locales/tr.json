@@ -150,6 +150,7 @@
   "sync.receiveOnly": "Yalnızca al",
   "sync.sendOnly": "Yalnızca gönder",
   "sync.off": "Kapat",
+  "sync.cannotSendHere": "Bu pencere başka bir cihazda: sunucuyu izleyebilir, ama diğerlerini hareket ettiremez.",
   "overview.openPage": "Genel bakış sayfasını notlarla aç",
   "presenter.goToClick": "{no}. tıklamaya git",
   "presenter.resizeNotes": "Not panelini yeniden boyutlandır",

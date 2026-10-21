@@ -34,6 +34,9 @@ const browser = await launch([
   '--use-fake-ui-for-media-stream',
   '--auto-select-desktop-capture-source=Entire screen',
   '--enable-usermedia-screen-capturing',
+  // Another machine for the sync menu (sync-mode.mjs): a host name that is not localhost, served here.
+  '--host-resolver-rules=MAP remote.test 127.0.0.1',
+  '--proxy-bypass-list=remote.test',
 ]);
 const t = reporter();
 const ctx = makeContext(`http://localhost:${port}`, browser, t);

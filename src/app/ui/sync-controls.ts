@@ -3,10 +3,13 @@ import { Nav } from '../lib/nav';
 import { Ui } from '../lib/ui-state';
 import { fitMenu } from '../lib/fit-menu';
 import { SyncState } from '../sync/sync-state';
+import { isLocalPage } from '../sync/nav-sync';
 import {
   SYNC_MODES,
   SyncMode,
+  effectiveMode,
   modeStep,
+  sends,
   syncFlags,
   syncMode,
   withSyncMode,
@@ -55,6 +58,11 @@ import { T } from '../i18n/t';
             <span class="op75">{{ 'sync.for' | t }} </span>
             <span class="font-bold text-primary">{{ role | t }}</span>
           </div>
+          @if (!maySend) {
+            <div id="sync-receive-only-here" class="px-3 max-w-60 text-xs op75">
+              {{ 'sync.cannotSendHere' | t }}
+            </div>
+          }
           <div class="h-1px opacity-10 bg-current w-full"></div>
           <div role="radiogroup" aria-labelledby="sync-mode-title">
             <div
@@ -67,8 +75,12 @@ import { T } from '../i18n/t';
               <button
                 type="button"
                 role="radio"
-                class="sync-mode flex w-full rounded whitespace-nowrap py-1 gap-1 px-2 cursor-default bg-transparent border-0 text-inherit hover:bg-gray-400/10"
+                class="sync-mode flex w-full rounded whitespace-nowrap py-1 gap-1 px-2 cursor-default bg-transparent border-0 text-inherit hover:bg-gray-400/10 disabled:op50"
                 [attr.data-mode]="m.value"
+                [disabled]="!maySend && sends(m.value)"
+                [attr.aria-describedby]="
+                  !maySend && sends(m.value) ? 'sync-receive-only-here' : null
+                "
                 [attr.aria-checked]="mode() === m.value"
                 [attr.tabindex]="mode() === m.value ? 0 : -1"
                 (click)="choose(m.value)"
@@ -94,9 +106,17 @@ export class SyncControls {
   private injector = inject(Injector);
   protected readonly modes = SYNC_MODES;
   protected readonly role = this.isPresenter ? 'sync.presenter' : 'sync.viewer';
+  /** A viewer on another machine only follows (nav-sync.ts): the modes that send are disabled, and the up arrow is off. */
+  protected readonly maySend = this.isPresenter || isLocalPage(location);
+  protected readonly sends = sends;
   protected open = this.ui.syncMenu; // in Ui, so Escape (Ui.closeAll) closes it like the settings menu
-  protected flags = computed(() => syncFlags(this.sync.directions(), this.isPresenter));
-  protected mode = computed(() => syncMode(this.sync.directions(), this.isPresenter));
+  protected flags = computed(() => {
+    const { send, receive } = syncFlags(this.sync.directions(), this.isPresenter);
+    return { send: send && this.maySend, receive };
+  });
+  protected mode = computed(() =>
+    effectiveMode(syncMode(this.sync.directions(), this.isPresenter), this.maySend),
+  );
 
   protected toggle() {
     this.open.set(!this.open());
@@ -124,6 +144,7 @@ export class SyncControls {
   }
 
   protected choose(mode: SyncMode) {
+    if (!this.maySend && sends(mode)) return;
     this.sync.directions.update((d) => withSyncMode(d, this.isPresenter, mode));
   }
 
@@ -139,8 +160,9 @@ export class SyncControls {
     if (!by) return;
     e.preventDefault();
     e.stopPropagation();
-    const i = this.modes.findIndex((m) => m.value === this.mode());
-    const next = this.modes[(i + by + this.modes.length) % this.modes.length].value;
+    const modes = this.modes.filter((m) => this.maySend || !sends(m.value));
+    const i = modes.findIndex((m) => m.value === this.mode());
+    const next = modes[(i + by + modes.length) % modes.length].value;
     this.choose(next);
     this.focusMode(next);
   }
