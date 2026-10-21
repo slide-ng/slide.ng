@@ -2,6 +2,7 @@
 // Port of Slidev's CodeRunner.vue. What actually runs the code is passed in as `execute`.
 import {
   Component,
+  ElementRef,
   OnDestroy,
   OnInit,
   computed,
@@ -56,6 +57,7 @@ export class CodeRunner implements OnInit, OnDestroy {
   protected result = signal<RunResult | null>(null);
 
   private clicks = inject(ClicksContext);
+  private host = inject<ElementRef<Element>>(ElementRef).nativeElement;
   private info = signal<ClickInfo | null>(null);
   private timer?: ReturnType<typeof setTimeout>;
   protected hidden = computed(() => {
@@ -80,13 +82,18 @@ export class CodeRunner implements OnInit, OnDestroy {
     });
   }
 
+  // The runner is inside the editor's component, so it registers after the slide's later clicks: tracking it lets the
+  // clicks be numbered in document order (a `+1` output before a `slide-ng-click` comes first, as in Slidev).
   ngOnInit() {
     const at = this.showOutputAt();
-    if (at != null) {
+    if (at == null) return;
+    const place = () => {
       const info = this.clicks.calculate(at);
       this.info.set(info);
       this.clicks.register(this, info);
-    }
+    };
+    place();
+    this.clicks.track(this, this.host, place);
   }
 
   ngOnDestroy() {
