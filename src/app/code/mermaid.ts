@@ -105,6 +105,8 @@ export class Mermaid {
 
   protected pending = signal(true);
   protected error = signal('');
+  /** The drawn SVG; a new object for every drawing, so drawing the same SVG again still shows it. */
+  private drawn = signal<{ svg: string } | null>(null);
   private box = viewChild<ElementRef<HTMLElement>>('box');
   private dark = inject(Dark);
   private setups = inject(MERMAID_SETUP);
@@ -126,22 +128,24 @@ export class Mermaid {
       try {
         const svg = await draw(text, config, await findRenderer(this.rendererSetups));
         this.error.set('');
-        // The box only exists once the error is cleared and Angular has rendered it.
-        queueMicrotask(() => this.show(svg));
+        this.drawn.set({ svg });
       } catch (e) {
         console.warn(e);
+        this.drawn.set(null);
         this.error.set(String(e));
         this.pending.set(false);
       }
     });
-  }
-
-  private show(svg: string) {
-    const box = this.box()?.nativeElement;
-    if (!box) return;
-    box.innerHTML = svg;
-    this.applyScale(box.firstElementChild as SVGElement | null);
-    this.pending.set(false);
+    // The box only exists once the error is cleared and Angular has rendered it (after a failed drawing too):
+    // the SVG goes in when both are there.
+    effect(() => {
+      const box = this.box()?.nativeElement;
+      const drawn = this.drawn();
+      if (!box || !drawn) return;
+      box.innerHTML = drawn.svg;
+      untracked(() => this.applyScale(box.firstElementChild as SVGElement | null));
+      this.pending.set(false);
+    });
   }
 
   // Slidev's `scale`: the drawn height (from the viewBox) times the scale; the width follows.
