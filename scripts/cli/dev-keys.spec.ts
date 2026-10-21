@@ -109,6 +109,21 @@ describe('programs', () => {
       args: ['', 'http://x/'],
     });
   });
+  it("does not take npm's EDITOR=vi for a choice: code when it is installed, else vi", () => {
+    const npm = { npm_execpath: '/usr/lib/npm-cli.js', EDITOR: 'vi' };
+    const withCode = { has: () => true, platform: 'linux' as const };
+    const without = { has: () => false, platform: 'linux' as const };
+    expect(editorCommand('/d/s.md', npm, withCode).command).toBe('code');
+    expect(editorCommand('/d/s.md', npm, without).command).toBe('vi');
+    expect(editorCommand('/d/s.md', { ...npm, VISUAL: 'nano' }, withCode).command).toBe('nano');
+    expect(editorCommand('/d/s.md', { ...npm, EDITOR: 'nano' }, withCode).command).toBe('nano');
+    // Outside npm, EDITOR=vi is the user's own choice.
+    expect(editorCommand('/d/s.md', { EDITOR: 'vi' }, withCode).command).toBe('vi');
+    const win = { npm_execpath: 'C:\\npm-cli.js', EDITOR: 'notepad.exe' };
+    expect(
+      editorCommand('C:\\s.md', win, { has: () => true, platform: 'win32' as const }).command,
+    ).toBe('code');
+  });
   it('uses VISUAL or EDITOR with their flags, else code', () => {
     expect(editorCommand('/d/slides.md', {})).toEqual({ command: 'code', args: ['/d/slides.md'] });
     expect(editorCommand('/d/s.md', { EDITOR: 'code -w' })).toEqual({

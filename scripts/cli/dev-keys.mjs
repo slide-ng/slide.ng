@@ -2,6 +2,8 @@
 // r restarts, o opens the browser, e opens the entry in the editor, q quits, c prints a QR code of the remote address.
 // Only used when stdin is a terminal; `input` is a parameter so a test can type into a fake one.
 import { spawn } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { delimiter, join } from 'node:path';
 import { emitKeypressEvents } from 'node:readline';
 
 export const DEV_KEYS = [
@@ -78,11 +80,32 @@ export function openCommand(url, platform = process.platform) {
   return { command: 'xdg-open', args: [url] };
 }
 
-/** The editor for the `e` key: `$VISUAL` or `$EDITOR` (it may carry flags, such as `code -w`), else VS Code's `code`. */
-export function editorCommand(file, env = process.env) {
-  const words = String(env.VISUAL || env.EDITOR || 'code')
-    .trim()
-    .split(/\s+/);
+/** Is `name` a program on the PATH of `env`? */
+export function onPath(name, env = process.env, platform = process.platform) {
+  const exts = platform === 'win32' ? (env.PATHEXT || '.EXE;.CMD;.BAT').split(';') : [''];
+  return String(env.PATH || env.Path || '')
+    .split(delimiter)
+    .filter(Boolean)
+    .some((dir) => exts.some((ext) => existsSync(join(dir, name + ext))));
+}
+
+/**
+ * The editor for the `e` key (it may carry flags, such as `code -w`): `$VISUAL`, else `$EDITOR`, else VS Code's `code`.
+ * npm and npx set `EDITOR=vi` (notepad.exe on Windows) for the programs they start when none is set, so under npm that
+ * value counts as not set: `code` is used when it is installed, and vi only when it is not.
+ */
+export function editorCommand(
+  file,
+  env = process.env,
+  { platform = process.platform, has = onPath } = {},
+) {
+  const npmDefault = platform === 'win32' ? 'notepad.exe' : 'vi';
+  const fromNpm = !!env.npm_execpath && env.EDITOR?.trim() === npmDefault;
+  const chosen =
+    env.VISUAL ||
+    (!fromNpm && env.EDITOR) ||
+    (has('code', env, platform) ? 'code' : env.EDITOR || 'code');
+  const words = String(chosen).trim().split(/\s+/);
   return { command: words[0], args: [...words.slice(1), file] };
 }
 

@@ -33,13 +33,13 @@ encode spaces as `%20`), so a password with spaces at its ends must be typed wit
 
 On a terminal the dev server also reads keys, as Slidev's does, and prints a line that lists them:
 
-| key | what it does                                                                                                                                                |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `r` | restart the generator, the companion server and the Angular dev server (`--open` opens no new tab); the keys still answer at once afterwards, without Enter |
-| `o` | open `http://localhost:<port>/` in the default browser                                                                                                      |
-| `e` | open the entry file in `$VISUAL`, `$EDITOR` (flags allowed, such as `code -w`) or else `code`                                                               |
-| `q` | quit (Ctrl+C too)                                                                                                                                           |
-| `c` | with `--remote`: print a QR code of the private slide show for each address, so a phone can open it                                                         |
+| key | what it does                                                                                                                                                                                                                       |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `r` | restart the generator, the companion server and the Angular dev server (`--open` opens no new tab); the keys still answer at once afterwards, without Enter                                                                        |
+| `o` | open `http://localhost:<port>/` in the default browser                                                                                                                                                                             |
+| `e` | open the entry file in `$VISUAL`, `$EDITOR` (flags allowed, such as `code -w`) or else `code`; under `npm run` and `npx`, npm's own `EDITOR=vi` (`notepad.exe` on Windows) counts as unset, so `code` is used when it is installed |
+| `q` | quit (Ctrl+C too)                                                                                                                                                                                                                  |
+| `c` | with `--remote`: print a QR code of the private slide show for each address, so a phone can open it                                                                                                                                |
 
 The QR code holds the password, like the private address it encodes: do not show it to people who should not edit the deck.
 
