@@ -59,7 +59,11 @@ export async function handleMcp(req, res, ctx, { hub, serial }) {
   }
   const server = createMcpServer(ctx.entry, {
     tools: [...TOOLS, ...DEV_TOOLS],
-    context: { hub, url: `http://${req.headers.host}/` },
+    context: {
+      hub,
+      url: `http://${req.headers.host}/`,
+      ...(ctx.remote ? { remoteUrls: ctx.remoteUrls } : {}),
+    },
   });
   const transport = new StreamableHTTPServerTransport({
     sessionIdGenerator: undefined,

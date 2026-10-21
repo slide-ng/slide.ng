@@ -110,6 +110,24 @@ describe('MCP over HTTP on the dev server', () => {
     await client.close();
   });
 
+  it('get_info: with --remote, the addresses other machines open (without the password)', async () => {
+    const local = await start();
+    const plain = await connect(local.port);
+    expect((await call(plain, 'get_info')).json).not.toHaveProperty('remoteUrls');
+    await plain.close();
+    const { port } = await start({
+      SLIDE_NG_REMOTE: '1',
+      SLIDE_NG_PASSWORD: 'pw',
+      SLIDE_NG_REMOTE_URLS: 'http://192.0.2.7:3030/,http://198.51.100.2:3030/',
+    });
+    const client = await connect(port, { authorization: 'Bearer pw' });
+    expect((await call(client, 'get_info')).json.remoteUrls).toEqual([
+      'http://192.0.2.7:3030/',
+      'http://198.51.100.2:3030/',
+    ]);
+    await client.close();
+  });
+
   it('goto_slide moves every window, presenters and viewers, and refuses a slide that does not exist', async () => {
     const { port } = await start();
     const client = await connect(port);

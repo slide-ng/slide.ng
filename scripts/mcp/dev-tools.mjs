@@ -21,7 +21,7 @@ export const DEV_TOOLS = [
   {
     name: 'get_info',
     description:
-      'About the running deck: the entry file, its title, the number of slides, the markdown files it is made of, the address of the dev server and the slide the presentation is on (null before a window reported one).',
+      'About the running deck: the entry file, its title, the number of slides, the markdown files it is made of, the address of the dev server, with --remote the addresses other machines on the network open (remoteUrls, without the password), and the slide the presentation is on (null before a window reported one).',
     schema: {},
     async run(ctx) {
       const deck = await parseDeck(ctx.entry);
@@ -31,6 +31,7 @@ export const DEV_TOOLS = [
         slides: deck.slides.length,
         files: [...new Set(deck.files)].map((f) => relative(ctx.root, f)),
         url: ctx.url,
+        ...(ctx.remoteUrls ? { remoteUrls: ctx.remoteUrls } : {}),
         current: ctx.hub?.position ?? null,
       };
     },

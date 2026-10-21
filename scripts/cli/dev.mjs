@@ -127,6 +127,15 @@ export async function devCommand(argv) {
   if (plan.force) removeInside(join(appRoot, '.angular', 'cache'), appRoot); // the build cache is the only thing --force clears
   const companionPort = process.env.SLIDE_NG_DEV_PORT || String(await freePort());
 
+  // With --bind to one address, that is the only one that answers; list the others only for 0.0.0.0.
+  const addresses = !plan.remote
+    ? []
+    : plan.host && plan.host !== '0.0.0.0'
+      ? [plan.host]
+      : Object.values(networkInterfaces())
+          .flat()
+          .filter((i) => i && i.family === 'IPv4' && !i.internal)
+          .map((i) => i.address);
   const env = {
     ...process.env,
     SLIDES_FILE: plan.entry,
@@ -136,6 +145,8 @@ export async function devCommand(argv) {
     SLIDE_NG_REMOTE: plan.remote ? '1' : '0',
     SLIDE_NG_PASSWORD: plan.password,
     SLIDE_NG_HOSTNAMES: plan.remote ? [hostname(), `${hostname()}.local`].join(',') : '',
+    // For MCP's get_info: the addresses another machine opens (without the password).
+    SLIDE_NG_REMOTE_URLS: addresses.map((a) => `http://${a}:${plan.port}/`).join(','),
   };
   const generate = join(packageRoot, 'scripts/generate.mjs');
   const first = spawnSync(process.execPath, [generate], { cwd: appRoot, env, stdio: 'inherit' });
@@ -218,15 +229,6 @@ export async function devCommand(argv) {
     });
   process.on('exit', () => stopAll());
 
-  // With --bind to one address, that is the only one that answers; list the others only for 0.0.0.0.
-  const addresses = !plan.remote
-    ? []
-    : plan.host && plan.host !== '0.0.0.0'
-      ? [plan.host]
-      : Object.values(networkInterfaces())
-          .flat()
-          .filter((i) => i && i.family === 'IPv4' && !i.internal)
-          .map((i) => i.address);
   if (plan.remote)
     console.log(
       remoteLines({
