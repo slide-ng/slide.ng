@@ -198,6 +198,10 @@ const allJs = readdirSync(site)
   .join('\n');
 t.ok('no remote address is left in the app', !allJs.includes(remoteUrl));
 t.ok('notes are removed with --without-notes', !allJs.includes('a note that must be gone'));
+t.ok(
+  'a static build has no /notes-edit page (it only opens with the dev server)',
+  !allJs.includes('notes-edit-text'),
+);
 
 // ---- download, and the PDF itself
 const pdf = join(site, 'talk.pdf');

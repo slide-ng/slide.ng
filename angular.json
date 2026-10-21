@@ -76,6 +76,10 @@
                 {
                   "replace": "src/app/dev/dev-providers.ts",
                   "with": "src/app/dev/dev-providers.prod.ts"
+                },
+                {
+                  "replace": "src/app/presenter/notes-edit-page.ts",
+                  "with": "src/app/presenter/notes-edit-page.prod.ts"
                 }
               ],
               "budgets": [
