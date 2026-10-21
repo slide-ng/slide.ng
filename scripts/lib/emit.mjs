@@ -1,4 +1,5 @@
 // Writes the TypeScript source of one generated slide component.
+import { readFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { COMPONENTS, LAYOUTS } from './registry.mjs';
 import { layoutName } from './layouts.mjs';
@@ -13,6 +14,7 @@ import { commonPipes } from './pipes.mjs';
 import { commonDirectives } from './angular-imports.mjs';
 import { setWarnSlide } from './code/highlighter.mjs';
 import { localAssets } from './local-assets.mjs';
+import { checkClickValues, clickSettings } from './click-values.mjs';
 
 const pad = (no) => String(no).padStart(3, '0');
 export const slideName = (no) => `slide-${pad(no)}`;
@@ -176,6 +178,29 @@ export function usesCustomElements(markup, setting) {
   );
 }
 
+// ` (slides.md:12)` for a line of the slide's content, counted from 0. The parser trims the content, so its first line is
+// the first line in the file from `contentStart` on that is not empty (and not a ```yaml block frontmatter). Empty when
+// the file cannot be read (a test).
+const sourceLines = (slide, root) => (line) => {
+  const path = slide.source?.filepath;
+  try {
+    const lines = readFileSync(path, 'utf8').replace(/\r/g, '').split('\n');
+    let first = slide.source.contentStart;
+    const skipEmpty = () => {
+      while (first < lines.length && !lines[first].trim()) first++;
+    };
+    skipEmpty();
+    // A ```yaml block at the top is the slide's frontmatter (block frontmatter), not content.
+    if (/^```ya?ml\s*$/.test(lines[first] ?? '')) {
+      first = lines.findIndex((l, i) => i > first && /^```\s*$/.test(l)) + 1 || first;
+      skipEmpty();
+    }
+    return ` (${relative(root ?? dirname(path), path) || 'slides.md'}:${first + line + 1})`;
+  } catch {
+    return '';
+  }
+};
+
 /**
  * @param {any} slide @param {number} no
  * @param {{ root?: string, headmatter?: any, layers?: string[], layouts?: Record<string, any>, components?: any[], assetBase?: string }} [deck]
@@ -193,6 +218,10 @@ export function slideSource(slide, no, deck = {}) {
       `[slides] slide ${no}: @apply in a <style> does nothing here (there is no UnoCSS directive transformer); put the classes on the element, or write the CSS out`,
     );
   warnInlineControlFlow(markdown, no);
+  const lineOf = sourceLines(slide, deck.root);
+  checkClickValues(slide.content, (m, line) =>
+    console.warn(`[slides] slide ${no}${lineOf(line)}: ${m}`),
+  );
   const layer = (name) =>
     deck.layers?.includes(name) ? `<app-slide-layer name="${name}"></app-slide-layer>` : '';
   const layout = `${openTag(def, slide.frontmatter)}${body(markdown, def, no, { file: slide.file, root: deck.root, roots: deck.roots?.map((r) => r.dir), allowOutsideRoot: deck.allowOutsideRoot, headmatter: deck.headmatter, codeblocks: deck.transformers?.codeblocks, slide: slideInfo(slide, no) }, layoutKey)}</${def.tag}>`;
@@ -280,10 +309,12 @@ export function slideSource(slide, no, deck = {}) {
   // (names, `sl-*`, or `true` for any), and only the slides that use one get Angular's CUSTOM_ELEMENTS_SCHEMA, so a mistyped
   // component name elsewhere is still an error.
   const schema = usesCustomElements(markup, deck.headmatter?.customElements);
-  const { clicksStart, clicks } = slide.frontmatter;
+  const { clicksStart, clicks } = clickSettings(slide.frontmatter, (m) =>
+    console.warn(`[slides] slide ${no}: ${m}`),
+  );
   const providers = ['ClicksContext'];
-  if (clicksStart) providers.push(`{ provide: CLICKS_START, useValue: ${+clicksStart} }`);
-  if (clicks) providers.push(`{ provide: CLICKS_TOTAL, useValue: ${+clicks} }`);
+  if (clicksStart) providers.push(`{ provide: CLICKS_START, useValue: ${clicksStart} }`);
+  if (clicks) providers.push(`{ provide: CLICKS_TOTAL, useValue: ${clicks} }`);
   if (base === './' && hasRootUrl(css))
     console.warn(
       `[slides] slide ${no}: url(/...) in a <style> is not found in an offline folder (the build cannot rewrite it there); use the picture in an inline style="background-image: url(/...)" or an <img> instead`,
