@@ -185,6 +185,8 @@ Two forms exist because of how Angular reads attributes:
 
 - `slide-ng-click="3"` or `slide-ng-click="+2"` is plain text; slide.ng turns it into a number or a relative step.
 - `[slide-ng-click]="[2, 4]"` is an Angular binding; use it for ranges and for any value you compute.
+  A range written as plain text, `slide-ng-click="[2, 4]"` or with presets `slide-ng-click.up="[2, 4]"` (as `v-click.up="[2, 4]"`),
+  is bound for you; so is `[slide-ng-click.up]="[2, 4]"`, whose presets move to `click-anim`.
 
 `slide-ng-after` and `+n` count from the relative counter, as in Slidev: the last plain or `+n` click before them, not an absolute
 `slide-ng-click="3"`. After only absolute clicks, `slide-ng-after` shows from the start; give it a number too (`slide-ng-click="3"`).

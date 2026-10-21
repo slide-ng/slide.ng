@@ -30,7 +30,7 @@ clickAnimation: up
 Two forms because of how Angular reads attributes:
 
 - `slide-ng-click="3"` and `slide-ng-click="+2"` are plain text that slide.ng turns into a number or a relative step.
-- `[slide-ng-click]="[2, 4]"` is an Angular binding: use it for ranges and for any computed value.
+- `[slide-ng-click]="[2, 4]"` is an Angular binding: use it for ranges and for any computed value. A range written as text (`slide-ng-click="[2, 4]"`, `slide-ng-click.up="[2, 4]"`) is bound for you, and `[slide-ng-click.up]="[2, 4]"` works too.
 
 Do not write the Vue forms (`v-click`, `<v-click>`): the old names stop the build with a `renamed to slide-ng-click` message, and `<slide-ng-click>` as a tag is a build error. `slide-ng-click.hide` is the same as `slide-ng-click slide-ng-click-hide`: shown first, hidden at its click.
 

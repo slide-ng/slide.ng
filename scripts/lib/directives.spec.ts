@@ -39,7 +39,7 @@ describe('rewriteDirectives: slide-ng-motion', () => {
   it('keeps slide-ng-click on the same element', () => {
     expect(
       rewriteDirectives('<div slide-ng-click="[2,4]" slide-ng-motion :enter="{ x: 0 }">'),
-    ).toContain('slide-ng-click="[2,4]"');
+    ).toContain('[slide-ng-click]="[2,4]"');
   });
   it('warns about variants it cannot do and drops them', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -83,5 +83,26 @@ describe('rewriteDirectives: click animation presets', () => {
     expect(rewriteDirectives('<li slide-ng-click-hide.hide="3">')).toBe(
       '<li slide-ng-click-hide="3">',
     );
+  });
+  it('binds a range written as a plain attribute, with or without presets', () => {
+    expect(rewriteDirectives('<div slide-ng-click="[2, 4]">')).toBe(
+      '<div [slide-ng-click]="[2, 4]">',
+    );
+    expect(rewriteDirectives('<div slide-ng-click.up="[2, 4]">')).toBe(
+      '<div click-anim="up" [slide-ng-click]="[2, 4]">',
+    );
+    expect(rewriteDirectives('<div slide-ng-click.fade=\'["+1", 3]\'>')).toBe(
+      '<div click-anim="fade" [slide-ng-click]=\'["+1", 3]\'>',
+    );
+  });
+  it('moves the presets out of a bound slide-ng-click', () => {
+    expect(rewriteDirectives('<div [slide-ng-click.up]="[2, 4]">')).toBe(
+      '<div click-anim="up" [slide-ng-click]="[2, 4]">',
+    );
+    expect(rewriteDirectives('<div [slide-ng-click.hide.left]="n">')).toBe(
+      '<div click-anim="left" [slide-ng-click]="n" slide-ng-click-hide>',
+    );
+    const tag = '<div [slide-ng-click]="[2, 4]">';
+    expect(rewriteDirectives(tag)).toBe(tag);
   });
 });

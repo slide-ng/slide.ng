@@ -13,6 +13,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 ### Changed
 
 - `slide-ng-click.hide` and `slide-ng-after.hide` show the element first and hide it at its click, as `v-click.hide` does in Slidev (the `slide-ng-click-hide` flag); before, `.hide` was dropped without a word. `slide-ng-click-hide="3"` hides at click 3, as `v-click-hide="3"`; before, its value was ignored and it hid at the next click.
+- A click range written as text, `slide-ng-click="[2, 4]"` or `slide-ng-click.up="[2, 4]"` (as `v-click.up="[2, 4]"`), is a range; before, it was ignored and the element was always visible. `[slide-ng-click.up]="[2, 4]"` builds too; before, it stopped the build with Angular's NG8002.
 
 ## [1.0.0] - 2026-10-18
 
