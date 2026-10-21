@@ -56,6 +56,10 @@ export async function exportSlides({
     );
     const page = await context.newPage();
     const batches = options.perSlide ? pages.map(String) : [options.range];
+    if (options.format === 'pdf' && batches.length > 1)
+      log(
+        'warning: --per-slide joins one PDF per slide: links between slides and the tags for screen readers are lost (docs/CLI.md)',
+      );
     const parts = [];
     for (const [i, range] of batches.entries()) {
       const url = printUrl({
@@ -96,6 +100,7 @@ async function write(target, parts, { deck, options, outBase }) {
       slides: deck.slides,
       headmatter: deck.headmatter,
       withToc: options.withToc,
+      size: parts[0].size,
     });
     await writeFile(target, bytes);
   } else if (options.format === 'png') {

@@ -163,6 +163,12 @@ t.ok(
   /<meta name="deck-index" content="from the deck">[\s\S]*<\/head>/.test(html) &&
     /<\/app-root>\s*<script>window.__deckIndex = 'ran';<\/script>/.test(html),
 );
+t.ok(
+  "index.html has no inline script (a host may send script-src 'self')",
+  !/<script(?![^>]*\bsrc=)[^>]*>/.test(html) &&
+    /<script src="inline-\w+\.js"><\/script>/.test(html),
+  html.match(/<script[^>]*>/g)?.join(' '),
+);
 const ogSize = readFileSync(join(site, 'og-image.png'));
 t.ok(
   'og-image.png is a screenshot of slide 1 (1470x828)',
@@ -245,6 +251,33 @@ page.on('pageerror', (e) => problems.push(String(e)));
 page.on('response', (r) => {
   if (r.status() >= 400) problems.push(`HTTP ${r.status()} ${r.url()}`);
 });
+// A host with a strict Content-Security-Policy (docs/HOSTING.md): no inline script runs, the deck still gets its styles.
+const strict = await browser.newContext({ serviceWorkers: 'block' });
+await strict.route('**/*', async (route) => {
+  const response = await route.fetch();
+  const csp =
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:";
+  await route.fulfill({
+    response,
+    headers: { ...response.headers(), 'content-security-policy': csp },
+  });
+});
+const strictPage = await strict.newPage();
+const refused = [];
+strictPage.on('console', (m) => {
+  if (/Content Security Policy/i.test(m.text())) refused.push(m.text());
+});
+await strictPage.goto(`${served.origin}/talk/2`);
+await strictPage.locator('#hud').waitFor();
+t.ok(
+  "under script-src 'self' the full stylesheet is switched on and nothing is refused",
+  (await strictPage.evaluate(() =>
+    [...document.querySelectorAll('link[rel=stylesheet]')].every((l) => l.media === 'all'),
+  )) && refused.length === 0,
+  refused.join(' | '),
+);
+await strict.close();
+
 await page.goto(`${served.origin}/talk/2`);
 await page.waitForFunction(() =>
   /clicks \d+\/\d+/.test(document.querySelector('#hud')?.innerText ?? ''),

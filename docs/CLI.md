@@ -88,9 +88,9 @@ To export one deck of such a build, name its folder: `slide-ng export a.md --dis
 | `--format`                                           | `pdf`, `png`, `pptx` or `md`                                                               |
 | `--output`, `-o`                                     | the file (or the folder for PNG); the default comes from `exportFilename` or the file name |
 | `--range`                                            | slides to export, such as `1,4-5`                                                          |
-| `--with-clicks`, `-c`                                | one page per click step                                                                    |
+| `--with-clicks`, `-c`                                | one page per click step (on by default for `pptx`; `--no-with-clicks` turns it off)        |
 | `--dark`                                             | dark mode                                                                                  |
-| `--per-slide`                                        | PDF: render slide by slide (slower, for very large decks)                                  |
+| `--per-slide`                                        | PDF: render slide by slide (slower, for very large decks; see below)                       |
 | `--with-toc`                                         | PDF: an outline from the slide titles                                                      |
 | `--scale`                                            | PNG and PPTX picture scale, 0.25 to 8 (default 2)                                          |
 | `--omit-background`                                  | PNG: a transparent background                                                              |
@@ -101,6 +101,10 @@ To export one deck of such a build, name its folder: `slide-ng export a.md --dis
 | `--theme`, `-t`                                      | use this theme instead of the headmatter's                                                 |
 | `--lang`                                             | use this language instead of the headmatter's `lang` (refused with `--dist` and `--url`)   |
 | `--executable-path`, `--no-sandbox`, `--allow-local` | as for `build`                                                                             |
+
+`--per-slide` joins one PDF per slide, and the joined file loses what Chromium only writes into a single document: links
+from one slide to another (the table of contents, `[go](/5)`) do nothing, and the tags for screen readers are gone (the
+language is kept). The command says so; leave it out unless the deck is too big to print in one go.
 
 The headmatter's `export:` block sets the same options (`withClicks`, `perSlide`, ...); the command line wins. `output`,
 `executablePath`, `--no-sandbox` and `--allow-local` are never read from a deck. As root or in a container, Chromium needs

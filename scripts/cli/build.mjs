@@ -3,6 +3,7 @@
 // Several entries are built one after another into <out>/<name>/ (see entries.mjs).
 import { copyFileSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
+import { moveInlineScripts } from '../build/csp.mjs';
 import { makeOffline } from '../build/offline.mjs';
 import { ogImagePlan, placeOgImage } from '../build/og-image.mjs';
 import {
@@ -114,6 +115,8 @@ async function buildOne({ entry, out, base, flags, offline, routerMode, several 
   };
   try {
     const dist = buildDeck({ entry, workDir, base, env });
+    // A host with `script-src 'self'` runs them too (docs/HOSTING.md). A folder opened from disk has no such header.
+    if (!offline) moveInlineScripts(dist);
     await afterBuild({ dist, deck, entry, root, base, workDir, download, flags, offline });
     // A deck's folder inside the claimed --out of several decks is ours, whatever an earlier build put there.
     if (several) rmSync(out, { recursive: true, force: true });

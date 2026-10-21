@@ -9,10 +9,15 @@ import { pwaEnabled } from '../build/pwa.mjs';
 import { titleHtml } from './math.mjs';
 import { LAYOUTS } from './registry.mjs';
 
+// Bidi embedding, override and isolate characters: in a title they would reorder the text around it in the table of
+// contents, the tab title or the PDF outline (`annexe\u202Egpj.exe` shows as `annexeexe.jpg`), so titles drop them.
+const BIDI_CONTROLS = /[\u202A-\u202E\u2066-\u2069]/g;
+
 // A heading's markdown as text for the tab title, the outline and the overview: `[a](b)` is `a`, `code` and **b** lose their marks,
 // and HTML tags go.
 export function plainTitle(title) {
   return String(title)
+    .replace(BIDI_CONTROLS, '')
     .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
     .replace(/`([^`]*)`/g, '$1')
     .replace(/(\*\*|\*|~~)(\S(?:.*?\S)?)\1/g, '$2')
@@ -27,7 +32,10 @@ function metaOf(slide, index, rubyMap) {
   const f = slide.frontmatter;
   return {
     title: slide.title == null ? null : plainTitle(slide.title),
-    titleHtml: slide.title == null ? null : safeLinks(titleHtml(slide.title), index + 1), // inline markdown and $math$ as HTML
+    titleHtml:
+      slide.title == null
+        ? null
+        : safeLinks(titleHtml(String(slide.title).replace(BIDI_CONTROLS, '')), index + 1), // inline markdown and $math$ as HTML
     level: slide.level ?? null,
     layout: slide.layout ?? layoutName(f, index),
     note: slide.note ?? null,

@@ -53,9 +53,12 @@ export class NotesPrint {
     inject(Dark);
     const doc = inject(DOCUMENT);
     doc.documentElement.classList.add('print');
-    // A4 with a little room at the top and bottom, like Slidev's notes page.
+    // A4 with a little room at the top and bottom, like Slidev's notes page. The page behind the notes has their colour:
+    // the deck's black would show below the last note, where the notes end before the paper does.
     const style = doc.createElement('style');
-    style.textContent = '@page { size: A4; margin-top: 1.5cm; margin-bottom: 1cm; }';
+    style.textContent =
+      '@page { size: A4; margin-top: 1.5cm; margin-bottom: 1cm; }' +
+      ' html, html body { background: #fff; } html.dark, html.dark body { background: #121212; }';
     doc.head.append(style);
     inject(DestroyRef).onDestroy(() => {
       doc.documentElement.classList.remove('print');

@@ -238,6 +238,9 @@ describe('plainTitle', () => {
       'H2O and 振り仮名',
     );
   });
+  it('drops bidi overrides, which would reorder the table of contents', () => {
+    expect(plainTitle('annexe\u202Egpj.exe \u2067x\u2069')).toBe('annexegpj.exe x');
+  });
 });
 
 describe('slideSource: built-in components are imported when the slide uses them', () => {
@@ -369,6 +372,54 @@ describe('safeLinks', () => {
     expect(safeLinks(sample, 3)).toBe(sample);
     expect(warn).toHaveBeenCalledTimes(6);
     warn.mockRestore();
+  });
+  it('replaces script documents in <object data> and <embed src>, not data-* attributes', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(safeLinks('<object data="data:text/html,<script>x</script>"></object>', 3)).toBe(
+      '<object data="#"></object>',
+    );
+    expect(safeLinks("<object data='javascript:x'></object>", 3)).toBe(
+      '<object data="#"></object>',
+    );
+    expect(safeLinks('<embed src="data:text/html,x">', 3)).toBe('<embed src="#">');
+    expect(safeLinks('<div data-x="javascript:x" data="a.svg"></div>', 3)).toBe(
+      '<div data-x="javascript:x" data="a.svg"></div>',
+    );
+    expect(warn).toHaveBeenCalledTimes(3);
+    warn.mockRestore();
+  });
+});
+
+describe('slideSource warnings', () => {
+  const warnings = (content: string) => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    slideSource(slide({}, content), 2);
+    const all = warn.mock.calls.map((c) => String(c[0]));
+    warn.mockRestore();
+    return all;
+  };
+  it('says a <script> element is removed, but not for "<script" inside an attribute', () => {
+    expect(warnings('<script>alert(1)</script>').join()).toContain('<script> is removed');
+    expect(warnings('<div title="a <script> b">x</div>').join()).not.toContain('is removed');
+  });
+  it('says an inline event handler is kept and runs', () => {
+    expect(warnings('<img src="a.png" onerror="x()">').join()).toContain('onerror=');
+    expect(warnings('<button (click)="x()" title="onclick=no">a</button>').join()).not.toContain(
+      'event handler',
+    );
+    expect(warnings('<div once="1" only="2">a</div>').join()).not.toContain('event handler');
+  });
+  it('names an element that is never closed instead of failing on the layout tag', () => {
+    expect(() => slideSource(slide({}, '<div class="box">\n\ntext'), 4)).toThrow(
+      /slide 4: <div class="box"> is never closed/,
+    );
+    expect(() => slideSource(slide({}, '<ul><li>a<li>b</ul>\n\n<p>text'), 4)).not.toThrow();
+    expect(() => slideSource(slide({}, '@let n = 1;\n\n<div class="box">\n\ntext'), 4)).toThrow(
+      /slide 4: <div class="box"> is never closed/,
+    );
+    expect(() => slideSource(slide({}, '@if (true) {\n\ntext'), 4)).toThrow(
+      /slide 4: @if \(true\) \{ is never closed; add \} where the @if block should end/,
+    );
   });
 });
 

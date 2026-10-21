@@ -10,9 +10,11 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
+import { PDFDocument, PDFName } from '@cantoo/pdf-lib';
 import { join, resolve } from 'node:path';
 import { launch, reporter } from '../e2e/browser.mjs';
 import { buildDeck } from '../../scripts/cli/runtime.mjs';
+import { serveDirectory } from '../../scripts/export/static-server.mjs';
 
 const t = reporter();
 const bin = resolve('bin/slide-ng.mjs');
@@ -96,6 +98,11 @@ t.ok(
   /Page size:\s+735(\.\d+)? x 41[34]/.test(pdfInfo(pdf)),
   pdfInfo(pdf).match(/Page size.*/)[0],
 );
+t.ok(
+  'the pdf page is cut back to the slide (no 735.12 pt paper with a white line on dark slides)',
+  /Page size:\s+735 x/.test(pdfInfo(pdf)),
+  pdfInfo(pdf).match(/Page size.*/)[0],
+);
 t.ok('the pdf title comes from the headmatter', /Title:\s+Print deck/.test(pdfInfo(pdf)));
 t.ok('the pdf is tagged for screen readers', /Tagged:\s+yes/.test(pdfInfo(pdf)), pdfInfo(pdf));
 t.ok(
@@ -136,6 +143,15 @@ t.ok(
   pages(join(r.dir, 'per.pdf')) === 13,
   String(pages(join(r.dir, 'per.pdf'))),
 );
+t.ok(
+  '--per-slide says that links between slides and tags are lost',
+  r.out.includes('links between slides and the tags for screen readers are lost'),
+  r.out,
+);
+const perLang = (await PDFDocument.load(readFileSync(join(r.dir, 'per.pdf')))).catalog
+  .lookup(PDFName.of('Lang'))
+  ?.decodeText();
+t.ok('--per-slide keeps the language of the page', perLang === 'en', String(perLang));
 
 // ---- outline (--with-toc), read back by qpdf and by pdf-lib
 r = slideNg(`export ${common} --with-toc --output toc`);
@@ -244,6 +260,21 @@ const [light, dark, clear] = [
 t.ok('png: light background is white', light.join() === '255,255,255,255', light.join());
 t.ok('png --dark: dark background', dark[0] < 40 && dark[3] === 255, dark.join());
 t.ok('png --omit-background: transparent background', clear[3] === 0, clear.join());
+
+// The notes page is painted in its own colour down to the end of the paper, not in the deck's black.
+const served = await serveDirectory(dist);
+const notesPage = await browser.newPage();
+await notesPage.goto(`${served.origin}/presenter/print`);
+await notesPage.locator('[data-slide-ng-print="ready"]').waitFor();
+const behindNotes = await notesPage.evaluate(
+  () => getComputedStyle(document.documentElement).backgroundColor,
+);
+t.ok(
+  'export-notes: the page behind the notes is white, not black',
+  behindNotes === 'rgb(255, 255, 255)',
+  behindNotes,
+);
+await served.close();
 await browser.close();
 
 // ---- md and pptx

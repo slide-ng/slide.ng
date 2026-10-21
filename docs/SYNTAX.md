@@ -606,7 +606,9 @@ As in Slidev, a markdown link to a slide moves inside the deck, and a link to a 
 - In speaker notes a web page opens a new tab too; a link to a slide stays a plain address. Clicked in the presenter, it moves the
   presenter to that slide; in the notes window and elsewhere it opens the address.
 
-A link to a `javascript:` address is replaced by `#` with a warning, because it would run code when clicked.
+A link to a `javascript:` address is replaced by `#` with a warning, because it would run code when clicked (so is a `javascript:` or
+`data:text/html` address in an `<iframe>`'s `src` or an `<object>`'s `data`). An inline handler such as `onclick="..."` is kept and runs, with a
+warning; `(click)="..."` is the Angular way. An element left open in raw HTML (`<div>` without `</div>`) stops the build with a message that names it.
 
 ## Icons
 

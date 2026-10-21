@@ -4,7 +4,7 @@ What slide.ng trusts, what it defends against, and what each flag changes. [SECU
 
 ## Who is trusted
 
-**The deck author is trusted, and so is whoever runs the commands.** A deck is code. Its `slides.md` can contain raw HTML (a `<script>` element is removed with a warning, but links, inline handlers in components and `setup/main.ts` run code), its `setup/*.ts` files are bundled and run by the generator (on the build machine), its `index.html` goes into the page as it is (scripts included), and a theme or addon is the same kind of code. slide.ng does not sandbox a deck from the machine that builds it. Running `slide-ng dev`, `build` or `export` on a deck you did not write is like running its code: read it first, or do it in a container.
+**The deck author is trusted, and so is whoever runs the commands.** A deck is code. Its `slides.md` can contain raw HTML (a `<script>` element is removed with a warning, and a `javascript:` or `data:text/html` address in `href`, `src` or an `<object>`'s `data` is replaced by `#`, but inline event handlers such as `onclick=` and `onerror=` are **not** removed: they run as script in the deck's page, with a warning at build time; links, components and `setup/main.ts` run code too), its `setup/*.ts` files are bundled and run by the generator (on the build machine), its `index.html` goes into the page as it is (scripts included), and a theme or addon is the same kind of code. slide.ng does not sandbox a deck from the machine that builds it. Running `slide-ng dev`, `build` or `export` on a deck you did not write is like running its code: read it first, or do it in a container.
 
 What slide.ng does defend is the line between the trusted person and everyone else:
 
