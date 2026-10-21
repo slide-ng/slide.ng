@@ -75,3 +75,5 @@ const answer = 42
 # The end
 
 Done
+
+<slide-ng-render-when context="visible"><p id="print-visible">on paper</p><p fallback id="print-visible-fallback">not seen</p></slide-ng-render-when>

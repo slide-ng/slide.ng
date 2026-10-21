@@ -29,7 +29,7 @@ Use them as lower-case tags. Nothing to import.
 
 - `<slide-ng-switch unmount transition="fade">`: `unmount` takes hidden children out of the page, `transition` animates (slide transition names; bare is a fade). `tag` and `childTag` are not used.
 - `<slide-ng-video printPoster="/still.png" printTimestamp="last">`: in print, export and the overview, the poster or the frame at that second (`last`: the end).
-- `<slide-ng-render-when context="visible">`: only while the element is on screen (in a list too, as in Slidev).
+- `<slide-ng-render-when context="visible">`: only while the element is on screen (in a list too, as in Slidev); in print and export every slide counts as on screen.
 
 Not there: `PoweredBySlidev`. `Youtube` is partial.
 

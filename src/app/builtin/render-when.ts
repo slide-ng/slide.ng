@@ -11,7 +11,8 @@ import {
 import { RENDER_CONTEXT } from '../lib/slide-context';
 
 // Shows its content only where the slide is drawn: slide, presenter, print or overview.
-// `main` means slide or presenter; `visible` means while the element is on the screen (it is a block then, to be seen).
+// `main` means slide or presenter; `visible` means while the element is on the screen (it is a block then, to be seen),
+// and always in print (PDF, PNG and PPTX export).
 // Several contexts: one of them must match and, as in Slidev, `visible` (which matches anywhere) must hold too.
 // Content marked `fallback` is shown everywhere else.
 //   <slide-ng-render-when context="slide">only on the real slide<div fallback>thumbnail</div></slide-ng-render-when>
@@ -29,7 +30,8 @@ import { RENDER_CONTEXT } from '../lib/slide-context';
 export class RenderWhen {
   context = input.required<string | string[]>();
   private current = inject(RENDER_CONTEXT);
-  private visible = signal(false);
+  // On paper every slide counts as on screen: the print page's viewport says nothing about a slide further down.
+  private visible = signal(this.current === 'print');
   private wanted = computed(() => [this.context()].flat());
   protected watchesVisibility = computed(() => this.wanted().includes('visible'));
 
@@ -48,7 +50,7 @@ export class RenderWhen {
     const host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
     const destroyRef = inject(DestroyRef);
     afterNextRender(() => {
-      if (!this.watchesVisibility()) return;
+      if (!this.watchesVisibility() || this.current === 'print') return;
       // Without IntersectionObserver there is no way to tell, so the content is shown.
       if (typeof IntersectionObserver === 'undefined') return this.visible.set(true);
       const observer = new IntersectionObserver(([entry]) =>

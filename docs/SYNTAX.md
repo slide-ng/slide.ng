@@ -234,8 +234,10 @@ More props, as in Slidev:
   Slidev's `tag` and `childTag` have no use: the children are the elements written inside, not slots to wrap.
 - `<slide-ng-video printPoster="/still.png" printTimestamp="12">`: where the video does not play (print, export, overview) `printPoster`
   replaces `poster`, and the frame at `printTimestamp` (seconds, or `last`) is shown; without `printPoster` the frame at `printTimestamp` or `timestamp` is shown.
+  `export` (also with `--dist`) serves the deck with byte ranges, so the browser can seek the video to that frame.
 - `<slide-ng-render-when context="visible">` shows its content while the element is on the screen (the element is a block then).
-  In a list, `visible` must hold too and, as in Slidev, counts as a match by itself.
+  In a list, `visible` must hold too and, as in Slidev, counts as a match by itself. In print and export (PDF, PNG, PPTX) every slide
+  counts as on screen, wherever it is on the print page.
 
 The table of contents lists every slide that has a title and is not `hideInToc`. A slide whose level is higher than the one
 before it becomes its child: `# A`, `## A.1`, `## A.2`, `# B` gives A (with A.1, A.2) and B. In `mode="onlyCurrentTree"` only the path to

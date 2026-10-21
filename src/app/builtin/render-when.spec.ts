@@ -52,4 +52,11 @@ describe('RenderWhen', () => {
     report(true);
     expect(overview.shown()).toBe(true);
   });
+  it('visible always holds in print, wherever the slide is on the print page', () => {
+    vi.stubGlobal('IntersectionObserver', FakeObserver);
+    const { fixture, shown } = make('print', 'visible');
+    fixture.detectChanges();
+    report(false);
+    expect(shown()).toBe(true);
+  });
 });

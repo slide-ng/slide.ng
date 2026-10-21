@@ -54,6 +54,11 @@ export async function run({ t, base, browser, problems }) {
       (await page.locator('#only-slide').count()) === 0,
   );
   t.ok(
+    'slide-ng-render-when visible shows its content in print, on a slide far below the viewport',
+    (await page.locator('#print-visible').count()) === 1 &&
+      (await page.locator('#print-visible-fallback').count()) === 0,
+  );
+  t.ok(
     'slide-ng-video printPoster replaces the poster in print',
     ((await page.locator('#pv video').getAttribute('poster')) ?? '').endsWith('UwAOw=='),
     await page.locator('#pv video').getAttribute('poster'),
