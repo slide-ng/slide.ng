@@ -12,20 +12,22 @@ export const RENAMED_ATTRIBUTES = {
   'v-drag': 'slide-ng-drag',
 };
 
-/** Old element name -> new element name. */
+/** Old element name -> new element name (`<v-click>` and `<v-after>` have no element: they are attributes on a <div>). */
 export const RENAMED_ELEMENTS = {
-  'v-click': 'slide-ng-click',
-  'v-after': 'slide-ng-after',
+  'v-click': '<div slide-ng-click>',
+  'v-after': '<div slide-ng-after>',
   'v-clicks': 'slide-ng-clicks',
   'v-click-gap': 'slide-ng-click-gap',
   'v-switch': 'slide-ng-switch',
   'v-drag': 'slide-ng-drag',
   'v-drag-arrow': 'slide-ng-drag-arrow',
   'slide-toc': 'slide-ng-toc',
+  toc: 'slide-ng-toc',
   'slide-current-no': 'slide-ng-current-no',
   'slides-total': 'slide-ng-total',
   'slide-link': 'slide-ng-link',
   'slide-video': 'slide-ng-video',
+  'slidev-video': 'slide-ng-video',
   'light-or-dark': 'slide-ng-light-or-dark',
   'render-when': 'slide-ng-render-when',
   arrow: 'slide-ng-arrow',
@@ -43,11 +45,24 @@ export const RENAMED_ELEMENTS = {
   monaco: 'slide-ng-monaco',
 };
 
+// Slidev's component names (`<VClick>`, `<Toc />`, `<SlidevVideo>`): each old kebab name in PascalCase, and three more
+// (`link` is an HTML element, Slidev writes `KaTex`, and `<TitleRenderer>` had no older name here).
+const pascal = (name) => name.replace(/(^|-)(\w)/g, (_, __, c) => c.toUpperCase());
+export const RENAMED_PASCAL = {
+  ...Object.fromEntries(Object.entries(RENAMED_ELEMENTS).map(([o, n]) => [pascal(o), n])),
+  Link: 'slide-ng-link',
+  KaTexBlockWrapper: 'slide-ng-katex-block-wrapper',
+  TitleRenderer: 'slide-ng-title-renderer',
+};
+
 // <tag attributes>, where the attributes may hold quoted `>` characters.
-const TAG = /<([a-z][\w-]*)((?:"[^"]*"|'[^']*'|[^<>"'])*)>/g;
+const TAG = /<([A-Za-z][\w-]*)((?:"[^"]*"|'[^']*'|[^<>"'])*)>/g;
 const ATTRIBUTE = /\s+([^\s=>"']+)(?:\s*=\s*(?:"[^"]*"|'[^']*'))?/g;
 // `v-click`, `[v-click]`, `v-mark.red.circle` -> the name without binding brackets and modifiers
 const plainName = (attr) => attr.replace(/^\[|\]$/g, '').split('.')[0];
+
+/** The error for old names: slideSources (emit.mjs) collects it from every slide, so one run lists them all. */
+export class RenamedError extends Error {}
 
 /**
  * Throws when the markup uses an old name. `own` lists the selectors of the deck's own components: a theme or deck
@@ -61,8 +76,12 @@ export function assertNoRenamedNames(markup, no, own = []) {
   const found = new Map(); // every old name on the slide, so one run lists them all
   for (const m of markup.matchAll(TAG)) {
     const name = m[1];
-    if (Object.hasOwn(RENAMED_ELEMENTS, name) && !mine.has(name))
-      found.set(name, RENAMED_ELEMENTS[name]);
+    const to = Object.hasOwn(RENAMED_ELEMENTS, name)
+      ? RENAMED_ELEMENTS[name]
+      : Object.hasOwn(RENAMED_PASCAL, name)
+        ? RENAMED_PASCAL[name]
+        : null;
+    if (to && !mine.has(name)) found.set(`<${name}>`, to);
     for (const a of m[2].matchAll(ATTRIBUTE)) {
       const attr = plainName(a[1]);
       if (Object.hasOwn(RENAMED_ATTRIBUTES, attr) && !mine.has(`[${attr}]`))
@@ -70,7 +89,13 @@ export function assertNoRenamedNames(markup, no, own = []) {
     }
   }
   if (found.size)
-    throw new Error(
-      `slide ${no}: ${[...found].map(([o, n]) => `"${o}" was renamed to ${n}`).join(', ')} (see docs/RENAMES.md)`,
+    throw new RenamedError(
+      `slide ${no}: ${[...found]
+        .map(([o, n]) =>
+          n.startsWith('<')
+            ? `"${o}" has no element of its own: use ${n}`
+            : `"${o}" was renamed to ${n}`,
+        )
+        .join(', ')} (see docs/RENAMES.md)`,
     );
 }

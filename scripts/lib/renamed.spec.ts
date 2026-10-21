@@ -1,5 +1,10 @@
-import { RENAMED_ATTRIBUTES, RENAMED_ELEMENTS, assertNoRenamedNames } from './renamed.mjs';
-import { slideSource } from './emit.mjs';
+import {
+  RENAMED_ATTRIBUTES,
+  RENAMED_ELEMENTS,
+  RENAMED_PASCAL,
+  assertNoRenamedNames,
+} from './renamed.mjs';
+import { slideSource, slideSources } from './emit.mjs';
 import { initHighlighter } from './code/highlighter.mjs';
 
 beforeAll(() => initHighlighter({ langs: ['ts', 'html'] }));
@@ -22,7 +27,32 @@ describe('assertNoRenamedNames', () => {
 
   it('names the new element for an old one', () => {
     for (const [oldName, newName] of Object.entries(RENAMED_ELEMENTS))
-      expect(check(`<${oldName} a="1"></${oldName}>`)).toThrow(`renamed to ${newName}`);
+      expect(check(`<${oldName} a="1"></${oldName}>`)).toThrow(newName);
+  });
+
+  it('says that <v-click> and <v-after> are attributes on a <div>', () => {
+    expect(check('<v-click>a</v-click>')).toThrow(
+      '"<v-click>" has no element of its own: use <div slide-ng-click>',
+    );
+    expect(check('<VAfter>a</VAfter>')).toThrow('use <div slide-ng-after>');
+  });
+
+  it("catches Slidev's PascalCase component names and <slidev-video>", () => {
+    for (const [oldName, newName] of Object.entries(RENAMED_PASCAL))
+      expect(check(`<${oldName} a="1"></${oldName}>`)).toThrow(newName);
+    expect(check('<Toc />')).toThrow('"<Toc>" was renamed to slide-ng-toc');
+    expect(check('<SlidevVideo slide-ng-click controls></SlidevVideo>')).toThrow(
+      'renamed to slide-ng-video',
+    );
+    expect(check('<slidev-video controls></slidev-video>')).toThrow('renamed to slide-ng-video');
+    expect(check('<Link to="2">two</Link>')).toThrow('renamed to slide-ng-link');
+    expect(check('<link rel="stylesheet" href="a.css">')).not.toThrow();
+  });
+
+  it('lists the attribute and the element of the same old name', () => {
+    expect(check('<v-click v-click>a</v-click>')).toThrow(
+      /"<v-click>" has no element.*"v-click" was renamed to slide-ng-click/,
+    );
   });
 
   it('says which slide it found the old name in', () => {
@@ -54,8 +84,12 @@ describe('assertNoRenamedNames', () => {
   });
 
   it('has a new name for every old one', () => {
-    for (const to of [...Object.values(RENAMED_ATTRIBUTES), ...Object.values(RENAMED_ELEMENTS)])
-      expect(to.startsWith('slide-ng-')).toBe(true);
+    for (const to of [
+      ...Object.values(RENAMED_ATTRIBUTES),
+      ...Object.values(RENAMED_ELEMENTS),
+      ...Object.values(RENAMED_PASCAL),
+    ])
+      expect(to).toMatch(/^(<div )?slide-ng-/);
   });
 });
 
@@ -70,5 +104,15 @@ describe('slideSource with an old name', () => {
     expect(() =>
       slideSource(md('```html\n<v-click>x</v-click>\n```\n\n`<slide-toc />`'), 2),
     ).not.toThrow();
+  });
+});
+
+describe('slideSources with old names', () => {
+  const md = (content: string) => ({ title: null, frontmatter: {}, content, note: undefined });
+  it('lists the old names of every slide in one error', () => {
+    const slides = [md('<Toc />'), md('fine'), md('<li v-click>a</li>')];
+    expect(() => slideSources({ slides })).toThrow(
+      /slide 1: "<Toc>" was renamed to slide-ng-toc.*\n.*slide 3: "v-click" was renamed/,
+    );
   });
 });

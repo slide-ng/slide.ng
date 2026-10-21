@@ -32,6 +32,8 @@ import { SlideNgClick } from '../lib/slide-ng-click';
     </video>
   `,
   host: { style: 'display: inline-block' },
+  // A class or size on the element (Slidev's `<SlidevVideo class="h-60">`) sizes the video: it fits inside, keeping its shape.
+  styles: 'video { display: block; max-width: 100%; max-height: 100%; margin: auto }',
 })
 export class SlideVideo {
   autoplay = input<boolean | 'once', unknown>(false, {

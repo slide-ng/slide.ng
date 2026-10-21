@@ -230,7 +230,7 @@ const plain = 'no twoslash here'
   <source src="/missing.webm" type="video/webm" />
 </slide-ng-video>
 
-<slide-ng-video id="vid-once" slide-ng-click autoplay="once"></slide-ng-video>
+<slide-ng-video id="vid-once" slide-ng-click autoplay="once" class="h-20"></slide-ng-video>
 
 <slide-ng-tweet id="20" scale="0.5" />
 

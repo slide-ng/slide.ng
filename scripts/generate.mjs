@@ -17,7 +17,7 @@ import { RootNotFoundError } from './lib/roots.mjs';
 import { copyLocalAssets } from './lib/local-assets.mjs';
 import { checkToolDir } from './lib/tool-dir.mjs';
 import { ROOT_FOLDERS } from './lib/roots.mjs';
-import { slideName, slideSource } from './lib/emit.mjs';
+import { slideName, slideSources, sourcePathsModule } from './lib/emit.mjs';
 import { indexSource } from './lib/index-source.mjs';
 import { layoutName } from './lib/layouts.mjs';
 import { makeCss, tsFiles } from './lib/make-css.mjs';
@@ -181,6 +181,7 @@ async function generate() {
         'roots.json',
         'problem.ts',
         'ui-text.ts',
+        'source-paths.ts',
         'public',
       ),
   );
@@ -189,7 +190,18 @@ async function generate() {
   deck.localAssets = new Set();
   // `@apply` and `--uno:` in the slides' <style> blocks (lib/uno-directives.mjs).
   deck.cssDirectives = await slideStyleDirectives(deck.slides, uno);
-  deck.slides.forEach((s, i) => write(`${OUT}${slideName(i + 1)}.ts`, slideSource(s, i + 1, deck)));
+  const sources = slideSources(deck);
+  sources.forEach((source, i) => write(`${OUT}${slideName(i + 1)}.ts`, source));
+  // The dev server's error overlay in the page names the generated copies; dev/error-overlay-paths.ts names the author's files
+  // instead. Only for the dev server (`--watch`): the folders of this computer have no place in a build.
+  const dev = process.argv.includes('--watch');
+  write(
+    `${OUT}source-paths.ts`,
+    sourcePathsModule(
+      dev ? Object.fromEntries(deck.roots.map((r) => [r.id, r.dir])) : {},
+      dev ? sources.map((s) => /^\/\/ GENERATED from (\S+)/.exec(s)?.[1] ?? '') : [],
+    ),
+  );
   copyLocalAssets(deck.root, deck.localAssets, `${OUT}local-assets`);
   writeMonacoTargets(deck.root);
   write(`${OUT}index.ts`, indexSource(deck));

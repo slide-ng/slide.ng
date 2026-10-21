@@ -6,7 +6,11 @@ Every built-in element and attribute that you write in `slides.md` starts with t
 
 **What keeps its name.** Layout names (`cover`, `two-cols`, ...), headmatter and frontmatter keys, CSS classes (`slidev-*`, utility classes), `$clicks`-style variables, the markdown blocks `::code-group` and `::right::`, code fence options, and children attributes such as `at`, `dark`, `light`, `fallback`. The generator's own attributes (`drag-site`, `mark-mods`) and the app's internal `app-*` and `sn-*` components are not written by authors and are unchanged.
 
-**No aliases.** The old names do not work. A slide that still uses one stops the generator with a message such as `slide 3: "v-click" was renamed to slide-ng-click`. The check is in `scripts/lib/renamed.mjs`. It ignores code samples, and it leaves a name alone when a component of the deck or a theme declares it as its own selector.
+**No aliases.** The old names do not work. A slide that still uses one stops the generator with a message such as `slide 3: "v-click" was renamed to slide-ng-click` or `slide 4: "<Toc>" was renamed to slide-ng-toc`; the old names of every slide are listed in one run. The check is in `scripts/lib/renamed.mjs`. It ignores code samples, and it leaves a name alone when a component of the deck or a theme declares it as its own selector.
+
+Slidev's component names are caught too: the PascalCase form of every element below (`<VClicks>`, `<Toc />`, `<Youtube>`, `<RenderWhen>`, `<LightOrDark>`, `<Arrow>`, `<SlideCurrentNo>`, ...), and `<Link>`, `<SlidevVideo>` (also `<slidev-video>`), `<TitleRenderer>` and `<KaTexBlockWrapper>`.
+
+`<v-click>` and `<v-after>` (Slidev's `<VClick>`, `<VAfter>`) have no element here: wrap the content in `<div slide-ng-click>` or `<div slide-ng-after>`. The message says so.
 
 ## Attributes
 
@@ -23,16 +27,17 @@ Every built-in element and attribute that you write in `slides.md` starts with t
 
 | old                                     | new                                            |
 | --------------------------------------- | ---------------------------------------------- |
+| `<v-click>`, `<v-after>`                | `<div slide-ng-click>`, `<div slide-ng-after>` |
 | `<v-clicks>`                            | `<slide-ng-clicks>`                            |
 | `<v-click-gap>`                         | `<slide-ng-click-gap>`                         |
 | `<v-switch>` (children with `at="..."`) | `<slide-ng-switch>` (children with `at="..."`) |
 | `<v-drag>`                              | `<slide-ng-drag>`                              |
 | `<v-drag-arrow>`                        | `<slide-ng-drag-arrow>`                        |
-| `<slide-toc>`                           | `<slide-ng-toc>`                               |
+| `<slide-toc>`, `<toc>`                  | `<slide-ng-toc>`                               |
 | `<slide-current-no>`                    | `<slide-ng-current-no>`                        |
 | `<slides-total>`                        | `<slide-ng-total>`                             |
 | `<slide-link>`                          | `<slide-ng-link>`                              |
-| `<slide-video>`                         | `<slide-ng-video>`                             |
+| `<slide-video>`, `<slidev-video>`       | `<slide-ng-video>`                             |
 | `<light-or-dark>`                       | `<slide-ng-light-or-dark>`                     |
 | `<render-when>`                         | `<slide-ng-render-when>`                       |
 | `<arrow>`                               | `<slide-ng-arrow>`                             |
@@ -57,4 +62,4 @@ The runtime classes and files follow: `VClick` is `SlideNgClick` (`src/app/lib/s
 
 ## Slidev
 
-Slidev writes `v-click`, `<v-clicks>`, `v-mark`, `v-drag` and so on. A Slidev deck needs these names changed by hand (search for `v-click`, `v-after`, `v-mark`, `v-motion`, `v-drag`, `<v-`) and the tags of the second table; the props and modifiers stay the same.
+Slidev writes `v-click`, `<v-clicks>`, `v-mark`, `v-drag` and so on, and its components in PascalCase (`<Toc />`, `<SlidevVideo>`). A Slidev deck needs these names changed by hand (search for `v-click`, `v-after`, `v-mark`, `v-motion`, `v-drag`, `<v-` and the components) and the tags of the second table; the props and modifiers stay the same. The generator lists every old name it finds, slide by slide.

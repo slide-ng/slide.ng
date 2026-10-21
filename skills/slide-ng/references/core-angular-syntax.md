@@ -64,6 +64,6 @@ The markdown is converted first, then Angular compiles the result. Follow these 
 
 ## Tags
 
-Component tags are lower-case with dashes: `<slide-ng-toc />`, `<slide-ng-auto-fit-text>`. `<Toc />` and `<Arrow />` are build errors (NG8001, not a known element). An unknown tag with a dash is also a build error; an unknown attribute is silently ignored.
+Component tags are lower-case with dashes: `<slide-ng-toc />`, `<slide-ng-auto-fit-text>`. Slidev's `<Toc />`, `<Arrow />`, `<VClicks>`, `<SlidevVideo>` and the other PascalCase names stop the generator with the new name (`"<Toc>" was renamed to slide-ng-toc`). An unknown tag with a dash is also a build error; an unknown attribute is silently ignored.
 
 `$clicks()`, `$page()`, `$nav`, `$frontmatter` and `$slidev` work in slide markup (signals are called); a component injects the same things, see `core-injection.md`.

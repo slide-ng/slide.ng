@@ -41,6 +41,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - `/overview` lists every slide with a clicks slider and its notes; in dev a double click or Enter edits a note (Escape cancels); on a phone the notes go below each slide. `/notes-edit` (dev) has all notes in one text after `--- #N` lines and saves the changed ones as you type. `/entry` links to the pages. The quick overview links to `/overview`. A `-->` in a note is written `-- >`, as in the presenter's note editor. `/notes-edit` keeps the keys typed while a save reloads the page. Each line of a note editor takes the direction of its first letter. `routeAlias` refuses `overview`, `entry` and `notes-edit`, which are pages of the app now.
 - UnoCSS as in Slidev: attributify (`<div flex="~ col" text="sm red-500">`, `hover:bg="..."`; not on slide.ng's components and layouts (`scale: 0.8` of `iframe-right` scales the frame only) or on the declared inputs of the deck's own components, whose attributes are inputs, nor on SVG elements such as `<text font-size="14">`), variant groups (`hover:(a b)`, also as a bare attribute `<div hover:(a b)>`; in a slide's markup, not in `.ts` files), the typography preset (`prose`), and `@apply`, `--uno:`, `@screen` and `theme()` in a slide's `<style>` and in `styles/`. In a slide's `<style>`, `@apply dark:...` (also `forward:`, `backward:`) applies inside the slide, and `group-`/`peer-` variants look for the group or peer inside the slide. Variant groups in code blocks and inline code are shown as written.
 - A click preview on the presenter page (the eye button in the bar, or `u`): the current slide shows what later clicks show, greyed out, with the next click highlighted and a badge with the click number on each part; clicking one goes to that click in every window. The audience page is unchanged, the choice is remembered, and themes can change the colours with `--slide-ng-ghost-*` variables (the next click follows the theme's primary colour). Content shown by `@if (clicks.current() > n)` is not previewed. A ghost keeps its opacity with any click animation preset; a fractional click's badge is the whole click it shows at. Ghosts are drawn at 0.47 opacity (0.4 in dark mode), about 3:1, and screen readers skip them; each badge is a "Go to click N" button.
+- Warnings, with the slide and line, for click values written as text that cannot work (`slide-ng-click="abc"`, `"0"`, a range as text, `[slide-ng-click]="[2]"`, a range whose end is not after its start, a `<slide-ng-switch>` child with `at="x"`), and for `clicks` / `clicksStart` that are not numbers or are negative.
 
 ### Changed
 
@@ -57,11 +58,19 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - `wakeLock` takes `true`, `false`, `dev` or `build` and is on by default, as in Slidev (it was off unless `wakeLock: true`); a choice already stored in the browser (`slidev-wake-lock`, also the `false` written by earlier versions on first use) is kept, so turn it on once in the settings menu. Off for the current mode, the settings menu has no wake lock entry.
 - `{monaco-run}` code runs in strict mode (`"use strict"`), as in Slidev.
 - The speaker notes now get the typography preset's `prose` styles they always asked for (Slidev's look): body colour and spacing.
+- The old-names check also catches Slidev's PascalCase components (`<Toc />`, `<VClicks>`, `<SlidevVideo>`, `<Youtube>`, `<RenderWhen>`, `<LightOrDark>`, `<Link>`, ...) and `<slidev-video>`, lists the old names of every slide in one run, and tells `<v-click>` / `<v-after>` to become `<div slide-ng-click>` / `<div slide-ng-after>`.
 
 ### Fixed
 
 - `<slide-ng-youtube id="luoMHjh-XcQ?start=1234" />` starts at the given time, as in Slidev, instead of failing to find the video. YouTube's embed options in the id (`start`, `end`, `list`, `loop`, ...) are kept and others dropped; `start` and `list` can also be attributes. A start time (`start`, or `t` of a shared link) may be written YouTube's way (`1m30s`); one that is not a time is dropped with a warning.
 - `slide-ng dev --remote` with `routerMode: hash`: the printed addresses and the `c` QR code are `/#/?password=...` and `/#/presenter/1?password=...`, and the page logs in with them. The page also reads `?password=` before the router's first redirect, which dropped it, so an address with the password no longer asks for it again.
+- A class or size on `<slide-ng-video>` (`class="h-60"`) sizes the video, on screen and in print, instead of only its box.
+- A `{monaco-run}` output with `showOutputAt: '+1'` takes its click in document order, before a `slide-ng-click` that follows it.
+- A negative `clicksStart` counts as 0, so the presenter and the export no longer get steps that change nothing.
+- `dev` no longer prints a red `ws proxy error: ECONNRESET` each time a tab is closed or reloaded.
+- The dev server's error overlay in the page names the deck's or theme's own file instead of its copy in `src/slides/generated/roots/`, and the markdown line of a generated slide.
+- White SVG `<text>` is drawn again in the presenter's next-slide pane and other small previews (Chromium skipped it after the preview's scale changed).
+- A component file that declares a helper component before its exported one gives each selector its own class (it used to pair the helper's selector with the exported class, and the build failed with NG8001).
 
 ## [1.0.0] - 2026-10-18
 

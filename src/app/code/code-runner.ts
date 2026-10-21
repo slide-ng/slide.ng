@@ -84,13 +84,18 @@ export class CodeRunner implements OnInit, OnDestroy {
     });
   }
 
+  // The runner is inside the editor's component, so it registers after the slide's later clicks: tracking it lets the
+  // clicks be numbered in document order (a `+1` output before a `slide-ng-click` comes first, as in Slidev).
   ngOnInit() {
     const at = this.showOutputAt();
-    if (at != null) {
+    if (at == null) return;
+    const place = () => {
       const info = this.clicks.calculate(at);
       this.info.set(info);
       this.clicks.register(this, info, { el: this.el });
-    }
+    };
+    place();
+    this.clicks.track(this, this.el, place);
   }
 
   ngOnDestroy() {

@@ -18,6 +18,13 @@ body {
   font-family: ui-sans-serif, system-ui, sans-serif;
 }
 
+/* Chromium may not draw an SVG's <text> again after the scale of a small preview changes (white labels on a bar went
+   missing in the presenter's next pane). Drawing the glyphs as geometry makes it repaint them. */
+app-next-preview svg text,
+app-thumbnail svg text {
+  text-rendering: geometricPrecision;
+}
+
 /* The stage fills the window; the canvas is centred and scaled by the deck (see lib/canvas.ts). */
 .stage {
   position: fixed;

@@ -11,8 +11,10 @@ import { ROUTES, provideRouter, withHashLocation } from '@angular/router';
 import { HEADMATTER } from '../slides/generated';
 import { SETUP_PROVIDERS } from '../slides/generated/setup';
 import { LOCALE, UI_DIR, UI_TRANSLATIONS } from '../slides/generated/ui-text';
+import { ROOT_DIRS, SLIDE_SOURCES } from '../slides/generated/source-paths';
 import { routes } from './app.routes';
 import { DevApi } from './dev/dev-api';
+import { watchErrorOverlay } from './dev/error-overlay-paths';
 import { MemoryLocationStrategy } from './lib/memory-location';
 import { presenterEnabled } from './lib/switches';
 import { ROUTES_SETUP, applyRoutesSetups } from './setup';
@@ -52,6 +54,8 @@ export const appConfig: ApplicationConfig = {
     // While developing, the companion server (scripts/dev) also carries sync between devices and writes slides.md.
     ...(isDevMode()
       ? [
+          // The dev server's error overlay names the author's files, not the generated copies.
+          provideEnvironmentInitializer(() => watchErrorOverlay(ROOT_DIRS, SLIDE_SOURCES)),
           {
             provide: SYNC_TRANSPORTS,
             multi: true,
