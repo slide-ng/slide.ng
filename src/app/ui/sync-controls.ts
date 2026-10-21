@@ -101,7 +101,13 @@ export class SyncControls {
   }
 
   // The arrow keys inside the menu move between the modes (as in a radio group) instead of through the slides.
+  // Escape closes it (as everywhere) and the focus goes back to the button, not to the page.
   protected menuKey(e: KeyboardEvent) {
+    if (e.key === 'Escape') {
+      this.open.set(false);
+      this.el.querySelector<HTMLElement>('#nav-sync')?.focus();
+      return;
+    }
     const by = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
     if (!by) return;
     e.preventDefault();

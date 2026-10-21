@@ -122,6 +122,10 @@ export async function run({ t, open, press, hud, windowGroup }) {
     (await checked(viewer)) === 'bidirectional' && (await hud(viewer)) === before,
   );
   await press(viewer, 'Escape', 300);
-  t.ok('Escape closes the sync menu', (await viewer.locator('#sync-menu').count()) === 0);
+  t.ok(
+    'Escape closes the sync menu and gives the focus back to its button',
+    (await viewer.locator('#sync-menu').count()) === 0 &&
+      (await viewer.evaluate(() => document.activeElement?.id)) === 'nav-sync',
+  );
   await group.close();
 }
