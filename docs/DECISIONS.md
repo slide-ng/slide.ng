@@ -491,5 +491,5 @@ Source: an independent review of the repository (nine findings). Each fix has a 
    server and transport, so nothing is kept between requests and a restart loses nothing; GET (a server stream) and DELETE (end a
    session) answer 405. It does not need the session token: a program cannot fetch it, and the token is there against other web pages,
    which the Origin check already stops (a browser sends Origin on every POST). With `--remote` a program sends the password as a bearer
-   token, counted by the same limit on wrong passwords as the login. `goto_slide` sends two `shared` messages, one as a viewer (presenters
+   token, counted by the same limit on wrong passwords as the login; spaces at the password's start or end are left out of the compare, as HTTP cannot carry them in a header. `goto_slide` sends two `shared` messages, one as a viewer (presenters
    follow) and one as a presenter (viewers follow), because a window ignores moves made by its own kind.

@@ -88,7 +88,7 @@ and sets `theme: ./theme`, so it can be edited. See [THEMES.md](THEMES.md).
 
 `slide-ng dev` serves the same tools over HTTP at `/__mcp` (the streamable HTTP transport, stateless, POST only), plus `get_info` (entry, title,
 slide count, files, the dev address, the current slide) and `goto_slide` (moves every open window). It has the dev server's rules: the Host and
-Origin checks, and with `--remote` the password, sent as `Authorization: Bearer <password>` with any spaces as they are (wrong ones are limited like the login).
+Origin checks, and with `--remote` the password, sent as `Authorization: Bearer <password>` with the spaces inside it as they are; spaces at its start or end are ignored, since HTTP drops them (wrong ones are limited like the login).
 `mcp: false` in the headmatter turns it off. A client configuration:
 
 ```json

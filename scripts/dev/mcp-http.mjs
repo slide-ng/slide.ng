@@ -23,8 +23,10 @@ export function mcpDenied(req, ctx) {
   const client = clientAddress(req);
   if (ctx.loginGuard.wait(client) > 0)
     return { status: 429, error: 'too many wrong passwords, try again later' };
-  const bearer = /^Bearer\s+(.+)$/i.exec(String(req.headers.authorization ?? ''))?.[1];
-  if (bearer && safeEqual(bearer, ctx.password)) {
+  // HTTP drops the spaces around a header value (and `\s+` those after "Bearer"), so the spaces around the password
+  // never arrive: compare with the password without them. Spaces inside it count.
+  const bearer = /^Bearer\s+(.+)$/i.exec(String(req.headers.authorization ?? '').trim())?.[1];
+  if (bearer && safeEqual(bearer, ctx.password.trim())) {
     ctx.loginGuard.ok(client);
     return null;
   }

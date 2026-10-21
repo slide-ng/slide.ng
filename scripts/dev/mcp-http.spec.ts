@@ -181,6 +181,13 @@ describe('MCP over HTTP on the dev server', () => {
     expect((await post(port, { authorization: 'Bearer my' })).status).toBe(401);
   });
 
+  it('ignores the spaces around the password, which HTTP cannot carry', async () => {
+    const { port } = await start({ SLIDE_NG_REMOTE: '1', SLIDE_NG_PASSWORD: '  my talk pw ' });
+    expect((await post(port, { authorization: 'Bearer   my talk pw ' })).status).toBe(200);
+    expect((await post(port, { authorization: 'Bearer my talk pw' })).status).toBe(200);
+    expect((await post(port, { authorization: 'Bearer my  talk pw' })).status).toBe(401);
+  });
+
   it('is off with mcp: false in the headmatter', async () => {
     const { port } = await start({}, '---\nmcp: false\n---\n\n# One\n');
     expect((await post(port, {})).status).toBe(404);
