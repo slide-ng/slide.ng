@@ -154,10 +154,11 @@ Nothing else was added: footnotes, alerts, the PlantUML encoding and the code ru
     first load", 1).
 18. **`tsconfig.app.json` lists only `src/main.ts`** (no `include`), so only files the deck imports are compiled. Without this the builder
     found the `new Worker(...)` calls in every file and put 7 MB of workers into every build, also decks without an editor.
-19. **Monaco's CSS goes through `features.css` (by path, with its icon font inside) when the deck has an editor.** The CSS that Monaco's JavaScript
-    imports is written next to the output as unused `.css` files (about 190 kB each, not linked). Mapping `.css` to `empty` in `angular.json`
-    removed them but broke the unit tests, so they stay. Editors use Monaco's own `vs` / `vs-dark` themes following the colour mode, not the Shiki
-    themes (that would need `@shikijs/monaco`, one more dependency).
+19. **Monaco's CSS comes with the lazy Monaco chunk** ("Made while measuring the first load", 1); it no longer goes through `features.css`.
+    The production configuration maps `.css` to `empty` in `angular.json`, so the unused `.css` files that Monaco's JavaScript imports are no
+    longer written next to the output. The loader is set only for production, as setting it for every build broke the unit tests. Editors use
+    Monaco's own `vs` / `vs-dark` themes following the colour mode, not the Shiki themes (that would need `@shikijs/monaco`, one more
+    dependency).
 20. **`{monaco-run}` runs code in a sandboxed `<iframe srcdoc sandbox="allow-scripts">`** (no `allow-same-origin`): it cannot reach the slides,
     their storage or cookies; it posts back what `console.log` printed. A run is cut off after 5 seconds. TypeScript is turned into JavaScript by
     Monaco's own TypeScript worker, so the 9 MB `typescript` package is not added a second time. Not supported: `import` in the code (Slidev maps a few
