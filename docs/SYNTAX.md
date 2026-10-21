@@ -629,6 +629,9 @@ Open `/presenter` (or press the presenter button) for the presenter page: curren
 The audience page (`/3`) in another window or on another device follows it; `/notes` shows only the notes and follows too.
 In notes, `[click]` marks where the next click starts and `[click:3]` moves three clicks on (counted from the marker before it, as in Slidev); double click a marker to jump there. The layout button cycles three arrangements.
 Windows of one browser follow each other with no server; other devices need the dev server (see Remote below).
+Use one presenter page. Two presenter pages do not follow each other: each keeps its own slide, and the audience follows the one that moved last
+(a window that opens later or a presenter page that reloads does not change that). To use a phone as the remote, open the presenter page on the
+phone and only the audience page on the laptop that drives the projector; an audience page on another device only follows.
 
 ```md
 ---
@@ -636,6 +639,10 @@ duration: 30min # 30min, 1h30min, 90s, or a number of minutes
 timer: countdown # or stopwatch (default)
 ---
 ```
+
+The timer is shared: every window and device shows the same time passed, also when their clocks are not set alike (each message carries the
+sender's clock). A reload of the presenter tab keeps it. A presenter tab opened again gets it from any other open window of the deck, and while
+the dev server runs from the server too; in a built deck with no other window left open it starts again.
 
 The presenter's mouse is shown on the audience page as a pointer or a red laser dot (settings menu, or the bar button).
 

@@ -4,7 +4,7 @@ export type TimerStatus = 'stopped' | 'running' | 'paused';
 
 export interface TimerState {
   status: TimerStatus;
-  startedAt: number; // ms since 1970; while paused, moved so that `now - startedAt` is the time passed
+  startedAt: number; // ms since 1970 by this device's clock; while paused, moved so that `now - startedAt` is the time passed
   pausedAt: number;
 }
 
@@ -42,8 +42,10 @@ const obj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' 
 /**
  * Messages come from other windows or devices, so only keys we know and values of the right
  * type get through. Anything else is dropped; a bad message can never put junk in the state.
+ * A timer comes with the sender's clock (`sentAt`, see SyncState.patchShared): its times are moved onto ours (`now`), so
+ * devices whose clocks differ show the same time passed.
  */
-export function cleanShared(data: unknown): Partial<SharedState> {
+export function cleanShared(data: unknown, now = Date.now()): Partial<SharedState> {
   const out: Partial<SharedState> = {};
   if (!obj(data)) return out;
   if (count(data['page'])) out.page = data['page'];
@@ -56,10 +58,12 @@ export function cleanShared(data: unknown): Partial<SharedState> {
     num(t['startedAt']) &&
     num(t['pausedAt'])
   ) {
+    const offset = num(t['sentAt']) ? now - t['sentAt'] : 0;
+    const shift = (at: number) => (at ? at + offset : 0); // 0 = not started, not paused
     out.timer = {
       status: t['status'] as TimerStatus,
-      startedAt: t['startedAt'],
-      pausedAt: t['pausedAt'],
+      startedAt: shift(t['startedAt']),
+      pausedAt: shift(t['pausedAt']),
     };
   }
   const c = data['cursor'];

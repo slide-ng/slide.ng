@@ -67,6 +67,30 @@ describe('SyncState', () => {
     expect(transport.sent).toEqual([['hello', {}]]);
   });
 
+  it("a timer goes out with this device's clock", () => {
+    const { transport, sync } = setup();
+    const timer = { status: 'running' as const, startedAt: Date.now() - 5000, pausedAt: 0 };
+    sync.patchShared({ timer });
+    expect(sync.shared().timer).toEqual(timer);
+    const sent = transport.sent[0][1] as { timer: { sentAt: number } };
+    expect(sent.timer).toEqual({ ...timer, sentAt: expect.any(Number) });
+    expect(Math.abs(sent.timer.sentAt - Date.now())).toBeLessThan(1000);
+  });
+
+  it('every window answers a hello with a running or paused timer, not with a stopped one', () => {
+    const { transport, sync } = setup();
+    transport.deliver('hello', {});
+    expect(transport.sent).toEqual([]);
+    transport.deliver('shared', {
+      timer: { status: 'running', startedAt: Date.now() - 60_000, pausedAt: 0 },
+    });
+    expect(sync.shared().timer.status).toBe('running');
+    transport.deliver('hello', {});
+    expect(transport.sent.map(([channel, data]) => [channel, Object.keys(data as object)])).toEqual(
+      [['shared', ['timer']]],
+    );
+  });
+
   it('a handler that was removed hears nothing more', () => {
     const { transport, sync } = setup();
     let hello = 0;

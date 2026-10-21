@@ -45,6 +45,27 @@ describe('cleanShared', () => {
     ).toBeUndefined();
   });
 
+  it("moves a timer from the sender's clock onto ours", () => {
+    // The sender's clock is an hour ahead; the timer has run for a minute there and was paused 10 s ago.
+    const hour = 3_600_000;
+    const timer = {
+      status: 'paused',
+      startedAt: 1e9 + hour - 70_000,
+      pausedAt: 1e9 + hour - 10_000,
+    };
+    expect(cleanShared({ timer: { ...timer, sentAt: 1e9 + hour } }, 1e9).timer).toEqual({
+      status: 'paused',
+      startedAt: 1e9 - 70_000,
+      pausedAt: 1e9 - 10_000,
+    });
+    // Not started and not paused stay 0; without the sender's clock the times are taken as they are.
+    expect(
+      cleanShared({ timer: { status: 'stopped', startedAt: 0, pausedAt: 0, sentAt: 5 } }, 1e9)
+        .timer,
+    ).toEqual({ status: 'stopped', startedAt: 0, pausedAt: 0 });
+    expect(cleanShared({ timer }, 1e9).timer?.startedAt).toBe(timer.startedAt);
+  });
+
   it('cuts a very long id', () => {
     expect(
       cleanShared({ lastUpdate: { id: 'x'.repeat(500), type: 'viewer', time: 1 } }).lastUpdate?.id

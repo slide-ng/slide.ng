@@ -3,6 +3,7 @@
 // (like Slidev); a viewer on another machine only follows.
 import { DestroyRef, computed, effect, inject, untracked } from '@angular/core';
 import { Nav } from '../lib/nav';
+import { SharedState } from './shared-state';
 import { SyncState } from './sync-state';
 
 // Slidev's TRUST_ORIGINS: only these hosts may send navigation as a viewer.
@@ -21,15 +22,21 @@ export function startNavSync(nav: Nav) {
   let applied = ''; // "page:clicks" of the last move that came from outside: it is not sent back
   let appliedFrom = ''; // the window that made it
   let first = true;
+  let lastMove: SharedState['lastUpdate'] = null; // our last move as it was sent
+  let followed = 0; // the time of the newest move we followed
 
-  const send = (via?: string) => {
+  // `again`: the answer to a window that just opened. It is our last move once more, with that move's time: a fresh time
+  // would make it the newest move, and with two presenter windows the audience would jump to the one that answered last.
+  const send = (via?: string, again = false) => {
     const d = sync.directions();
     if (!(nav.isPresenter ? d.presenterSend : d.viewerSend) || !mayShare) return;
+    if (again && !lastMove) return; // nothing sent yet: our first position goes out when the slide is there
+    if (!again) lastMove = { id: sync.id, type, time: Date.now(), ...(via ? { via } : {}) };
     sync.patchShared({
       page: nav.no(),
       clicks: nav.clicks(),
       clicksTotal: nav.clicksTotal(),
-      lastUpdate: { id: sync.id, type, time: Date.now(), ...(via ? { via } : {}) },
+      lastUpdate: lastMove,
     });
   };
 
@@ -69,6 +76,9 @@ export function startNavSync(nav: Nav) {
       // Our own move: passed on by the presenter, or made by this window while it was the presenter page (the state stays
       // when the window moves from /presenter/3 to /1).
       if (s.lastUpdate.via === sync.id || s.lastUpdate.id === sync.id) return;
+      // An older move than the one we follow: another presenter window answering a late window's hello.
+      if (s.lastUpdate.time < followed) return;
+      followed = s.lastUpdate.time;
       const page = Math.min(s.page, nav.total);
       if (page === nav.no() && s.clicks === nav.clicks()) return;
       applied = `${page}:${s.clicks}`;
@@ -77,8 +87,8 @@ export function startNavSync(nav: Nav) {
     });
   });
 
-  // A window that opens later asks where we are; presenters answer (the timer answers too, see presenter/timer.ts). A
-  // second presenter asks as well: it ignores the other presenter's position, but takes its running timer.
-  if (nav.isPresenter) inject(DestroyRef).onDestroy(sync.onHello(send));
+  // A window that opens later asks where we are; presenters answer (every window answers with the timer, see
+  // sync-state.ts). A second presenter asks as well: it ignores the other presenter's position, but takes the timer.
+  if (nav.isPresenter) inject(DestroyRef).onDestroy(sync.onHello(() => send(undefined, true)));
   sync.sendHello();
 }

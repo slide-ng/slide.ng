@@ -9,6 +9,12 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - `<slide-ng-title-renderer />` draws a slide's title as HTML, with its inline markdown and `$math$` (Slidev's `<TitleRenderer>`); `no="N"` picks another slide. The table of contents shows the same HTML. Raw HTML in a title is shown as text.
 - `notesAutoRuby: { word: reading }` in the headmatter shows a reading above each listed word in the speaker notes, with `<ruby>` (Slidev's `notesAutoRuby`). Code, tag attributes and existing `<ruby>` are left alone.
 
+### Fixed
+
+- With two presenter windows, a window that opens later or a presenter page that reloads no longer moves the audience to the other presenter's slide: the audience stays with the newest move.
+- A presenter tab that was closed and opened again gets the running timer back from any other window of the deck, or from the dev server.
+- The timer shows the same time on devices whose clocks differ: it is shared with the sender's clock and moved onto the receiver's.
+
 ## [1.0.0] - 2026-10-18
 
 ### Added
