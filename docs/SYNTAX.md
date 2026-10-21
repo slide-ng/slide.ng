@@ -346,7 +346,9 @@ A[Text] --> B{Decision}
 
 `theme` defaults to `dark` or `default` following the colour mode. Any other key is passed to Mermaid's own `initialize`. While a diagram is being drawn its
 element has `data-slide-ng-waitfor`; the attribute goes away when the picture is there (an exporter can wait for that).
-`<slide-ng-mermaid code="..." />` works as a tag too.
+`<slide-ng-mermaid code="..." />` works as a tag too. Mermaid is downloaded with the first diagram. Mermaid 12 lays flowcharts out with
+ELK by default, another 350 kB compressed for the first `graph`/`flowchart`; `{layout:'dagre'}` on the fence (or `layout: 'dagre'` in
+`setup/mermaid.ts`) uses the smaller dagre layout.
 
 PlantUML is a picture from a PlantUML server (the browser needs the network):
 
@@ -387,6 +389,8 @@ console.log('runs on a click and the result appears');
   Only text-like files inside the deck's folder can be written: an extension from a fixed list (`.ts .js .json .css .html .md .txt .yaml .py` and similar, see `scripts/lib/monaco-targets.mjs`), never `setup/`, `layouts/`, `components/`, `theme/`, `.git/`, `node_modules/`, `package.json`, lock files, config files, hidden files or `.slide-ng/`. The generator warns and shows a normal editor for any other file, and the dev server checks the target again at every write.
 
 Keys typed in an editor do not trigger slide shortcuts.
+
+The editor costs nothing on the first slide: Monaco with its stylesheet (about 940 kB compressed, and the TypeScript worker another 1.1 MB) is downloaded the first time a slide with an editor is shown.
 
 ## Twoslash
 
@@ -757,7 +761,8 @@ A build (`slide-ng build`) writes files of `public/` that slides name with a lea
 
 A relative address that `public/` does not have, but that names a file in the deck's folder (`![](./images/chart.png)`, `<img src="../shared/logo.svg">`
 from a slide in `pages/`), is copied into the build and served from `/_local/` (as Vite bundles such pictures for Slidev). A file outside the
-deck's folder is not; `url()` in a `<style>` is not rewritten this way, so put those pictures in `public/`.
+deck's folder is not; `url()` in a `<style>` is not rewritten this way, so put those pictures in `public/`. `public/` must be a real folder: a
+symbolic link there (or for `layouts/`, `components/` and the other folders) is not followed, and the generator warns.
 
 `export:` takes `format`, `range`, `withClicks`, `dark`, `timeout`, `wait`, `waitUntil`, `withToc`, `perSlide`, `scale` and `omitBackground`. It cannot name an output folder or
 a browser program: a deck may come from someone else, so those only come from the command line or the environment.

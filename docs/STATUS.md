@@ -59,7 +59,8 @@ one can be written. The decisions are in DECISIONS.md ("Made while testing for 1
 - Offline: PlantUML, `<slide-ng-youtube>`, `<slide-ng-tweet>` and `<slide-ng-blue-sky>` need the network, also in an offline folder. A deck with Monaco and Mermaid becomes one large script in an offline folder (27 MB folder, 16 MB script for the phase 2 test deck).
 - PWA: the first visit must be online (a browser that never opened the deck cannot get it offline). Remote pictures are not cached in dev. Icons are drawn with Chromium at build time (a build without one warns and has no icons).
 - MCP: slide 1 cannot be removed or moved; insert, remove and move need all slides in the entry file.
-- The first load of a deck with Monaco and KaTeX is about 850 kB (budget 1.5 MB / 3 MB).
+- Slides are not loaded lazily: every slide is in the first bundle (DECISIONS phase 1, 16, and "Made while measuring the first load", 3), so a long deck with a lot of highlighted code has a large `main.js`.
+- The first load of a 10-slide deck with Monaco, Mermaid and KaTeX is about 550 kB (133 kB compressed); Monaco's editor, its stylesheet and Mermaid load when a slide needs them.
 - Security fixes (docs/SECURITY-MODEL.md, decisions "Made while fixing the security review"): tested with unit tests and local servers only. NOT VERIFIED: a real LAN with a second device; the request filter of the exporter against a DNS name whose answer changes after the check; real Google Fonts with the new provider rules; `npm audit` output (no network when this was written); the password prompt on a real terminal.
 - Recording: no separate camera file, no mp4 or mkv, no cloud upload. No HTTPS for `--remote` (as before).
 - Phase 2 and phase 3 lists still apply (Monaco and Mermaid limits, `slide-ng-motion` limits, footnote limits, resizing a rotated `slide-ng-drag` box, `{monaco-write}` limits, imported slides outside the deck's folder cannot be edited by the dev server).

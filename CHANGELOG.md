@@ -9,6 +9,16 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - `<slide-ng-title-renderer />` draws a slide's title as HTML, with its inline markdown and `$math$` (Slidev's `<TitleRenderer>`); `no="N"` picks another slide. The table of contents shows the same HTML. Raw HTML in a title is shown as text.
 - `notesAutoRuby: { word: reading }` in the headmatter shows a reading above each listed word in the speaker notes, with `<ruby>` (Slidev's `notesAutoRuby`). Code, tag attributes and existing `<ruby>` are left alone.
 
+### Changed
+
+- Monaco's stylesheet (with its icon font, about 125 kB compressed) comes with the lazy Monaco chunk instead of the deck's styles: a deck with one `{monaco}` block no longer waits for it on the first slide (first paint of a 10-slide deck on slow 3G: 10.6 s before, 4.9 s after; the first load went from 241 kB to 133 kB compressed). The three Monaco CSS files that nothing loaded are no longer in `dist/`.
+- A static build no longer contains the side editor or the dev server's sync and drag saving.
+
+### Fixed
+
+- Closing the quick overview frees its cards (a 150-slide deck kept about 18,000 elements after it was closed).
+- A root folder that is a symbolic link (`public -> ../pictures`) gets a warning; it is still not followed.
+
 ## [1.0.0] - 2026-10-18
 
 ### Added
