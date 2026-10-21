@@ -8,7 +8,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 - `<slide-ng-title-renderer />` draws a slide's title as HTML, with its inline markdown and `$math$` (Slidev's `<TitleRenderer>`); `no="N"` picks another slide. The table of contents shows the same HTML. Raw HTML in a title is shown as text.
 - `notesAutoRuby: { word: reading }` in the headmatter shows a reading above each listed word in the speaker notes, with `<ruby>` (Slidev's `notesAutoRuby`). Code, tag attributes and existing `<ruby>` are left alone.
-- Code block, code group and Magic Move titles draw an icon, as in Slidev: `~i-set:name~` in the title, or Slidev's built-in icons matched from the title (`npm`, `vue`, `package.json`, ...) when `@iconify-json/vscode-icons` is installed. A built-in name matches a whole word, a file extension or the start of a file name (`results.tsv` gets no TypeScript icon, unlike Slidev); every `~...~` is taken out of the shown title.
+- Code block, code group and Magic Move titles draw an icon, as in Slidev: `~i-set:name~` in the title, or Slidev's built-in icons matched from the title (`npm`, `vue`, `package.json`, ...) when `@iconify-json/vscode-icons` is installed. A built-in name matches a whole word, a file extension or the start of a file name (`results.tsv` gets no TypeScript icon, unlike Slidev); every `~...~` is taken out of the shown title. A `<<<` snippet takes the title after the language (`<<< ./a.py python [a.py]`), with spaces and an icon.
 
 ## [1.0.0] - 2026-10-18
 

@@ -265,7 +265,12 @@ and `codeAliases: { mylang: 'ts' }` for extra language names. A language Shiki d
 <<< ./snippets/example.ts#greet
 <<< ./snippets/example.ts#greet ts {1|2}
 <<< @/snippets/example.ts {*}{lines:true}
+<<< ./snippets/example.ts#greet ts [example.ts ~i-carbon:code~] {1|2}
 ```
+
+The parts come in this order, each after the path optional: `<<< path#region lang [title] {ranges}{options}`, as in
+`<<< ./snippets/greet.py python [greet.py ~i-carbon:code~] {2}{lines:true}`. The title may have spaces and an icon; the path cannot
+have spaces (a word after it is read as the language).
 
 The path is relative to the markdown file; `@/` is the folder of the entry `slides.md`. `#greet` is a region written in the file as
 `// #region greet` ... `// #endregion greet` (also `<!-- #region -->`, `/* #region */`, `# region`). A missing file is a warning and a comment in the block.

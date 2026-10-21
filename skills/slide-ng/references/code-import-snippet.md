@@ -12,8 +12,10 @@ description: Import a file or a region of it into a code block with <<<
 <<< ./snippets/example.ts#greet
 <<< ./snippets/example.ts#greet ts {1|2}
 <<< @/snippets/example.ts {*}{lines:true}
+<<< ./snippets/example.ts#greet ts [example.ts ~i-carbon:code~] {1|2}
 ```
 
+- Order: `<<< path#region lang [title] {ranges}{options}`, each part after the path optional. The title may have spaces and a `~icon~`; the path may not have spaces.
 - The path is relative to the markdown file; `@/` is the folder of the entry `slides.md`.
 - `#greet` is a region written in the file as `// #region greet` ... `// #endregion greet` (also `<!-- #region -->`, `/* #region */`, `# region`).
 - A missing file is a warning and a comment in the block.
