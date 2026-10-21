@@ -302,16 +302,18 @@ export class NavBar {
     });
   }
 
-  // The menu opens to the right of its button. On a narrow window (a phone, a page zoomed to 200%) it moves left
-  // as far as it must to stay inside the window; it is never wider than the window (the content scrolls).
+  // The menu opens at the inline start of its button (to the right of it, to the left in a right-to-left deck). On a narrow
+  // window (a phone, a page zoomed to 200%) it moves as far as it must to stay inside the window; it is never wider than
+  // the window (the content scrolls). It is moved with `translate`, which works the same in both directions: `left` would
+  // stretch a menu that is placed by its `right` edge.
   fitSettings() {
     const menu = this.settingsMenu()?.nativeElement;
     if (!menu) return;
-    menu.style.left = '';
+    menu.style.translate = '';
     const r = menu.getBoundingClientRect(),
       gap = 8;
     const shift = Math.max(gap - r.left, Math.min(0, window.innerWidth - gap - r.right));
-    if (shift) menu.style.left = `${shift}px`;
+    if (shift) menu.style.translate = `${shift}px`;
   }
 
   // A click anywhere outside the bar closes the settings menu.
