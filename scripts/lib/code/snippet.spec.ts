@@ -1,4 +1,4 @@
-import { mkdtempSync, symlinkSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { SNIPPET_LINE, dedent, findRegion, resolveSnippet } from './snippet.mjs';
@@ -136,6 +136,17 @@ describe('resolveSnippet', () => {
   it('throws a readable error for a missing file', () => {
     expect(() => resolveSnippet('<<< ./missing.ts', join(root, 'slides.md'), root)).toThrow(
       'Code snippet not found',
+    );
+  });
+  it('says that a path in an imported file starts at that file, and suggests @/', () => {
+    mkdirSync(join(root, 'snips'), { recursive: true });
+    writeFileSync(join(root, 'snips/here.ts'), 'const a = 1;\n');
+    const inPart = join(root, 'parts/x.md');
+    expect(() => resolveSnippet('<<< ./snips/here.ts', inPart, root)).toThrow(
+      "(a path is relative to the file the <<< is in; for the deck's snips/here.ts write <<< @/snips/here.ts)",
+    );
+    expect(() => resolveSnippet('<<< ./snips/gone.ts', inPart, root)).toThrow(
+      "@/ starts at the deck's folder",
     );
   });
 });

@@ -48,11 +48,33 @@ export function twoslashReason(e) {
   );
 }
 
+/**
+ * Why a step of the line ranges (`{3-5}`) picks no line of the block, or ''. Ranges use the numbers shown, so with
+ * `startLine:10` a block's lines are 10, 11, ...; a step that picks none of them dims every line.
+ * @param {string[]} ranges @param {string} code @param {unknown} [startLine]
+ */
+export function rangeOutsideLines(ranges, code, startLine) {
+  const first = Number.isInteger(Number(startLine)) && startLine != null ? Number(startLine) : 1;
+  const last = first + code.replace(/\n$/, '').split('\n').length - 1;
+  for (const step of ranges) {
+    if (!/^[\d\s,-]+$/.test(step) || /^\s*0\s*$/.test(step)) continue; // `all`, `*`, `hide`, `0` (no line)
+    const picks = step.split(',').some((part) => {
+      const [a, b = a] = part.split('-').map((n) => Number(n.trim()));
+      return Number.isFinite(a) && Number.isFinite(b) && a <= last && b >= first;
+    });
+    if (!picks)
+      return `the line range {${step}} is outside the lines shown (${first}-${last}${first !== 1 ? `, with startLine:${first}` : ''}), so it highlights no line; ranges use the numbers shown`;
+  }
+  return '';
+}
+
 // `ctx.headmatter` gives the deck-wide defaults (`lineNumbers`, `codeCopy`).
 export function renderCode(fence, ctx = {}) {
   const { lang, title, ranges, options } = parseInfo(fence.info);
   const head = ctx.headmatter ?? {};
   warnTitleIcon(title);
+  const outside = rangeOutsideLines(ranges, fence.code, options.startLine);
+  if (outside) console.warn(`[slides] ${warnSlidePrefix()}${outside}`);
   const wrapperAttrs = attrs({
     ranges: ranges.join('|'),
     title: cleanTitle(title),

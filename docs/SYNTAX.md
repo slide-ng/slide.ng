@@ -102,6 +102,8 @@ The slide is replaced by the slides of that file. A range after `#` picks some o
 `src: ./pages/intro.md#2,4-6`. Keys set on the importing slide win over the imported ones.
 The text of the importing slide is ignored. A missing file or a circular import is reported when
 the slides are generated (a warning, so a build goes on), and the slide is skipped; the dev server also names it in a red banner on the page until the file is back. A leading `/` means the deck's folder (as in Slidev), not the file system.
+Inside an imported file, a `<<<` snippet path starts at that file's folder (`parts/x.md` with `<<< ./snippets/a.ts`
+reads `parts/snippets/a.ts`); write `<<< @/snippets/a.ts` for the deck's own `snippets/` folder. The "not found" message says so.
 The imported file must be inside the deck's folder or a theme or addon folder, by real path (a symlink that leads out does not count); otherwise the build stops
 with an error. A deck that really wants to import from elsewhere says so in its own headmatter: `allowOutsideRoot: true` (a theme or addon cannot set it for the deck).
 
@@ -370,15 +372,15 @@ const a = 1;
 ```
 ````
 
-| part                        | meaning                                                                                                                                                   |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `[title.ts]`                | a title bar above the block                                                                                                                               |
-| `{2,3}`                     | lines 2 and 3 are highlighted, the others are dimmed. `{*}` highlights nothing and keeps every line normal                                                |
-| `{1\|3-4\|all}`             | one range **per click**: line 1, then lines 3 and 4, then everything (`hide` shows nothing; `all` shows all lines). Each `\|` adds one click to the slide |
-| `{at:'+1', finally:'last'}` | in the options: the first click of the ranges (default `+1`) and what is shown after the last click (`last`, `all`, `hide` or a range)                    |
-| `lines:true`                | line numbers (set `lineNumbers: true` in the headmatter for every block)                                                                                  |
-| `startLine:5`               | the first line number. Ranges use the numbers shown, as in Slidev: with `startLine:5` the first line is 5, so `{6,7}` is its second and third line        |
-| `maxHeight:'100px'`         | scroll inside the block                                                                                                                                   |
+| part                        | meaning                                                                                                                                                                                                        |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `[title.ts]`                | a title bar above the block                                                                                                                                                                                    |
+| `{2,3}`                     | lines 2 and 3 are highlighted, the others are dimmed. `{*}` highlights nothing and keeps every line normal                                                                                                     |
+| `{1\|3-4\|all}`             | one range **per click**: line 1, then lines 3 and 4, then everything (`hide` shows nothing; `all` shows all lines). Each `\|` adds one click to the slide                                                      |
+| `{at:'+1', finally:'last'}` | in the options: the first click of the ranges (default `+1`) and what is shown after the last click (`last`, `all`, `hide` or a range)                                                                         |
+| `lines:true`                | line numbers (set `lineNumbers: true` in the headmatter for every block)                                                                                                                                       |
+| `startLine:5`               | the first line number. Ranges use the numbers shown, as in Slidev: with `startLine:5` the first line is 5, so `{6,7}` is its second and third line; a step that picks none of the numbers shown gets a warning |
+| `maxHeight:'100px'`         | scroll inside the block                                                                                                                                                                                        |
 
 The ranges and the options are two separate braces, as in Slidev. Options only take simple values (numbers, `true`/`false`, text).
 Hover a block to get the copy button. Colours: `shiki: { themes: { light: 'vitesse-light', dark: 'vitesse-dark' } }` in the headmatter,
