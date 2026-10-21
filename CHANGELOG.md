@@ -69,7 +69,6 @@ Node (22.22.3 or newer) and Angular (22.2) are the same as in 1.x. These changes
 - The date on the notes PDF is written in the deck's language instead of the browser's.
 - The address leaves out `?clicks=0`: slide 2 at its first click is `/2` (or `#/2`), not `/2?clicks=0`, as in Slidev. An address with `?clicks=0` still opens.
 - `<html lang>` is written in the usual spelling: `lang: pt_br` gives `pt-BR`.
-- An `<a href="/4">` written as HTML with other attributes than `class`, `id` and `style` (such as `target`) is left as written, with a warning; markdown links and plain `<a href="/4">` become slide links (#14).
 - In a PDF made by `export` or `build --download`, other links to the deck's own site (`/file.pdf`, `<a href="/3">`) are text without a link, instead of links to the temporary server of the export.
 - A `routeAlias` that is a number (`routeAlias: 2`) is refused: the address `/2` is slide 2, so the alias's slide could not be opened.
 - A `routeAlias` that is empty, has `/`, `.`, `?`, `#` or `\`, or is on two slides (also through a `src:` import of several slides) stops the build, naming the slides.
@@ -104,10 +103,6 @@ Node (22.22.3 or newer) and Angular (22.2) are the same as in 1.x. These changes
 - `/notes` follows dark mode.
 - The fullscreen button is left out (and `f` does nothing) where the page may not go fullscreen: an iframe without `allow="fullscreen"`, or an iPhone. It used to do nothing and log a permissions policy violation.
 - The drawing toolbar's undo, redo and delete buttons are really disabled when there is nothing to do, not only greyed out.
-- More contrast for the slide counter, the slide numbers in the overview and the "go to" list, the unselected options of the settings menu, the
-  presenter's labels, click numbers and timer buttons.
-- The side editor's coloured copy behind the text is no longer a Tab stop or read out; the presenter's next-step picture and Magic Move line
-  numbers are not read out, and the presenter panes are named regions.
 - With two presenter windows, a window that opens later or a presenter page that opens or reloads no longer moves the audience to the other presenter's slide: the audience stays with the newest move, also when the devices' clocks are not set alike.
 - Several decks on one origin (built together with `build a.md b.md`, or the project sites of one GitHub Pages user) no longer follow each other's slides or share drawings and stored settings: the sync channel and every storage key carry the deck's base path, as folders opened from disk already did. Dark mode stays shared; a deck at `/` keeps its old keys.
 - The dev server's MCP endpoint takes a `--remote` password that is not ASCII (`--remote=şifre`) as a bearer token sent as UTF-8, as `curl` sends it; only Latin-1 worked.
@@ -152,10 +147,10 @@ Node (22.22.3 or newer) and Angular (22.2) are the same as in 1.x. These changes
 - `e` in `npm run dev` or `npx slide-ng dev` opens `code` when it is installed instead of always vi: npm sets `EDITOR=vi` (`notepad.exe` on Windows) for the programs it starts, and that value now counts as unset there. `$VISUAL` and an `EDITOR` of your own still win.
 - Accessibility: links and buttons inside the presenter's greyed-out click-preview parts are no longer Tab stops while hidden from screen readers (the part's content is inert; the badges are the keyboard path, and a click on the part still jumps).
 - Accessibility: the progress bar has an accessible name ("Progress through the slides", translatable) and stays visible in forced colors.
-- Accessibility: more contrast for the presenter's notes of later clicks, the unselected sync options, the `/overview` slide count and slide numbers, and the info dialog's credit line.
+- Accessibility: more contrast for the slide counter, the slide numbers in the quick overview and the "go to" list, the unselected options of the settings and sync menus, the presenter's labels, click numbers, timer buttons and notes of later clicks, the `/overview` slide count and slide numbers, the info dialog's credit line, the date and slide numbers of the notes print page, and an `/entry` link under the mouse in dark mode (only its border takes the theme's primary colour now).
+- Accessibility: the side editor's coloured copy behind the text is no longer a Tab stop or read out; the presenter's next-step picture and Magic Move line numbers are not read out, and the presenter panes are named regions.
 - Accessibility: `/overview` notes and their text box are named, and an editable note says so; the presenter's notes buttons are at least 24 by 24 pixels; Escape in Edit Notes gives the focus back to its button; the settings button says whether its menu is open; quick overview cards are named with the slide title and the arrow keys move the focus.
 - Accessibility: the settings and sync menus and the info dialog stay inside the window at 400% zoom (320 by 180) and scroll; the presenter, `/overview` and `/notes` have a main landmark and a level-one heading, `/entry` and the notes print page (`/presenter/print`) have a main landmark, and the audience slide is in the main landmark. The right-click menu and the "go to" box are labelled dialogs, and the quick overview's page link and close button are inside its dialog, which screen readers otherwise left out.
-- Accessibility: more contrast for the date and slide numbers of the notes print page, and for an `/entry` link under the mouse in dark mode (only its border takes the theme's primary colour now).
 - The "go to" box (`g`) finds titles in any case by the deck's language (Turkish `izmir` finds "İzmir", `ışık` finds "Işık") and without accents.
 - Slide titles with `$math$` or markdown escapes are plain text in the tab title, the live region, the "go to" list and the PDF outline (`Karmaşıklık O(1)`, not `$O(1)$`).
 - The page description and the PDF subject made from `info` keep `#`, `_`, `*` and `>` that are not markdown (`C#`, `#42`, `snake_case`).
@@ -165,7 +160,6 @@ Node (22.22.3 or newer) and Angular (22.2) are the same as in 1.x. These changes
   - the sync menu, the click preview, the notes pages, `/overview` and `/notes-edit`, the progress bar's minutes, the presenter's regions and the banner for slides left out are translated;
   - in a right-to-left deck the sync menu's arrow keys follow the mirrored menu, and the settings menu stays inside a narrow window;
   - MCP's `goto_slide` moves a window whose clock is ahead of the dev server's;
-  - with two presenter windows, a window that opens no longer takes the older presenter's move;
   - `<slide-ng-progress-bar>` no longer gets the "not a slide.ng name" warning, `{{ $nav.previousNo }}` gets the uncalled-signal warning, a markdown link to `./overview`, `./entry` or `./notes-edit` no longer gets the dead-link warning, and `slide-ng-click="[2, 4]"` is checked as a range instead of being reported as text.
 - The docs in the package link to the example themes, the tests and SECURITY.md on GitHub; those files are not in the package, so the relative links led nowhere.
 
