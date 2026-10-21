@@ -13,8 +13,7 @@ If a feature is not listed as present in the other references, assume it is miss
 - `:emoji:` shortcodes (type the emoji itself).
 - `<script setup>`, Vue directives other than the slide.ng ones, a Vue-to-Angular converter.
 - `selectable`, `PoweredBySlidev`.
-- `<slide-ng-click>` as a tag, PascalCase tags, `--uno` in `<style>`.
-- UnoCSS attributify (`flex="~"`), variant groups (`hover:(a b)`), the typography preset (`prose`), `transformerDirectives`. Use plain classes.
+- `<slide-ng-click>` as a tag, PascalCase tags.
 - markdown-it typographer (smart quotes, `--`, `...`) and `v-pre` (use `ngNonBindable`, or `&#123;&#123;` for a literal `{{`).
 - `colorSchema: all`.
 

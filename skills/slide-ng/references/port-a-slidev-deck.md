@@ -23,7 +23,7 @@ List the original folder before you touch anything and decide for each item wher
 | `setup/*.ts`, `layouts/*.vue`, `vite.config.ts`                                 | `setup/*.ts` and `layouts/*.ts` are rewritten (see `setup-overview.md`, `layout-custom.md`); Vite config has no equivalent |
 | `uno.config.ts`                                                                 | `uno.config.mjs`                                                                                                           |
 
-Search the deck for what will break: `v-`, `<[A-Z]`, `<[a-z-]*:[a-z]` (icons), `\$slidev`, `\$clicks`, `\$nav`, `\$page` (they need a call, `$clicks()`), `<script`, `comark`, `mdc`, `--uno`, `flex="`, `border="` (attributify).
+Search the deck for what will break: `v-`, `<[A-Z]`, `<[a-z-]*:[a-z]` (icons), `\$slidev`, `\$clicks`, `\$nav`, `\$page` (they need a call, `$clicks()`), `<script`, `comark`, `mdc`.
 
 Make a folder with `slide-ng create <folder>`, then copy the files over. When the package is not installed, link it: `mkdir -p node_modules/@slide-ng && ln -s <slide.ng checkout> node_modules/@slide-ng/core`.
 
@@ -52,7 +52,6 @@ A Vue SFC becomes one `.ts` file. The mapping:
 | the slide's own number (`closest('.slidev-page')`) | `inject(SLIDE_NO)`                                                       |
 | `v-for`, `v-if`, `:class`, `:style`, `@click`      | `@for`, `@if`, `[class.x]="..."`, `[style]="..."`, `(click)="..."`       |
 | `import stats from '../stats.json'`                | `import stats from './stats.json'` with the file inside `components/`    |
-| UnoCSS attributify (`flex="~" p="2"`)              | plain classes (`flex p-2`); attributify is not installed                 |
 
 Before, a Vue counter (the deck's `Counter.vue`):
 
@@ -256,7 +255,7 @@ title: Footer layer
 - `.slidev-vclick-hidden` overrides (blur instead of fade) work too.
 - Fonts come from the `fonts` key. `selfHost: true` or `build --offline` puts them in the build.
 - `public/` is copied as is and served at `/`. Write `/logo.png` in markdown and components. A relative picture next to `slides.md` (`./images/x.png`) in a slide's markup is copied into the build too; in components, CSS `url()` and frontmatter, move the file to `public/`.
-- `@apply` (UnoCSS or Windi directive) does nothing (the generator warns): write the CSS out, or put the classes on the elements. Windi's comma in arbitrary values (`grid-cols-[80px,1fr]`) is `_` in UnoCSS (`grid-cols-[80px_1fr]`).
+- `@apply` and `--uno:` work in `styles/` and in `<style>` (written out while generating; an unknown utility gives a warning). Windi's comma in arbitrary values (`grid-cols-[80px,1fr]`) is `_` in UnoCSS (`grid-cols-[80px_1fr]`).
 - Icons are `<span>` elements here, not `<svg>`. Selectors like `.rows span` now also match the icon; see the pitfalls.
 - Missing UnoCSS names are added in a `uno.config.mjs` next to `slides.md` (`shortcuts`, `rules`, `presets`).
 
@@ -298,7 +297,7 @@ Compare with screenshots, one per slide and per click state:
 - **`:class` with a static `class`.** `class="bento" [class]="'s' + n"` merges both; `[class.hot]="cond"` toggles one class. Angular templates have no `Math`: compute in the component.
 - **Typographic quotes.** Slidev turns `'` into a curly quote, `--` into a dash and `...` into an ellipsis in markdown text (not in raw HTML). slide.ng uses the `marked` converter and leaves the characters as typed. Type the curly quote yourself in headings.
 - **Icons are spans.** `<carbon-x />` is `<span class="i-carbon:x">`. CSS written for `svg` is not matched, and `span` selectors now are. Exclude them: `.rows span:where(:not([class^='i-']))`.
-- **Attributify.** `flex="~" border="~ main"` is plain text here. Use classes. Variant groups (`hover:(a b)`), `prose` and `--uno` are missing too.
+- **Attributify and variant groups** work in slides and in the deck's components (`flex="~" border="~ main"`, `hover:(a b)` in a slide). In a component, write a variant group out (`hover:a hover:b`).
 - **Slidev's `abs-*` shortcuts** (`abs-br`) exist since this version; older checkouts lack them and the element lands in the page flow.
 - **The imported deck is not the deck.** `src:` and `<<<` paths, `disabled: true` and `defaults` work unchanged; a file that is never referenced is not built.
 - **The dev console prints `NG0913`** for big images. It is Angular's own dev hint about image size, not an error.

@@ -284,3 +284,22 @@ A claim[^1] and another[^second].
 <div id="rw-spacer" style="height: 2000px"></div>
 
 <slide-ng-render-when id="rw-visible" context="visible"><p id="rw-shown">seen</p><p fallback id="rw-fallback">not seen yet</p></slide-ng-render-when>
+
+---
+
+# UnoCSS
+
+<div id="u-attr" flex="~ col" text="red-500" p="4">attributify</div>
+<div id="u-hover" bg="green-500" hover:bg="blue-500">hover</div>
+<div id="u-group" class="p-2 hover:(text-blue-500 font-bold)">group</div>
+<div id="u-bare" p-2 hover:(text-blue-500 font-bold)>bare group</div>
+<div id="u-prose" class="prose"><p>Prose text with <a href="https://example.com">a link</a>.</p></div>
+<p id="u-apply" class="from-apply">apply</p>
+<p id="u-uno" class="from-uno">uno</p>
+<p id="u-styles" class="uno-from-styles">styles</p>
+<svg width="120" height="40"><text id="u-svg-text" x="0" y="20" font-size="14">svg</text></svg>
+
+<style>
+.from-apply { @apply text-green-600 italic; }
+.from-uno { --uno: underline font-mono; }
+</style>
