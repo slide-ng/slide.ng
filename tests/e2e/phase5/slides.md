@@ -58,3 +58,22 @@ print(1 + 1)
 <p id="tc-text" class="text-primary">Coloured by themeConfig.primary</p>
 <p id="tc-label">{{ themeConfig['label'] }}</p>
 <p id="tc-sizes">{{ themeConfig['sizes'] }}</p>
+
+---
+transition: my-fade
+---
+
+# Before a custom transition
+
+---
+transition:
+  name: grow
+  enterFromClass: grow-start
+  enterActiveClass: grow-run
+---
+
+# After a custom transition
+
+---
+
+# After the object form

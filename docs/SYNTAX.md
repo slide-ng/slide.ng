@@ -171,6 +171,38 @@ Set `transition` in the headmatter for the whole deck. The default is no transit
 The duration is the CSS variable `--slidev-transition-duration` (0.5s). After a move the class
 `slidev-nav-go-forward` or `slidev-nav-go-backward` is on the stage (until the next move), so `forward:text-red` and `backward:text-red` classes work.
 
+Any other name is a custom transition written in CSS, as in Slidev: during the move the entering slide gets Vue's classes
+`<name>-enter-from` and `<name>-enter-active`, a frame later `<name>-enter-to` instead of `-enter-from`, and the leaving slide the same with
+`leave`. Each slide's classes are removed when its CSS transition or animation ends (at once when the name has no CSS); the leaving
+slide goes when its own side ends, so a short leave does not stay drawn over a longer enter.
+
+```css
+/* styles/index.css */
+.my-fade-enter-active,
+.my-fade-leave-active {
+  transition: opacity 0.6s ease;
+}
+.my-fade-enter-from,
+.my-fade-leave-to {
+  opacity: 0;
+}
+```
+
+The object form takes other class names (`enterFromClass`, `enterActiveClass`, `enterToClass`, `leaveFromClass`, `leaveActiveClass`,
+`leaveToClass`) and a fixed `duration` in milliseconds (a number, or `{ enter, leave }`), like Vue's `TransitionGroupProps`:
+
+```md
+---
+transition:
+  name: grow
+  enterFromClass: scale-50
+  enterActiveClass: transition-transform duration-500
+---
+```
+
+The built-in names keep their own animation unless the object names a class. With `prefers-reduced-motion` the CSS runs in
+0.01ms and a fixed `duration` ends at once, so the slide changes straight away.
+
 ## Clicks
 
 Clicks reveal things step by step. Add these to any HTML element:

@@ -18,7 +18,7 @@ import { SlideLayer } from './slide-layer';
 import { RenderContext } from './slide-context';
 import { Stage } from './stage';
 import { preloadImages } from './preload-images';
-import { pickTransition } from './transitions';
+import { TransitionSpec, pickTransition } from './transitions';
 import { Ui } from './ui-state';
 import { ViewPrefs } from './view-prefs';
 import { filterCss } from './filters';
@@ -107,7 +107,7 @@ export class SlideShow {
     const direction = Math.sign(no - this.shown);
     this.nav.direction.set(direction);
     const transition = this.shown
-      ? pickTransition(this.nav.slides, this.shown, no, HEADMATTER['transition'] as string)
+      ? pickTransition(this.nav.slides, this.shown, no, HEADMATTER['transition'] as TransitionSpec)
       : null;
     this.shown = no;
     const slide = this.stage!.show(no, transition);
