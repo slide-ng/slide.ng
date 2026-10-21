@@ -125,9 +125,12 @@ html.dark .slidev-presenter .grid-section {
   pointer-events: auto !important;
   filter: grayscale(1);
   cursor: pointer;
-  /* At its place, not at the offset a click animation preset (.up, .left, .scale, ...) gives a hidden part. */
+  /* At its place and size, not as a click animation hides it: a preset (.up, .left, .scale, ...) or a deck's own
+     `.slidev-vclick-hidden { transform: scale(0) }`, which would leave nothing to see or badge. Only while it is a ghost. */
   translate: none !important;
   scale: none !important;
+  rotate: none !important;
+  transform: none !important;
 }
 .slide-ng-click-ahead.slide-ng-click-next.slidev-vclick-hidden {
   opacity: var(--slide-ng-ghost-next-opacity) !important;

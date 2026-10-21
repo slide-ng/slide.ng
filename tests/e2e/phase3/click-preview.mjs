@@ -61,6 +61,29 @@ export async function run({ t, open, press, hud, pathOf, windowGroup }) {
     (await offset(presenter, main)) === 'none none' && (await offset(viewer)) === '0px 20px 0.9',
     `${await offset(presenter, main)} / ${await offset(viewer)}`,
   );
+  // A part hidden with `transform: scale(0)` (a deck's own click animation) still has a ghost and a badge.
+  const shrunk = await presenter.evaluate((main) => {
+    const el = document.querySelector(`${main} #p2b`);
+    const r = el.getBoundingClientRect();
+    return {
+      ahead: el.classList.contains('slide-ng-click-ahead'),
+      transform: getComputedStyle(el).transform,
+      size: r.width > 0 && r.height > 0,
+      badge: !!document.querySelector(`${main} .slide-ng-ghost-badge[data-click="2"]`),
+    };
+  }, main);
+  const audience = await viewer.evaluate(
+    () => getComputedStyle(document.getElementById('p2b')).transform,
+  );
+  t.ok(
+    'click preview: a part hidden with transform: scale(0) is drawn as a ghost with a badge',
+    shrunk.ahead &&
+      shrunk.transform === 'none' &&
+      shrunk.size &&
+      shrunk.badge &&
+      audience === 'matrix(0, 0, 0, 0, 0, 0)',
+    `${JSON.stringify(shrunk)} / ${audience}`,
+  );
   // The next click's colour follows the theme's primary colour, which themeConfig sets on body.
   const nextColour = () =>
     presenter.evaluate(

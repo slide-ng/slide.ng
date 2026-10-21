@@ -23,6 +23,10 @@ title: Click preview deck
   translate: 0 20px;
   scale: 0.9;
 }
+/* Slidev's documented custom click animation: hidden parts shrink to nothing. */
+#p2b.slidev-vclick-hidden {
+  transform: scale(0);
+}
 </style>
 
 ---
