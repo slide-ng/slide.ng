@@ -28,4 +28,10 @@ describe('minutesLabel', () => {
     expect(minutesLabel('countdown', 600, 61)).toBe('9 min left');
     expect(minutesLabel('countdown', 600, 601)).toBe('1 min over');
   });
+  it('takes its words from one table', () => {
+    const text = { passed: '{n} dk', left: '{n} dk kaldı', over: '{n} dk geçti' };
+    expect(minutesLabel('stopwatch', 600, 125, text)).toBe('2 dk');
+    expect(minutesLabel('countdown', 600, 61, text)).toBe('9 dk kaldı');
+    expect(minutesLabel('countdown', 600, 601, text)).toBe('1 dk geçti');
+  });
 });

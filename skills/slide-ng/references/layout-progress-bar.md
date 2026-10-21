@@ -16,7 +16,7 @@ description: A progress bar on every slide (progressBar) or placed by hand (<sli
 | `clicks`   | `true`                     | `false` counts whole slides only                                               |
 | `minutes`  | `false`                    | while the presenter timer runs: minutes left (countdown) or passed (stopwatch) |
 
-`progressBar: true` uses the defaults.
+`progressBar: true` uses the defaults; `progressBar: top` (or `bottom`) is short for `{ position: top }`. Any other value draws no bar and the build warns.
 
 <!-- verify -->
 

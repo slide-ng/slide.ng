@@ -5,7 +5,7 @@ describe('readProgressBar', () => {
   it('is off unless true or an object', () => {
     expect(readProgressBar(undefined)).toBeNull();
     expect(readProgressBar(false)).toBeNull();
-    expect(readProgressBar('top')).toBeNull();
+    expect(readProgressBar('left')).toBeNull();
     expect(readProgressBar([1])).toBeNull();
   });
   it('gives the defaults for true', () => {
@@ -17,6 +17,10 @@ describe('readProgressBar', () => {
       clicks: true,
       minutes: false,
     });
+  });
+  it('takes top and bottom as the position', () => {
+    expect(readProgressBar('top')).toMatchObject({ position: 'top', height: 4, clicks: true });
+    expect(readProgressBar('bottom')).toMatchObject({ position: 'bottom', height: 4 });
   });
   it('reads the options and drops wrong values', () => {
     expect(

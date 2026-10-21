@@ -645,7 +645,8 @@ The presenter's mouse is shown on the audience page as a pointer or a red laser 
 `progressBar` in the headmatter draws a thin bar along the edge of every slide that fills as the deck goes on: empty on the first slide,
 full on the last, and the clicks of a slide fill part of the way to the next one (the clicks of the last slide do not count, as in
 the presenter's bar). It is drawn on the audience page, the presenter's slide and next step, and in print and export.
-`progressBar: true` uses the defaults; an object sets the options:
+`progressBar: true` uses the defaults, `progressBar: top` (or `bottom`) is short for `position: top`, and an object sets the options.
+Any other value draws no bar, and the build warns about it. The minutes are in English (`3 min`, `3 min left`, `3 min over`).
 
 ```md
 ---

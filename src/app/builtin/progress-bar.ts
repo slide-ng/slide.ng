@@ -29,15 +29,25 @@ export function progressPercent(
   return ((Math.max(no, 1) - 1 + step) / (total - 1)) * 100;
 }
 
+/** The words of the minutes text, `{n}` the number of minutes: the one place they are written. */
+export const MINUTES_TEXT = {
+  passed: '{n} min',
+  left: '{n} min left',
+  over: '{n} min over',
+} as const;
+export type MinutesText = Readonly<Record<keyof typeof MINUTES_TEXT, string>>;
+
 /** The minutes text: what is left of a countdown (or how far over it is), or the minutes passed on a stopwatch. */
 export function minutesLabel(
   mode: 'stopwatch' | 'countdown',
   durationSec: number,
   passedSec: number,
+  text: MinutesText = MINUTES_TEXT,
 ): string {
-  if (mode === 'stopwatch') return `${Math.floor(passedSec / 60)} min`;
+  const say = (key: keyof MinutesText, n: number) => text[key].replace('{n}', String(n));
+  if (mode === 'stopwatch') return say('passed', Math.floor(passedSec / 60));
   const left = durationSec - passedSec;
-  return left >= 0 ? `${Math.ceil(left / 60)} min left` : `${Math.ceil(-left / 60)} min over`;
+  return left >= 0 ? say('left', Math.ceil(left / 60)) : say('over', Math.ceil(-left / 60));
 }
 
 @Component({

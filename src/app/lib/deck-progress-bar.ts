@@ -13,8 +13,12 @@ export interface ProgressBarOptions {
   minutes: boolean;
 }
 
-/** `progressBar: true` or `{ position, height, color, track, clicks, minutes }` -> the options; anything else -> null. */
+/**
+ * `progressBar: true`, `top`, `bottom` (short for `{ position: top }`) or `{ position, height, color, track, clicks,
+ * minutes }` -> the options; anything else -> null (the generator warns about it, see parse-deck.mjs).
+ */
 export function readProgressBar(value: unknown): ProgressBarOptions | null {
+  if (value === 'top' || value === 'bottom') value = { position: value };
   if (value !== true && (typeof value !== 'object' || value === null || Array.isArray(value)))
     return null;
   const o = (value === true ? {} : value) as Record<string, unknown>;

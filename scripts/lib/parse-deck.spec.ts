@@ -211,3 +211,20 @@ describe('parseDeck: broken YAML', () => {
     );
   });
 });
+
+describe('parseDeck: progressBar', () => {
+  it('takes true, top, bottom and an object without a word', async () => {
+    for (const v of ['true', 'false', 'top', 'bottom', '{ position: top, height: 6 }']) {
+      const { problems } = await parse(`---\nprogressBar: ${v}\n---\n\n# A\n`);
+      expect(problems).toEqual([]);
+    }
+  });
+  it('warns about a value that draws no bar', async () => {
+    for (const v of ['left', '1', '[top]', 'yes']) {
+      const { problems } = await parse(`---\nprogressBar: ${v}\n---\n\n# A\n`);
+      expect(problems.join()).toContain('progressBar:');
+    }
+    const { problems } = await parse('---\nprogressBar: { position: left }\n---\n\n# A\n');
+    expect(problems.join()).toContain('progressBar.position: "left"');
+  });
+});

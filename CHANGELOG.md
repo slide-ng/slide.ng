@@ -6,7 +6,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ### Added
 
-- `progressBar` in the headmatter draws a progress bar on every slide (top or bottom, height, colours, clicks, and the minutes of the presenter timer); `<slide-ng-progress-bar />` places one in a slide or a layer.
+- `progressBar` in the headmatter draws a progress bar on every slide (top or bottom, height, colours, clicks, and the minutes of the presenter timer; `progressBar: top` is short for the position, and a value that draws no bar is warned about); `<slide-ng-progress-bar />` places one in a slide or a layer.
 - `<slide-ng-title-renderer />` draws a slide's title as HTML, with its inline markdown and `$math$` (Slidev's `<TitleRenderer>`); `no="N"` picks another slide. The table of contents shows the same HTML. Raw HTML in a title is shown as text.
 - `notesAutoRuby: { word: reading }` in the headmatter shows a reading above each listed word in the speaker notes, with `<ruby>` (Slidev's `notesAutoRuby`). Code, tag attributes and existing `<ruby>` are left alone.
 
