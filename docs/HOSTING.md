@@ -150,6 +150,8 @@ Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'
 Add what the slides themselves load from elsewhere: `img-src https:` for remote pictures (or `remoteAssets: true`), `frame-src` for
 `<slide-ng-youtube>` and other iframes, `font-src` and `style-src` for a web font provider (or `fonts.selfHost`).
 Only `slide-ng build` moves the scripts (not `--offline`, which is opened from disk); `npm run build` in this repository is the plain Angular build and keeps them inline.
+Trusted Types (`require-trusted-types-for 'script'`) are not supported: with them Mermaid diagrams are not drawn and the error overlay
+does not open. Leave that directive out of the policy. `default-src 'none'` instead of `'self'` works, with the sources above listed.
 
 ## Embedding the deck in another page
 
@@ -177,6 +179,12 @@ can really fetch a PDF next to it (so it stays disabled in `npm start` and in bu
 `slide-ng build --download` makes the PDF with the same code as `slide-ng export` and writes it as `<exportFilename>.pdf`
 (a plain file name, see [SYNTAX.md](SYNTAX.md#the-page-export-and-build)). `download: https://example.com/talk.pdf` points the button at a
 file somewhere else, and no PDF is made.
+
+## Printing from the browser
+
+The browser's own Print (Ctrl+P or Cmd+P) on a deck, also inside an iframe, prints only the slide on screen, with the navigation
+bar if it is showing, and without the "Background graphics" option pictures of `image:` layouts and backgrounds are left out.
+For a PDF of the whole deck use the download button (above) or `slide-ng export`.
 
 ## Link previews (Open Graph)
 

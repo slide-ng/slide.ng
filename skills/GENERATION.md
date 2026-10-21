@@ -180,36 +180,36 @@ setup file, a theme file) next to the samples of the same page. Fragments that c
     },
     "references/build-og-image.md": {
       "sources": {
-        "docs/HOSTING.md": "3daf3738afd82c25baa6f6f67a0e7d9129af510135f4c30406f8f150069e9a5a"
+        "docs/HOSTING.md": "d9d727e4ba200c729fd637b6b3701fd2e2bffac436fd20e778b61cec7b3b88f3"
       },
-      "hash": "6c695a5fefbb1ac7fed1f0af5cb8df6eeb3b1bf0c95961f05342391c93c10ac8"
+      "hash": "6a41d59ea329fdd7f9db5b19b99cbb199f6693bb0c04542581a1a65e6581851a"
     },
     "references/build-pdf-download.md": {
       "sources": {
-        "docs/HOSTING.md": "3daf3738afd82c25baa6f6f67a0e7d9129af510135f4c30406f8f150069e9a5a",
+        "docs/HOSTING.md": "d9d727e4ba200c729fd637b6b3701fd2e2bffac436fd20e778b61cec7b3b88f3",
         "docs/SYNTAX.md": "541ab4d39335653482c4206c2a861da981bc833f3eba4b6280cc3afb527b89b6"
       },
-      "hash": "20304b13779178b252a10190cdf8e5cc77d12facab4f372a807461c10d834d28"
+      "hash": "3a1308e33d1dc3578ff9e0a42dbb3c125458f979a25043d53bf97708527e05b9"
     },
     "references/build-remote-assets.md": {
       "sources": {
-        "docs/HOSTING.md": "3daf3738afd82c25baa6f6f67a0e7d9129af510135f4c30406f8f150069e9a5a"
+        "docs/HOSTING.md": "d9d727e4ba200c729fd637b6b3701fd2e2bffac436fd20e778b61cec7b3b88f3"
       },
-      "hash": "6c695a5fefbb1ac7fed1f0af5cb8df6eeb3b1bf0c95961f05342391c93c10ac8"
+      "hash": "6a41d59ea329fdd7f9db5b19b99cbb199f6693bb0c04542581a1a65e6581851a"
     },
     "references/build-seo-meta.md": {
       "sources": {
-        "docs/HOSTING.md": "3daf3738afd82c25baa6f6f67a0e7d9129af510135f4c30406f8f150069e9a5a",
+        "docs/HOSTING.md": "d9d727e4ba200c729fd637b6b3701fd2e2bffac436fd20e778b61cec7b3b88f3",
         "docs/SYNTAX.md": "541ab4d39335653482c4206c2a861da981bc833f3eba4b6280cc3afb527b89b6"
       },
-      "hash": "20304b13779178b252a10190cdf8e5cc77d12facab4f372a807461c10d834d28"
+      "hash": "3a1308e33d1dc3578ff9e0a42dbb3c125458f979a25043d53bf97708527e05b9"
     },
     "references/build-spa.md": {
       "sources": {
         "README.md": "1c420a8556df5c743299e24b6c12a1ceb1cb230d86edb4cccf5720716b71df8e",
-        "docs/HOSTING.md": "3daf3738afd82c25baa6f6f67a0e7d9129af510135f4c30406f8f150069e9a5a"
+        "docs/HOSTING.md": "d9d727e4ba200c729fd637b6b3701fd2e2bffac436fd20e778b61cec7b3b88f3"
       },
-      "hash": "11c08a9f401a15e3e5868cfb94ac72d1efd15dc9ce046b7ccc8a7df4739e1d71"
+      "hash": "2c90c3339bf6fe2170e18843c9466be429c54b5b8f8b3485dc8ae7a66cce2b90"
     },
     "references/code-groups.md": {
       "sources": {
@@ -292,9 +292,9 @@ setup file, a theme file) next to the samples of the same page. Fragments that c
       "sources": {
         "README.md": "1c420a8556df5c743299e24b6c12a1ceb1cb230d86edb4cccf5720716b71df8e",
         "bin/slide-ng.mjs": "e72012079663e45499293dee04e66e5f18e3d886583d9e54d4c2240116c0b8d8",
-        "docs/HOSTING.md": "3daf3738afd82c25baa6f6f67a0e7d9129af510135f4c30406f8f150069e9a5a"
+        "docs/HOSTING.md": "d9d727e4ba200c729fd637b6b3701fd2e2bffac436fd20e778b61cec7b3b88f3"
       },
-      "hash": "ddd5356c2153b22e4ae5c7a166f4aece7fdaa9d077e3e21c6ff43d3120b9a479"
+      "hash": "2feb7633e81d587a6b72483f721067b1f716b2ddbab7f221583a88198aab41d8"
     },
     "references/core-components.md": {
       "sources": {
@@ -314,11 +314,11 @@ setup file, a theme file) next to the samples of the same page. Fragments that c
     },
     "references/core-fonts.md": {
       "sources": {
-        "docs/HOSTING.md": "3daf3738afd82c25baa6f6f67a0e7d9129af510135f4c30406f8f150069e9a5a",
+        "docs/HOSTING.md": "d9d727e4ba200c729fd637b6b3701fd2e2bffac436fd20e778b61cec7b3b88f3",
         "docs/SYNTAX.md": "541ab4d39335653482c4206c2a861da981bc833f3eba4b6280cc3afb527b89b6",
         "docs/THEMES.md": "4bba87bcaee85541b6a799bb326871e29c3823d2d563e308acf6ce24977e5b22"
       },
-      "hash": "2a39f24aa3a413a4daf50dd2f40396a7089a85464ff5ade7fa4a6d31064ab8df"
+      "hash": "42c280e240395b4681e3eb7996388b3fe0508ff03e2bb5911006a8150f7fcf08"
     },
     "references/core-frontmatter.md": {
       "sources": {
@@ -522,17 +522,17 @@ setup file, a theme file) next to the samples of the same page. Fragments that c
     },
     "references/offline-folder.md": {
       "sources": {
-        "docs/HOSTING.md": "3daf3738afd82c25baa6f6f67a0e7d9129af510135f4c30406f8f150069e9a5a",
+        "docs/HOSTING.md": "d9d727e4ba200c729fd637b6b3701fd2e2bffac436fd20e778b61cec7b3b88f3",
         "docs/OFFLINE.md": "dfd5de8a8b8b173f7b85084570ae9fc114d149b434ce39c0bbe4156ad15baf5f"
       },
-      "hash": "8a17850336ca5195677bfdc824a7e9fb63542f6c95c613592bb91a78c5d986fb"
+      "hash": "e0fcf879eb764eca2e3759b9627f05108a2c9d412dc6f7421d535ad238fdeabd"
     },
     "references/offline-pwa.md": {
       "sources": {
-        "docs/HOSTING.md": "3daf3738afd82c25baa6f6f67a0e7d9129af510135f4c30406f8f150069e9a5a",
+        "docs/HOSTING.md": "d9d727e4ba200c729fd637b6b3701fd2e2bffac436fd20e778b61cec7b3b88f3",
         "docs/OFFLINE.md": "dfd5de8a8b8b173f7b85084570ae9fc114d149b434ce39c0bbe4156ad15baf5f"
       },
-      "hash": "8a17850336ca5195677bfdc824a7e9fb63542f6c95c613592bb91a78c5d986fb"
+      "hash": "e0fcf879eb764eca2e3759b9627f05108a2c9d412dc6f7421d535ad238fdeabd"
     },
     "references/presenter-dev-editor.md": {
       "sources": {
