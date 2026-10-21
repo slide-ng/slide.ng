@@ -52,8 +52,9 @@ describe('toStyle', () => {
 describe('toTransition', () => {
   it('uses the transition of the variant, with defaults', () => {
     expect(toTransition({}, ['transform', 'backgroundColor'])).toBe(
-      'transform, background-color 500ms ease-out 0ms',
+      'transform 500ms ease-out 0ms, background-color 500ms ease-out 0ms',
     );
+    expect(toTransition({}, [])).toBe('');
     expect(
       toTransition({ transition: { duration: 200, delay: 50, ease: 'linear' } }, ['opacity']),
     ).toBe('opacity 200ms linear 50ms');

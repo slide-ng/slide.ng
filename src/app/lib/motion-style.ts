@@ -62,9 +62,12 @@ export function toStyle(variant: Variant, keys: string[]): Record<string, string
   return css;
 }
 
-/** The CSS `transition` value: the same time for every touched property. */
+/** The CSS `transition` value: the same time for every touched property, listed for each one. */
 export function toTransition(variant: Variant, cssKeys: string[]): string {
   const t = (variant['transition'] ?? {}) as { duration?: number; delay?: number; ease?: string };
-  const props = cssKeys.map((k) => k.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)).join(', ');
-  return props ? `${props} ${t.duration ?? 500}ms ${t.ease ?? 'ease-out'} ${t.delay ?? 0}ms` : '';
+  const time = `${t.duration ?? 500}ms ${t.ease ?? 'ease-out'} ${t.delay ?? 0}ms`;
+  // One entry per property: in `a, b 500ms` the time belongs to `b` only, and `a` would jump.
+  return cssKeys
+    .map((k) => `${k.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)} ${time}`)
+    .join(', ');
 }
