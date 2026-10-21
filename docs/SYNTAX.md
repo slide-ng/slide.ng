@@ -703,7 +703,8 @@ Pictures are loaded before their slide is shown, as in Slidev: after each move t
 `ahead` slides (`0`: none ahead) load in idle time, and 3 seconds after the deck opens every slide's. The generator lists each slide's pictures: `<img src>`
 (and markdown pictures), `url()` in inline styles, and the frontmatter's `image`, `backgroundImage` and `background`. A slide with
 `preload: false` in its frontmatter is left out. A component can read the progress from `slide-ng/lib/preload-images`
-(`preloadProgress`, 0 to 1, and `preloadComplete`, both signals). All slides are in the first bundle, so `preload` has no other effect here.
+(`preloadProgress`, 0 to 1, and `preloadComplete`, both signals). A picture that still fails after two retries (a missing file)
+counts as done, so the progress reaches 1; with `preloadImages: false` it is 1 (complete) from the start. All slides are in the first bundle, so `preload` has no other effect here.
 
 Layers: add any of `layers/global-top.ts`, `global-bottom.ts`, `slide-top.ts`, `slide-bottom.ts` next to `slides.md` (or in a theme or addon), each `export default` of a standalone component.
 `global-*` appear once over or under all slides, `slide-*` inside every slide (inject `SLIDE_NO` to know which). They let clicks through; give your own elements `pointer-events: auto` if they need the mouse.

@@ -1,4 +1,4 @@
-import { preloadAhead, preloadWindow } from './preload-images';
+import { preloadAhead, preloadWindow, progressOf } from './preload-images';
 
 describe('preloadAhead', () => {
   it('is 3 by default, n for { ahead: n } (0 too), and off for false', () => {
@@ -19,5 +19,18 @@ describe('preloadWindow', () => {
     expect(preloadWindow(4, 10, 3)).toEqual([4, 3, 5, 6, 7]);
     expect(preloadWindow(1, 10, 2)).toEqual([1, 2, 3]);
     expect(preloadWindow(9, 10, 3)).toEqual([9, 8, 10]);
+  });
+});
+
+describe('progressOf', () => {
+  it('counts the pictures that are done, failed ones too, and stops at 1', () => {
+    expect(progressOf(0, 4, true)).toBe(0);
+    expect(progressOf(3, 4, true)).toBe(0.75);
+    expect(progressOf(4, 4, true)).toBe(1);
+    expect(progressOf(5, 4, true)).toBe(1);
+  });
+  it('is complete without pictures, and when preloadImages is false', () => {
+    expect(progressOf(0, 0, true)).toBe(1);
+    expect(progressOf(0, 4, false)).toBe(1);
   });
 });
