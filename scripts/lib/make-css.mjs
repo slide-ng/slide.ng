@@ -55,10 +55,28 @@ export async function makeCss(deckFiles, extraConfigs = [], appFiles = []) {
     const text = files.map((f) => readFileSync(f, 'utf8').replace(/\\"/g, '"')).join('\n');
     return `${text}\n${boundClasses(text)}`;
   };
-  const tokens = await uno.applyExtractors(read(deckFiles));
+  const deck = read(deckFiles);
+  const tokens = await uno.applyExtractors(withoutForeignAttributes(deck));
+  await plain.applyExtractors(deck, undefined, tokens);
   await plain.applyExtractors(read(appFiles), undefined, tokens);
   const { css } = await uno.generate(tokens);
   return css;
+}
+
+// The attributes of a slide.ng component are its inputs (`<slide-ng-mermaid scale="0.8">`, `<slide-ng-toc columns="2">`) and
+// those in an inline SVG draw it (`<text font-size="14">`). Read by attributify they would become CSS for every element with
+// that attribute (`[scale~="0.8"]` shrinks every such diagram), so attributify does not see them. Their classes are still
+// found: the deck is also read without attributify.
+// In a generated slide a line break between two attributes is written `\n`.
+const attrsRE = String.raw`(?:(?:\s|\\n)+[^\s=>"'/\\][^\s=>"']*(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>"']+))?)*`;
+export function withoutForeignAttributes(text) {
+  const tags = (re) => (part) => part.replace(re, '<$1');
+  return text
+    .replace(
+      /<svg(?=[\s/>])(?:[^>]*\/>|[\s\S]*?<\/svg>)/g,
+      tags(new RegExp(`<([\\w:-]+)${attrsRE}`, 'g')),
+    )
+    .replace(new RegExp(`<(slide-ng-[\\w-]+)${attrsRE}`, 'g'), '<$1');
 }
 
 // `[class.font-bold]="on"` (in a slide, a template or a `host`) names a class UnoCSS cannot split out of the binding: the

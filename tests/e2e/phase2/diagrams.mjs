@@ -38,6 +38,16 @@ export async function run({ t, open, press }) {
     'scale:0.8 sets the svg height to 0.8 x the viewBox height',
     Math.abs(+(await first.getAttribute('height')) - 0.8 * viewBoxHeight) < 0.01,
   );
+  const box = await first.boundingBox();
+  t.ok(
+    'scale:0.8 keeps the diagram drawn at its size (the input is not read as a utility)',
+    box.width > 100 &&
+      (await page
+        .locator('slide-ng-mermaid')
+        .first()
+        .evaluate((e) => getComputedStyle(e).transform)) === 'none',
+    JSON.stringify(box),
+  );
   const src = await page.locator('slide-ng-plant-uml img').getAttribute('src');
   t.ok(
     'plantuml is an <img> at the server with the encoded diagram',

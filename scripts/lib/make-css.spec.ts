@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createGenerator } from '@unocss/core';
 import config from '../../uno.config.mjs';
-import { boundClasses } from './make-css.mjs';
+import { boundClasses, withoutForeignAttributes } from './make-css.mjs';
 
 const css = async (classes: string) =>
   (await (await createGenerator(config)).generate(classes)).css;
@@ -24,5 +24,38 @@ describe('boundClasses', () => {
     const text = `<div [class.rotate-45]="on"></div> host: { '[class.justify-end]': 'right()' }`;
     expect(boundClasses(text)).toBe('rotate-45 justify-end');
     expect(await css(`${text}\n${boundClasses(text)}`)).toContain('rotate:45deg');
+  });
+});
+
+describe('withoutForeignAttributes', () => {
+  it('hides the inputs of slide.ng components from attributify', async () => {
+    const text = `<slide-ng-mermaid scale="0.8" packed="x" /> <slide-ng-toc columns="2" class="text-blue-500" />`;
+    const out = await css(withoutForeignAttributes(text));
+    expect(out).not.toContain('[scale~=');
+    expect(out).not.toContain('[columns~=');
+    expect(withoutForeignAttributes(text)).toBe('<slide-ng-mermaid /> <slide-ng-toc />');
+    // A generated slide writes the line breaks of its template as `\n`.
+    expect(withoutForeignAttributes('<slide-ng-toc\\n  columns="2"\\n  />')).toBe(
+      '<slide-ng-toc\\n  />',
+    );
+  });
+  it('hides the attributes inside an inline SVG', async () => {
+    const text = `<svg width="200"><text x="10" font-size="14" fill="red">Hi</text></svg>`;
+    expect(withoutForeignAttributes(text)).toBe('<svg><text>Hi</text></svg>');
+    expect(await css(withoutForeignAttributes(text))).not.toContain('[font-size~=');
+    // A self-closing <svg /> ends there, and <svg-icon> is not an SVG.
+    const after = '<svg class="a" /> <div p="4"></div> <svg-icon m="2"></svg-icon> </svg>';
+    expect(withoutForeignAttributes(after)).toBe(
+      '<svg /> <div p="4"></div> <svg-icon m="2"></svg-icon> </svg>',
+    );
+  });
+  it('keeps attributify on plain HTML elements', async () => {
+    const text = `<div flex="~ col" text="red-500">x</div> <slide-ng-arrow x1="1" /> <p p="4">y</p>`;
+    expect(withoutForeignAttributes(text)).toBe(
+      '<div flex="~ col" text="red-500">x</div> <slide-ng-arrow /> <p p="4">y</p>',
+    );
+    const out = await css(withoutForeignAttributes(text));
+    expect(out).toContain('[flex~="col"]');
+    expect(out).toContain('[p~="\\34 "]');
   });
 });

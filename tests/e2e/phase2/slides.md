@@ -275,6 +275,7 @@ A claim[^1] and another[^second].
 <p id="u-apply" class="from-apply">apply</p>
 <p id="u-uno" class="from-uno">uno</p>
 <p id="u-styles" class="uno-from-styles">styles</p>
+<svg width="120" height="40"><text id="u-svg-text" x="0" y="20" font-size="14">svg</text></svg>
 
 <style>
 .from-apply { @apply text-green-600 italic; }

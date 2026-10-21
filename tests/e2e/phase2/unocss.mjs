@@ -46,5 +46,10 @@ export async function run({ t, open, style }) {
     (await style(page, '#u-styles', 'color')) === 'rgb(249, 115, 22)' &&
       (await style(page, '#u-styles', 'fontWeight')) === '700',
   );
+  t.ok(
+    'attributify does not read the attributes of an inline SVG (font-size="14" stays 14px)',
+    (await style(page, '#u-svg-text', 'fontSize')) === '14px',
+    await style(page, '#u-svg-text', 'fontSize'),
+  );
   await page.close();
 }

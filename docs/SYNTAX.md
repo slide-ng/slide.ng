@@ -631,6 +631,8 @@ frontmatter. The CSS for the classes you use is built automatically. As in Slide
 - **Attributify**: utilities as attributes, `<div flex="~ col" text="sm red-500" p="4">`, also with a variant in the name
   (`hover:bg="blue-500"`) and valueless (`<div flex items-center>`). Angular keeps such attributes as they are. Only the deck's own files
   (slides, `components/`, layouts and other files of the deck, themes and addons) are read this way, not slide.ng's own source.
+  The attributes of slide.ng's components (`<slide-ng-toc columns="2">`, a diagram's `scale`) and of the elements of an inline
+  `<svg>` (`font-size="14"`, `fill`) are not read as utilities: they are inputs or draw the SVG. Use `class` there.
 - **Typography**: `class="prose"` styles long text (headings, lists, links, quotes), `dark:prose-invert` for dark mode, `not-prose` to opt out.
 - **Directives** in `<style>` and `styles/`: see Per-slide styles.
   Responsive prefixes (`md:`, `lg:`) follow the browser window, not the slide, which keeps its own size and is scaled: the same slide
