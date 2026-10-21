@@ -162,18 +162,17 @@ does not open. Leave that directive out of the policy. `default-src 'none'` inst
 
 A built deck works in an `<iframe>` on another site. Give the frame the permissions the deck asks for, or the browser logs a
 "Permissions policy violation" and the feature stays off: `fullscreen` for the full screen button (without it the button
-is left out) and `screen-wake-lock`
-when the wake lock is on (`wakeLock: true` in the headmatter, or switched on in the settings). Leave `wakeLock` off for a
-deck that is mostly shown embedded.
+is left out).
 
 ```html
-<iframe
-  src="https://you.github.io/talk/"
-  allow="fullscreen; screen-wake-lock"
-  width="960"
-  height="540"
-></iframe>
+<iframe src="https://you.github.io/talk/" allow="fullscreen" width="960" height="540"></iframe>
 ```
+
+The wake lock (which keeps the screen from going to sleep) is on by default since 2.0.0. In a frame the deck asks for it
+only once the reader clicks, taps or presses a key in the deck, or makes it full screen, so a reader who only scrolls past
+it is not kept awake. For a deck that is mostly shown embedded, `wakeLock: false` in the headmatter turns it off. To let an
+embedded deck keep the screen awake, add `screen-wake-lock` to `allow` (`allow="fullscreen; screen-wake-lock"`); without it
+the browser refuses the lock and logs a permissions policy violation once the reader uses the deck.
 
 A host that sends `frame-ancestors` or `X-Frame-Options` must allow the page that embeds the deck.
 
