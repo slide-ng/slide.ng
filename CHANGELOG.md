@@ -8,7 +8,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 - `<slide-ng-title-renderer />` draws a slide's title as HTML, with its inline markdown and `$math$` (Slidev's `<TitleRenderer>`); `no="N"` picks another slide. The table of contents shows the same HTML. Raw HTML in a title is shown as text.
 - `notesAutoRuby: { word: reading }` in the headmatter shows a reading above each listed word in the speaker notes, with `<ruby>` (Slidev's `notesAutoRuby`). Code, tag attributes and existing `<ruby>` are left alone.
-- Click animation presets, as in Slidev: `clickAnimation` in the headmatter or a slide's frontmatter, modifiers on the attribute (`slide-ng-click.fade.right`, `slide-ng-after.up`, `slide-ng-click-hide.none`) and `<slide-ng-clicks animation="...">`. Presets `fade`, `fade-in`, `up`, `down`, `left`, `right`, `scale`, `none`; a deck's own is CSS on `.slidev-vclick-anim-<name>`. An element not revealed yet is hidden from screen readers, also when `fade` shows it dimmed.
+- Click animation presets, as in Slidev: `clickAnimation` in the headmatter or a slide's frontmatter, modifiers on the attribute (`slide-ng-click.fade.right`, `slide-ng-after.up`, `slide-ng-click-hide.none`) and `<slide-ng-clicks animation="...">`. Presets `fade`, `fade-in`, `up`, `down`, `left`, `right`, `scale`, `none`; a deck's own is CSS on `.slidev-vclick-anim-<name>`. An element not revealed yet is inert (screen readers skip it, its links and buttons take no focus), also when `fade` shows it dimmed.
 
 ### Changed
 

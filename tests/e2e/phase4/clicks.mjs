@@ -14,8 +14,8 @@ export async function run({ t, open, press }) {
     JSON.stringify(c1),
   );
   t.ok(
-    'an element not revealed yet is hidden from screen readers',
-    (await page.locator('#c1').getAttribute('aria-hidden')) === 'true',
+    'an element not revealed yet is inert (screen readers skip it, no focus)',
+    (await page.locator('#c1').getAttribute('inert')) === '',
   );
   const c2 = await look('#c2');
   t.ok(
@@ -27,7 +27,7 @@ export async function run({ t, open, press }) {
   c1 = await look('#c1');
   t.ok(
     'slide-ng-click.up: on its click the element moves up into place',
-    c1.translate === 'none' && (await page.locator('#c1').getAttribute('aria-hidden')) === null,
+    c1.translate === 'none' && (await page.locator('#c1').getAttribute('inert')) === null,
     JSON.stringify(c1),
   );
   await press(page, 'ArrowRight', 40);

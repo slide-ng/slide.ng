@@ -229,7 +229,7 @@ clickAnimation: up
 <div slide-ng-click.none>No animation</div>
 ```
 
-Presets: `fade` (hidden is 0.5 opacity instead of invisible; screen readers skip it until its click, as any hidden element), `fade-in` (a slower fade), `up`, `down`, `left`, `right` (20px away), `scale` (0.9),
+Presets: `fade` (hidden is 0.5 opacity instead of invisible; until its click it is inert like any hidden element: screen readers skip it and its links and buttons take no focus or clicks), `fade-in` (a slower fade), `up`, `down`, `left`, `right` (20px away), `scale` (0.9),
 `none` (no transition). They work on `slide-ng-click`, `slide-ng-after` and `slide-ng-click-hide`. The element gets the class
 `slidev-vclick-anim-<name>`, so a preset of your own is CSS in `styles/index.css`:
 
