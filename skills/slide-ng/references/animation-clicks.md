@@ -37,7 +37,7 @@ Do not write the Vue forms (`v-click`, `<v-click>`, `<VClick>`): the old names s
 
 Click animation presets (how a hidden element looks): `clickAnimation: up` in the headmatter or a slide's frontmatter (the slide wins), or modifiers that win over both: `slide-ng-click.fade.right="2"`, `slide-ng-after.scale`, `slide-ng-click.none`, `<slide-ng-clicks animation="fade up">`. Presets: `fade` (0.5 opacity while hidden; inert until its click: screen readers skip it, its links take no focus), `fade-in`, `up`, `down`, `left`, `right` (20px), `scale` (0.9), `none` (no transition). A custom preset is CSS on `.slidev-vclick-anim-<name>.slidev-vclick-hidden`.
 
-The generator warns, with the slide and line, about text values that cannot work: `slide-ng-click="abc"`, `"0"`, a range as text (`slide-ng-click="[2, 4]"`: write `[slide-ng-click]="[2, 4]"`), `[slide-ng-click]="[2]"` (a range has two values), a range whose end is not after its start, and a `<slide-ng-switch>` child with `at="x"` or `at="5-3"`.
+The generator warns, with the slide and line, about text values that cannot work: `slide-ng-click="abc"`, `"0"`, `[slide-ng-click]="[2]"` or `slide-ng-click="[2]"` (a range has two values), a range whose end is not after its start, and a `<slide-ng-switch>` child with `at="x"` or `at="5-3"`.
 
 - Total clicks of a slide = the largest click number its elements ask for. `clicks: N` in the frontmatter fixes it; `clicksStart` sets the first click (default 0). A value that is not a number is ignored with a warning; a negative `clicks` is ignored and a negative `clicksStart` counts as 0.
 - The order of elements in the template is what makes `+1` relative work.

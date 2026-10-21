@@ -55,9 +55,31 @@ const NUMBER = /^[+-]?\d+(?:\.\d+)?$/;
 // One value of a range written as a binding: a number, or something the generator cannot judge (a string, an expression).
 const rangePart = (text) => (NUMBER.test(text.trim()) ? +text : undefined);
 
+/** A range `[start, end]` (bound, or written as text, which the generator binds): two values, the end after the start. */
+function checkRange(shown, value, line, warn) {
+  const list = /^\s*\[([^[\]]*)\]\s*$/.exec(value);
+  if (!list) return;
+  const parts = list[1].trim() ? list[1].split(',') : [];
+  if (parts.length !== 2) {
+    warn(
+      `${shown}: a range has two values, [start, end]${parts.length === 1 ? `; for one click write slide-ng-click="${parts[0].trim()}"` : ''}`,
+      line,
+    );
+    return;
+  }
+  const [start, end] = parts.map(rangePart);
+  if (start == null || end == null) return;
+  if (Math.max(start, 1) >= Math.max(end, 1))
+    warn(
+      `${shown} is never shown: the end must be after the start (clicks count from 1, the end is not included)`,
+      line,
+    );
+  else if (start <= 0) warn(`${shown}: clicks count from 1, so it starts at click 1`, line);
+}
+
 /**
  * Warns about click values written as text that do not work: `slide-ng-click="abc"`, `"0"`, a `-1` with no click
- * before it, a range written as text (`slide-ng-click="[2, 4]"`), a range binding with one value or none
+ * before it, a range (bound, or written as text: `slide-ng-click="[2, 4]"`) with one value or none
  * (`[slide-ng-click]="[2]"`) or whose end is not after its start, and an `at` of a `<slide-ng-switch>` child that is
  * not `3` or `3-5`. Values that are expressions are left to the app.
  * @param {string} markdown the slide's markdown @param {(message: string, line: number) => void} warn line counts from 0
@@ -83,11 +105,8 @@ export function checkClickValues(markdown, warn) {
       if (plain === 'slide-ng-click') {
         const v = value.trim();
         const shown = `${attr}="${value}"`;
-        if (/^\[.*\]$/s.test(v))
-          warn(
-            `${shown} is text, not a range; write a range as a binding: [slide-ng-click]="${v}"`,
-            line,
-          );
+        // A range written as text is bound by the generator (directives.mjs), so it is checked as a range.
+        if (/^\[.*\]$/s.test(v)) checkRange(shown, v, line, warn);
         else if (v === '' || v === 'true' || v === 'false') continue;
         else if (!NUMBER.test(v))
           warn(`${shown} is not a click (a number, +n or -n); the element is always shown`, line);
@@ -98,26 +117,8 @@ export function checkClickValues(markdown, warn) {
             `${shown} counts back from the click before it, and there is none; the element is always shown`,
             line,
           );
-      } else if (attr === '[slide-ng-click]') {
-        const list = /^\s*\[([^[\]]*)\]\s*$/.exec(value);
-        if (!list) continue;
-        const parts = list[1].trim() ? list[1].split(',') : [];
-        if (parts.length !== 2) {
-          warn(
-            `[slide-ng-click]="${value}": a range has two values, [start, end]${parts.length === 1 ? `; for one click write slide-ng-click="${parts[0].trim()}"` : ''}`,
-            line,
-          );
-          continue;
-        }
-        const [start, end] = parts.map(rangePart);
-        if (start == null || end == null) continue;
-        if (Math.max(start, 1) >= Math.max(end, 1))
-          warn(
-            `[slide-ng-click]="${value}" is never shown: the end must be after the start (clicks count from 1, the end is not included)`,
-            line,
-          );
-        else if (start <= 0)
-          warn(`[slide-ng-click]="${value}": clicks count from 1, so it starts at click 1`, line);
+      } else if (attr.split('.')[0] === '[slide-ng-click]' || /^\[slide-ng-click\./.test(attr)) {
+        checkRange(`${attr}="${value}"`, value, line, warn);
       } else if (attr === 'at' && inSwitch(tag.index) && !name.startsWith('slide-ng-')) {
         // As the app reads it (slide-ng-switch.ts parseSlots): digits, or two numbers with a dash.
         const range = /^\d+$/.test(value) ? [] : value.split('-').map(Number);

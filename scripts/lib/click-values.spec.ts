@@ -66,9 +66,14 @@ describe('checkClickValues', () => {
   });
 
   it('says how to write a range', () => {
-    expect(warnings('<div slide-ng-click="[2, 4]">x</div>')).toEqual([
-      '0: slide-ng-click="[2, 4]" is text, not a range; write a range as a binding: [slide-ng-click]="[2, 4]"',
+    // A range written as text is bound by the generator (directives.mjs), so it is checked like a binding.
+    expect(warnings('<div slide-ng-click="[2, 4]">x</div>')).toEqual([]);
+    expect(warnings('<div slide-ng-click.up="[2, 4]">x</div>')).toEqual([]);
+    expect(warnings('<div slide-ng-click="[2]">x</div>')).toEqual([
+      '0: slide-ng-click="[2]": a range has two values, [start, end]; for one click write slide-ng-click="2"',
     ]);
+    expect(warnings('<div slide-ng-click="[3, 1]">x</div>')[0]).toContain('is never shown');
+    expect(warnings('<div [slide-ng-click.up]="[3, 1]">x</div>')[0]).toContain('is never shown');
     expect(
       warnings('<div [slide-ng-click]="[2]">x</div>\n<div [slide-ng-click]="[]">y</div>'),
     ).toEqual([

@@ -260,8 +260,8 @@ Two forms exist because of how Angular reads attributes:
 `slide-ng-click="3"`. After only absolute clicks, `slide-ng-after` shows from the start; give it a number too (`slide-ng-click="3"`).
 
 The generator warns, with the slide and its line, about values written as text that cannot work: `slide-ng-click="abc"`, `"0"`
-(clicks count from 1), a `-1` with no click before it, a range written as text (`slide-ng-click="[2, 4]"`, write the binding), a
-range binding with one value or none (`[slide-ng-click]="[2]"`, which Angular rejects with TS2322) or whose end is not after its
+(clicks count from 1), a `-1` with no click before it, a
+range (bound, or written as text: `slide-ng-click="[2]"`) with one value or none (`[slide-ng-click]="[2]"`, which Angular rejects with TS2322) or whose end is not after its
 start (`[3, 1]`, `[0, 0]`), and an `at` of a `<slide-ng-switch>` child that is not a click or a range (`at="x"`, `at="5-3"`).
 Values computed in a binding are checked by the app only.
 
