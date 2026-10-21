@@ -93,7 +93,16 @@ export function createHandler(ctx) {
     }
     if ((m = /^\/monaco\/([\w-]{1,40})$/.exec(path)) && method === 'PUT') {
       const { content } = await body(req, MAX_FILE + 1_000);
-      await serial(async () => writeMonaco(ctx, m[1], content));
+      await serial(async () => {
+        // The roots too: the index.html of a theme or addon is not writable either.
+        const { roots } = await parseDeck(ctx.entry);
+        writeMonaco(
+          ctx,
+          m[1],
+          content,
+          roots.map((r) => r.dir),
+        );
+      });
       return json(res, 200, { ok: true });
     }
     throw new HttpError(404, 'not found');

@@ -10,7 +10,7 @@ command line as a package, themes and addons, an example theme, the MCP server a
    `export-notes`; flags `--format --output --range --with-clicks --dark --timeout --wait --wait-until --executable-path --per-slide --scale --omit-background --with-toc`, `--dist`, `--url`;
    headmatter `exportFilename`, `export`, `download`. File names are sanitised and nothing is written outside the output place.
 3. **Static build** `slide-ng build`: `--base`, `--out`, `--download`, `--without-notes`, `--theme`; `404.html`, `_redirects`, hash or history routing, `remoteAssets`, size budgets, docs/HOSTING.md.
-4. **Head and SEO**: `title`, `titleTemplate`, `info`, `author`, `keywords`, `favicon`, `lang`, `htmlAttrs`, `seoMeta`, Open Graph picture (`auto` makes a screenshot of slide 1).
+4. **Head and SEO**: `title`, `titleTemplate`, `info`, `author`, `keywords`, `favicon`, `lang`, `htmlAttrs`, `seoMeta`, Open Graph picture (`auto` makes a screenshot of slide 1), and the `index.html` of the deck, theme and addons (its head and body merged into the page, as in Slidev).
 5. **Offline mode** (`pwa: true`): manifest, install icons (192, 512, maskable 512), service worker and an "Available offline" / "Offline" label, tested in Chromium with the server stopped.
 6. **Command line as a package**: `bin/slide-ng.mjs` with `dev` (default), `build`, `export`, `export-notes`, `format`, `theme eject`, `mcp`, `create`; flags `--port --open --remote --bind --log --force --base (build) --theme`;
    `npm start` runs the same code. Single package with a `template/` folder (DECISIONS.md 11). `create my-deck` was run, and the new deck was formatted and built (the repository stands in for `npm install slide-ng`, see below).

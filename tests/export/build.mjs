@@ -88,6 +88,15 @@ pwa: true
 <!-- a note that must be gone from the build -->
 `,
 );
+// The deck's own index.html: its head and body are merged into the page (like Slidev). Its root addresses get the base,
+// its <meta name> replaces the headmatter's, and the attributes of <html> and <body> are kept.
+writeFileSync(
+  join(deckDir, 'index.html'),
+  `<html lang="fr" class="from-index">\n<head>\n  <meta name="deck-index" content="from the deck">\n  <meta name="keywords" content="from index.html">\n  <link rel="stylesheet" href="/brand.css">\n</head>\n<body data-index="yes">\n  <script>window.__deckIndex = 'ran';</script>\n  <script src="/brand.js"></script>\n</body>\n</html>\n`,
+);
+mkdirSync(join(deckDir, 'public'), { recursive: true });
+writeFileSync(join(deckDir, 'public', 'brand.css'), 'body { --brand: on; }\n');
+writeFileSync(join(deckDir, 'public', 'brand.js'), "window.__brandJs = 'ran';\n");
 const site = join(scratch, 'site-a');
 await cli(
   [
@@ -126,7 +135,21 @@ has('<html lang="de" data-test="yes"', 'lang and htmlAttrs');
 has('<title>Build deck | Talk</title>', 'title with titleTemplate');
 has('<meta name="description" content="A deck for the build test">', 'description from info');
 has('<meta name="author" content="Test Author">', 'author');
-has('<meta name="keywords" content="angular, slides">', 'keywords');
+has('<meta name="keywords" content="from index.html">', "keywords from the deck's index.html");
+t.ok(
+  'index.html: one keywords tag (the index.html one replaces it)',
+  html.match(/name="keywords"/g).length === 1,
+);
+has(
+  '<html lang="de" data-test="yes" class="from-index"',
+  "<html>: the headmatter's lang, the index.html class",
+);
+has('<body data-index="yes">', '<body>: the index.html attributes');
+has(
+  '<link data-beasties-skip rel="stylesheet" href="/talk/brand.css">',
+  'index.html stylesheet under the base',
+);
+has('<script src="/talk/brand.js"></script>', 'index.html script under the base');
 has('<meta property="og:title" content="Build deck | Talk">', 'og:title defaults to the title');
 has(
   '<meta property="og:image" content="https://example.test/talk/og-image.png">',
@@ -135,6 +158,11 @@ has(
 has('<meta name="twitter:card" content="summary_large_image">', 'twitter:card');
 has('<link rel="icon" href="favicon.ico" type="image/x-icon">', 'favicon');
 has('<link rel="manifest" href="manifest.webmanifest">', 'manifest link');
+t.ok(
+  "index.html: the deck's index.html head goes into the head, its body after the app",
+  /<meta name="deck-index" content="from the deck">[\s\S]*<\/head>/.test(html) &&
+    /<\/app-root>\s*<script>window.__deckIndex = 'ran';<\/script>/.test(html),
+);
 const ogSize = readFileSync(join(site, 'og-image.png'));
 t.ok(
   'og-image.png is a screenshot of slide 1 (1470x828)',
@@ -247,6 +275,18 @@ t.ok(
   'a /public picture written as /favicon.ico gets the base in front (/talk/favicon.ico) and loads',
   pub.src === '/talk/favicon.ico' && pub.ok,
   JSON.stringify(pub),
+);
+t.ok(
+  "the script of the deck's index.html body ran",
+  (await page.evaluate(() => window.__deckIndex)) === 'ran',
+);
+t.ok(
+  "the deck's index.html loads /brand.js and /brand.css from under the base",
+  await page.evaluate(
+    () =>
+      window.__brandJs === 'ran' &&
+      getComputedStyle(document.body).getPropertyValue('--brand').trim() === 'on',
+  ),
 );
 t.ok(
   'the lang and attributes are on <html>',

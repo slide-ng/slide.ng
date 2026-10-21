@@ -4,7 +4,7 @@ What slide.ng trusts, what it defends against, and what each flag changes. [SECU
 
 ## Who is trusted
 
-**The deck author is trusted, and so is whoever runs the commands.** A deck is code. Its `slides.md` can contain raw HTML (a `<script>` element is removed with a warning, but links, inline handlers in components and `setup/main.ts` run code), its `setup/*.ts` files are bundled and run by the generator (on the build machine), and a theme or addon is the same kind of code. slide.ng does not sandbox a deck from the machine that builds it. Running `slide-ng dev`, `build` or `export` on a deck you did not write is like running its code: read it first, or do it in a container.
+**The deck author is trusted, and so is whoever runs the commands.** A deck is code. Its `slides.md` can contain raw HTML (a `<script>` element is removed with a warning, but links, inline handlers in components and `setup/main.ts` run code), its `setup/*.ts` files are bundled and run by the generator (on the build machine), its `index.html` goes into the page as it is (scripts included), and a theme or addon is the same kind of code. slide.ng does not sandbox a deck from the machine that builds it. Running `slide-ng dev`, `build` or `export` on a deck you did not write is like running its code: read it first, or do it in a container.
 
 What slide.ng does defend is the line between the trusted person and everyone else:
 
@@ -19,7 +19,7 @@ What slide.ng does defend is the line between the trusted person and everyone el
 
 Without `--remote` the companion server listens on `127.0.0.1` and the Angular dev server on `localhost`. Only your own machine can connect. A web page you visit cannot use it: rebinding a name to `127.0.0.1` fails the `Host` check, a cross-site request fails the `Origin` check and has no token, and a writing request must be JSON, which a plain HTML form cannot send.
 
-What the server can do for the page that passes these checks: move `v-drag` elements and replace a slide's markdown in `slides.md` (or a file it imports with `src:`), save drawings, and save text into the files that a `<<< ./file {monaco-write}` line lists. It never accepts a file name from a request. Writes go to existing files only, never through a symbolic link, and `{monaco-write}` is limited to text-like files in the deck's folder (never `setup/`, `layouts/`, `components/`, `.git/`, `node_modules/`, package, lock, config or hidden files).
+What the server can do for the page that passes these checks: move `v-drag` elements and replace a slide's markdown in `slides.md` (or a file it imports with `src:`), save drawings, and save text into the files that a `<<< ./file {monaco-write}` line lists. It never accepts a file name from a request. Writes go to existing files only, never through a symbolic link, and `{monaco-write}` is limited to text-like files in the deck's folder (never `setup/`, `layouts/`, `components/` or `index.html` at the top of the deck's folder or of a theme or addon folder in it, `.git/`, `node_modules/`, package, lock, config or hidden files).
 
 ## `--remote`
 

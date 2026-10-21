@@ -76,6 +76,7 @@ folders listed below; the rest of it (your markdown, `node_modules`, ...) is nev
 | `public/`             | Files served from the site root (`/logo.png`). Merged; the later root wins on the same name.                                                                                       |
 | `setup/*.ts`          | Setup hooks: `shiki`, `katex`, `transformers`, `preparser`, `mermaid`, `monaco`, `code-runners`, `shortcuts`, `context-menu`, `main`, `root`. Written out in [SETUP.md](SETUP.md). |
 | `setup/providers.ts`  | Angular providers (default export: an array; `setup/main.ts` is the newer way). See "Setup hooks".                                                                                 |
+| `index.html`          | Merged into the page, as in Slidev: the inside of its `<head>` goes into the page's head, the inside of its `<body>` after the app. In root order. See below.                      |
 | `locales/<lang>.json` | Translations of the interface (the bar, menus, presenter), flat `"key": "text"` pairs. Merged key by key; the later root wins. See below.                                          |
 | `uno.config.mjs`      | UnoCSS settings (default export). Merged into the app's: `presets`, `rules`, `safelist`, `variants` are added; `shortcuts` and `theme` are merged key by key.                      |
 | `theme.json`          | Name, default headmatter and layout inputs. See below.                                                                                                                             |
@@ -93,6 +94,36 @@ use `theme.json`. Text, numbers and booleans arrive as text, as for any HTML att
 
 Every exported component with a selector in `components/` is available. A component is imported into a slide only when the slide's
 markup contains `<selector`. Giving a component the same class name as a built-in one replaces it.
+
+### `index.html`
+
+An `index.html` next to `slides.md` (or at the top of a theme or addon) is how a deck adds tags that the headmatter has no key for:
+analytics, an extra font, a `<meta>`. Only what is inside its `<head>` and `<body>` is used, so it does not need to be a whole page:
+
+```html
+<head>
+  <meta name="robots" content="noindex" />
+  <script defer data-domain="talk.example" src="https://plausible.io/js/script.js"></script>
+</head>
+<body>
+  <noscript>This deck needs JavaScript.</noscript>
+</body>
+```
+
+The parts of every root are added in root order (theme, addons, deck), after the tags made from the headmatter. As Slidev's
+head manager does, a `<title>` or a `<meta name>`/`<meta property>` replaces the one with the same name (and the same `media`)
+made from the headmatter or from an earlier root: the later one wins. A light and a dark `theme-color` (two `media`) are both kept,
+and so are tags meant to repeat, the Open Graph arrays (`og:image`, `og:video`, `og:audio`, `og:locale:alternate`,
+`article:tag`, `article:author`, `book:tag`, `book:author`, `music:*`, `video:actor`,
+`video:director`, `video:writer`, `video:tag`): every copy from every root stays. While the deck runs, the tab's title still follows the slides' titles. The
+attributes of its `<html>` and `<body>` are added to the page's tags; the headmatter's `lang` and `htmlAttrs` win over them, and
+`class` values are joined. A root address (`src="/analytics.js"`, `href="/brand.css"`, files of `public/`) gets the base in front
+like `/x.svg` in a slide (`/talk/analytics.js` with `--base /talk/`, `analytics.js` in an offline folder); `//host/...` and
+`https://...` stay as they are. Its stylesheets are loaded as written: Angular's critical-CSS step is told to skip them
+(`data-beasties-skip`), as it cannot find the files of `public/` while it runs. The file is the
+deck's own code, like `components/`: it is copied as it is, not escaped, and its scripts run in `dev`, in a build, in an offline folder
+and in an export. In dev a change to the file regenerates the page. In an offline folder (`build --offline`) a
+`<script type="module" src>` is not supported (the folder runs classic scripts only); use a plain `<script>`.
 
 ### Importing from the app
 
