@@ -342,7 +342,12 @@ and `codeAliases: { mylang: 'ts' }` for extra language names. A language Shiki d
 <<< ./snippets/example.ts#greet
 <<< ./snippets/example.ts#greet ts {1|2}
 <<< @/snippets/example.ts {*}{lines:true}
+<<< ./snippets/example.ts#greet ts [example.ts ~i-carbon:code~] {1|2}
 ```
+
+The parts come in this order, each after the path optional: `<<< path#region lang [title] {ranges}{options}`, as in
+`<<< ./snippets/greet.py python [greet.py ~i-carbon:code~] {2}{lines:true}`. The title may have spaces and an icon; the path cannot
+have spaces (a word after it is read as the language).
 
 The path is relative to the markdown file; `@/` is the folder of the entry `slides.md`. `#greet` is a region written in the file as
 `// #region greet` ... `// #endregion greet` (also `<!-- #region -->`, `/* #region */`, `# region`). A missing file is a warning and a comment in the block.
@@ -366,7 +371,12 @@ yarn add @slide-ng/core
 ::
 ````
 
-The `~icon~` title syntax and the automatic file icons of Slidev are not drawn.
+An icon goes in front of a code block, code group tab or Magic Move title: write it in the title as `~i-set:name~` (`[npm ~i-carbon:terminal~]`; its `@iconify-json` set must be installed),
+or install `@iconify-json/vscode-icons` and Slidev's built-in icons are matched from the title (`npm`, `pnpm`, `vue`, `package.json`, `.ts`, `.svg`, ...; the longest name wins).
+A built-in name has to be a whole word of the title, a file's extension (`main.ts`, `App.vue`) or the start of a file name (`eslint.config.js`);
+unlike Slidev, which looks anywhere in the title, `results.tsv` gets no TypeScript icon.
+As in Slidev, every `~...~` in a title is taken out of the text shown, and the first one is the icon: `[a~b~c]` shows `ac` with the icon class `b`.
+A single `~` stays in the text; to show text between two `~`, there is no escape.
 
 ### Magic Move
 

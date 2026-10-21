@@ -83,7 +83,7 @@ const d = 4;
 npm i @slide-ng/core
 ```
 
-```sh [yarn]
+```sh [yarn ~i-carbon:terminal~]
 yarn add @slide-ng/core
 ```
 

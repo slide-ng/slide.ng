@@ -119,7 +119,7 @@ Nothing else was added: footnotes, alerts, the PlantUML encoding and the code ru
 5. **`@/` in `<<<` is the folder of the entry markdown file**, like Slidev's `userRoot`. A missing snippet file is a warning plus a visible
    comment inside the block, so one typo does not stop the build.
 6. **`::code-group` takes the fences inside it and ignores the text between them.** Tab names are the `[titles]`; the title bar of the single
-   blocks is hidden inside a group. Slidev's automatic file icons (vscode-icons) and the `~icon~` title syntax are not drawn.
+   blocks is hidden inside a group. Slidev's automatic file icons (vscode-icons) and the `~icon~` title syntax were not drawn at first; they are now (`code/title-icon.mjs`, the built-in table only when `@iconify-json/vscode-icons` is installed, no new dependency).
 7. **Fences are found by a small line scanner** (`fences.mjs`) instead of a regular expression, so four backtick fences can hold three backtick
    ones (needed for Magic Move) and `<<<` / `::code-group` are handled in the same pass.
 8. **The deck for the phase 2 tests is `tests/e2e/phase2/slides.md`**, next to the phase 1 showcase, with its own runner (`npm run test:e2e`

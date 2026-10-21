@@ -4,8 +4,10 @@ import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, extname, resolve } from 'node:path';
 import { assertReadable } from '../outside-root.mjs';
 
-// (The language is the word after the file name; it cannot start with `{`, which begins the ranges.)
-export const SNIPPET_LINE = /^<<<[ \t]*(\S.*?)(#[\w-]+)?[ \t]*(?:[ \t]([^\s{]\S*?))?[ \t]*(\{.*)?$/;
+// `<<< path#region lang [title] {ranges}{options}`, each part after the path optional, in that order. The language is the word
+// after the file name; it cannot start with `{` (the ranges) or `[` (the title). The title may have spaces and a `~icon~`.
+export const SNIPPET_LINE =
+  /^<<<[ \t]*(\S.*?)(#[\w-]+)?(?:[ \t]+([^\s{[][^\s{[]*))?(?:[ \t]*(\[[^\]]*\]))?[ \t]*(\{.*)?$/;
 
 // Comment styles that can mark a region: [start, end] for several languages.
 const MARKERS = [
@@ -48,7 +50,8 @@ export const snippetFiles = new Set();
 export function resolveSnippet(line, file, root, options = {}) {
   const m = SNIPPET_LINE.exec(line.trim());
   if (!m) return null;
-  const [, name, region = '', lang = '', meta = ''] = m;
+  const [, name, region = '', lang = '', title = '', rest = ''] = m;
+  const meta = `${title} ${rest}`;
   const path = name.startsWith('@/') ? resolve(root, name.slice(2)) : resolve(dirname(file), name);
   assertReadable(path, 'The code snippet', {
     roots: options.roots ?? [root],
@@ -56,7 +59,9 @@ export function resolveSnippet(line, file, root, options = {}) {
   });
   snippetFiles.add(path); // the dev server watches it (also while it is missing: creating it fixes the slide)
   if (!existsSync(path) || !statSync(path).isFile())
-    throw new Error(`Code snippet not found: ${path}`);
+    throw new Error(
+      `Code snippet not found: ${path}${/\s/.test(name) ? ' (the line is read as: <<< path#region lang [title] {ranges}{options})' : ''}`,
+    );
   let lines = readFileSync(path, 'utf8').replace(/\r/g, '').replace(/\n$/, '').split('\n');
   if (region) {
     const found = findRegion(lines, region.slice(1));

@@ -134,6 +134,27 @@ export async function run({ t, open, press, hud }) {
     tabs.map((x) => x.trim()).join('|') === 'npm|yarn',
     tabs.join('|'),
   );
+  const icon = page
+    .locator('.slidev-code-tab', { hasText: 'yarn' })
+    .locator('.i-carbon\\:terminal');
+  const iconBox = (await icon.count())
+    ? await icon.evaluate((e) => {
+        const s = getComputedStyle(e);
+        return { width: e.getBoundingClientRect().width, mask: s.maskImage || s.webkitMaskImage };
+      })
+    : null;
+  t.ok(
+    'a ~icon~ in a tab title is drawn before the title',
+    iconBox && iconBox.width > 0 && iconBox.mask.includes('svg'),
+    JSON.stringify(iconBox),
+  );
+  t.ok(
+    'no icon for npm while @iconify-json/vscode-icons is not installed',
+    (await page
+      .locator('.slidev-code-tab', { hasText: 'npm' })
+      .locator('.slidev-code-title-icon')
+      .count()) === 0,
+  );
   const visible = () =>
     page
       .locator('.slidev-code-group-blocks .slidev-code-wrapper')

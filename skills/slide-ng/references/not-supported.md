@@ -27,7 +27,7 @@ If a feature is not listed as present in the other references, assume it is miss
 **Code**
 
 - Monaco type loading (`monacoTypesSource`, `monacoRunAdditionalDeps`), markdown-it plugins, a run context for code runners.
-- Twoslash `dev|build` switch, the `~icon~` code group titles, `mhchem`.
+- Twoslash `dev|build` switch, `mhchem`.
 
 **Presenting**
 

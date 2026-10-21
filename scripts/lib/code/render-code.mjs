@@ -3,6 +3,7 @@
 // click-stepped line highlights and the maximum height.
 import { codeToHtml, twoslashTransformer } from './highlighter.mjs';
 import { cleanTitle, parseInfo } from './meta.mjs';
+import { titleIcon } from './title-icon.mjs';
 import { attrs, protect } from '../protect.mjs';
 
 const slidevCode = {
@@ -42,6 +43,7 @@ export function renderCode(fence, ctx = {}) {
   const wrapperAttrs = attrs({
     ranges: ranges.join('|'),
     title: cleanTitle(title),
+    icon: title ? titleIcon(title) : undefined,
     lines: options.lines ?? head.lineNumbers,
     startLine: options.startLine,
     maxHeight: options.maxHeight,
