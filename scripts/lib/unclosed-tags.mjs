@@ -1,7 +1,11 @@
-// An element left open in a slide's raw HTML (`<div class="box">` with no `</div>`) makes Angular fail on the closing tag
-// of the layout around the slide ("Unexpected closing tag "sn-default""), which names neither the element nor the line.
-// The slide's template is read with Angular's own parser, and only that error is replaced by one that names the element.
+// An element left open in a slide's raw HTML (`<div class="box">` with no `</div>`) makes Angular fail on a closing tag
+// further on: the layout's around the slide ("Unexpected closing tag "sn-default""), or the `</p>` markdown puts after an
+// open `<span>`. Neither names the element. The slide's template is read with Angular's own parser, and those errors are
+// replaced by one that names the open element, the mistyped name of an element that is closed (`<slide-ng-clicsk>` ...
+// `</slide-ng-clicks>`) or the closing tag that closes nothing.
 import { HtmlParser, getHtmlTagDefinition } from '@angular/compiler';
+import { nearest } from './did-you-mean.mjs';
+import { BUILTIN_ELEMENTS } from './registry.mjs';
 
 const parser = new HtmlParser();
 
@@ -26,23 +30,52 @@ function firstUnclosed(nodes) {
   return null;
 }
 
-/** Throws a slide-level error when `html` would fail on the closing `</tag>` of its layout because an element is open. */
+const UNEXPECTED = /^Unexpected closing tag "([^"]+)"/;
+const shorten = (text) => {
+  const one = text.replace(/\s+/g, ' ');
+  return one.length > 80 ? `${one.slice(0, 77)}...` : one;
+};
+const plainTag = (name) => name.replace(/^:[^:]+:/, ''); // `:svg:g` is <g>
+
+/** Throws a slide-level error when `html` would fail on a closing tag because an element is open or a tag closes nothing. */
 export function assertClosedTags(html, tag, no) {
   const { errors, rootNodes } = parser.parse(html, `slide-${no}.html`, {
     tokenizeExpansionForms: true,
     tokenizeBlocks: true,
     tokenizeLet: true,
   });
-  if (!errors.some((e) => e.msg.startsWith(`Unexpected closing tag "${tag}"`))) return;
+  const closing = errors.filter((e) => UNEXPECTED.test(e.msg));
+  if (!closing.length) return;
   const open = firstUnclosed(rootNodes);
-  if (!open) return; // Angular's own message, then
-  const start = open.startSourceSpan.toString().replace(/\s+/g, ' ');
-  const shown = start.length > 80 ? `${start.slice(0, 77)}...` : start;
+  if (!open) {
+    // A closing tag with nothing to close (`</div>` too many). The layout's own tag is Angular's to report.
+    const stray = closing.map((e) => UNEXPECTED.exec(e.msg)[1]).find((name) => name !== tag);
+    if (!stray) return;
+    // A block element (`<div>`, `<ul>`) inside a `<p>` ends the `<p>` already, as in a browser.
+    const why = stray === 'p' ? ' (a <div>, list or other block inside a <p> ends the <p>)' : '';
+    throw new Error(
+      `slide ${no}: </${stray}> has no <${stray}> open to close${why}; remove it, or add the <${stray}> it should close`,
+    );
+  }
+  const shown = shorten(open.startSourceSpan.toString());
   if (!Array.isArray(open.attrs))
     throw new Error(
       `slide ${no}: ${shown} is never closed; add } where the @${open.name} block should end`,
     );
-  const name = open.name.replace(/^:[^:]+:/, ''); // `:svg:g` is <g>
+  const name = plainTag(open.name);
+  // A closing tag inside the open element with a name close to its own: one of the two names is mistyped.
+  const typo = closing
+    .filter((e) => e.span.start.offset > open.startSourceSpan.start.offset)
+    .map((e) => UNEXPECTED.exec(e.msg)[1])
+    .find((other) => other !== tag && nearest(name, [other]));
+  if (typo) {
+    const fix = BUILTIN_ELEMENTS.includes(typo)
+      ? ` Did you mean <${typo}>?`
+      : BUILTIN_ELEMENTS.includes(name)
+        ? ` Did you mean </${name}>?`
+        : ' Write both names the same.';
+    throw new Error(`slide ${no}: ${shown} is closed by </${typo}>, a different name.${fix}`);
+  }
   throw new Error(
     `slide ${no}: ${shown} is never closed; add </${name}> where it should end (or write it as <${name} />)`,
   );

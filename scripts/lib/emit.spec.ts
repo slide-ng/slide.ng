@@ -480,6 +480,26 @@ describe('slideSource warnings', () => {
       /slide 4: @if \(true\) \{ is never closed; add \} where the @if block should end/,
     );
   });
+  it('names an inline element left open, not the </p> after it (no raw NG5002)', () => {
+    expect(() =>
+      slideSource(slide({}, 'At <span class="font-bold">14:02 a migration ran.'), 4),
+    ).toThrow(/slide 4: <span class="font-bold"> is never closed; add <\/span>/);
+  });
+  it('says the names differ when a mistyped element is closed', () => {
+    expect(() =>
+      slideSource(slide({}, '<slide-ng-clicsk>\n\n- a\n- b\n\n</slide-ng-clicks>'), 4),
+    ).toThrow(
+      'slide 4: <slide-ng-clicsk> is closed by </slide-ng-clicks>, a different name. Did you mean <slide-ng-clicks>?',
+    );
+    expect(() => slideSource(slide({}, '<div class="x">a</dvi>'), 4)).toThrow(
+      'slide 4: <div class="x"> is closed by </dvi>, a different name. Write both names the same.',
+    );
+  });
+  it('names a closing tag that closes nothing', () => {
+    expect(() => slideSource(slide({}, '<div>a</div>\n\n</div>'), 4)).toThrow(
+      /slide 4: <\/div> has no <div> open to close/,
+    );
+  });
 });
 
 describe('warnInlineControlFlow', () => {

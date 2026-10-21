@@ -84,7 +84,9 @@ A mistyped name gets the nearest real one: `layout: image-rigth` ("Did you mean 
 `slide-ng-clik` (any unknown `slide-ng-*` element or attribute is a warning), a command or a flag of the CLI. Angular's own
 errors name the slide and its line in `slides.md`; for an unknown element (`'my-countr' is not a known element`) the message
 names a component or built-in element that is one or two letters away, or else says how to import it or list a web component
-in `customElements`.
+in `customElements`. An element left open (`<div>`, or `<span>` in a line of text, without its closing tag), a closing tag
+with another name (`<slide-ng-clicsk>` ... `</slide-ng-clicks>`, with a did-you-mean) or a closing tag that closes nothing
+stops the build with a message that names the slide and the tag.
 
 ## Importing slides
 
