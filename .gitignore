@@ -53,6 +53,8 @@ Thumbs.db
 # Copies the dev server test makes and removes again
 /tests/e2e/dev/work.md
 /tests/e2e/dev/work-snippet.ts
+# Held while `slide-ng dev` runs (one deck runs one dev server)
+**/.slide-ng/dev.lock
 
 # Build folders that the slide-ng command makes and removes itself
 **/.slide-ng/export-build/

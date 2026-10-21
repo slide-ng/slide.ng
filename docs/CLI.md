@@ -45,6 +45,12 @@ The QR code holds the password, like the private address it encodes: do not show
 
 On Windows `e` and `o` run through `cmd` with every argument quoted, so a deck path with spaces, `&` or `%` stays one
 argument and runs nothing else; a path with a `"` or a line break (Windows paths have neither) is refused with a message.
+One deck runs one dev server: the server keeps its working copy of the app in the deck's `.slide-ng/app`, and a second one would
+replace it under the first. So a second `slide-ng dev` on the same deck stops before it changes anything (whatever its `--port`) and
+names the running one; a port that is already in use stops it too. Run two decks side by side from their own folders, each with its own `--port`.
+A server that was killed leaves `.slide-ng/dev.lock` behind; the next start sees that its process is gone and takes over.
+The dev server keeps watching after an editor saves by renaming a new file over the old one (vim, JetBrains, `git checkout`), and a
+`src:` or theme folder that is deleted and made again is watched again.
 
 ## build
 
@@ -111,7 +117,7 @@ Makes a PDF of the speaker notes. Takes `--output`, `--range` and the Chromium f
 
 Tidies `slides.md` in place with the same parser that reads it: blank lines around each slide's content, the frontmatter printed again as
 clean YAML (comments are kept), and the speaker note at the end. Files that `src:` imports are not touched; give them as arguments to format them too.
-It prints `already formatted` when there is nothing to do.
+It prints `already formatted` when there is nothing to do. Frontmatter that is not valid YAML stops it with the file, line and slide, and the file is left as it is.
 
 ## theme eject
 

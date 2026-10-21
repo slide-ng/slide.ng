@@ -166,9 +166,14 @@ describe('parseDeck: src imports', () => {
     expect(slides.map((s) => s.title)).toEqual(['First', 'Extra two', 'Extra three', 'Last']);
   });
   it('reports a missing file as a problem and keeps going', async () => {
-    const { slides, problems } = await main('./pages/nope.md');
+    const { slides, problems, importProblems, missing } = await main('./pages/nope.md');
     expect(slides.map((s) => s.title)).toEqual(['First', 'Last']);
     expect(problems.join()).toContain('not found');
+    // The dev server shows these in its banner and watches for the file to be made.
+    expect(importProblems.join()).toContain('not found');
+    expect(missing.map((f) => f.replaceAll('\\', '/'))).toEqual([
+      expect.stringMatching(/\/pages\/nope\.md$/),
+    ]);
   });
 });
 

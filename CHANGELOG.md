@@ -92,6 +92,14 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - A presenter tab that was closed and opened again gets the running timer back from any other window of the deck, or from the dev server.
 - The timer shows the same time on devices whose clocks differ: it is shared with the sender's clock and moved onto the receiver's.
 
+### Fixed
+
+- The dev server kept missing saves of components, layouts, styles and `public/` after one save by an editor that renames a new file over the old one (vim, JetBrains, `sed -i`, `git checkout`): folders are now watched one by one. A `src:` or root folder that is deleted and made again is watched again, and a root folder made while the server runs is picked up.
+- The generator no longer grows by several MB on every save in the dev server: the previous Shiki highlighter is disposed and the Twoslash transformer is made once.
+- A second `slide-ng dev` on the same deck stops with a message (naming the running one) before it touches `.slide-ng/app`, instead of replacing the first server's working copy; a port in use is reported before anything is written.
+- `slide-ng format` on frontmatter that is not valid YAML names the file, line and slide instead of "Document with errors cannot be stringified".
+- A missing `src:` file is named in the dev server's banner, not only in the terminal.
+
 ## [1.0.0] - 2026-10-18
 
 ### Added

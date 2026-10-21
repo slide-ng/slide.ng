@@ -82,7 +82,7 @@ class: from-here
 The slide is replaced by the slides of that file. A range after `#` picks some of them:
 `src: ./pages/intro.md#2,4-6`. Keys set on the importing slide win over the imported ones.
 The text of the importing slide is ignored. A missing file or a circular import is reported when
-the slides are generated, and the slide is skipped. A leading `/` means the deck's folder (as in Slidev), not the file system.
+the slides are generated (a warning, so a build goes on), and the slide is skipped; the dev server also names it in a red banner on the page until the file is back. A leading `/` means the deck's folder (as in Slidev), not the file system.
 The imported file must be inside the deck's folder or a theme or addon folder, by real path (a symlink that leads out does not count); otherwise the build stops
 with an error. A deck that really wants to import from elsewhere says so in its own headmatter: `allowOutsideRoot: true` (a theme or addon cannot set it for the deck).
 
