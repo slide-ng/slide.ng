@@ -22,7 +22,7 @@ refused with a message. The current folder, your home folder and `/` are always 
 temporary `.slide-ng/build` folder inside the deck's folder.
 
 With several entries each deck is built in turn into its own folder of `--out`, named after its file without `.md`, and served
-under that name below `--base` (Slidev's multiple builds). Each folder is a whole site with its own `404.html` and `_redirects`;
+under that name below `--base` (Slidev's multiple builds). The rest of `--out` is emptied, so it holds only these folders. Each folder is a whole site with its own `404.html` and `_redirects`;
 a host that serves only one folder per site needs one site per deck, or a rule that sends `/x/a/*` to `/x/a/index.html`.
 
 ## What is in the build

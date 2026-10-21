@@ -1,6 +1,14 @@
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { buildTargets, checkDistinctOutputs, checkExportFlags, deckEntries } from './entries.mjs';
+import {
+  buildTargets,
+  checkDistinctOutputs,
+  checkEntriesExist,
+  checkExportFlags,
+  deckEntries,
+} from './entries.mjs';
 
 describe('deckEntries', () => {
   it('resolves every entry, and uses slides.md when there is none', () => {
@@ -63,5 +71,16 @@ describe('export checks', () => {
     expect(() => checkDistinctOutputs(['a', 'b'], ['/o/Talk', '/o/talk'])).toThrow(
       'would both be exported',
     );
+  });
+});
+
+describe('checkEntriesExist', () => {
+  it('names every missing entry, and passes when all are there', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'entries-'));
+    writeFileSync(join(dir, 'a.md'), '# a\n');
+    expect(() => checkEntriesExist([join(dir, 'a.md')])).not.toThrow();
+    expect(() =>
+      checkEntriesExist([join(dir, 'a.md'), join(dir, 'b.md'), join(dir, 'c.md')]),
+    ).toThrow(`${join(dir, 'b.md')}, ${join(dir, 'c.md')} not found`);
   });
 });

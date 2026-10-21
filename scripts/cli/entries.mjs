@@ -1,10 +1,20 @@
 // Several decks in one run, like Slidev's `slidev build a.md b.md` and `slidev export a.md b.md`. The decks run one
 // after another (one Angular build at a time keeps memory down); these helpers only decide where each one goes.
+import { existsSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
 
 /** The entry files of a command, resolved; `slides.md` when none is given. */
 export function deckEntries(positionals, fallback = 'slides.md') {
   return (positionals.length ? positionals : [fallback]).map((p) => resolve(p));
+}
+
+/** Refuses a missing entry before the first deck is built, so a typo in the last one does not wait for the others. */
+export function checkEntriesExist(entries) {
+  const missing = entries.filter((entry) => !existsSync(entry));
+  if (missing.length)
+    throw new Error(
+      `${missing.join(', ')} not found. Run slide-ng in the deck's folder, name the file (slide-ng build talk.md), or start a deck with: slide-ng create my-deck`,
+    );
 }
 
 /**

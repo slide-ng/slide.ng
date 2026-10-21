@@ -24,7 +24,9 @@ Starts the dev server: the deck at `http://localhost:4230`, the presenter at `/p
 
 Makes a static site in `dist/`. With several entries (`slide-ng build a.md b.md`) each deck is built, one after another, into
 `<out>/<name>/` and served under `<base><name>/` (`dist/a/` at `/a/`, `dist/b/` at `/b/`), where `<name>` is the file name without
-`.md`, as in Slidev. Two entries with the same file name are refused. Hosting is described in [HOSTING.md](HOSTING.md), the offline folder in [OFFLINE.md](OFFLINE.md).
+`.md`, as in Slidev. Two entries with the same file name, or a missing one, are refused before the first deck is built.
+`--out` then belongs to the build as a whole: once the decks are in, anything else an earlier build left there (a single deck's
+`index.html` and `_redirects`, the folder of a deck no longer listed) is removed, and a later build of one deck may replace it. Hosting is described in [HOSTING.md](HOSTING.md), the offline folder in [OFFLINE.md](OFFLINE.md).
 
 | flag                | what it does                                                                                |
 | ------------------- | ------------------------------------------------------------------------------------------- |

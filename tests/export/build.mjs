@@ -406,7 +406,8 @@ const multiDir = join(scratch, 'multi');
 mkdirSync(multiDir, { recursive: true });
 for (const name of ['alpha', 'beta'])
   writeFileSync(join(multiDir, `${name}.md`), `---\ntitle: ${name}\n---\n\n# ${name}\n`);
-const siteMulti = join(scratch, 'site-multi');
+// Into the folder that holds deck B's single build: its index.html and _redirects must go.
+const siteMulti = siteB;
 const multiOut = await cli(
   [
     'build',
@@ -428,6 +429,11 @@ t.ok(
       ) && multiOut.includes(`into ${join(siteMulti, name)} (base /decks/${name}/)`),
   ),
   multiOut,
+);
+t.ok(
+  'the earlier single build in --out is replaced: only the deck folders and the marker are left',
+  readdirSync(siteMulti).sort().join() === '.slide-ng-build,alpha,beta',
+  readdirSync(siteMulti).join(),
 );
 const servedMulti = await serveDirectory(join(siteMulti, 'beta'), '/decks/beta/');
 const pageMulti = await browser.newPage({ viewport: { width: 1280, height: 720 } });
@@ -480,6 +486,26 @@ t.ok(
   (
     await refuse(['build', join(multiDir, 'alpha.md'), join(multiDir, 'other', 'alpha.md')])
   ).includes('would both be built into'),
+);
+t.ok(
+  'a missing entry is refused before the first deck is built',
+  (
+    await refuse([
+      'build',
+      join(multiDir, 'alpha.md'),
+      join(multiDir, 'missing.md'),
+      '--out',
+      join(scratch, 'never'),
+    ])
+  ).includes(`${join(multiDir, 'missing.md')} not found`) && !existsSync(join(scratch, 'never')),
+);
+await cli(['build', join(multiDir, 'alpha.md'), '--out', siteMulti], multiDir);
+t.ok(
+  'one deck can be built into the --out of several (it is marked as ours) and replaces it',
+  existsSync(join(siteMulti, 'index.html')) &&
+    !existsSync(join(siteMulti, 'alpha')) &&
+    !existsSync(join(siteMulti, 'beta')),
+  readdirSync(siteMulti).join(),
 );
 t.ok(
   'an unknown flag is refused',
