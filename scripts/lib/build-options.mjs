@@ -42,6 +42,16 @@ export function addressMode(headmatter) {
   return headmatter.routerMode === 'hash' ? 'hash' : 'history';
 }
 
+/**
+ * The warning for a headmatter `routerMode: memory` in an offline build, which uses hash routing instead (the flag
+ * `--router-mode memory` is refused there), or null.
+ */
+export function offlineRouterWarning(headmatter) {
+  return headmatter.routerMode === 'memory'
+    ? "an --offline folder always uses hash routing, so the headmatter's routerMode: memory is not used (the address shows the slide, #/3)"
+    : null;
+}
+
 /** What an offline folder needs from the headmatter: hash routing (no server to answer `/3`) and no service worker. Changes it in place. */
 export function applyOffline(headmatter) {
   headmatter.routerMode = 'hash';

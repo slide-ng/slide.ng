@@ -4,7 +4,12 @@ import { copyFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { makeOffline } from '../build/offline.mjs';
 import { ogImagePlan, placeOgImage } from '../build/og-image.mjs';
-import { addressMode, applyOffline, checkRouterMode } from '../lib/build-options.mjs';
+import {
+  addressMode,
+  applyOffline,
+  checkRouterMode,
+  offlineRouterWarning,
+} from '../lib/build-options.mjs';
 import { copyDefaultIcons, iconSource, writeIcons } from '../build/pwa-icons.mjs';
 import { pwaEnabled, writePwa } from '../build/pwa.mjs';
 import { launchBrowser } from '../export/browser.mjs';
@@ -62,7 +67,11 @@ export async function buildCommand(argv) {
   const deck = await parseDeck(entry);
   const head = deck.headmatter;
   if (routerMode) head.routerMode = routerMode; // the flag wins over the headmatter, as in Slidev
-  if (offline) applyOffline(head);
+  if (offline) {
+    const warning = offlineRouterWarning(head);
+    if (warning) console.warn(`warning: ${warning}`);
+    applyOffline(head);
+  }
 
   const download = flags.download || downloadTarget(head, entry) !== null;
   const workDir = join(root, '.slide-ng', 'build');

@@ -1,6 +1,12 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
-import { addressMode, buildOptions, builtRouterMode, checkRouterMode } from './build-options.mjs';
+import {
+  addressMode,
+  buildOptions,
+  builtRouterMode,
+  checkRouterMode,
+  offlineRouterWarning,
+} from './build-options.mjs';
 
 describe('router mode of a build', () => {
   it('reads --router-mode from the environment, or nothing', () => {
@@ -26,5 +32,12 @@ describe('router mode of a build', () => {
     expect(
       builtRouterMode('<head><meta name="slide-ng-router-mode" content="abstract"></head>'),
     ).toBeNull();
+  });
+  it("says when an offline build replaces the headmatter's memory routing with hash routing", () => {
+    expect(offlineRouterWarning({ routerMode: 'memory' })).toMatch(
+      /routerMode: memory is not used/,
+    );
+    expect(offlineRouterWarning({ routerMode: 'hash' })).toBeNull();
+    expect(offlineRouterWarning({})).toBeNull();
   });
 });

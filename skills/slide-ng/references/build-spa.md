@@ -20,7 +20,7 @@ Verify: the last line is `Built N slides into <out> (base /talk/).` and `<out>/i
 - The output is plain files; any web server hands them out.
 - **History mode** (default) needs the host to answer unknown paths with `index.html`. The build writes `404.html` (GitHub Pages) and `_redirects` (Netlify). Nginx: `try_files $uri $uri/ /index.html;`. Vercel: a rewrite of `/(.*)` to `/index.html`.
 - **Hash mode** (`routerMode: hash`) needs nothing from the host: addresses are `/#/3`.
-- **Memory mode** (`routerMode: memory`) never changes the address: the deck opens at slide 1, deep links and `/presenter` links open slide 1 too. For kiosks; `--download` still works.
+- **Memory mode** (`routerMode: memory`) never changes the address: the deck opens at slide 1, deep links and `/presenter` or `/notes` links open slide 1 too (open the presenter with the bar's button). For kiosks; `--download` still works. `--offline` uses hash routing instead, with a warning. The dev server keeps the slide across reloads.
 - `--base` is a path (`/talk/`), not a full address. Build for the prefix you deploy under.
 - Files of `public/` that slides name with a leading slash (`/photo.png`, `<img src>`, `<video src poster>`, `url()`) get the base in front in a build.
 - **Safe output**: the build empties its output folder only when it is new, empty, or has a `.slide-ng-build` file. Any other folder with files is refused. The current folder, your home folder and `/` are always refused.
