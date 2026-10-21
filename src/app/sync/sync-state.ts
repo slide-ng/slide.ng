@@ -54,10 +54,15 @@ export class SyncState {
     });
   }
 
-  /** Change the shared state here and tell the others. */
+  /** Change the shared state here and tell the others. A timer and a move go with this device's clock (`sentAt`, see
+   *  cleanShared). */
   patchShared(patch: Partial<SharedState>) {
     this.shared.update((s) => ({ ...s, ...patch }));
-    this.send('shared', patch);
+    const sentAt = Date.now();
+    const out: Record<string, unknown> = { ...patch };
+    if (patch.timer) out['timer'] = { ...patch.timer, sentAt };
+    if (patch.lastUpdate) out['lastUpdate'] = { ...patch.lastUpdate, sentAt };
+    this.send('shared', out);
   }
 
   /** Change the drawing of one slide here and tell the others. */
@@ -71,7 +76,8 @@ export class SyncState {
     this.send('position', position);
   }
 
-  /** A window that just opened asks for the current position; presenters answer (see nav-sync). */
+  /** A window that just opened asks for the current position; presenters answer (see nav-sync), and every window that
+   *  knows a running or paused timer answers with it (a presenter tab that was closed and opened again gets it back). */
   sendHello() {
     this.send('hello', {});
   }
@@ -92,8 +98,11 @@ export class SyncState {
 
   private receive(channel: string, data: unknown) {
     if (channel === 'shared') this.shared.update((s) => ({ ...s, ...cleanShared(data) }));
-    else if (channel === 'hello') this.helloHandlers.forEach((fn) => fn());
-    else if (channel === 'drawings') {
+    else if (channel === 'hello') {
+      const timer = this.shared().timer;
+      if (timer.status !== 'stopped') this.patchShared({ timer });
+      this.helloHandlers.forEach((fn) => fn());
+    } else if (channel === 'drawings') {
       const patch = cleanDrawings(data);
       this.drawings.update((d) => ({ ...d, ...patch }));
       this.drawingHandlers.forEach((fn) => fn(patch));

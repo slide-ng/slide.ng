@@ -862,6 +862,10 @@ Windows of one browser follow each other with no server; other devices need the 
 The sync button in the bar (up and down arrows, before the settings; there whenever the deck has a presenter) opens Slidev's sync mode menu: Bidirectional Sync, Receive Only, Send Only or Disable.
 It sets how this window takes part in navigation sync. The choice is kept per role (viewer or presenter) in the browser's storage (`slidev-sync-directions`) and applies to every window of that role in the browser.
 Opening the menu, with the mouse or with Enter on the button, puts the focus on the ticked mode; there the arrow keys move between the modes (not through the slides), and Escape closes it and puts the focus back on the sync button.
+Use one presenter page. Two presenter pages do not follow each other: each keeps its own slide, and the audience follows the one that moved last
+(a window that opens later or a presenter page that opens or reloads does not change that, also when the devices' clocks are not set alike).
+To use a phone as the remote, open the presenter page on the phone and only the audience page on the laptop that drives the projector; an
+audience page on another device only follows.
 
 ```md
 ---
@@ -869,6 +873,10 @@ duration: 30min # 30min, 1h30min, 90s, or a number of minutes
 timer: countdown # or stopwatch (default)
 ---
 ```
+
+The timer is shared: every window and device shows the same time passed, also when their clocks are not set alike (each message carries the
+sender's clock). A reload of the presenter tab keeps it. A presenter tab opened again gets it from any other open window of the deck, and while
+the dev server runs from the server too; in a built deck with no other window left open it starts again.
 
 The presenter's mouse is shown on the audience page as a pointer or a red laser dot (settings menu, or the bar button).
 
