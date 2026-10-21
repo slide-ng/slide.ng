@@ -1,5 +1,5 @@
 // The presenter page, the notes page, the timer and the layouts.
-export async function run({ t, open, press, hud, pathOf, windowGroup }) {
+export async function run({ t, open, press, hud, until, pathOf, windowGroup }) {
   const group = await windowGroup();
   const presenter = await open('/presenter/2', undefined, undefined, group);
   const viewer = await open('/1', undefined, undefined, group);
@@ -109,8 +109,11 @@ export async function run({ t, open, press, hud, pathOf, windowGroup }) {
       ),
     ),
   );
+  const hudIs = (page, text) =>
+    until(page, (x) => document.querySelector('#hud')?.innerText.trim() === x, text);
   await presenter.locator('.slidev-note-click-mark[data-clicks="2"]').dblclick();
-  await presenter.waitForTimeout(300);
+  await hudIs(presenter, 'slide 2/4 clicks 2/2');
+  await hudIs(viewer, 'slide 2/4 clicks 2/2');
   t.ok(
     'double click on a marker jumps to that click',
     (await hud(presenter)) === 'slide 2/4 clicks 2/2' &&
@@ -127,7 +130,7 @@ export async function run({ t, open, press, hud, pathOf, windowGroup }) {
 
   // ---- slider
   await presenter.locator('app-clicks-slider .clicks-cell', { hasText: '0' }).first().click();
-  await presenter.waitForTimeout(300);
+  await hudIs(presenter, 'slide 2/4 clicks 0/2');
   t.ok(
     'the clicks slider goes to a click',
     (await hud(presenter)) === 'slide 2/4 clicks 0/2',

@@ -29,6 +29,13 @@ export function makeContext(base, browser, t) {
     await page.keyboard.press(key);
     await page.waitForTimeout(wait);
   };
+  // Waits until `fn` (run in the page, with `arg`) returns a truthy value, up to `timeout` ms.
+  // Gives false on timeout, so the check that follows reports the failure instead of a crash.
+  const until = (page, fn, arg, timeout = 5000) =>
+    page
+      .waitForFunction(fn, arg, { timeout })
+      .then(() => true)
+      .catch(() => false);
   const hud = async (page) => (await page.locator('#hud').innerText()).trim();
   const pathOf = (page) => new URL(page.url()).pathname;
   const clicksOf = (page) => new URL(page.url()).searchParams.get('clicks');
@@ -41,5 +48,18 @@ export function makeContext(base, browser, t) {
   // A fresh browser context for tests that need two windows of one browser.
   const windowGroup = (options = {}) =>
     browser.newContext({ viewport: { width: 1280, height: 720 }, ...options });
-  return { t, base, browser, problems, open, press, hud, pathOf, clicksOf, style, windowGroup };
+  return {
+    t,
+    base,
+    browser,
+    problems,
+    open,
+    press,
+    until,
+    hud,
+    pathOf,
+    clicksOf,
+    style,
+    windowGroup,
+  };
 }

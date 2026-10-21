@@ -1,5 +1,5 @@
 // Arrow, transform, slide-ng-auto-fit-text, youtube, slide-ng-video, tweet and slide-ng-blue-sky.
-export async function run({ t, open, press, hud }) {
+export async function run({ t, open, press, hud, until }) {
   let page = await open('/13');
   const attr = (sel, name) => page.locator(sel).first().getAttribute(name);
   t.ok(
@@ -38,7 +38,12 @@ export async function run({ t, open, press, hud }) {
   );
   const before = await size();
   await page.locator('#fit').evaluate((e) => (e.style.height = '40px'));
-  await page.waitForTimeout(200);
+  await until(
+    page,
+    (b) =>
+      parseFloat(document.querySelector('#fit .slidev-auto-fit-text-inner').style.fontSize) < b,
+    before,
+  );
   t.ok(
     'slide-ng-auto-fit-text fits again when the box gets smaller',
     (await size()) < before && (await inside()),

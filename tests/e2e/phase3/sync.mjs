@@ -1,6 +1,8 @@
 // Windows of one browser follow each other through a BroadcastChannel.
-export async function run({ t, open, press, hud, windowGroup }) {
+export async function run({ t, open, press, hud, until, windowGroup }) {
   const group = await windowGroup();
+  const hudIs = (page, text) =>
+    until(page, (x) => document.querySelector('#hud')?.innerText.trim() === x, text);
   const viewer = await open('/1', undefined, undefined, group);
   const other = await open('/1', undefined, undefined, group);
 
@@ -17,7 +19,7 @@ export async function run({ t, open, press, hud, windowGroup }) {
       },
     });
   });
-  await viewer.waitForTimeout(500);
+  await hudIs(viewer, 'slide 2/4 clicks 1/2');
   t.ok(
     'a viewer follows a presenter message to another slide and click',
     (await hud(viewer)) === 'slide 2/4 clicks 1/2',
@@ -40,7 +42,7 @@ export async function run({ t, open, press, hud, windowGroup }) {
       },
     });
   });
-  await viewer.waitForTimeout(400);
+  await hudIs(viewer, 'slide 2/4 clicks 2/2');
   t.ok(
     'a click change on the same slide is followed too',
     (await hud(viewer)) === 'slide 2/4 clicks 2/2',

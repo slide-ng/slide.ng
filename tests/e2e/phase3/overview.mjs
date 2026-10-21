@@ -1,6 +1,6 @@
 // The pages /overview (every slide with a clicks slider and its notes) and /entry (links), and the way there from the
 // quick overview. Editing notes needs the dev server and is checked in tests/e2e/dev-server.mjs.
-export async function run({ t, base, browser, problems, open, press }) {
+export async function run({ t, base, browser, problems, open, press, until }) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   page.on('pageerror', (e) => problems.push(String(e)));
   await page.goto(`${base}/overview`);
@@ -17,7 +17,11 @@ export async function run({ t, base, browser, problems, open, press }) {
     !(await row.locator('#c2').evaluate((e) => e.classList.contains('slidev-vclick-hidden'))),
   );
   await row.locator('.clicks-cell', { hasText: '1' }).click();
-  await page.waitForTimeout(200);
+  await until(page, () =>
+    document
+      .querySelector('.overview-row[data-no="2"] #c2')
+      ?.classList.contains('slidev-vclick-hidden'),
+  );
   t.ok(
     '/overview: the clicks slider sets the click of the thumbnail',
     !(await row.locator('#c1').evaluate((e) => e.classList.contains('slidev-vclick-hidden'))) &&

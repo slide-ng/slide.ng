@@ -2,7 +2,7 @@
 // Monaco writes spaces as non-breaking spaces; compare with normal ones.
 const plain = (s) => s.replace(/\u00a0/g, ' ');
 
-export async function run({ t, open, press, hud }) {
+export async function run({ t, open, press, hud, until }) {
   let page = await open('/10');
   await page.waitForSelector('.monaco-editor .view-lines');
   await page.waitForFunction(() =>
@@ -36,7 +36,11 @@ export async function run({ t, open, press, hud }) {
   await page.mouse.click(box.x + box.width - 40, box.y + 8); // the end of the first line
   await page.keyboard.press('End');
   await page.keyboard.type(' // typed and d');
-  await page.waitForTimeout(200);
+  await until(page, () =>
+    (document.querySelector('.monaco-editor .view-lines')?.textContent ?? '')
+      .replace(/\u00a0/g, ' ')
+      .includes('// typed and d'),
+  );
   t.ok(
     'typing changes the text (the editor is editable)',
     plain(await page.locator('.monaco-editor .view-lines').first().textContent()).includes(

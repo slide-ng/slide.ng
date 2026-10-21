@@ -1,5 +1,5 @@
 // The settings menu (Slidev's): filters, cursor style, scale, wake lock, idle cursor, then dark mode, camera options and the PDF stub.
-export async function run({ t, open }) {
+export async function run({ t, open, until }) {
   const page = await open('/presenter/1');
   await page.bringToFront();
   const menu = async () => {
@@ -77,13 +77,13 @@ export async function run({ t, open }) {
 
   // dark mode
   await page.locator('#settings-dark').check();
-  await page.waitForTimeout(200);
+  await until(page, () => document.documentElement.classList.contains('dark'));
   t.ok(
     'Dark Mode switches the page',
     await page.evaluate(() => document.documentElement.classList.contains('dark')),
   );
   await page.locator('#settings-dark').uncheck();
-  await page.waitForTimeout(200);
+  await until(page, () => !document.documentElement.classList.contains('dark'));
   t.ok(
     'and back',
     !(await page.evaluate(() => document.documentElement.classList.contains('dark'))),
