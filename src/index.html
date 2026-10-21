@@ -1,6 +1,28 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <!-- /notes-edit (dev): a saved note reloads the page. Keys typed before the app is back are kept here (in the tab's
+         storage, in case the page reloads again) and typed into the notes then (src/app/presenter/notes-edit-page.ts).
+         Only while that page's draft is fresh. -->
+    <script>
+      (function () {
+        try {
+          var draft = JSON.parse(sessionStorage.getItem('slide-ng-notes-draft') || 'null');
+          if (draft && Date.now() - draft.at < 15000) {
+            var keys = JSON.parse(sessionStorage.getItem('slide-ng-notes-keys') || '[]');
+            var keep = function (e) {
+              keys.push({ key: e.key, ctrl: e.ctrlKey || e.metaKey || e.altKey });
+              sessionStorage.setItem('slide-ng-notes-keys', JSON.stringify(keys));
+            };
+            addEventListener('keydown', keep, true);
+            window.slideNgEarlyKeys = function () {
+              removeEventListener('keydown', keep, true);
+              return keys;
+            };
+          } else sessionStorage.removeItem('slide-ng-notes-keys'); // keys of an old draft are not typed in later
+        } catch (e) {}
+      })();
+    </script>
     <meta charset="utf-8" />
     <title>slide.ng</title>
     <base href="/" />

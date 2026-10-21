@@ -709,7 +709,9 @@ While the dev server runs (`slide-ng dev`, or `npm start` in this repository): t
 A double click on a note in `/overview` edits it (leaving the text saves it, Escape cancels). `/notes-edit` has every note in one text,
 each after a `--- #N` line; the notes that changed are saved after a short pause, and a text whose `--- #N` lines were changed is not saved.
 Saving a note rebuilds the deck and reloads the page; `/notes-edit` keeps the caret and what was typed meanwhile, also while the
-notes are read again after the reload (only keys pressed while the browser swaps the page itself are lost).
+page starts again (`src/index.html` keeps those keys until the text is back) and while the notes are read again; only a key pressed
+in the instant the browser swaps the page is lost. Both note editors take each line's direction from its first letter
+(`unicode-bidi: plaintext`), so a line mixing Arabic and Latin keeps its order in either kind of deck.
 A `-->` in a note would end the comment early, so it is written `-- >`, as the presenter's note editor does.
 A static build has none of this and makes no requests.
 

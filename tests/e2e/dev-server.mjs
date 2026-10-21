@@ -478,6 +478,30 @@ try {
   );
   await page.unroute('**/__slide-ng/notes');
   await sleep(4000);
+  // Keys typed before the app has started again (its script answers late here) are kept by index.html and typed in then.
+  await page.waitForFunction(
+    () => document.querySelector('#notes-edit-status')?.dataset.status === 'saved',
+    null,
+    { timeout: 60000 },
+  );
+  await page.route('**/main.js', async (route) => {
+    await sleep(2500);
+    await route.continue().catch(() => {});
+  });
+  await page.reload({ waitUntil: 'commit' });
+  await page.waitForFunction(() => typeof window.slideNgEarlyKeys === 'function', null, {
+    timeout: 60000,
+  });
+  const early = await page.locator('#notes-edit-text').count();
+  await page.keyboard.type(' early', { delay: 50 });
+  t.ok(
+    '/notes-edit keeps the keys typed before the app is back after a reload',
+    early === 0 &&
+      (await waitForFile((s) => s.includes('<!--\nArrow -- > here. draft typed early\n-->'))),
+    `${early} ${read().slice(-80)}`,
+  );
+  await page.unroute('**/main.js');
+  await sleep(4000);
 
   // ---- bad requests, through the proxy
   const drag = (headers, extra = {}) =>

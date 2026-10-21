@@ -60,6 +60,7 @@ type Status = 'editing' | 'saving' | 'saved' | 'conflict' | 'error';
             @if (editing() === no) {
               <textarea
                 class="overview-note-edit w-full h-full min-h-40 p-2 font-mono text-sm bg-transparent border border-primary rounded outline-none"
+                style="unicode-bidi: plaintext"
                 [value]="draft()"
                 (input)="draft.set($any($event.target).value)"
                 (blur)="save(no)"

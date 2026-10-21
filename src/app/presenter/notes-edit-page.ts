@@ -19,6 +19,8 @@ type Status =
 const SAVE_DELAY = 600;
 // A saved note rebuilds the deck and reloads this page. What was typed meanwhile is kept for a moment and taken back.
 const DRAFT = 'slide-ng-notes-draft';
+// The keys typed while the page was starting again, kept by src/index.html.
+const EARLY_KEYS = 'slide-ng-notes-keys';
 const FRESH_MS = 15_000;
 interface Draft {
   text: string;
@@ -46,6 +48,7 @@ interface Draft {
       #area
       id="notes-edit-text"
       class="flex-auto w-full p-6 font-mono text-sm bg-transparent outline-none resize-none"
+      style="unicode-bidi: plaintext"
       spellcheck="false"
       aria-label="The speaker notes of all slides"
       [disabled]="(status() === 'loading' && !draft) || status() === 'offline'"
@@ -92,6 +95,15 @@ export class NotesEditPage {
           const area = this.area()?.nativeElement;
           area?.focus();
           area?.setSelectionRange(draft.start, draft.end);
+          // The keys typed while the page was starting (index.html kept them): typed into the text now.
+          const early = (window as { slideNgEarlyKeys?: () => EarlyKey[] }).slideNgEarlyKeys?.();
+          if (area && early?.length) {
+            const typed = typeKeys(draft.text, draft.start, draft.end, early);
+            area.value = typed.text;
+            area.setSelectionRange(typed.caret, typed.caret);
+            this.edit(typed.text); // the draft has them now
+          }
+          dropEarlyKeys();
         },
         { injector: this.injector },
       );
@@ -145,11 +157,44 @@ export class NotesEditPage {
   }
 }
 
+/** A key that index.html kept while the page was starting; `ctrl` is any of Ctrl, Meta and Alt (a shortcut, not text). */
+export interface EarlyKey {
+  key: string;
+  ctrl: boolean;
+}
+/** `text` after typing `keys` with the selection at `start`-`end`: letters, Enter, Backspace and Delete; other keys are skipped. */
+export function typeKeys(
+  text: string,
+  start: number,
+  end: number,
+  keys: readonly EarlyKey[],
+): { text: string; caret: number } {
+  for (const { key, ctrl } of keys) {
+    if (ctrl) continue;
+    const insert = key === 'Enter' ? '\n' : [...key].length === 1 ? key : null;
+    if (insert === null && key !== 'Backspace' && key !== 'Delete') continue;
+    if (start === end && insert === null) {
+      if (key === 'Backspace') start = Math.max(0, start - 1);
+      else end = Math.min(text.length, end + 1);
+    }
+    text = text.slice(0, start) + (insert ?? '') + text.slice(end);
+    start = end = start + (insert?.length ?? 0);
+  }
+  return { text, caret: start };
+}
+
 function keepDraft(draft: Draft) {
   try {
     sessionStorage.setItem(DRAFT, JSON.stringify(draft));
   } catch {
     // no storage: a reload right after typing loses what was not saved yet
+  }
+}
+function dropEarlyKeys() {
+  try {
+    sessionStorage.removeItem(EARLY_KEYS);
+  } catch {
+    // no storage: nothing was kept
   }
 }
 function takeDraft(): Draft | null {
