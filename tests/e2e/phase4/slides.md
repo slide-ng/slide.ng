@@ -72,4 +72,5 @@ const answer = 42
 
 # The end
 
-Done
+Done. [Back to the clicks](2), or [a web page](https://example.org). [A page of the site](/nope) and <a href="/3">an address</a> are
+no links in a PDF.

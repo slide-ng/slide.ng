@@ -2,7 +2,7 @@
 import { marked } from 'marked';
 import { layoutName } from './layouts.mjs';
 import { safeLinks, slideClass, slideName } from './emit.mjs';
-import { checkRouteAlias } from './route-alias.mjs';
+import { checkRouteAlias, checkUniqueAliases } from './route-alias.mjs';
 import { noteToHtml } from './note-html.mjs';
 import { downloadTarget } from '../export/filename.mjs';
 import { pwaEnabled } from '../build/pwa.mjs';
@@ -45,9 +45,10 @@ export function indexSource(deck) {
   const imports = deck.slides.map(
     (_, i) => `import ${slideClass(i + 1)} from './${slideName(i + 1)}';`,
   );
-  const entries = deck.slides.map(
-    (s, i) =>
-      `  { ${JSON.stringify(metaOf(s, i, rubyMap)).slice(1, -1)}, component: ${slideClass(i + 1)} },`,
+  const metas = deck.slides.map((s, i) => metaOf(s, i, rubyMap));
+  checkUniqueAliases(metas.map((m) => m.routeAlias));
+  const entries = metas.map(
+    (meta, i) => `  { ${JSON.stringify(meta).slice(1, -1)}, component: ${slideClass(i + 1)} },`,
   );
   // `info:` in the headmatter is markdown for the info dialog; we turn it into HTML here.
   const info =

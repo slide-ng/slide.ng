@@ -120,6 +120,13 @@ export async function parseDeck(file = 'slides.md', sources, options = {}) {
   // Import problems (missing file, circular import, bad range) are collected by the parser.
   for (const md of Object.values(data.markdownFiles))
     for (const e of md.errors ?? []) problems.push(`${md.filepath}:${e.row}: ${e.message}`);
+  // The parser leaves out slides with `hide:` or `disabled:`; their routeAlias names no slide, so links to it are worth a warning.
+  const hiddenAliases = Object.values(data.markdownFiles)
+    .flatMap((md) => md.slides)
+    .filter(
+      (s) => (s.frontmatter?.hide || s.frontmatter?.disabled) && s.frontmatter.routeAlias != null,
+    )
+    .map((s) => String(s.frontmatter.routeAlias));
   return {
     headmatter,
     entry,
@@ -127,6 +134,7 @@ export async function parseDeck(file = 'slides.md', sources, options = {}) {
     root: dirname(entry),
     allowOutsideRoot,
     slides,
+    hiddenAliases,
     files: Object.keys(data.markdownFiles),
     problems,
   };

@@ -59,6 +59,58 @@ describe('toTemplate: plain text is made safe', () => {
   });
 });
 
+describe('toTemplate: links', () => {
+  const link = (md: string, aliases?: string[]) => toTemplate(md, { aliases }).trim();
+  it('turns a link to a slide number into a slide link, as Slidev does', () => {
+    expect(link('[to five](5)')).toBe('<p><slide-ng-link to="5">to five</slide-ng-link></p>');
+    expect(link('[a](/5) [b](./5) [c](#/5)')).toBe(
+      '<p><slide-ng-link to="5">a</slide-ng-link> <slide-ng-link to="5">b</slide-ng-link> <slide-ng-link to="5">c</slide-ng-link></p>',
+    );
+    expect(link('[**five**](5)')).toBe(
+      '<p><slide-ng-link to="5"><strong>five</strong></slide-ng-link></p>',
+    );
+  });
+  it('turns a link to a routeAlias into a slide link, and leaves other addresses', () => {
+    expect(link('[p](/pricing) [q](./pricing) [r](#/pricing)', ['pricing'])).toBe(
+      '<p><slide-ng-link to="pricing">p</slide-ng-link> <slide-ng-link to="pricing">q</slide-ng-link> <slide-ng-link to="pricing">r</slide-ng-link></p>',
+    );
+    expect(link('[a](/about) [f](/file.pdf) [n](./notes.html)', ['pricing'])).toBe(
+      '<p><a href="/about">a</a> <a href="/file.pdf">f</a> <a href="./notes.html">n</a></p>',
+    );
+  });
+  it('turns a link to a unicode or emoji routeAlias into a slide link', () => {
+    expect(link('[a](./café) [b](/🚀) [c](./My%20Alias)', ['café', '🚀', 'My Alias'])).toBe(
+      '<p><slide-ng-link to="café">a</slide-ng-link> <slide-ng-link to="🚀">b</slide-ng-link> <slide-ng-link to="My Alias">c</slide-ng-link></p>',
+    );
+  });
+  it('warns about a link to a slide that is not there, naming the slide', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const ctx = { aliases: ['intro'], total: 3, hiddenAliases: ['ghost'], slide: { no: 2 } };
+    toTemplate('[a](99) [b](./nope) [c](./ghost) [d](/about) [e](3) [f](./intro)', ctx as any);
+    expect(warn.mock.calls.map((c) => c[0])).toEqual([
+      '[slides] slide 2: the link "99" goes to slide 99, but the deck has 3 slides (it opens slide 3)',
+      '[slides] slide 2: the link "./nope" names no slide (no slide has routeAlias "nope"), so it is a plain link',
+      '[slides] slide 2: the link "./ghost" names the routeAlias of a slide with hide: or disabled:, which is not in the deck',
+    ]);
+    warn.mockRestore();
+  });
+  it('keeps a link to a heading of the slide an anchor', () => {
+    expect(link('[r](#results) [s](./#results) [n](#5)')).toBe(
+      '<p><a href="#results">r</a> <a href="#results">s</a> <a href="#5">n</a></p>',
+    );
+  });
+  it('opens a web page in a new tab', () => {
+    expect(link('[ext](https://x.org "Home") <http://y.org> mail [m](mailto:a@b.com)')).toBe(
+      '<p><a href="https://x.org" title="Home" target="_blank" rel="noopener">ext</a> <a href="http://y.org" target="_blank" rel="noopener">http://y.org</a> mail <a href="mailto:a&#64;b.com">m</a></p>',
+    );
+  });
+  it('leaves an <a> written as HTML as it is', () => {
+    expect(link('<a href="https://x.org">x</a> <a href="5">five</a> <a href="/4">four</a>')).toBe(
+      '<p><a href="https://x.org">x</a> <a href="5">five</a> <a href="/4">four</a></p>',
+    );
+  });
+});
+
 describe('toTemplate: code is literal', () => {
   const fence = '```ts\nconst o = { a: 1 }; // @Component {{ x }} <b>\n```';
   it('escapes braces, @, {{ and < in a code fence', () => {

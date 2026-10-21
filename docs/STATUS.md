@@ -58,6 +58,7 @@ one can be written. The decisions are in DECISIONS.md ("Made while testing for 1
 - Monaco type loading; MDC/Comark; slide hooks; custom transition objects; touch tuning for drawing and drag. The full list is in docs/PARITY.md.
 - Offline: PlantUML, `<slide-ng-youtube>`, `<slide-ng-tweet>` and `<slide-ng-blue-sky>` need the network, also in an offline folder. A deck with Monaco and Mermaid becomes one large script in an offline folder (27 MB folder, 16 MB script for the phase 2 test deck).
 - PWA: the first visit must be online (a browser that never opened the deck cannot get it offline). Remote pictures are not cached in dev. Icons are drawn with Chromium at build time (a build without one warns and has no icons).
+- Links: in speaker notes a link to a slide stays a plain address, so a click in the presenter view loads that address. In a PDF made with `--per-slide`, or with `--range` that leaves the slide out, a link to another slide is no link.
 - MCP: slide 1 cannot be removed or moved; insert, remove and move need all slides in the entry file.
 - The first load of a deck with Monaco and KaTeX is about 850 kB (budget 1.5 MB / 3 MB).
 - Security fixes (docs/SECURITY-MODEL.md, decisions "Made while fixing the security review"): tested with unit tests and local servers only. NOT VERIFIED: a real LAN with a second device; the request filter of the exporter against a DNS name whose answer changes after the check; real Google Fonts with the new provider rules; `npm audit` output (no network when this was written); the password prompt on a real terminal.

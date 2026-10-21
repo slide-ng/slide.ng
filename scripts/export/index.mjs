@@ -6,7 +6,7 @@ import { launchBrowser } from './browser.mjs';
 import { screenshotPages, writePictures } from './images.mjs';
 import { writeMarkdown } from './markdown.mjs';
 import { installRequestFilter } from './request-filter.mjs';
-import { listPages, loadPrintPage, printQuery, printUrl } from './page.mjs';
+import { dropServerLinks, listPages, loadPrintPage, printQuery, printUrl } from './page.mjs';
 import { buildPdf, pagePdf } from './pdf.mjs';
 import { writePptx } from './pptx.mjs';
 
@@ -64,6 +64,7 @@ export async function exportSlides({
         query: printQuery({ withClicks: options.withClicks, range }),
       });
       await loadPrintPage(page, { url, ...options, warn: (m) => log(`warning: ${m}`) });
+      if (served.temporary) await dropServerLinks(page, served.origin);
       const listed = await listPages(page);
       const size = await page.locator('.print-slide-container').first().boundingBox();
       parts.push(await capture(page, listed, size, options));
@@ -132,6 +133,7 @@ export async function exportNotes({ options, served, routerMode, outBase, log = 
       timeout: options.timeout,
     });
     await page.locator('[data-slide-ng-print="ready"]').waitFor({ timeout: options.timeout });
+    if (served.temporary) await dropServerLinks(page, served.origin);
     if (options.wait) await page.waitForTimeout(options.wait);
     await writeFile(
       target,

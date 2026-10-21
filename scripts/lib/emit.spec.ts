@@ -3,7 +3,6 @@ import {
   closeEntities,
   keepSpaces,
   safeLinks,
-  slideLinks,
   slideSource,
   usesCustomElements,
   warnInlineControlFlow,
@@ -114,6 +113,13 @@ describe('slideSource', () => {
       '{ provide: CLICKS_START, useValue: 2 }',
     );
     expect(slideSource(slide({}, 'x'), 2)).not.toContain('useValue');
+  });
+  it('turns a markdown link to a routeAlias into a slide link, and imports it', () => {
+    const deck = { slides: [slide({}, 'a'), slide({ routeAlias: 'pricing' }, 'b')] };
+    const src = slideSource(slide({}, '[p](/pricing) [q](/other)'), 1, deck);
+    expect(src).toContain('<slide-ng-link to=\\"pricing\\">p</slide-ng-link>');
+    expect(src).toContain('<a href=\\"/other\\">q</a>');
+    expect(src).toContain('SlideLink');
   });
   it('writes the template as one safe string literal', () => {
     const src = slideSource(slide({}, '```ts\nconst a = `x`; "q"\n```'), 2);
@@ -319,16 +325,6 @@ describe('custom elements', () => {
     expect(usesCustomElements('<sl-button>', ['model-viewer'])).toBe(false);
     expect(usesCustomElements('<x-y>', true)).toBe(true);
     expect(usesCustomElements('<p>', true)).toBe(false);
-  });
-});
-
-describe('slideLinks', () => {
-  it('turns links to slide numbers and aliases into slide links, and leaves other addresses', () => {
-    expect(slideLinks('<a href="/4">four</a>')).toBe('<slide-ng-link to="4">four</slide-ng-link>');
-    expect(slideLinks('<a href="/pricing">p</a>', ['pricing'])).toBe(
-      '<slide-ng-link to="pricing">p</slide-ng-link>',
-    );
-    expect(slideLinks('<a href="/about">a</a>')).toBe('<a href="/about">a</a>');
   });
 });
 

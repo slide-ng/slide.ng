@@ -10,6 +10,12 @@ describe('noteToHtml', () => {
     expect(noteToHtml('This is a **note**')).toContain('<strong>note</strong>');
   });
 
+  it('opens web pages in a new tab and leaves other links as written', () => {
+    expect(noteToHtml('[docs](https://x.org) [three](3)')).toBe(
+      '<p><a href="https://x.org" target="_blank" rel="noopener">docs</a> <a href="3">three</a></p>\n',
+    );
+  });
+
   it('turns [click] into numbered markers', () => {
     const html = noteToHtml('Before\n[click] one\n[click] two')!;
     expect(html).toContain('data-clicks="1"');

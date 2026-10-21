@@ -3,7 +3,12 @@
 //   [click]    the next click       [click:3]  skip two clicks (same rule as Slidev's click markers)
 // `notesAutoRuby` in the headmatter is a {word: reading} map that wraps each listed word in <ruby>,
 // so a presenter reading Japanese or Chinese sees its reading above (Slidev's `notesAutoRuby`).
-import { marked } from 'marked';
+import { Marked } from 'marked';
+import { linkRenderer } from './links.mjs';
+
+// A link to a web page opens a new tab, so the presenter view stays. A link to a slide stays a plain link: the notes are
+// shown as HTML, where <slide-ng-link> would do nothing.
+const marked = new Marked({ renderer: linkRenderer({ slides: false }) });
 
 const RE_ESC = /[.*+?^${}()|[\]\\]/g;
 const escapeRe = (s) => s.replace(RE_ESC, '\\$&');

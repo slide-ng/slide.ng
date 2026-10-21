@@ -156,15 +156,6 @@ function body(markdown, def, no, ctx, layout) {
     .join('');
 }
 
-// A markdown link to another slide, `[pricing](/pricing)` or `[four](/4)`, moves inside the deck like <slide-ng-link>: with a
-// base, hash routing or an offline folder a plain address would leave the deck.
-export function slideLinks(html, aliases = []) {
-  const names = new Set(aliases.map(String));
-  return html.replace(/<a href="\/([\w-]+)(?:#[^"]*)?">([\s\S]*?)<\/a>/g, (link, to, text) =>
-    /^\d+$/.test(to) || names.has(to) ? `<slide-ng-link to="${to}">${text}</slide-ng-link>` : link,
-  );
-}
-
 // True when the markup has a tag the deck's `customElements` setting names: a list of names, where `sl-*` is a prefix, or `true`.
 export function usesCustomElements(markup, setting) {
   if (!setting) return false;
@@ -178,9 +169,9 @@ export function usesCustomElements(markup, setting) {
 
 /**
  * @param {any} slide @param {number} no
- * @param {{ root?: string, headmatter?: any, layers?: string[], layouts?: Record<string, any>, components?: any[], assetBase?: string }} [deck]
+ * @param {{ root?: string, headmatter?: any, layers?: string[], layouts?: Record<string, any>, components?: any[], assetBase?: string, slides?: any[] }} [deck]
  *   where `@/` is, the deck-wide settings, the layouts and components to use (the built-in ones unless a theme adds more),
- *   and the base that `/public` addresses get in a build (`/talk/`, `./`; default `/`, no change)
+ *   the base that `/public` addresses get in a build (`/talk/`, `./`; default `/`, no change), and all the slides
  */
 export function slideSource(slide, no, deck = {}) {
   const layouts = deck.layouts ?? LAYOUTS;
@@ -195,15 +186,19 @@ export function slideSource(slide, no, deck = {}) {
   warnInlineControlFlow(markdown, no);
   const layer = (name) =>
     deck.layers?.includes(name) ? `<app-slide-layer name="${name}"></app-slide-layer>` : '';
-  const layout = `${openTag(def, slide.frontmatter)}${body(markdown, def, no, { file: slide.file, root: deck.root, roots: deck.roots?.map((r) => r.dir), allowOutsideRoot: deck.allowOutsideRoot, headmatter: deck.headmatter, codeblocks: deck.transformers?.codeblocks, slide: slideInfo(slide, no) }, layoutKey)}</${def.tag}>`;
+  // Markdown links to a slide may name it by its routeAlias (`[pricing](/pricing)`).
+  const aliases = (deck.slides ?? [])
+    .map((sl) => sl.frontmatter?.routeAlias)
+    .filter(Boolean)
+    .map(String);
+  const layout = `${openTag(def, slide.frontmatter)}${body(markdown, def, no, { file: slide.file, root: deck.root, roots: deck.roots?.map((r) => r.dir), allowOutsideRoot: deck.allowOutsideRoot, headmatter: deck.headmatter, codeblocks: deck.transformers?.codeblocks, slide: slideInfo(slide, no), aliases, total: deck.slides?.length, hiddenAliases: deck.hiddenAliases }, layoutKey)}</${def.tag}>`;
   const base = deck.assetBase ?? '/'; // where the deck is served from in a build; `/public` files get it in front
-  const aliases = (deck.slides ?? []).map((sl) => sl.frontmatter?.routeAlias).filter(Boolean);
   const html = safeLinks(
     closeEntities(
       keepSpaces(
         rebaseHtml(
           localAssets(
-            slideLinks(layer('slide-bottom') + layout + layer('slide-top'), aliases),
+            layer('slide-bottom') + layout + layer('slide-top'),
             {
               file: slide.file ?? slide.source?.filepath,
               root: deck.root,
