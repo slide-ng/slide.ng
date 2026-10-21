@@ -455,7 +455,9 @@ Footnote numbers are not links. A note is one paragraph of inline markdown.
 
 `{#id .class}` at the end of a heading puts an id and classes on it (`## Results {#results .text-red}`), and `{width=120}` or
 `{height=80}` right after a picture sets its size (`![logo](/logo.png){width=120}`). `:emoji:` shortcodes are not converted: type the emoji.
-A link to a `javascript:` address is replaced by `#` with a warning, because it would run code when clicked.
+A link to a `javascript:` address is replaced by `#` with a warning, because it would run code when clicked (so is a `javascript:` or
+`data:text/html` address in an `<iframe>`'s `src` or an `<object>`'s `data`). An inline handler such as `onclick="..."` is kept and runs, with a
+warning; `(click)="..."` is the Angular way. An element left open in raw HTML (`<div>` without `</div>`) stops the build with a message that names it.
 
 ## Icons
 

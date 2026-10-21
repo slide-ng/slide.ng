@@ -9,6 +9,7 @@ import { toTemplate } from './to-template.mjs';
 import { tagDragSites } from './drag-sites.mjs';
 import { hasRootUrl, rebaseCss, rebaseHtml } from './asset-paths.mjs';
 import { assertNoRenamedNames } from './renamed.mjs';
+import { assertClosedTags } from './unclosed-tags.mjs';
 import { commonPipes } from './pipes.mjs';
 import { commonDirectives } from './angular-imports.mjs';
 import { setWarnSlide } from './code/highlighter.mjs';
@@ -35,10 +36,13 @@ export function warnInlineControlFlow(markdown, no) {
   }
 }
 
-// A static href or src in an Angular template is not sanitized, so `[x](javascript:...)` would run when clicked.
-// Script addresses are replaced by `#`, like markdown-it does for links, and the author is told. The whole value is read
+// A static href or src (or an <object>'s data) in an Angular template is not sanitized, so `[x](javascript:...)` would
+// run when clicked. Script addresses are replaced by `#`, like markdown-it does for links, and the author is told. The whole value is read
 // (quotes of the other kind, `java&#115;cript:`, spaces and control characters inside the scheme, no quotes at all).
-const URL_ATTR = /(\s(?:href|src|xlink:href)\s*=\s*)(?:"([^"]*)"|'([^']*)'|([^\s<>"'`]+))/gi;
+const URL_ATTR = /(\s(?:href|src|xlink:href|data)\s*=\s*)(?:"([^"]*)"|'([^']*)'|([^\s<>"'`]+))/gi;
+// An inline event handler attribute (`onclick=`, `onerror=`), not an input that happens to start with "on" (`once=`).
+const EVENT_HANDLER =
+  /\s(on(?:click|dblclick|auxclick|contextmenu|(?:mouse|pointer|touch|key|drag|focus|animation|transition)[a-z]*|wheel|scroll[a-z]*|drop|load[a-z]*|error|abort|blur|change|input|invalid|submit|reset|select[a-z]*|toggle|beforetoggle|play[a-z]*|pause|ended|canplay[a-z]*|copy|cut|paste|resize|begin|end|repeat))\s*=/i;
 // Code samples are text: an `href=javascript:` shown in one is left as it is.
 const CODE_SAMPLE = /(<pre[\s>][\s\S]*?<\/pre>|<code(?:\s[^>]*)?>[\s\S]*?<\/code>)/;
 const decodeRefs = (v) =>
@@ -218,6 +222,8 @@ export function slideSource(slide, no, deck = {}) {
     no,
   );
 
+  assertClosedTags(html, def.tag, no);
+
   // Look for components outside code samples only (code is just text). A `<code>` written in HTML is live Angular.
   const markup = html
     .replace(/<pre[\s\S]*?<\/pre>/g, '')
@@ -252,10 +258,20 @@ export function slideSource(slide, no, deck = {}) {
     console.warn(
       `[slides] slide ${no}: <template #...> is Vue's slot syntax and shows nothing here; use <div at="1"> children in <slide-ng-switch> and <div dark> / <div light> in <slide-ng-light-or-dark>`,
     );
-  // Angular removes <script> elements from templates without a word; say so, and where code goes instead.
-  if (/<script[\s>]/i.test(markup))
+  // Angular removes <script> elements from templates without a word; say so, and where code goes instead. Only tags count:
+  // `data:text/html,<script>` in an attribute is not an element (safeLinks handles that one).
+  const tags = markup.split(TAG).filter((_, i) => i % 2);
+  if (tags.some((t) => /^<script[\s>/]/i.test(t)))
     console.warn(
       `[slides] slide ${no}: <script> is removed (an Angular template cannot run one); put the code in a component in components/ or in setup/main.ts`,
+    );
+  // A static onclick= or onerror= is kept and runs as script in the deck's page (docs/SECURITY-MODEL.md).
+  const handler = tags
+    .map((t) => t.replace(/"[^"]*"|'[^']*'/g, '""').match(EVENT_HANDLER)?.[1])
+    .find(Boolean);
+  if (handler)
+    console.warn(
+      `[slides] slide ${no}: ${handler}= is an inline event handler; it is kept and runs as script in the deck's page. Angular's (${handler.slice(2).toLowerCase()})="..." calls a component's code instead`,
     );
   const used = (deck.components ?? COMPONENTS).filter((c) => c.test.test(markup));
   const pipes = commonPipes(markup);
