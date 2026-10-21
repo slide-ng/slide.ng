@@ -75,7 +75,7 @@ const answer = 42
 
 # The end
 
-Done. [Back to the clicks](2), or [a web page](https://example.org). [A page of the site](/nope) and <a href="/3">an address</a> are
+Done. [Back to the clicks](2), or [a web page](https://example.org). [A page of the site](/nope) and <a href="/handout.pdf">a file</a> are
 no links in a PDF.
 
 <slide-ng-render-when context="visible"><p id="print-visible">on paper</p><p fallback id="print-visible-fallback">not seen</p></slide-ng-render-when>

@@ -1,5 +1,5 @@
 // How a markdown link is written out, as in Slidev: a link to a slide moves inside the deck, a link to a web page opens a
-// new tab. Only links written in markdown; an <a> written as HTML is left as it is.
+// new tab. An <a href="/3"> written as HTML is turned into a link to the slide the same way (htmlSlideLinks).
 import { Renderer } from 'marked';
 import { RESERVED } from './route-alias.mjs';
 
@@ -72,4 +72,41 @@ export function linkRenderer({ slides = true, aliases = [], total, hidden, warn 
         : html;
     },
   };
+}
+
+const HTML_LINK = /<a(\s[^>]*)?>([\s\S]*?)<\/a\s*>/gi;
+const HTML_ATTR = /([^\s=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+)))?/g;
+// The attributes that can move to <slide-ng-link> as they are; with any other (target, rel, a binding) the <a> is kept.
+const MOVABLE = new Set(['href', 'class', 'id', 'style']);
+
+/**
+ * An `<a href="/3">` (or `./3`, `#/3`, a routeAlias) written as HTML in a slide's markup becomes `<slide-ng-link to="3">`, as a
+ * markdown link does: a plain href would leave the deck with `routerMode: hash`, a `--base` or an offline build. An <a> with
+ * other attributes is left as it is, with a warning.
+ * @param {string} html @param {{ aliases?: string[], total?: number, hidden?: string[], warn?: (message: string) => void }} [deck]
+ */
+export function htmlSlideLinks(html, { aliases = [], total, hidden, warn } = {}) {
+  return html.replace(HTML_LINK, (whole, attrText = '', inner) => {
+    const attrs = [...attrText.matchAll(HTML_ATTR)].map((m) => ({
+      name: m[1].toLowerCase(),
+      value: m[2] ?? m[3] ?? m[4],
+      raw: m[0],
+    }));
+    const href = attrs.find((a) => a.name === 'href')?.value;
+    if (href == null) return whole;
+    // Only a link that reaches a slide is looked at: a markdown link to no slide is an <a> here too, and was warned about.
+    // A bare `5` is a relative address in HTML (only markdown reads it as slide 5, as Slidev does).
+    const to = !DIGITS.test(href) && slideTarget(href, aliases);
+    if (!to) return whole;
+    const problem = warn && brokenSlideLink(href, { aliases, total, hidden });
+    if (problem) warn(problem);
+    if (attrs.some((a) => !MOVABLE.has(a.name))) {
+      warn?.(
+        `<a href="${href}"> is an HTML link to a slide with other attributes, so it is left as it is: with routerMode: hash, a --base or an offline build it does not reach the slide. Write it as [text](${href}) or <slide-ng-link to="${to}">`,
+      );
+      return whole;
+    }
+    const rest = attrs.filter((a) => a.name !== 'href').map((a) => ` ${a.raw}`);
+    return `<slide-ng-link to="${to.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"${rest.join('')}>${inner}</slide-ng-link>`;
+  });
 }

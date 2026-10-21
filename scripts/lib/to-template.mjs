@@ -13,7 +13,7 @@ import { markAlerts } from './alerts.mjs';
 import { extractFootnotes, finishFootnotes } from './footnotes.mjs';
 import { rewriteIcons } from './icons.mjs';
 import { applyAttrSugar } from './attr-sugar.mjs';
-import { linkRenderer } from './links.mjs';
+import { htmlSlideLinks, linkRenderer } from './links.mjs';
 
 export { escapeCode, protect };
 
@@ -111,6 +111,13 @@ export function toTemplate(markdown, ctx = {}) {
 
   // 3. Markdown -> HTML, then make the remaining braces and @ harmless.
   let html = protect(applyAttrSugar(markAlerts(marked.parse(md, { async: false }))));
+  // An <a href="/3"> written as HTML goes to the slide as a markdown link does (code is still set aside here).
+  html = htmlSlideLinks(html, {
+    aliases: ctx.aliases,
+    total: ctx.total,
+    hidden: ctx.hiddenAliases,
+    warn: ctx.slide && ((m) => console.warn(`[slides] slide ${ctx.slide.no}: ${m}`)),
+  });
   // Angular decodes `&#123;&#123;` back to `{{` and reads an interpolation: the first brace of a pair is written as one.
   html = html.replace(/&#123;(?=&#123;)/g, "{{ '{' }}");
   html = finishFootnotes(html, footnotes.notes, (note) =>

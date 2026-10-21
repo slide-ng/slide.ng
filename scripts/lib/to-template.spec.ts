@@ -107,9 +107,9 @@ describe('toTemplate: links', () => {
       '<p><a href="https://x.org" title="Home" target="_blank" rel="noopener">ext</a> <a href="http://y.org" target="_blank" rel="noopener">http://y.org</a> mail <a href="mailto:a&#64;b.com">m</a></p>',
     );
   });
-  it('leaves an <a> written as HTML as it is', () => {
+  it('turns an <a href="/4"> written as HTML into a slide link, and leaves other <a> as they are', () => {
     expect(link('<a href="https://x.org">x</a> <a href="5">five</a> <a href="/4">four</a>')).toBe(
-      '<p><a href="https://x.org">x</a> <a href="5">five</a> <a href="/4">four</a></p>',
+      '<p><a href="https://x.org">x</a> <a href="5">five</a> <slide-ng-link to="4">four</slide-ng-link></p>',
     );
   });
 });

@@ -624,7 +624,10 @@ As in Slidev, a markdown link to a slide moves inside the deck, and a link to a 
   (`/name` may be a page of the site, so it is not warned about) and a link to the alias of a slide with `hide:` or `disabled:`.
 - `#id` and `./#id` scroll to that element of the slide. `#5` is such an anchor too: write `5` or `#/5` for slide 5.
 - An `http:` or `https:` address gets `target="_blank" rel="noopener"`. Slidev opens every other link in a new tab; here `mailto:` and the like stay as they are.
-- An `<a>` written as HTML is left as written.
+- An `<a>` written as HTML whose `href` is `/`, `./` or `#/` and a slide number or `routeAlias` (`<a href="/3">`) becomes a `<slide-ng-link>`
+  in the same way, keeping its `class`, `id` and `style` (a bare `<a href="3">` is a relative address in HTML and stays). With other
+  attributes (`target`, a binding) it is left as written, with a warning: it does not reach the slide with hash routing, a base or offline.
+  Any other `<a>` is left as written.
 - On the print page and in an exported PDF a link to a slide points at the first page of that slide, if that slide is in the same file.
   In a PDF made by `export` or `build --download`, a link to another address of the deck's own site (`/file.pdf`, `<a href="/3">`,
   `[x](tokens)`) is kept as text without a link: it would point at the temporary server the export reads the deck from.
