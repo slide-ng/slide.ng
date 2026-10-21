@@ -408,6 +408,12 @@ describe('slideSource warnings', () => {
       /slide 4: <div class="box"> is never closed/,
     );
     expect(() => slideSource(slide({}, '<ul><li>a<li>b</ul>\n\n<p>text'), 4)).not.toThrow();
+    expect(() => slideSource(slide({}, '@let n = 1;\n\n<div class="box">\n\ntext'), 4)).toThrow(
+      /slide 4: <div class="box"> is never closed/,
+    );
+    expect(() => slideSource(slide({}, '@if (true) {\n\ntext'), 4)).toThrow(
+      /slide 4: @if \(true\) \{ is never closed; add \} where the @if block should end/,
+    );
   });
 });
 
