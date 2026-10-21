@@ -1,4 +1,4 @@
-import { Component, ElementRef, effect, inject, signal, untracked, viewChild } from '@angular/core';
+import { Component, effect, inject, signal, untracked } from '@angular/core';
 import { focusWhileOpen } from '../lib/dialog-focus';
 import { Nav } from '../lib/nav';
 import { Ui } from '../lib/ui-state';
@@ -14,7 +14,6 @@ import { Thumbnail } from './thumbnail';
   template: `
     @if (ui.overview()) {
       <div
-        #dialog
         id="overview"
         role="dialog"
         aria-modal="true"
@@ -52,14 +51,7 @@ import { Thumbnail } from './thumbnail';
         </div>
       </div>
       <div class="fixed top-4 right-4 z-modal text-gray-400">
-        <button
-          #closeButton
-          icon-btn
-          id="overview-close"
-          class="text-2xl"
-          title="Close"
-          (click)="close()"
-        >
+        <button icon-btn id="overview-close" class="text-2xl" title="Close" (click)="close()">
           <div class="i-carbon:close"></div>
         </button>
       </div>
@@ -71,8 +63,10 @@ export class Overview {
   protected nav = inject(Nav);
   protected width = signal(window.innerWidth);
   protected cardWidth = 300;
-  private dialog = viewChild<ElementRef<HTMLElement>>('dialog');
-  private closeButton = viewChild('closeButton', { read: ElementRef<HTMLElement> });
+  // Looked up by id, not kept in a viewChild: a query signal holds its last element until it is read again, which kept every
+  // card of a closed overview (thousands of nodes in a long deck) in memory.
+  private dialog = () => document.getElementById('overview') ?? undefined;
+  private closeButton = () => document.getElementById('overview-close') ?? undefined;
 
   // A page in a thumbnail's iframe that focuses itself would take the keys (Escape, arrows) away from the overview; the
   // thumbnails are inert, but a frame's own script can still focus it. Take the focus back.
@@ -80,15 +74,15 @@ export class Overview {
     setTimeout(() => {
       const active = document.activeElement;
       if (this.ui.overview() && active instanceof HTMLIFrameElement && active.closest('#overview'))
-        this.dialog()?.nativeElement.focus();
+        this.dialog()?.focus();
     });
   }
 
   constructor() {
     focusWhileOpen(
       this.ui.overview,
-      () => this.dialog()?.nativeElement,
-      () => [this.closeButton()?.nativeElement],
+      () => this.dialog(),
+      () => [this.closeButton()],
     );
     effect(() => {
       // Every time the overview opens, highlight the slide on screen, and tell the keys how wide a row is.
