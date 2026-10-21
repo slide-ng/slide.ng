@@ -84,7 +84,7 @@ In the room:
 
 ## What was tested
 
-Run by `npm run test:export` (`tests/export/offline.mjs`, `tests/export/offline-net.mjs`), in Chromium with `playwright-core`:
+Run by `npm run test:export` ([`tests/export/offline.mjs`](https://github.com/slide-ng/slide.ng/blob/main/tests/export/offline.mjs), [`tests/export/offline-net.mjs`](https://github.com/slide-ng/slide.ng/blob/main/tests/export/offline-net.mjs)), in Chromium with `playwright-core`:
 
 - An offline folder opened with `file://`, no server: first slide, right arrow (click, then next slide), the next button with the mouse, hash addresses, reload, overview, KaTeX with its font file, Mermaid, Monaco (styled, syntax colours, worker started from a blob), the image layout, a `/public` picture, a picture from a stopped "remote" server, a web font from a stopped fake font provider, the PDF button, no console error or failed request.
 - The presenter page, a second window opened with `window.open`, sync in both directions between `file://` pages, and no sync between two folders.

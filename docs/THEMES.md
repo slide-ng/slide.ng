@@ -1,10 +1,10 @@
 # Themes and addons: the contract
 
 A theme or addon is a folder (or an npm package) that adds to the built-in look. This page is the reference; the step-by-step
-guide is [WRITING-A-THEME.md](WRITING-A-THEME.md). The working example is [`examples/theme-minimal`](../examples/theme-minimal).
+guide is [WRITING-A-THEME.md](WRITING-A-THEME.md). The working example is [`examples/theme-minimal`](https://github.com/slide-ng/slide.ng/tree/main/examples/theme-minimal).
 
-The repository has three more example themes to copy or use as they are: [`theme-paper`](../examples/theme-paper) (light, editorial: serif
-headlines, a vermilion accent), [`theme-moss`](../examples/theme-moss) (dark, forest green and clay) and [`theme-blueprint`](../examples/theme-blueprint)
+The repository has three more example themes to copy or use as they are: [`theme-paper`](https://github.com/slide-ng/slide.ng/tree/main/examples/theme-paper) (light, editorial: serif
+headlines, a vermilion accent), [`theme-moss`](https://github.com/slide-ng/slide.ng/tree/main/examples/theme-moss) (dark, forest green and clay) and [`theme-blueprint`](https://github.com/slide-ng/slide.ng/tree/main/examples/theme-blueprint)
 (navy drafting grid, amber marks). Each README lists its layouts, inputs and component.
 
 ## Using one

@@ -1,6 +1,6 @@
 # Security model
 
-What slide.ng trusts, what it defends against, and what each flag changes. [SECURITY.md](../SECURITY.md) says how to report a problem; this page says what counts as one.
+What slide.ng trusts, what it defends against, and what each flag changes. [SECURITY.md](https://github.com/slide-ng/slide.ng/blob/main/SECURITY.md) says how to report a problem; this page says what counts as one.
 
 ## Who is trusted
 

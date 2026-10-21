@@ -1,6 +1,6 @@
 # Writing a theme
 
-A theme in five steps. The rules are in [THEMES.md](THEMES.md); `examples/theme-minimal` is a finished small theme.
+A theme in five steps. The rules are in [THEMES.md](THEMES.md); [`examples/theme-minimal`](https://github.com/slide-ng/slide.ng/tree/main/examples/theme-minimal) is a finished small theme.
 
 ## 1. Make the folder
 
@@ -43,7 +43,7 @@ If your layout reads frontmatter (`author: Ada`), give the component an input of
 
 The list replaces the built-in layout's inputs, so keep the ones you still want: a `cover` that adds `event` lists
 `["background", "event"]`, or a `background:` picture is dropped. The `slide-ng/layouts/background` helper turns that input into the
-style the built-in cover uses (see `examples/theme-paper/layouts/cover.ts`).
+style the built-in cover uses (see [`examples/theme-paper/layouts/cover.ts`](https://github.com/slide-ng/slide.ng/blob/main/examples/theme-paper/layouts/cover.ts)).
 
 ## 3. Add a component
 
@@ -143,4 +143,4 @@ instead of from nothing with `slide-ng theme eject`.
 ## Checking your theme
 
 Run the deck with `slide-ng` and edit the theme: the folders are watched. Run `slide-ng build` to see the real build (it fails on
-a template error in a layout). The repository's own test for the example theme, also installed as a fake `@slide-ng/theme-demo` package to prove the lookup in `node_modules`, is `tests/export/theme.mjs`.
+a template error in a layout). The repository's own test for the example theme, also installed as a fake `@slide-ng/theme-demo` package to prove the lookup in `node_modules`, is [`tests/export/theme.mjs`](https://github.com/slide-ng/slide.ng/blob/main/tests/export/theme.mjs).

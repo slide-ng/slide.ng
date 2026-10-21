@@ -23,7 +23,7 @@ addons:
 - A slide reads the map as `themeConfig` (Slidev's `$slidev.themeConfigs`): write `{{ themeConfig['primary'] }}`; `themeConfig.primary` does not compile (the map has no fixed keys).
 - Addons were unit-tested for resolution and merge order only; no deck was built end to end with one.
 - Official themes: `theme-official.md`. Write one: `theme-write.md`.
-- The slide.ng repository also has example themes to copy into a deck as folders: `examples/theme-minimal`, `theme-paper` (light, editorial), `theme-moss` (dark, green and clay), `theme-blueprint` (navy drafting grid).
+- The slide.ng repository also has [example themes](https://github.com/slide-ng/slide.ng/tree/main/examples) to copy into a deck as folders: `examples/theme-minimal`, `theme-paper` (light, editorial), `theme-moss` (dark, green and clay), `theme-blueprint` (navy drafting grid).
 
 <!-- verify -->
 

@@ -7,7 +7,7 @@ The folder can be in the deck's own folder, in a theme and in an addon (see THEM
 weakest first (built-in theme, `theme:`, the addons in order, the deck), so the deck has the last word. How the answers of several roots are put
 together is written under each hook.
 
-A setup file is plain TypeScript (or `.mjs` / `.js` for the hooks that run in Node). The tests for all of them are in `tests/e2e/phase5/`:
+A setup file is plain TypeScript (or `.mjs` / `.js` for the hooks that run in Node). The tests for all of them are in [`tests/e2e/phase5/`](https://github.com/slide-ng/slide.ng/tree/main/tests/e2e/phase5):
 a deck with one file of each kind, checked in a real browser.
 
 There are two kinds of hooks:

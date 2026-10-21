@@ -133,6 +133,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - The "go to" box (`g`) finds titles in any case by the deck's language (Turkish `izmir` finds "İzmir", `ışık` finds "Işık") and without accents.
 - Slide titles with `$math$` or markdown escapes are plain text in the tab title, the live region, the "go to" list and the PDF outline (`Karmaşıklık O(1)`, not `$O(1)$`).
 - The page description and the PDF subject made from `info` keep `#`, `_`, `*` and `>` that are not markdown (`C#`, `#42`, `snake_case`).
+- The docs in the package link to the example themes, the tests and SECURITY.md on GitHub; those files are not in the package, so the relative links led nowhere.
 
 ## [1.0.0] - 2026-10-18
 
