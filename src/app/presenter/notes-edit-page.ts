@@ -48,7 +48,7 @@ interface Draft {
       class="flex-auto w-full p-6 font-mono text-sm bg-transparent outline-none resize-none"
       spellcheck="false"
       aria-label="The speaker notes of all slides"
-      [disabled]="status() === 'loading' || status() === 'offline'"
+      [disabled]="(status() === 'loading' && !draft) || status() === 'offline'"
       [value]="text()"
       (input)="edit($any($event.target).value)"
     ></textarea>
@@ -76,10 +76,26 @@ export class NotesEditPage {
   private timer?: ReturnType<typeof setTimeout>;
   private edits = 0; // counts what was typed, so a save that ends after more typing does not say "Saved"
   private saving = Promise.resolve();
+  /** What was typed before the reload, when this page came back after one. */
+  protected readonly draft = takeDraft();
 
   constructor() {
     inject(Dark);
     inject(Title).setTitle(`Notes editor - ${HEADMATTER['title'] ?? 'slide.ng'}`);
+    // Back after a reload: the text, the caret and the focus return at once, before the notes are read, so the keys typed
+    // while they load land in the text too.
+    const draft = this.draft;
+    if (draft) {
+      this.text.set(draft.text);
+      afterNextRender(
+        () => {
+          const area = this.area()?.nativeElement;
+          area?.focus();
+          area?.setSelectionRange(draft.start, draft.end);
+        },
+        { injector: this.injector },
+      );
+    }
     void this.load();
   }
 
@@ -87,20 +103,10 @@ export class NotesEditPage {
     const notes = await this.store.load();
     if (!notes) return this.status.set('offline');
     this.saved = notes;
-    const draft = takeDraft();
-    this.text.set(draft?.text ?? notesToText(notes.map((n) => n ?? '')));
     this.status.set('saved');
-    if (!draft) return;
-    // Back after a reload: the caret and the focus return, and what was not saved yet is saved now.
-    afterNextRender(
-      () => {
-        const area = this.area()?.nativeElement;
-        area?.focus();
-        area?.setSelectionRange(draft.start, draft.end);
-        this.edit(draft.text);
-      },
-      { injector: this.injector },
-    );
+    if (!this.draft) return this.text.set(notesToText(notes.map((n) => n ?? '')));
+    // What was not saved before the reload, and what was typed since, is saved now.
+    this.edit(this.text());
   }
 
   protected edit(value: string) {
@@ -113,6 +119,7 @@ export class NotesEditPage {
       end: area?.selectionEnd ?? 0,
       at: Date.now(),
     });
+    if (this.status() === 'loading') return; // saved once the notes are read (load)
     clearTimeout(this.timer);
     if (!Array.isArray(textToNotes(value, SLIDES.length))) return this.status.set('invalid');
     this.status.set('saving');

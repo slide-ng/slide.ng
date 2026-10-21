@@ -6,7 +6,10 @@ describe('checkRouteAlias', () => {
     expect(checkRouteAlias('intro', 2)).toBe('intro');
     expect(checkRouteAlias(undefined, 2)).toBeNull();
   });
-  it.each(['print', 'notes', 'presenter'])('rejects %s with the slide number', (name) => {
-    expect(() => checkRouteAlias(name, 4)).toThrow(/slide 4: routeAlias "/);
-  });
+  it.each(['print', 'notes', 'presenter', 'overview', 'entry', 'notes-edit'])(
+    'rejects %s with the slide number',
+    (name) => {
+      expect(() => checkRouteAlias(name, 4)).toThrow(/slide 4: routeAlias "/);
+    },
+  );
 });

@@ -36,11 +36,17 @@ function lastComment(raw) {
 /** The note of a slide's markdown (as `sourceOf` returns it), or '' when it has none. */
 export const noteOf = (raw) => lastComment(raw).last?.[1].trim() ?? '';
 
+/**
+ * A note as it can stand in the comment: `-->` inside it would end the comment early and spill the rest onto the slide, so
+ * it is written `-- >`, as the presenter's note editor does.
+ */
+export const escapeNote = (note) => note.trim().replace(/--+>/g, (m) => m.replace(/>$/, ' >'));
+
 /** The slide's markdown with `note` as its note: the old note is replaced, an empty note removes it. As Slidev writes it. */
 export function replaceNote(raw, note) {
   const { body, last } = lastComment(raw);
   const rest = last ? body.slice(0, last.index).trimEnd() : body;
-  const text = note.trim() ? `${rest}\n\n<!--\n${note.trim()}\n-->` : rest;
+  const text = note.trim() ? `${rest}\n\n<!--\n${escapeNote(note)}\n-->` : rest;
   return raw.endsWith('\n') ? `${text}\n` : text;
 }
 

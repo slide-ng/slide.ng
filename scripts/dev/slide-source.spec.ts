@@ -154,6 +154,11 @@ describe('noteOf and replaceNote', () => {
       '# A\n\n<!-- keep -->\n\ntext',
     );
   });
+  it('writes --> in a note as -- >, as the presenter does, so the comment does not end early', () => {
+    const raw = replaceNote('# A\n', 'a --> b ---> c');
+    expect(raw).toBe('# A\n\n<!--\na -- > b --- > c\n-->\n');
+    expect(noteOf(raw)).toBe('a -- > b --- > c');
+  });
   it("matches the parser's note", async () => {
     const data = await parse(md, '/x/slides.md');
     const raw = sourceOf(md, data.slides[1]);

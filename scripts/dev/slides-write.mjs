@@ -6,7 +6,14 @@ import { parseDeck } from '../lib/parse-deck.mjs';
 import { confine, safeWrite } from './auth.mjs';
 import { assertNoWidening } from './escalation.mjs';
 import { HttpError } from './http-error.mjs';
-import { dragEdit, noteOf, replaceNote, replaceSource, sourceOf } from './slide-source.mjs';
+import {
+  dragEdit,
+  escapeNote,
+  noteOf,
+  replaceNote,
+  replaceSource,
+  sourceOf,
+} from './slide-source.mjs';
 
 /** The slide, the markdown file it is in, and that file's text, read now. */
 async function locate(ctx, no, deck = undefined) {
@@ -77,10 +84,10 @@ export async function readNotes(ctx) {
  * now (an edit elsewhere, or slide `no` became another slide), nothing is written (409).
  */
 export async function writeNote(ctx, no, note, base) {
-  if (note.includes('-->')) throw new HttpError(422, 'a note cannot contain -->');
   const { slide, file, text } = await locate(ctx, no);
   const raw = sourceOf(text, slide);
-  if (typeof base === 'string' && noteOf(raw) !== base.trim())
+  // A `-->` in the note is written `-- >` (replaceNote); a base that had one was written that way too.
+  if (typeof base === 'string' && noteOf(raw) !== base.trim() && noteOf(raw) !== escapeNote(base))
     throw new HttpError(409, `the note of slide ${no} changed in the file since the page read it`);
   await save(ctx, file, replaceSource(text, slide, replaceNote(raw, note)));
 }

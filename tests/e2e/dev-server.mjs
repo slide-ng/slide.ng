@@ -433,6 +433,51 @@ try {
     (await page.locator('#notes-edit-status').getAttribute('data-status')) === 'invalid' &&
       read() === afterThree,
   );
+  // A --> in a note is written -- >, as the presenter's note editor does, instead of being refused.
+  await page.evaluate(() => sessionStorage.clear()); // no draft of the broken text
+  await page.goto(`${base}/notes-edit`);
+  await page.waitForFunction(
+    () => document.querySelector('#notes-edit-status')?.dataset.status === 'saved',
+    null,
+    { timeout: 60000 },
+  );
+  await area.fill((await area.inputValue()).replace('Typed for three.', 'Arrow --> here.'));
+  t.ok(
+    '/notes-edit writes --> in a note as -- >',
+    await waitForFile((s) => s.includes('<!--\nArrow -- > here.\n-->')),
+    read().slice(-80),
+  );
+  await sleep(4000); // the deck is rebuilt and the page reloads
+  // Keys typed while the page reads the notes again after a reload are kept (the notes answer late here).
+  await page.waitForFunction(
+    () => document.querySelector('#notes-edit-status')?.dataset.status === 'saved',
+    null,
+    { timeout: 60000 },
+  );
+  await page.evaluate(() => {
+    const text = document.querySelector('#notes-edit-text').value.replace('here.', 'here. draft');
+    const at = text.indexOf('draft') + 'draft'.length;
+    sessionStorage.setItem(
+      'slide-ng-notes-draft',
+      JSON.stringify({ text, start: at, end: at, at: Date.now() }),
+    );
+  });
+  await page.route('**/__slide-ng/notes', async (route) => {
+    await sleep(2500);
+    await route.continue().catch(() => {}); // unrouted meanwhile: Playwright has let it through
+  });
+  await page.reload();
+  await page.locator('#notes-edit-text:not([disabled])').waitFor({ timeout: 60000 });
+  const whileLoading = await page.locator('#notes-edit-status').getAttribute('data-status');
+  await page.keyboard.type(' typed', { delay: 50 });
+  t.ok(
+    '/notes-edit keeps the keys typed while the notes load after a reload',
+    whileLoading === 'loading' &&
+      (await waitForFile((s) => s.includes('<!--\nArrow -- > here. draft typed\n-->'))),
+    `${whileLoading} ${read().slice(-80)}`,
+  );
+  await page.unroute('**/__slide-ng/notes');
+  await sleep(4000);
 
   // ---- bad requests, through the proxy
   const drag = (headers, extra = {}) =>
