@@ -30,7 +30,7 @@ a host that serves only one folder per site needs one site per deck, or a rule t
 | file                                                    | what for                                                                                     |
 | ------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | `index.html`, `main-*.js`, `chunk-*.js`, `styles-*.css` | the app (Monaco, Mermaid and so on are separate chunks, fetched only when a slide uses them) |
-| `inline-*.js`                                           | the small scripts of `index.html`, as files (see Content-Security-Policy below)              |
+| `inline-*.js`                                           | the inline scripts of `index.html`, as files (see Content-Security-Policy below)             |
 | `404.html`                                              | a copy of `index.html`: GitHub Pages shows it for unknown paths, so `/talk/3` opens the app  |
 | `_redirects`                                            | the same rule for Netlify                                                                    |
 | `<exportFilename>.pdf`                                  | only with `--download` or `download: true` in the headmatter                                 |
@@ -136,7 +136,11 @@ Under a sub-path build with `--base /talk/`, put the files in `/usr/share/nginx/
 ## Content-Security-Policy
 
 `index.html` has no inline script: the few lines Angular adds there (they switch the full stylesheet on once the page has loaded)
-are written to `inline-*.js` next to it. A host that sends a strict policy therefore runs the deck, as long as styles may be inline
+are written to `inline-*.js` next to it, and so are the inline scripts of the deck's own `index.html`. A classic script (no `type`,
+or a JavaScript one) runs from its file at the same point of the page; a `type="module"` script stays a module; other attributes
+(`data-cfasync="false"`, `id`, `nomodule`) are kept. Data blocks (`application/ld+json`, `application/json`) stay inline, since a
+policy does not stop them. An inline import map or `speculationrules` cannot be a file: the build leaves it and warns that a strict
+policy refuses it. Inline event handlers (`onload="..."`) are not moved either. A host that sends a strict policy therefore runs the deck, as long as styles may be inline
 (Angular puts the styles of the components in `<style>` elements). This policy was tried with a deck that has Monaco, Mermaid and KaTeX:
 
 ```

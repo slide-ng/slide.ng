@@ -92,7 +92,7 @@ pwa: true
 // its <meta name> replaces the headmatter's, and the attributes of <html> and <body> are kept.
 writeFileSync(
   join(deckDir, 'index.html'),
-  `<html lang="fr" class="from-index">\n<head>\n  <meta name="deck-index" content="from the deck">\n  <meta name="keywords" content="from index.html">\n  <link rel="stylesheet" href="/brand.css">\n</head>\n<body data-index="yes">\n  <script>window.__deckIndex = 'ran';</script>\n  <script src="/brand.js"></script>\n</body>\n</html>\n`,
+  `<html lang="fr" class="from-index">\n<head>\n  <meta name="deck-index" content="from the deck">\n  <meta name="keywords" content="from index.html">\n  <link rel="stylesheet" href="/brand.css">\n</head>\n<body data-index="yes">\n  <script>window.__deckIndex = 'ran';</script>\n  <script src="/brand.js"></script>\n  <script data-cfasync="false">window.__deckData = 'ran';</script>\n  <script type="module">window.__deckModule = 'ran';</script>\n</body>\n</html>\n`,
 );
 mkdirSync(join(deckDir, 'public'), { recursive: true });
 writeFileSync(join(deckDir, 'public', 'brand.css'), 'body { --brand: on; }\n');
@@ -170,6 +170,12 @@ t.ok(
   "index.html has no inline script (a host may send script-src 'self')",
   !/<script(?![^>]*\bsrc=)[^>]*>/.test(html) &&
     /<script src="inline-\w+\.js"><\/script>/.test(html),
+  html.match(/<script[^>]*>/g)?.join(' '),
+);
+t.ok(
+  "index.html: the deck's module and its script with other attributes are moved, keeping their attributes",
+  /<script data-cfasync="false" src="inline-\w+\.js"><\/script>/.test(html) &&
+    /<script type="module" src="inline-\w+\.js"><\/script>/.test(html),
   html.match(/<script[^>]*>/g)?.join(' '),
 );
 const ogSize = readFileSync(join(site, 'og-image.png'));
@@ -281,6 +287,16 @@ t.ok(
     ),
   )) && refused.length === 0,
   refused.join(' | '),
+);
+await strictPage
+  .waitForFunction(() => window.__deckModule === 'ran', null, { timeout: 5000 })
+  .catch(() => {});
+t.ok(
+  "under script-src 'self' the deck's inline scripts ran from their files (a module and data-cfasync too)",
+  await strictPage.evaluate(
+    () =>
+      window.__deckIndex === 'ran' && window.__deckData === 'ran' && window.__deckModule === 'ran',
+  ),
 );
 // Requests still in flight (a lazy chunk) would be fulfilled after the close.
 await strict.unrouteAll({ behavior: 'ignoreErrors' });
