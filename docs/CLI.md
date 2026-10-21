@@ -35,7 +35,7 @@ On a terminal the dev server also reads keys, as Slidev's does, and prints a lin
 
 | key | what it does                                                                                                                                                                                                                       |
 | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `r` | restart the generator, the companion server and the Angular dev server (`--open` opens no new tab); the keys still answer at once afterwards, without Enter                                                                        |
+| `r` | restart the generator, the companion server and the Angular dev server (`--open` opens no new tab); the keys still answer at once afterwards, without Enter. A running presenter timer is kept: every tab keeps the timer it shows |
 | `o` | open `http://localhost:<port>/` in the default browser                                                                                                                                                                             |
 | `e` | open the entry file in `$VISUAL`, `$EDITOR` (flags allowed, such as `code -w`) or else `code`; under `npm run` and `npx`, npm's own `EDITOR=vi` (`notepad.exe` on Windows) counts as unset, so `code` is used when it is installed |
 | `q` | quit (Ctrl+C too)                                                                                                                                                                                                                  |

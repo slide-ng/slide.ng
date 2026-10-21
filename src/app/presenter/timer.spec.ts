@@ -1,4 +1,6 @@
-import { clockParts, parseDuration, passedMs } from './timer';
+import { TestBed } from '@angular/core/testing';
+import { SYNC_TRANSPORTS, SyncTransport } from '../sync/transport';
+import { Timer, clockParts, parseDuration, passedMs } from './timer';
 
 describe('parseDuration', () => {
   it('reads minutes, hours and seconds', () => {
@@ -63,5 +65,31 @@ describe('clockParts', () => {
       m: '20',
       s: '01',
     });
+  });
+});
+
+describe('Timer', () => {
+  it('keeps a timer that came from another window for the tab, so a restart of the dev server does not lose it', () => {
+    sessionStorage.clear();
+    let deliver: (channel: string, data: unknown) => void = () => {};
+    const transport: SyncTransport = { send: () => {}, listen: (h) => (deliver = h) };
+    TestBed.configureTestingModule({
+      providers: [{ provide: SYNC_TRANSPORTS, multi: true, useValue: transport }],
+    });
+    const timer = TestBed.inject(Timer);
+    TestBed.tick();
+    const startedAt = Date.now() - 60_000;
+    deliver('shared', { timer: { status: 'running', startedAt, pausedAt: 0 } });
+    TestBed.tick();
+    expect(timer.status()).toBe('running');
+    expect(JSON.parse(sessionStorage.getItem('slide-ng-timer') ?? 'null')).toEqual({
+      status: 'running',
+      startedAt,
+      pausedAt: 0,
+    });
+    // A reset from another window is kept too: a reload must not bring the old timer back.
+    deliver('shared', { timer: { status: 'stopped', startedAt: 0, pausedAt: 0 } });
+    TestBed.tick();
+    expect(JSON.parse(sessionStorage.getItem('slide-ng-timer') ?? 'null').status).toBe('stopped');
   });
 });

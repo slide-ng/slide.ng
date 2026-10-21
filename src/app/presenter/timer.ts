@@ -85,6 +85,16 @@ export class Timer {
     // other windows, which answer its hello with the timer (sync-state.ts), or in dev from the server (ws-hub.mjs).
     const saved = readSaved();
     if (saved && saved.status !== 'stopped' && this.state().status === 'stopped') this.set(saved);
+    // Every timer this window shows is kept for the tab, also one that came from another window or the dev server: a tab
+    // that got the timer back that way may be the only one that knows it after the dev server restarts (`r`).
+    effect(() => {
+      const timer = this.state();
+      try {
+        sessionStorage.setItem(scopedKey(SAVED), JSON.stringify(timer));
+      } catch {
+        // no storage (a private window): the timer just starts over after a reload
+      }
+    });
     effect((onCleanup) => {
       if (this.status() !== 'running') return;
       this.now.set(Date.now());
@@ -95,11 +105,6 @@ export class Timer {
 
   private set(timer: TimerState) {
     this.sync.patchShared({ timer });
-    try {
-      sessionStorage.setItem(scopedKey(SAVED), JSON.stringify(timer));
-    } catch {
-      // no storage (a private window): the timer just starts over after a reload
-    }
   }
 
   start() {
