@@ -26,8 +26,9 @@ export function changesOf(part: ClickPart): number[] {
 }
 
 /**
- * One mark per element that changes after `current` (and no later than `total`), with its first such click. Like the
- * nav, a slide whose total is fractional stops at that total: a part that changes there is marked with it.
+ * One mark per element that changes after `current` (and no later than `total`), with its first such click. The nav
+ * stops at a fractional total (1.5) on the next whole click, so a part that changes there is marked with that click (2):
+ * a badge always has a whole number, and going to it lands on the total.
  */
 export function previewMarks(
   parts: readonly ClickPart[],
@@ -36,14 +37,11 @@ export function previewMarks(
 ): PreviewMark[] {
   const first = new Map<Element, number>();
   for (const part of parts) {
-    const at = changesOf(part)
-      .filter((c) => c < total + 1)
-      .map((c) => Math.min(c, total))
-      .find((c) => c > current);
+    const at = changesOf(part).find((c) => c < total + 1 && Math.min(c, total) > current);
     if (at == null) continue;
     const seen = first.get(part.el);
     if (seen == null || at < seen) first.set(part.el, at);
   }
-  const next = Math.min(current + 1, total);
+  const next = Math.ceil(Math.min(current + 1, total));
   return [...first].map(([el, at]) => ({ el, at, isNext: at === next }));
 }

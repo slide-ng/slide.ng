@@ -65,12 +65,15 @@ describe('previewMarks', () => {
     ];
     expect(previewMarks(parts, 0, 1)).toEqual([{ el: a, at: 1, isNext: true }]);
   });
-  it('a fractional total is the last click, as the nav stops there', () => {
+  it('a fractional total is reached by the next whole click, and nothing is marked there', () => {
     const c = ctx();
     const a = el();
-    expect(previewMarks([{ el: a, info: c.calculateSince(1.5)! }], 1, 1.5)).toEqual([
-      { el: a, at: 1.5, isNext: true },
+    const parts: ClickPart[] = [{ el: a, info: c.calculateSince(1.5)! }];
+    expect(previewMarks(parts, 1, 1.5)).toEqual([{ el: a, at: 2, isNext: true }]);
+    expect(previewMarks([{ el: a, info: c.calculateSince(0.5)! }], 0, 0.5)).toEqual([
+      { el: a, at: 1, isNext: true },
     ]);
+    expect(previewMarks(parts, 1.5, 1.5)).toEqual([]);
   });
   it('an element with several parts gets its earliest click', () => {
     const c = ctx();
