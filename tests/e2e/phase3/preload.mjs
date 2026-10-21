@@ -5,9 +5,14 @@ export async function run({ t, open, press, hud }) {
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
     'base64',
   );
+  let loading = 0,
+    most = 0;
   const page = await open('/1', { width: 1280, height: 720 }, (p) =>
-    p.route('**/pics/*.png', (route) => {
+    p.route('**/pics/*.png', async (route) => {
       asked.add(new URL(route.request().url()).pathname.replace('/pics/', ''));
+      most = Math.max(most, ++loading);
+      await new Promise((r) => setTimeout(r, 150)); // a slow picture, so loads overlap if they can
+      loading--;
       return route.fulfill({ contentType: 'image/png', body: png });
     }),
   );
@@ -23,12 +28,13 @@ export async function run({ t, open, press, hud }) {
     !asked.has('four.png') && !asked.has('six.png'),
     early,
   );
-  await page.waitForTimeout(3000);
+  await page.waitForTimeout(4000);
   t.ok(
     'after 3 seconds every slide is preloaded, except the one with preload: false',
     asked.has('four.png') && asked.has('six.png') && !asked.has('five.png'),
     [...asked].sort().join(),
   );
+  t.ok('preloadImages: at most two pictures load at a time', most <= 2, `at most ${most}`);
   t.ok(
     'preloading does not move the deck: still on slide 1',
     (await hud(page)).startsWith('slide 1/6'),
@@ -39,4 +45,25 @@ export async function run({ t, open, press, hud }) {
     .evaluate((img) => img.complete && img.naturalWidth > 0);
   t.ok('the preloaded picture is there when its slide is shown', shown);
   await page.close();
+
+  // A browser that saves data (or a 2g/3g connection) gets the slides around the current one only, not the whole deck.
+  const saving = new Set();
+  const slow = await open('/1', { width: 1280, height: 720 }, async (p) => {
+    await p.addInitScript(() =>
+      Object.defineProperty(Navigator.prototype, 'connection', {
+        get: () => ({ saveData: true, effectiveType: '4g' }),
+      }),
+    );
+    await p.route('**/pics/*.png', (route) => {
+      saving.add(new URL(route.request().url()).pathname.replace('/pics/', ''));
+      return route.fulfill({ contentType: 'image/png', body: png });
+    });
+  });
+  await slow.waitForTimeout(5000);
+  t.ok(
+    'preloadImages with saveData: the next slides load, the rest of the deck does not',
+    saving.has('two.png') && !saving.has('four.png') && !saving.has('six.png'),
+    [...saving].sort().join(),
+  );
+  await slow.close();
 }

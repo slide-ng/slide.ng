@@ -700,11 +700,15 @@ preloadImages: { ahead: 3 } # default true (3 slides ahead); false turns it off
 ```
 
 Pictures are loaded before their slide is shown, as in Slidev: after each move the pictures of the slide on screen, the one before and the next
-`ahead` slides (`0`: none ahead) load in idle time, and 3 seconds after the deck opens every slide's. The generator lists each slide's pictures: `<img src>`
+`ahead` slides (`0`: none ahead) load in idle time, and 3 seconds after the page has loaded every slide's. At most two pictures load at a
+time, the ones of the slides around the current one first, so on a slow network the whole deck does not hold up the next slide. When the browser
+asks to save data (`navigator.connection.saveData`) or the connection is 2g or 3g, only the slides around the current one are loaded ahead: the
+whole-deck pass costs a download of every picture of the deck, which a phone on mobile data may not want. The generator lists each slide's pictures: `<img src>`
 (and markdown pictures), `url()` in inline styles, and the frontmatter's `image`, `backgroundImage` and `background`. A slide with
 `preload: false` in its frontmatter is left out. A component can read the progress from `slide-ng/lib/preload-images`
 (`preloadProgress`, 0 to 1, and `preloadComplete`, both signals). A picture that still fails after two retries (a missing file)
-counts as done, so the progress reaches 1; with `preloadImages: false` it is 1 (complete) from the start. All slides are in the first bundle, so `preload` has no other effect here.
+counts as done, so the progress reaches 1; with `preloadImages: false` it is 1 (complete) from the start. When the whole-deck pass is skipped
+(save data, 2g, 3g), `preloadComplete` becomes true only once every slide's pictures were loaded by visiting them. All slides are in the first bundle, so `preload` has no other effect here.
 
 Layers: add any of `layers/global-top.ts`, `global-bottom.ts`, `slide-top.ts`, `slide-bottom.ts` next to `slides.md` (or in a theme or addon), each `export default` of a standalone component.
 `global-*` appear once over or under all slides, `slide-*` inside every slide (inject `SLIDE_NO` to know which). They let clicks through; give your own elements `pointer-events: auto` if they need the mouse.

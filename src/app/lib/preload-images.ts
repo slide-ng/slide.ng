@@ -1,14 +1,19 @@
 // Headmatter `preloadImages` (port of Slidev's usePreloadImages): after each move, in idle time, the pictures of the slide on
 // screen, the one before and the next `ahead` ones (default 3) are loaded, so they are ready when their slide is shown; 3 seconds
-// later, every slide's. The generator lists each slide's pictures (scripts/lib/slide-images.mjs); `preload: false` on a slide
-// leaves its own out. `preloadProgress` and `preloadComplete` say how far it is; a picture that fails counts as done.
+// after the page has loaded, every slide's, unless the connection is slow or saves data. At most two pictures load at a time, and
+// the ones near the slide on screen go first, so on a slow network the rest of the deck does not hold up the current slide.
+// The generator lists each slide's pictures (scripts/lib/slide-images.mjs); `preload: false` on a slide leaves its own out.
+// `preloadProgress` and `preloadComplete` say how far it is; a picture that fails counts as done.
 import { DestroyRef, computed, effect, inject, signal, untracked } from '@angular/core';
 import { HEADMATTER, SLIDES } from '../../slides/generated';
 
 const RETRY_LIMIT = 2;
+const AT_ONCE = 2;
 // Pictures that are done: loaded, or given up on after the retries (a missing file), so the progress still reaches 1.
 const settled = new Set<string>();
 const loading = new Set<string>();
+// Pictures waiting for a free place, the most wanted first.
+const waiting: { key: string; url: string }[] = [];
 const retries = new Map<string, number>();
 const settledCount = signal(0);
 const settle = (key: string) => {
@@ -56,14 +61,43 @@ export function preloadWindow(no: number, total: number, ahead: number): number[
   return list.filter((n) => n >= 1 && n <= total);
 }
 
-function preloadImage(url: string): void {
+/** True for a connection that asks to save data or is slow (2g, 3g): the whole deck's pictures are then not loaded ahead. */
+export function slowConnection(connection?: {
+  saveData?: boolean;
+  effectiveType?: string;
+}): boolean {
+  return (
+    !!connection &&
+    (connection.saveData === true ||
+      ['slow-2g', '2g', '3g'].includes(connection.effectiveType ?? ''))
+  );
+}
+
+/** Asks for a picture; `first` puts it before the ones already waiting (the slides around the one on screen). */
+function preloadImage(url: string, first = false): void {
   const key = absolute(url);
   if (settled.has(key) || loading.has(key)) return;
+  const at = waiting.findIndex((w) => w.key === key);
+  if (at !== -1) {
+    if (!first) return;
+    waiting.splice(at, 1);
+  }
+  if (first) waiting.unshift({ key, url });
+  else waiting.push({ key, url });
+  next();
+}
+
+function next(): void {
+  while (loading.size < AT_ONCE && waiting.length) load(waiting.shift()!);
+}
+
+function load({ key, url }: { key: string; url: string }): void {
   loading.add(key);
   const img = new Image();
   img.onload = () => {
     loading.delete(key);
     settle(key);
+    next();
   };
   img.onerror = () => {
     loading.delete(key);
@@ -73,6 +107,7 @@ function preloadImage(url: string): void {
       retries.set(key, attempts + 1);
       setTimeout(() => preloadImage(url), 1000 * (attempts + 1));
     } else settle(key);
+    next();
   };
   img.src = url;
 }
@@ -90,15 +125,33 @@ export function preloadImages(no: () => number): void {
     const current = no();
     untracked(() =>
       whenIdle(() =>
-        preloadWindow(current, SLIDES.length, ahead).forEach((n) =>
-          imagesOf(n).forEach(preloadImage),
-        ),
+        // In reverse, as each one goes to the front: the slide on screen ends up first.
+        preloadWindow(current, SLIDES.length, ahead)
+          .flatMap(imagesOf)
+          .reverse()
+          .forEach((url) => preloadImage(url, true)),
       ),
     );
   });
-  const all = setTimeout(
-    () => SLIDES.forEach((_, i) => imagesOf(i + 1).forEach(preloadImage)),
-    3000,
-  );
-  inject(DestroyRef).onDestroy(() => clearTimeout(all));
+  if (
+    slowConnection(
+      (navigator as { connection?: { saveData?: boolean; effectiveType?: string } }).connection,
+    )
+  )
+    return;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const all = () =>
+    (timer = setTimeout(
+      () =>
+        whenIdle(() =>
+          SLIDES.forEach((_, i) => imagesOf(i + 1).forEach((url) => preloadImage(url))),
+        ),
+      3000,
+    ));
+  if (document.readyState === 'complete') all();
+  else window.addEventListener('load', all, { once: true });
+  inject(DestroyRef).onDestroy(() => {
+    window.removeEventListener('load', all);
+    clearTimeout(timer);
+  });
 }

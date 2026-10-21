@@ -1,4 +1,4 @@
-import { preloadAhead, preloadWindow, progressOf } from './preload-images';
+import { preloadAhead, preloadWindow, progressOf, slowConnection } from './preload-images';
 
 describe('preloadAhead', () => {
   it('is 3 by default, n for { ahead: n } (0 too), and off for false', () => {
@@ -32,5 +32,15 @@ describe('progressOf', () => {
   it('is complete without pictures, and when preloadImages is false', () => {
     expect(progressOf(0, 0, true)).toBe(1);
     expect(progressOf(0, 4, false)).toBe(1);
+  });
+});
+
+describe('slowConnection', () => {
+  it('is true when the browser asks to save data or the connection is 2g or 3g', () => {
+    expect(slowConnection({ saveData: true, effectiveType: '4g' })).toBe(true);
+    expect(slowConnection({ effectiveType: '3g' })).toBe(true);
+    expect(slowConnection({ effectiveType: 'slow-2g' })).toBe(true);
+    expect(slowConnection({ effectiveType: '4g' })).toBe(false);
+    expect(slowConnection(undefined)).toBe(false); // a browser without navigator.connection
   });
 });
