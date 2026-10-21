@@ -70,6 +70,22 @@ In the headmatter (the frontmatter of the first slide) you can also set:
 
 Other keys are kept in the slide's metadata and ignored, unless a theme or a component reads them.
 
+### Reading errors and warnings
+
+Messages start with the file and line they are about (`slides.md:12: ...`), or with the slide (`[slides] slide 4: ...`); a
+warning keeps the deck running, an error stops the build (in the dev server a red banner shows the message and the last good
+slides stay on screen until the file is fixed). The usual YAML slips in a frontmatter, and what the message says:
+
+- a value with `: ` in it, `title: Part 2: the plan`, reads as a second key: quote it, `title: "Part 2: the plan"`;
+- a line indented with a tab: YAML needs spaces;
+- a missing closing `---`: the slide's text is read as YAML, and the message names the first line that is not `key: value`.
+
+A mistyped name gets the nearest real one: `layout: image-rigth` ("Did you mean "image-right"?"), `<slide-ng-tocc />` or
+`slide-ng-clik` (any unknown `slide-ng-*` element or attribute is a warning), a command or a flag of the CLI. Angular's own
+errors name the slide and its line in `slides.md`; for an unknown element (`'my-countr' is not a known element`) the message
+names a component or built-in element that is one or two letters away, or else says how to import it or list a web component
+in `customElements`.
+
 ## Importing slides
 
 ```md
@@ -98,7 +114,7 @@ The last HTML comment of a slide is its note:
 
 ## Layouts
 
-All layouts of Slidev, with the same names and props (see `docs/screenshots/` for pictures).
+All layouts of Slidev, with the same names and props (pictures of each are in [`docs/screenshots/`](https://github.com/slide-ng/slide.ng/tree/main/docs/screenshots) of the repository; the npm package leaves them out).
 
 | layout                        | use                                                                                                                           | props (frontmatter)                                      |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
@@ -121,8 +137,10 @@ All layouts of Slidev, with the same names and props (see `docs/screenshots/` fo
 | `two-cols-header`             | a header, two columns and a bottom row: `::left::`, `::right::`, `::bottom::`; the text before the first marker is the header | `class`, `layoutClass`                                   |
 | `404`, `error`                | shown when an address matches no slide, or a slide fails                                                                      |                                                          |
 
-`image` is an address (`/photo.png` is served from the `public/` folder) or a colour for the
-background. An unknown layout name prints a warning that lists the names and uses `default`.
+`image` is an address or a colour for the background. `image: /photo.png` is the file `public/photo.png`: the `public/`
+folder is the site's root, so the address has no `/public` in it (the generator warns about `/public/photo.png` and about a
+picture that `public/` does not have). An unknown layout name prints a warning that names the nearest layout, lists the names
+and uses `default`.
 
 ### Slots: `::name::`
 
@@ -503,7 +521,7 @@ console.log('runs on a click and the result appears');
 - `{monaco-diff}`: two texts side by side, split by a line that holds only `~~~`.
 - `{monaco-run}`: an editor and a **Run** result below it. `autorun` is `true`, `false` or `'once'`; `showOutputAt:'+1'` shows the output after a click.
   The code runs in a sandboxed frame with no access to the slides, and stops after 5 seconds. TypeScript is turned into JavaScript for you. `import` is not supported.
-- `{monaco-write}`: use it on a snippet line, `<<< ./snippets/demo.ts {monaco-write}` (a whole file inside the deck's folder). While you run `npm start`, edits are saved into that file about half a second after you stop typing. A region, a plain code block or a static build gets a normal editor (the generator warns for the first two).
+- `{monaco-write}`: use it on a snippet line, `<<< ./snippets/demo.ts {monaco-write}` (a whole file inside the deck's folder). While the dev server runs (`slide-ng dev`, `npm run dev` in a deck made with `slide-ng create`), edits are saved into that file about half a second after you stop typing. A region, a plain code block or a static build gets a normal editor (the generator warns for the first two).
   Only text-like files inside the deck's folder can be written: an extension from a fixed list (`.ts .js .json .css .html .md .txt .yaml .py` and similar, see `scripts/lib/monaco-targets.mjs`), never `setup/`, `layouts/`, `components/`, `theme/` or `index.html` at the top of the deck's folder or of a theme or addon folder in it, `.git/`, `node_modules/`, `package.json`, lock files, config files, hidden files or `.slide-ng/`. The generator warns and shows a normal editor for any other file, and the dev server checks the target again at every write.
 
 Keys typed in an editor do not trigger slide shortcuts.
@@ -992,7 +1010,7 @@ dragPos:
 ```
 
 Click an element to select it: corner handles resize (Shift keeps the shape), the round handle above rotates (Shift snaps to 15 degrees), arrow keys move it 1 px (Shift: 10 px).
-While the dev server runs (`slide-ng dev`, or `npm start` in this repository), the new place is written back into slides.md (a name is written to `dragPos`). A built deck keeps a move only until the page closes.
+While the dev server runs (`slide-ng dev`, or `npm run dev` in a deck made with `slide-ng create`), the new place is written back into slides.md (a name is written to `dragPos`). A built deck keeps a move only until the page closes.
 Put the element directly in the slide (not inside a positioned wrapper), as in Slidev.
 
 ## Size, zoom, layers and routing
@@ -1027,7 +1045,7 @@ A layer's template is not a slide: the built-in tags are not there by themselves
 
 ## Dev-only extras and remote use
 
-While the dev server runs (`slide-ng dev`, or `npm start` in this repository): the **edit** button in the bar opens a side editor with the current slide's markdown (saved as you type; on the presenter page it takes the notes pane), the presenter's notes can be edited in place, slide-ng-drag and drawings are written to files, and `{monaco-write}` saves.
+While the dev server runs (`slide-ng dev`, or `npm run dev` in a deck made with `slide-ng create`): the **edit** button in the bar opens a side editor with the current slide's markdown (saved as you type; on the presenter page it takes the notes pane), the presenter's notes can be edited in place, slide-ng-drag and drawings are written to files, and `{monaco-write}` saves.
 A double click on a note in `/overview`, or Enter on it (Tab reaches it), edits it (leaving the text saves it, Escape cancels). On a narrow screen the notes are below each slide. `/notes-edit` has every note in one text,
 each after a `--- #N` line; the notes that changed are saved after a short pause, and a text whose `--- #N` lines were changed is not saved.
 Saving a note rebuilds the deck and reloads the page; `/notes-edit` keeps the caret and what was typed meanwhile, also while the
@@ -1038,9 +1056,9 @@ A `-->` in a note would end the comment early, so it is written `-- >`, as the p
 A static build has none of this and makes no requests.
 
 ```sh
-npm start -- --remote=secret     # (or `slide-ng --remote=secret`) others on your network can open the deck and follow the presenter
-npm start -- --remote            # makes a random password and prints it (there is no remote mode without a password)
-SLIDE_NG_PASSWORD=secret npm start -- --remote   # keeps the password out of the process list; a terminal also gets a prompt
+slide-ng dev --remote=secret     # (or `npm run dev -- --remote=secret`) others on your network can open the deck and follow the presenter
+slide-ng dev --remote            # makes a random password and prints it (there is no remote mode without a password)
+SLIDE_NG_PASSWORD=secret slide-ng dev --remote   # keeps the password out of the process list; a terminal also gets a prompt
 ```
 
 It prints the public and private deck addresses and the presenter address (`/presenter/1?password=secret`). Use that address on the presenter's device; a viewer opens `http://<your address>:4230/1?password=secret`.

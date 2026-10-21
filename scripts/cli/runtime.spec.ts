@@ -35,4 +35,19 @@ describe('withSlideSources', () => {
       '/themes/t/layouts/split.ts:5:37',
     );
   });
+  it('names the nearest known element for a typo, and customElements for any other unknown tag', () => {
+    const app = mkdtempSync(join(tmpdir(), 'slide-ng-runtime-'));
+    mkdirSync(join(app, 'src/slides/generated/roots/deck/components'), { recursive: true });
+    writeFileSync(
+      join(app, 'src/slides/generated/roots/deck/components/counter.ts'),
+      "@Component({ selector: 'my-counter', template: '' })\nexport class Counter {}\n",
+    );
+    const error = (tag: string) =>
+      withSlideSources(`NG8001: '${tag}' is not a known element:`, app);
+    expect(error('my-countr')).toBe(
+      "NG8001: 'my-countr' is not a known element: (did you mean <my-counter>?)",
+    );
+    expect(error('slide-ng-tocc')).toContain('(did you mean <slide-ng-toc>?)');
+    expect(error('model-viewer')).toContain('customElements: [model-viewer]');
+  });
 });

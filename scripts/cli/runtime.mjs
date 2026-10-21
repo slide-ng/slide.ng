@@ -1,19 +1,44 @@
 // Where the Angular app and the generator live, and how to run them for one deck.
 import { spawnSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { ngBinary, prepareApp } from './app-root.mjs';
 import { packageRoot } from './package-root.mjs';
+import { nearest } from '../lib/did-you-mean.mjs';
+import { BUILTIN_ELEMENTS } from '../lib/registry.mjs';
 import { ROOT_FOLDERS } from '../lib/roots.mjs';
+import { declarations } from '../lib/scan-roots.mjs';
 import { claimDirectory, markDirectory } from './safe-dir.mjs';
 
 export { packageRoot };
+
+// The element names a slide can use: the built-in ones and the tags of the components and layouts the deck and its themes
+// bring (their copies under generated/roots/<id>/).
+function knownTags(generated) {
+  const tags = [...BUILTIN_ELEMENTS];
+  const roots = join(generated, 'roots');
+  for (const id of existsSync(roots) ? readdirSync(roots) : [])
+    for (const folder of ['components', 'layouts', 'layers']) {
+      const dir = join(roots, id, folder);
+      if (!existsSync(dir)) continue;
+      for (const file of readdirSync(dir).filter((f) => f.endsWith('.ts')))
+        for (const { selector } of declarations(readFileSync(join(dir, file), 'utf8')))
+          tags.push(
+            ...selector
+              .split(',')
+              .map((s) => s.trim())
+              .filter((s) => /^[a-z]/.test(s)),
+          );
+    }
+  return tags;
+}
 
 // Angular's errors name the generated file (src/slides/generated/slide-003.ts); add the markdown file and line it came from,
 // which the generator wrote into the file's first line.
 export function withSlideSources(text, appRoot) {
   const generated = join(appRoot, 'src/slides/generated');
   let roots = null; // read once, when an error names a copied theme or deck file
+  let tags = null; // read once, when an element is not known
   return text
     .replace(/src\/slides\/generated\/(slide-(\d+))\.ts(:\d+:\d+)?/g, (match, name, no) => {
       try {
@@ -32,11 +57,13 @@ export function withSlideSources(text, appRoot) {
         return match;
       }
     })
-    .replace(
-      /'([a-z][\w.]*-[\w.-]*)' is not a known element:/g,
-      (match, tag) =>
-        `${match} (in a layout, layer or component: import the component there, imports: [...], and write an icon as <span class="i-set:name"></span>; a web component: list it in the deck's headmatter, customElements: [${tag}])`,
-    )
+    .replace(/'([a-z][\w.]*-[\w.-]*)' is not a known element:/g, (match, tag) => {
+      // A near miss of a known name is a typo, not a web component.
+      const near = nearest(tag, (tags ??= knownTags(generated)));
+      return near
+        ? `${match} (did you mean <${near}>?)`
+        : `${match} (in a layout, layer or component: import the component there, imports: [...], and write an icon as <span class="i-set:name"></span>; a web component: list it in the deck's headmatter, customElements: [${tag}])`;
+    })
     .replace(
       /Could not resolve "(\.\.\/[^"]*)"/g,
       (match) =>
@@ -58,10 +85,14 @@ function run(args, { cwd, env, quiet }) {
       process.stderr.write(withSlideSources(`${result.stdout ?? ''}${result.stderr ?? ''}`, cwd));
     const what = args[0].includes('generate') ? 'generating the slides' : 'the Angular build';
     // Killed (by the system, for example out of memory) leaves no output of its own: say that instead of "exit code null".
-    throw new Error(
-      result.signal
-        ? `${what} was stopped by ${result.signal} (often a lack of memory, for example with several builds at once); run it again`
-        : `${what} failed (exit code ${result.status})`,
+    // The generator prints why it stopped, so its failure needs no second line (`reported`, see bin/slide-ng.mjs).
+    throw Object.assign(
+      new Error(
+        result.signal
+          ? `${what} was stopped by ${result.signal} (often a lack of memory, for example with several builds at once); run it again`
+          : `${what} failed (exit code ${result.status})`,
+      ),
+      { reported: !result.signal && what === 'generating the slides' },
     );
   }
 }

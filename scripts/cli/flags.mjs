@@ -1,5 +1,6 @@
 import { resolve } from 'node:path';
 import { normalizeLang } from '../lib/lang.mjs';
+import { didYouMean } from '../lib/did-you-mean.mjs';
 
 // A small command line reader, so every command parses flags the same way.
 //   spec = { port: { type: 'number', alias: 'p' }, open: { type: 'boolean' }, format: { type: 'string' } }
@@ -36,7 +37,10 @@ export function parseFlags(argv, spec) {
       if (!name) throw new Error(`Unknown flag ${arg}`);
     }
     const s = spec[name];
-    if (!s) throw new Error(`Unknown flag --${name}`);
+    if (!s)
+      throw new Error(
+        `Unknown flag --${name}.${didYouMean(name, Object.keys(spec), (n) => `--${n}`)}`,
+      );
 
     if (s.type === 'boolean') {
       flags[name] = inline === undefined ? true : !['false', '0', 'no'].includes(inline);

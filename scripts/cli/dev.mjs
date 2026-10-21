@@ -137,7 +137,11 @@ export async function devCommand(argv) {
   };
   const generate = join(packageRoot, 'scripts/generate.mjs');
   const first = spawnSync(process.execPath, [generate], { cwd: appRoot, env, stdio: 'inherit' });
-  if (first.status !== 0) throw new Error('generating the slides failed');
+  // The generator has printed why (bin/slide-ng.mjs adds no second line for a `reported` error).
+  if (first.status !== 0)
+    throw Object.assign(new Error('generating the slides failed'), {
+      reported: first.status === 1,
+    });
 
   // With --log error or silent the children's normal output is dropped; their errors still show.
   const quiet = plan.log === 'error' || plan.log === 'silent';

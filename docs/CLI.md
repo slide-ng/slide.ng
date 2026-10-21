@@ -130,7 +130,7 @@ and sets `theme: ./theme`, so it can be edited. See [THEMES.md](THEMES.md).
 
 ## create
 
-`slide-ng create <dir> [--force]` starts a new deck in `<dir>`: `slides.md`, `package.json` (scripts `dev`, `build`, `export`, `format`), a README and `.gitignore`. It refuses a folder with files; `--force` only adds the missing files.
+`slide-ng create <dir> [--force]` starts a new deck in `<dir>`: `slides.md`, `package.json` (scripts `dev`, `build`, `export`, `format`), a README and `.gitignore`. It refuses a folder with files; `--force` only adds the missing files (and fills in the name only in the files it adds). The `.gitignore` leaves out what `export` and `export-notes` write by default (`slides-export.pdf`, `*-export.*`, `*-notes.pdf`). A mistyped command or flag gets the nearest real one (`Unknown command "biuld". Did you mean "build"?`).
 
 ## mcp
 

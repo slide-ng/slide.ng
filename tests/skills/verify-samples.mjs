@@ -48,6 +48,17 @@ for (const page of pages) {
 if (problems.length) fail('Problems in the samples:', problems);
 if (!samples.length) fail('No <!-- verify --> samples found.', []);
 
+// The pictures a sample names with a leading slash (`/photo.png`) are the reader's own: an empty stand-in in public/, so the
+// generator's "not in public/" warning is left for real mistakes.
+function addStandIns(text, dir) {
+  for (const [, path] of text.matchAll(
+    /(?:\]\(|src="|poster="|image:\s*|url\()\/(?!\/)([\w./-]+\.\w+)/g,
+  )) {
+    mkdirSync(dirname(join(dir, 'public', path)), { recursive: true });
+    writeFileSync(join(dir, 'public', path), '');
+  }
+}
+
 work = mkdtempSync(join(tmpdir(), 'slide-ng-skill-samples-'));
 const dirOf = (n) => join(work, 'samples', String(n + 1).padStart(3, '0'));
 samples.forEach((s, n) => {
@@ -59,6 +70,7 @@ samples.forEach((s, n) => {
     mkdirSync(dirname(join(s.dir, path)), { recursive: true });
     writeFileSync(join(s.dir, path), text);
   }
+  addStandIns(s.text, s.dir);
 });
 
 // ---- 1. the generator, one deck per sample
@@ -90,6 +102,7 @@ console.log(`generated ${samples.length} samples without errors or warnings`);
 // ---- 2. one build of everything
 if (!has('--no-build')) {
   const ranges = await combine();
+  for (const sample of samples) addStandIns(sample.text, join(work, 'combined'));
   const built = await run(
     process.execPath,
     [join(repo, 'bin/slide-ng.mjs'), 'build', 'slides.md', '--out', 'dist'],

@@ -56,10 +56,12 @@ export const RENAMED_PASCAL = {
 };
 
 // <tag attributes>, where the attributes may hold quoted `>` characters.
-const TAG = /<([A-Za-z][\w-]*)((?:"[^"]*"|'[^']*'|[^<>"'])*)>/g;
-const ATTRIBUTE = /\s+([^\s=>"']+)(?:\s*=\s*(?:"[^"]*"|'[^']*'))?/g;
+// Any tag, also Slidev's PascalCase names (`<VClick>`), for the renamed check; unknown-names.mjs reads the lower-case ones only.
+const ANY_TAG = /<([A-Za-z][\w-]*)((?:"[^"]*"|'[^']*'|[^<>"'])*)>/g;
+export const TAG = /<([a-z][\w-]*)((?:"[^"]*"|'[^']*'|[^<>"'])*)>/g;
+export const ATTRIBUTE = /\s+([^\s=>"']+)(?:\s*=\s*(?:"[^"]*"|'[^']*'))?/g;
 // `v-click`, `[v-click]`, `v-mark.red.circle` -> the name without binding brackets and modifiers
-const plainName = (attr) => attr.replace(/^\[|\]$/g, '').split('.')[0];
+export const plainName = (attr) => attr.replace(/^\[|\]$/g, '').split('.')[0];
 
 /** The error for old names: slideSources (emit.mjs) collects it from every slide, so one run lists them all. */
 export class RenamedError extends Error {}
@@ -74,7 +76,7 @@ export class RenamedError extends Error {}
 export function assertNoRenamedNames(markup, no, own = []) {
   const mine = new Set(own);
   const found = new Map(); // every old name on the slide, so one run lists them all
-  for (const m of markup.matchAll(TAG)) {
+  for (const m of markup.matchAll(ANY_TAG)) {
     const name = m[1];
     const to = Object.hasOwn(RENAMED_ELEMENTS, name)
       ? RENAMED_ELEMENTS[name]

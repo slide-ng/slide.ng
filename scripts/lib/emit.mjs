@@ -12,6 +12,8 @@ import { tagDragSites } from './drag-sites.mjs';
 import { hasRootUrl, rebaseCss, rebaseHtml } from './asset-paths.mjs';
 import { RenamedError, assertNoRenamedNames } from './renamed.mjs';
 import { assertClosedTags } from './unclosed-tags.mjs';
+import { warnUnknownNames } from './unknown-names.mjs';
+import { warnMissingPublicFiles } from './public-paths.mjs';
 import { commonPipes } from './pipes.mjs';
 import { commonDirectives } from './angular-imports.mjs';
 import { setWarnSlide } from './code/highlighter.mjs';
@@ -201,9 +203,10 @@ const sourceLines = (slide, root) => (line) => {
 
 /**
  * @param {any} slide @param {number} no
- * @param {{ root?: string, headmatter?: any, layers?: string[], layouts?: Record<string, any>, components?: any[], assetBase?: string, slides?: any[] }} [deck]
- *   where `@/` is, the deck-wide settings, the layouts and components to use (the built-in ones unless a theme adds more),
- *   the base that `/public` addresses get in a build (`/talk/`, `./`; default `/`, no change), and all the slides
+ * @param {{ root?: string, roots?: { dir: string }[], headmatter?: any, layers?: string[], layouts?: Record<string, any>, components?: any[], assetBase?: string, slides?: any[] }} [deck]
+ *   where `@/` is, the roots (their `public/` folders hold the pictures), the deck-wide settings, the layouts and components
+ *   to use (the built-in ones unless a theme adds more), the base that `/public` addresses get in a build (`/talk/`, `./`;
+ *   default `/`, no change), and all the slides
  */
 export function slideSource(slide, no, deck = {}) {
   const layouts = deck.layouts ?? LAYOUTS;
@@ -226,6 +229,13 @@ export function slideSource(slide, no, deck = {}) {
     .filter(Boolean)
     .map(String);
   const layout = `${openTag(def, slide.frontmatter)}${body(markdown, def, no, { file: slide.file, root: deck.root, roots: deck.roots?.map((r) => r.dir), allowOutsideRoot: deck.allowOutsideRoot, headmatter: deck.headmatter, monaco: deck.monaco, codeblocks: deck.transformers?.codeblocks, slide: slideInfo(slide, no), aliases, total: deck.slides?.length, hiddenAliases: deck.hiddenAliases }, layoutKey)}</${def.tag}>`;
+  if (deck.roots?.length)
+    warnMissingPublicFiles(
+      layout,
+      slide.frontmatter,
+      no,
+      deck.roots.map((r) => join(r.dir, 'public')),
+    );
   const base = deck.assetBase ?? '/'; // where the deck is served from in a build; `/public` files get it in front
   // Variant groups (`hover:(a b)`) are expanded, as Slidev's transformerVariantGroup does.
   const html = expandGroups(
@@ -258,11 +268,11 @@ export function slideSource(slide, no, deck = {}) {
   const markup = html
     .replace(/<pre[\s\S]*?<\/pre>/g, '')
     .replace(/<code ngNonBindable>[\s\S]*?<\/code>/g, '');
-  assertNoRenamedNames(
-    markup,
-    no,
-    (deck.components ?? []).flatMap((c) => (c.selector ? [c.selector] : [])),
+  const ownSelectors = (deck.components ?? []).flatMap((c) =>
+    c.selector ? c.selector.split(',').map((part) => part.trim()) : [],
   );
+  assertNoRenamedNames(markup, no, ownSelectors);
+  warnUnknownNames(markup, no, ownSelectors);
   warnUncalledGlobals(markup, no);
   // A drag position by name (`slide-ng-drag="square"`, `pos="square"`) is looked up in the slide's `dragPos`.
   const dragPos = slide.frontmatter.dragPos ?? {};

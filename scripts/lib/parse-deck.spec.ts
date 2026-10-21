@@ -219,6 +219,32 @@ describe('parseDeck: broken YAML', () => {
       '/deck/slides.md:3: the headmatter is not valid YAML',
     );
   });
+  it("gives the line of the error in a slide's frontmatter, not the line of its ---", async () => {
+    await expect(
+      parse('---\ntitle: ok\n---\n\n# One\n\n---\nlayout: center\nfoo:\n\tbar: 1\n---\n\n# Two\n'),
+    ).rejects.toThrow(
+      '/deck/slides.md:10: the frontmatter of slide 2 is not valid YAML: this line is indented with a tab; YAML needs spaces',
+    );
+  });
+  it('says to quote a value that has ": " in it', async () => {
+    await expect(
+      parse(
+        '---\ntitle: ok\n---\n\n# One\n\n---\nlayout: center\ntitle: Part 2: more\n---\n\n# Two\n',
+      ),
+    ).rejects.toThrow(
+      '/deck/slides.md:9: the frontmatter of slide 2 is not valid YAML: the value of "title" has ": " in it, which reads as a second key; put it in quotes: title: "Part 2: more"',
+    );
+    await expect(parse('---\ntitle: Intro: the basics\n---\n\n# One\n')).rejects.toThrow(
+      '/deck/slides.md:2: the headmatter is not valid YAML: the value of "title" has ": " in it',
+    );
+  });
+  it('points at a missing closing --- when slide text was read as YAML', async () => {
+    await expect(
+      parse('---\ntitle: ok\ntheme: default\n\n# One\n\nSome text here.\n\n---\n\n# Two\n'),
+    ).rejects.toThrow(
+      '/deck/slides.md:7: the headmatter is not valid YAML: "Some text here." is not a "key: value" line; if it is the slide\'s text, the --- that ends the headmatter is missing above it',
+    );
+  });
 });
 
 describe('parseDeck: progressBar', () => {

@@ -1,13 +1,14 @@
 // Reads the deck with Slidev's parser. Its `load` function follows `src:` imports
 // (also with a `#2,4-6` slide range) and merges the importing slide's frontmatter
 // over the imported one, so we get one flat list of slides.
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { injectPreparserExtensionLoader, load } from '@slidev/parser/fs';
 import { assertReadable, allowsOutsideRoot } from './outside-root.mjs';
 import { mergeHeadmatter, resolveRoots } from './roots.mjs';
 import { preparserExtensions } from './setup/node-setups.mjs';
 import { themeConfigVars } from './theme-config.mjs';
+import { describeYamlError } from './yaml-errors.mjs';
 
 // `sources` is optional: a { path: text } map that replaces reading files (used by tests).
 // `options.theme` is the `--theme` flag. The result has `roots` (theme, addons, the deck's own folder) and a headmatter
@@ -31,12 +32,14 @@ export async function parseDeck(file = 'slides.md', sources, options = {}) {
   try {
     data = await load({ userRoot: dirname(entry), roots: [dirname(entry)] }, entry, sources);
   } catch (e) {
-    // The headmatter is parsed strictly; its line is counted from the YAML, so say where that is in the file.
+    // The headmatter is parsed strictly; its line is counted from the YAML, so say where that is in the file. It runs from the
+    // first line after the opening --- to the next ---.
     if (e?.name !== 'YAMLParseError' || !e.linePos?.[0]) throw e;
-    throw new Error(
-      `${entry}:${e.linePos[0].line + 1}: the headmatter is not valid YAML: ${e.message.split('\n')[0].replace(/ at line \d+, column \d+:?$/, '')}`,
-      { cause: e },
-    );
+    const lines = (sources?.[entry] ?? readFileSync(entry, 'utf8')).split(/\r?\n/);
+    const end = lines.findIndex((l, i) => i > 0 && /^---\s*$/.test(l));
+    const raw = lines.slice(1, end === -1 ? undefined : end).join('\n');
+    const { line, message } = describeYamlError(e, raw, 2, 'headmatter');
+    throw new Error(`${entry}:${line}: the headmatter is not valid YAML: ${message}`, { cause: e });
   }
   const problems = [];
   const roots = resolveRoots({
@@ -107,9 +110,15 @@ export async function parseDeck(file = 'slides.md', sources, options = {}) {
   data.slides.forEach((slide, i) => {
     const error = slide.source?.frontmatterDoc?.errors?.[0];
     if (!error) return;
-    const line = slide.source.start + (error.linePos?.[0]?.line ?? 1); // start is the `---` line, counted from 1
+    // `start` is the index of the opening `---` line (from 0), so the frontmatter's first line is line start + 2 of the file.
+    const { line, message } = describeYamlError(
+      error,
+      slide.source.frontmatterRaw ?? '',
+      slide.source.start + 2,
+      'frontmatter',
+    );
     throw new Error(
-      `${slide.source.filepath}:${line}: the frontmatter of slide ${i + 1} is not valid YAML: ${error.message.split('\n')[0].replace(/ at line \d+, column \d+:?$/, '')}`,
+      `${slide.source.filepath}:${line}: the frontmatter of slide ${i + 1} is not valid YAML: ${message}`,
     );
   });
 

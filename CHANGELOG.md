@@ -42,6 +42,8 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - UnoCSS as in Slidev: attributify (`<div flex="~ col" text="sm red-500">`, `hover:bg="..."`; not on slide.ng's components and layouts (`scale: 0.8` of `iframe-right` scales the frame only) or on the declared inputs of the deck's own components, whose attributes are inputs, nor on SVG elements such as `<text font-size="14">`), variant groups (`hover:(a b)`, also as a bare attribute `<div hover:(a b)>`; in a slide's markup, not in `.ts` files), the typography preset (`prose`), and `@apply`, `--uno:`, `@screen` and `theme()` in a slide's `<style>` and in `styles/`. In a slide's `<style>`, `@apply dark:...` (also `forward:`, `backward:`) applies inside the slide, and `group-`/`peer-` variants look for the group or peer inside the slide. Variant groups in code blocks and inline code are shown as written.
 - A click preview on the presenter page (the eye button in the bar, or `u`): the current slide shows what later clicks show, greyed out, with the next click highlighted and a badge with the click number on each part; clicking one goes to that click in every window. The audience page is unchanged, the choice is remembered, and themes can change the colours with `--slide-ng-ghost-*` variables (the next click follows the theme's primary colour). Content shown by `@if (clicks.current() > n)` is not previewed. A ghost keeps its opacity with any click animation preset; a fractional click's badge is the whole click it shows at. Ghosts are drawn at 0.47 opacity (0.4 in dark mode), about 3:1, and screen readers skip them; each badge is a "Go to click N" button.
 - Warnings, with the slide and line, for click values written as text that cannot work (`slide-ng-click="abc"`, `"0"`, a range as text, `[slide-ng-click]="[2]"`, a range whose end is not after its start, a `<slide-ng-switch>` child with `at="x"`), and for `clicks` / `clicksStart` that are not numbers or are negative.
+- "Did you mean" for a mistyped layout, `slide-ng-*` element or attribute, component tag (Angular's "is not a known element" names the near name instead of `customElements`), CLI command and flag; any unknown `slide-ng-*` name is a warning.
+- A warning for a picture with a leading `/` that `public/` does not have, and for `/public/x.png` (write `/x.png`).
 
 ### Changed
 
@@ -59,6 +61,8 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - `{monaco-run}` code runs in strict mode (`"use strict"`), as in Slidev.
 - The speaker notes now get the typography preset's `prose` styles they always asked for (Slidev's look): body colour and spacing.
 - The old-names check also catches Slidev's PascalCase components (`<Toc />`, `<VClicks>`, `<SlidevVideo>`, `<Youtube>`, `<RenderWhen>`, `<LightOrDark>`, `<Link>`, ...) and `<slidev-video>`, lists the old names of every slide in one run, and tells `<v-click>` / `<v-after>` to become `<div slide-ng-click>` / `<div slide-ng-after>`.
+- Monaco's stylesheet (with its icon font, about 125 kB compressed) comes with the lazy Monaco chunk instead of the deck's styles: a deck with one `{monaco}` block no longer waits for it on the first slide (first paint of a 10-slide deck on slow 3G: 10.6 s before, 4.9 s after; the first load went from 241 kB to 133 kB compressed). The three Monaco CSS files that nothing loaded are no longer in `dist/`.
+- A static build no longer contains the side editor or the dev server's sync and drag saving.
 
 ### Fixed
 
@@ -71,9 +75,6 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - The dev server's error overlay in the page names the deck's or theme's own file instead of its copy in `src/slides/generated/roots/`, and the markdown line of a generated slide.
 - White SVG `<text>` is drawn again in the presenter's next-slide pane and other small previews (Chromium skipped it after the preview's scale changed).
 - A component file that declares a helper component before its exported one gives each selector its own class (it used to pair the helper's selector with the exported class, and the build failed with NG8001).
-
-### Fixed
-
 - Icons stay visible in forced colors mode (Windows high contrast); they are drawn in the text colour.
 - A finger drag that starts on a `slide-ng-drag` element or one of its handles moves it and no longer also swipes to another slide.
 - On a touch screen the first tap on the hidden navigation bar shows it instead of pressing the invisible button under the finger.
@@ -85,39 +86,26 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
   presenter's labels, click numbers and timer buttons.
 - The side editor's coloured copy behind the text is no longer a Tab stop or read out; the presenter's next-step picture and Magic Move line
   numbers are not read out, and the presenter panes are named regions.
-
-### Fixed
-
 - With two presenter windows, a window that opens later or a presenter page that opens or reloads no longer moves the audience to the other presenter's slide: the audience stays with the newest move, also when the devices' clocks are not set alike.
 - A presenter tab that was closed and opened again gets the running timer back from any other window of the deck, or from the dev server.
 - The timer shows the same time on devices whose clocks differ: it is shared with the sender's clock and moved onto the receiver's.
-
-### Fixed
-
 - The dev server kept missing saves of components, layouts, styles and `public/` after one save by an editor that renames a new file over the old one (vim, JetBrains, `sed -i`, `git checkout`): folders are now watched one by one. A `src:` or root folder that is deleted and made again is watched again, and a root folder made while the server runs is picked up.
 - The generator no longer grows by several MB on every save in the dev server: the previous Shiki highlighter is disposed and the Twoslash transformer is made once.
 - A second `slide-ng dev` on the same deck stops with a message (naming the running one) before it touches `.slide-ng/app`, instead of replacing the first server's working copy; a port in use is reported before anything is written.
 - `slide-ng format` on frontmatter that is not valid YAML names the file, line and slide instead of "Document with errors cannot be stringified".
 - A missing `src:` file is named in the dev server's banner, not only in the terminal.
-
-### Fixed
-
 - A deck built with `slide-ng build` runs on a host that sends `Content-Security-Policy: script-src 'self'`: the inline scripts of `index.html` are written to `inline-*.js` files (docs/HOSTING.md, which also says how to embed a deck in an iframe).
 - `<object data="data:text/html,...">` and `javascript:` in an `<object>`'s `data` are replaced by `#`, like `href` and `src`; the "`<script>` is removed" warning is only given for a real `<script>` element; an inline event handler (`onclick=`) gets a warning that it runs.
 - Bidi override characters are left out of slide titles in the table of contents, the tab title and the PDF outline.
 - An element left open in a slide (`<div>` without `</div>`) stops the build with a message that names it and the slide, instead of Angular's "Unexpected closing tag sn-default".
 - PDF pages are exactly the size of a slide (Chromium made them 735.12 pt wide, which left a white line at the edge of dark slides); the notes PDF has the notes' background down to the end of the last page.
 - `export --per-slide` keeps the document language and says that links between slides and the tags for screen readers are lost.
-
-### Changed
-
-- Monaco's stylesheet (with its icon font, about 125 kB compressed) comes with the lazy Monaco chunk instead of the deck's styles: a deck with one `{monaco}` block no longer waits for it on the first slide (first paint of a 10-slide deck on slow 3G: 10.6 s before, 4.9 s after; the first load went from 241 kB to 133 kB compressed). The three Monaco CSS files that nothing loaded are no longer in `dist/`.
-- A static build no longer contains the side editor or the dev server's sync and drag saving.
-
-### Fixed
-
 - Closing the quick overview frees its cards (a 150-slide deck kept about 18,000 elements after it was closed).
 - A root folder that is a symbolic link (`public -> ../pictures`) gets a warning; it is still not followed.
+- A broken frontmatter or headmatter names the line of the error (not the slide's `---`) and says what is wrong in plain words, with hints for a value that has `: ` in it and for a missing closing `---`.
+- A mistyped tag that starts like a built-in one (`<slide-ng-tocc>`) no longer imports it (the false "SlideToc is not used" warning).
+- `slide-ng create --force` fills in the name only in the files it adds and keeps an existing `.gitignore`; the new `.gitignore` leaves out the files `export` writes by default.
+- A failed generation prints its reason once, without a second "generating the slides failed" line.
 
 ## [1.0.0] - 2026-10-18
 

@@ -2,6 +2,7 @@
 // The command line of slide.ng. `slide-ng [slides.md]` starts the dev server; the other commands are listed in HELP.
 import { readFileSync } from 'node:fs';
 import { pickCommand } from '../scripts/cli/pick-command.mjs';
+import { didYouMean } from '../scripts/lib/did-you-mean.mjs';
 
 // Each command lives in scripts/cli/ and is loaded only when it is used, so `slide-ng --help` is instant.
 
@@ -98,9 +99,12 @@ try {
         : HELP,
     );
   else if (!COMMANDS[command])
-    throw new Error(`Unknown command "${command}". Run slide-ng --help for the list.`);
+    throw new Error(
+      `Unknown command "${command}".${didYouMean(command, Object.keys(COMMANDS))} Run slide-ng --help for the list.`,
+    );
   else await COMMANDS[command](args);
 } catch (error) {
-  console.error(`slide-ng: ${error.message}`);
+  // A child that has already printed its own message (the generator) is not repeated.
+  if (!error.reported) console.error(`slide-ng: ${error.message}`);
   process.exitCode = 1;
 }
