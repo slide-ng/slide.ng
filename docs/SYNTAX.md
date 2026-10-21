@@ -307,6 +307,18 @@ Available in every slide without importing anything.
 | `<slide-ng-blue-sky uri="at://did:.../app.bsky.feed.post/..." scale="0.8" />`                                                                                                          | an embedded Bluesky post (needs the network). `uri` can also be the post's web address                                                                                                                                                                                                                                                                                             |
 | `<slide-ng-code-group>`, `<slide-ng-code-block-wrapper>`, `<slide-ng-magic-move>`, `<slide-ng-katex-block-wrapper>`, `<slide-ng-mermaid>`, `<slide-ng-plant-uml>`, `<slide-ng-monaco>` | written by the generator for code fences and math; you normally use the markdown forms below                                                                                                                                                                                                                                                                                       |
 
+More props, as in Slidev:
+
+- `<slide-ng-switch unmount>` takes the children that are not shown out of the page (their Angular components stay alive);
+  `transition="fade"` (or `slide-left`, `slide-up`, `fade-out`, a `forward | backward` pair) animates the change, a bare `transition` is a fade.
+  Slidev's `tag` and `childTag` have no use: the children are the elements written inside, not slots to wrap.
+- `<slide-ng-video printPoster="/still.png" printTimestamp="12">`: where the video does not play (print, export, overview) `printPoster`
+  replaces `poster`, and the frame at `printTimestamp` (seconds, or `last`) is shown; without `printPoster` the frame at `printTimestamp` or `timestamp` is shown.
+  `export` (also with `--dist`) serves the deck with byte ranges, so the browser can seek the video to that frame.
+- `<slide-ng-render-when context="visible">` shows its content while the element is on the screen (the element is a block then).
+  In a list, `visible` must hold too and, as in Slidev, counts as a match by itself. In print and export (PDF, PNG, PPTX) every slide
+  counts as on screen, wherever it is on the print page.
+
 The table of contents lists every slide that has a title and is not `hideInToc`. A slide whose level is higher than the one
 before it becomes its child: `# A`, `## A.1`, `## A.2`, `# B` gives A (with A.1, A.2) and B. In `mode="onlyCurrentTree"` only the path to
 the current slide (and what is below it) is shown, `onlySiblings` shows the lists that contain the current slide.

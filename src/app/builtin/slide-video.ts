@@ -1,7 +1,8 @@
 // A <video> that can play by itself when the slide (and its click) comes:
 //   <slide-ng-video slide-ng-click autoplay="true" controls><source src="/clip.mp4" type="video/mp4" /></slide-ng-video>
 // `autoplay`: "true" plays every time it appears, "once" only the first time. `autoreset`: "slide" or "click"
-// goes back to the `timestamp` when it disappears. Called `slide-ng-video` (Slidev: SlidevVideo) to stay clear of <video>.
+// goes back to the `timestamp` when it disappears. Where it does not play (print, export, overview), `printPoster` replaces
+// `poster` and the frame at `printTimestamp` (seconds, or `last`) is shown. Called `slide-ng-video` (Slidev: SlidevVideo) to stay clear of <video>.
 import {
   Component,
   ElementRef,
@@ -22,9 +23,10 @@ import { SlideNgClick } from '../lib/slide-ng-click';
   template: `
     <video
       #video
-      [attr.poster]="poster()"
+      [attr.poster]="canPlay ? poster() : (printPoster() ?? poster())"
       [controls]="controls() && canPlay"
       (play)="played = true"
+      (loadedmetadata)="onLoadedMetadata()"
     >
       <ng-content />
     </video>
@@ -38,6 +40,11 @@ export class SlideVideo {
   autoreset = input<'slide' | 'click'>();
   poster = input<string>();
   timestamp = input(0, { transform: numberAttribute });
+  printPoster = input<string>();
+  printTimestamp = input<number | 'last' | undefined, unknown>(undefined, {
+    transform: (v) =>
+      v === 'last' ? 'last' : v == null || v === '' ? undefined : numberAttribute(v),
+  });
   controls = input(false, { transform: booleanAttribute });
 
   protected played = false;
@@ -51,6 +58,16 @@ export class SlideVideo {
   protected canPlay = ['slide', 'presenter'].includes(inject(RENDER_CONTEXT));
   private onSlide = computed(() => this.nav.no() === this.slideNo);
   private shown = computed(() => this.onSlide() && !(this.click?.state.hidden() ?? false));
+
+  // Port of Slidev's onLoadedMetadata: without a print poster (or with a print timestamp) show that frame instead.
+  protected onLoadedMetadata() {
+    if (this.canPlay) return;
+    const at = this.printTimestamp();
+    if (this.printPoster() && at === undefined) return;
+    const video = this.video().nativeElement;
+    const time = at ?? this.timestamp();
+    video.currentTime = time === 'last' ? video.duration : time;
+  }
 
   constructor() {
     effect(() => {

@@ -23,6 +23,11 @@ describe('rebaseHtml', () => {
     expect(out).toContain("poster='/talk/p.png'");
     expect(out).toContain('url(/talk/b.png)');
   });
+  it('rewrites the printPoster of <slide-ng-video> too', () => {
+    expect(
+      rebaseHtml('<slide-ng-video printPoster="/still.png"></slide-ng-video>', '/talk/'),
+    ).toContain('printPoster="/talk/still.png"');
+  });
   it('makes them relative for an offline folder', () => {
     const out = rebaseHtml(HTML, './');
     expect(out).toContain('src="a.png"');

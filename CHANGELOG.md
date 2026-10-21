@@ -25,6 +25,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - Every Magic Move option of the headmatter's `shiki.magicMove` is read (`duration`, `stagger`, `delayMove`, `delayLeave`, `delayEnter`, `delayContainer`, `easing`, `animateContainer`, `containerStyle`, `splitTokens`, `enhanceMatching`), as in Slidev. The stagger is no longer fixed at 1 ms.
 - Code block, code group and Magic Move titles draw an icon, as in Slidev: `~i-set:name~` in the title, or Slidev's built-in icons matched from the title (`npm`, `vue`, `package.json`, ...) when `@iconify-json/vscode-icons` is installed. A built-in name matches a whole word, a file extension or the start of a file name (`results.tsv` gets no TypeScript icon, unlike Slidev); every `~...~` is taken out of the shown title. A `<<<` snippet takes the title after the language (`<<< ./a.py python [a.py]`), with spaces and an icon.
 - The headmatter `monaco` and `twoslash` take `true`, `false`, `dev` or `build`, as in Slidev: off for the current mode, `{monaco}` blocks are plain highlighted code and Twoslash does not run (a `{monaco-run}` with `showOutputAt` then has no click, so `monaco: build` counts one click less in `slide-ng dev`). `monacoRunUseStrict: false` runs `{monaco-run}` code without strict mode.
+- `<slide-ng-switch>` takes `unmount` and `transition`, `<slide-ng-video>` takes `printPoster` and `printTimestamp` (`last` too), and `<slide-ng-render-when>` takes the `visible` context, as in Slidev.
 
 ### Changed
 

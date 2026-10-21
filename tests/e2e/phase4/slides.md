@@ -20,6 +20,8 @@ First slide
 <slide-ng-render-when context="print"><p id="only-print">printing</p></slide-ng-render-when>
 <slide-ng-render-when context="slide"><p id="only-slide">on screen</p></slide-ng-render-when>
 
+<slide-ng-video id="pv" poster="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACwAAAAAAQABAAACAkQBADs=" printPoster="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="></slide-ng-video>
+
 <!-- note two [click] with a click -->
 
 ---
@@ -75,3 +77,5 @@ const answer = 42
 
 Done. [Back to the clicks](2), or [a web page](https://example.org). [A page of the site](/nope) and <a href="/3">an address</a> are
 no links in a PDF.
+
+<slide-ng-render-when context="visible"><p id="print-visible">on paper</p><p fallback id="print-visible-fallback">not seen</p></slide-ng-render-when>

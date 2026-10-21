@@ -72,7 +72,7 @@ Short notes on choices made, and why. Newest at the bottom.
 10. **`<link>` is `<slide-ng-link>`**: `link` is a void HTML element and cannot hold content in an Angular template. Other built-ins keep their Slidev
     names in kebab case, with the `slide-ng-` prefix since the last section (`slide-ng-toc`, `slide-ng-current-no`, `slide-ng-total`, `slide-ng-light-or-dark`, `slide-ng-render-when`). Where Slidev uses Vue slots, we use
     attributes on children: `<div dark>` / `<div light>`, `<div fallback>`, `<div at="2">` inside `<slide-ng-switch>`.
-11. **`slide-ng-render-when` has no `visible` context** (needs an element visibility observer); `slide`, `presenter`, `print`, `overview`, `main` work.
+11. **`slide-ng-render-when` had no `visible` context at first**; it has now, with an `IntersectionObserver` on the element (no new dependency). `slide`, `presenter`, `print`, `overview`, `main` work.
 12. **`Nav` and `Ui` are provided by the Deck component**, not the root, so they can read the route and the slides created inside the deck inherit them.
     Overview thumbnails are created inside the overview component, which is inside the deck, so they see the same services.
 13. **Shortcuts are a plain list**, with Slidev's names and keys (`next_space`, `prev_left`, ...), and a `SHORTCUTS_SETUP` injection token
