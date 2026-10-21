@@ -68,6 +68,14 @@ const BUILTIN_ICONS = {
 // The longest name first, as in Slidev, so `package.json` wins over `.json` and `.tsx` over `.ts`.
 const NAMES = Object.keys(BUILTIN_ICONS).sort((a, b) => b.length - a.length);
 
+// Does a word of the title (a file name, a path part or a plain word) name this entry? Slidev looks for the name anywhere in
+// the title, so `results.tsv` got the TypeScript icon; here a name has to be the whole word, its extension (`.ts`, and `vue`
+// for `App.vue`) or the start of a file name before its extension (`eslint.config.js`, `.eslintrc.json`).
+function names(word, name) {
+  if (word === name || word.startsWith(name + '.')) return true;
+  return word.endsWith(name.startsWith('.') ? name : '.' + name) && !name.includes('.', 1);
+}
+
 /**
  * The icon class for a title, or ''. The first `~...~` is used as it is; a built-in match only when its set is installed.
  * @param {string} title @param {string[]} [sets] the installed @iconify-json sets
@@ -75,8 +83,12 @@ const NAMES = Object.keys(BUILTIN_ICONS).sort((a, b) => b.length - a.length);
 export function titleIcon(title, sets) {
   const written = /~([^~]+)~/.exec(title);
   if (written) return written[1].trim();
-  const lower = title.toLowerCase();
-  const name = NAMES.find((n) => lower.includes(n));
+  const words = title
+    .toLowerCase()
+    .split(/[\s/\\]+/)
+    .map((w) => w.replace(/^[^\w.]+|[^\w.]+$/g, ''))
+    .filter(Boolean);
+  const name = NAMES.find((n) => words.some((w) => names(w, n)));
   if (!name) return '';
   const icon = BUILTIN_ICONS[name];
   const set = /^i-([^:]+):/.exec(icon)[1];

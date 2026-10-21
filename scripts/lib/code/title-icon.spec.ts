@@ -26,4 +26,18 @@ describe('titleIcon', () => {
   it('gives nothing for an unknown title', () => {
     expect(titleIcon('Example', ['vscode-icons'])).toBe('');
   });
+  it('matches whole file names and extensions, not any part of the title', () => {
+    const icon = (t: string) => titleIcon(t, ['vscode-icons']);
+    expect(icon('results.tsv')).toBe('');
+    expect(icon('notes.txt')).toBe('');
+    expect(icon('components')).toBe('');
+    expect(icon('main.ts')).toBe('i-vscode-icons:file-type-typescript');
+    expect(icon('App.vue')).toBe('i-vscode-icons:file-type-vue');
+    expect(icon('npm install')).toBe('i-vscode-icons:file-type-npm');
+    expect(icon('src/package.json')).toBe('i-vscode-icons:file-type-node');
+    expect(icon('eslint.config.js')).toBe('i-vscode-icons:file-type-eslint');
+    expect(icon('.eslintrc.json')).toBe('i-vscode-icons:file-type-eslint');
+    expect(icon('.vscode/settings.json')).toBe('i-vscode-icons:file-type-vscode');
+    expect(icon('(.env)')).toBe('i-vscode-icons:file-type-dotenv');
+  });
 });
