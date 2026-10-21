@@ -14,6 +14,7 @@ import { HEADMATTER, NOT_FOUND } from '../../slides/generated';
 import { CANVAS_HEIGHT, CANVAS_WIDTH, fitScale } from './canvas';
 import { hostSize } from './element-size';
 import { Nav } from './nav';
+import { DeckProgressBar } from './deck-progress-bar';
 import { SlideLayer } from './slide-layer';
 import { RenderContext } from './slide-context';
 import { Stage } from './stage';
@@ -35,7 +36,7 @@ import { documentTitle } from './page-title';
     '(pointerdown)': 'hostClick($event)',
     '(click)': 'hostTap($event)',
   },
-  imports: [NgComponentOutlet, SlideLayer],
+  imports: [NgComponentOutlet, SlideLayer, DeckProgressBar],
   template: `
     <div
       #canvas
@@ -51,6 +52,7 @@ import { documentTitle } from './page-title';
         <ng-container *ngComponentOutlet="notFound" />
       }
       <app-slide-layer name="global-top" [no]="nav.no()" />
+      <app-deck-progress-bar [no]="nav.no()" />
       <ng-content />
     </div>
   `,

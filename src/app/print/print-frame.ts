@@ -1,6 +1,7 @@
 import {
   Component,
   ViewContainerRef,
+  computed,
   effect,
   input,
   signal,
@@ -11,6 +12,7 @@ import { DrawingPreview } from '../drawing/drawing-preview';
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from '../lib/canvas';
 import { CLICKS_MAX, ClicksContext } from '../lib/clicks';
 import { mountSlide } from '../lib/mount-slide';
+import { DeckProgressBar } from '../lib/deck-progress-bar';
 import { SlideLayer } from '../lib/slide-layer';
 import { printAnchor } from './print-anchor';
 
@@ -18,7 +20,7 @@ import { printAnchor } from './print-anchor';
 // The id is `<slide>-<click + 1>` (001-01), the same pattern as Slidev, so exporters can read the slide number from it.
 @Component({
   selector: 'app-print-frame',
-  imports: [SlideLayer, DrawingPreview],
+  imports: [SlideLayer, DrawingPreview, DeckProgressBar],
   host: {
     class: 'print-slide-container bg-main text-main',
     '[id]': 'id()',
@@ -31,10 +33,11 @@ import { printAnchor } from './print-anchor';
     @if (anchor()) {
       <span [id]="anchorId()" aria-hidden="true"></span>
     }
-    <app-slide-layer name="global-bottom" [no]="no()" />
+    <app-slide-layer name="global-bottom" [no]="no()" [at]="step()" />
     <ng-container #host />
     <app-drawing-preview [no]="no()" />
-    <app-slide-layer name="global-top" [no]="no()" />
+    <app-slide-layer name="global-top" [no]="no()" [at]="step()" />
+    <app-deck-progress-bar [no]="no()" [at]="step()" />
   `,
 })
 export class PrintFrame {
@@ -49,6 +52,11 @@ export class PrintFrame {
   private host = viewChild.required('host', { read: ViewContainerRef });
   /** The slide's click state, known once the slide is created. */
   readonly clicks = signal<ClicksContext | null>(null);
+
+  protected step = computed(() => {
+    const clicks = this.clicks();
+    return clicks ? { current: clicks.current(), total: clicks.total() } : null;
+  });
 
   protected id = () => {
     const click = (this.clicks()?.current() ?? 0) + 1;

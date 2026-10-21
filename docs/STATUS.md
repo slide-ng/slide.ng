@@ -113,6 +113,7 @@ one can be written. The decisions are in DECISIONS.md ("Made while testing for 1
 - The `dev` and `build` values of `monaco` and `twoslash` in a real `slide-ng dev` session (the switch and the plain-code output are unit-tested).
 - `<slide-ng-video printTimestamp>` with a real video in an exported PDF (the seek is unit-tested, the print poster is checked in the browser); a seek that is slow to finish is not waited for, as in Slidev.
 - The real screen-share picker, recording quality, the wake lock, `--remote` from a second physical device and over a real LAN, touch input (all as in phase 3).
+- The progress bar's timer minutes (`progressBar: { minutes: true }`) on a viewer on another device: checked between windows of one browser only.
 - Everything under the phase 1 and 2 NOT VERIFIED lists.
 
 ## macOS run (2026-10-16, Node 24, Chrome from `/Applications`)

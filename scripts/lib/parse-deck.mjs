@@ -85,6 +85,17 @@ export async function parseDeck(file = 'slides.md', sources, options = {}) {
 
   // `themeConfig` keys that cannot be a CSS variable are skipped (lib/theme-config.mjs); the theme's defaults are checked too.
   for (const p of themeConfigVars(headmatter.themeConfig).problems) problems.push(`${entry}: ${p}`);
+  // `progressBar` (slide.ng's own): anything but these draws no bar, which is easy to miss.
+  const bar = data.headmatter.progressBar;
+  const barObject = bar != null && typeof bar === 'object' && !Array.isArray(bar);
+  if (bar != null && ![true, false, 'top', 'bottom'].includes(bar) && !barObject)
+    problems.push(
+      `${entry}: \`progressBar: ${JSON.stringify(bar)}\` is not used: write true, top, bottom or { position, height, color, track, clicks, minutes }`,
+    );
+  else if (barObject && bar.position != null && !['top', 'bottom'].includes(bar.position))
+    problems.push(
+      `${entry}: \`progressBar.position: ${JSON.stringify(bar.position)}\` is not used: write top or bottom (bottom is used)`,
+    );
 
   // Old Slidev decks pick Prism; code here is always Shiki, so Prism theme CSS no longer applies.
   if (data.headmatter.highlighter && data.headmatter.highlighter !== 'shiki')

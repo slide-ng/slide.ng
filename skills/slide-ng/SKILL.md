@@ -126,6 +126,7 @@ Angular control flow works.
 | Transform        | `<slide-ng-transform>`            | [layout-transform](references/layout-transform.md)         |
 | Draggable        | `slide-ng-drag`                   | [layout-draggable](references/layout-draggable.md)         |
 | Layers           | `global-top`, `slide-bottom`, ... | [layout-global-layers](references/layout-global-layers.md) |
+| Progress bar     | `progressBar`                     | [layout-progress-bar](references/layout-progress-bar.md)   |
 
 ## Animation
 

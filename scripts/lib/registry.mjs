@@ -18,6 +18,7 @@ export const COMPONENTS = [
   { className: 'SlideToc', file: 'builtin/slide-toc', test: /<slide-ng-toc/ },
   { className: 'SlideCurrentNo', file: 'builtin/slide-current-no', test: /<slide-ng-current-no/ },
   { className: 'SlidesTotal', file: 'builtin/slides-total', test: /<slide-ng-total/ },
+  { className: 'SlideProgressBar', file: 'builtin/progress-bar', test: /<slide-ng-progress-bar/ },
   {
     className: 'SlideTitleRenderer',
     file: 'builtin/slide-title-renderer',

@@ -7,6 +7,9 @@ drawings:
 record: true
 wakeLock: true
 download: true
+progressBar:
+  minutes: true
+  color: '#e11d48'
 ---
 
 # Phase 3
@@ -35,6 +38,8 @@ Before the clicks.
 # Third
 
 Plain slide.
+
+<slide-ng-progress-bar id="own-bar" position="inline" height="10" color="green" track="#ddd" />
 
 ---
 dragPos:

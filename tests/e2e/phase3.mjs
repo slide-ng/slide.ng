@@ -46,6 +46,7 @@ for (const topic of [
   'camera',
   'settings',
   'drag',
+  'progress',
   'layout',
   'preload',
 ]) {

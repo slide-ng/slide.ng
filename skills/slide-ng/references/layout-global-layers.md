@@ -11,6 +11,7 @@ Add any of `layers/global-top.ts`, `global-bottom.ts`, `slide-top.ts`, `slide-bo
 - `slide-*` appear inside every slide; inject `SLIDE_NO` from `slide-ng/lib/slide-context` to know which.
 - Layers let clicks through (`pointer-events: none`); give your own elements `pointer-events: auto` if they need the mouse.
 - The generator finds them by folder and name, not by selector.
+- Built-in tags are not available in a layer by themselves: add each to the component's `imports` (`import { SlideProgressBar } from 'slide-ng/builtin/progress-bar'`, then `imports: [SlideProgressBar]`).
 
 <!-- verify-file: layers/global-top.ts -->
 
