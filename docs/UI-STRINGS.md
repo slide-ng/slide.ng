@@ -215,7 +215,7 @@ default; `src/app/i18n/en.ts` holds it and is the source of truth for the keys. 
 | `slide.errorDev`      | An error occurred on this slide. Check the terminal for more information. |
 | `slide.errorBuild`    | Failed to fetch this slide. Please check your network connection.         |
 
-### The dev server: the side editor and the banner for a deck that does not read
+### The dev server: the side editor, the banner for a deck that does not read and the password prompt
 
 | key                    | English                                                               |
 | ---------------------- | --------------------------------------------------------------------- |
@@ -229,6 +229,7 @@ default; `src/app/i18n/en.ts` holds it and is the source of truth for the keys. 
 | `editor.conflict`      | Changed in the file, not saved: copy your text and reopen the slide   |
 | `editor.problem`       | slides.md could not be read, showing the last good version: {problem} |
 | `editor.problemSlides` | Some slides could not be read and are left out: {problem}             |
+| `dev.password`         | Password for this slide.ng session                                    |
 
 ### The sync menu, the click preview and the notes pages
 

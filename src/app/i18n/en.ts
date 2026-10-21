@@ -150,7 +150,8 @@ export const EN = {
   'slide.errorDev': 'An error occurred on this slide. Check the terminal for more information.',
   'slide.errorBuild': 'Failed to fetch this slide. Please check your network connection.',
 
-  // The dev server: the side editor and the banner for a deck that does not read (side-editor.ts, problem-banner.ts)
+  // The dev server: the side editor, the banner for a deck that does not read and the password prompt of --remote
+  // (side-editor.ts, problem-banner.ts, dev-api.ts)
   'editor.slide': 'Slide {no}',
   'editor.close': 'Close editor',
   'editor.markdown': 'Markdown of this slide',
@@ -161,6 +162,7 @@ export const EN = {
   'editor.conflict': 'Changed in the file, not saved: copy your text and reopen the slide',
   'editor.problem': 'slides.md could not be read, showing the last good version: {problem}',
   'editor.problemSlides': 'Some slides could not be read and are left out: {problem}',
+  'dev.password': 'Password for this slide.ng session',
 
   // The sync menu, the click preview and the notes pages (sync-controls.ts, click-preview-layer.ts, pane-resizers.ts, note-editor.ts, entry-page.ts, overview-page.ts, notes-edit-page.ts)
   'nav.clickPreviewShow': 'Show upcoming clicks',

@@ -138,6 +138,7 @@
   "editor.conflict": "Dosya başka bir yerde değişti, kaydedilmedi: metninizi kopyalayıp slaytı yeniden açın",
   "editor.problem": "slides.md okunamadı, son çalışan sürüm gösteriliyor: {problem}",
   "editor.problemSlides": "Bazı slaytlar okunamadı ve dışarıda bırakıldı: {problem}",
+  "dev.password": "Bu slide.ng oturumunun parolası",
   "nav.clickPreviewShow": "Sonraki tıklamaları göster",
   "nav.clickPreviewHide": "Sonraki tıklamaları gizle",
   "nav.sync": "Eşitleme ayarlarını değiştir",

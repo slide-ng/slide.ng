@@ -1,4 +1,6 @@
-import { passwordInAddress, withoutPassword } from './dev-api';
+import { TestBed } from '@angular/core/testing';
+import { UI_TEXT, mergeUiText } from '../i18n/ui-text';
+import { DevApi, passwordInAddress, withoutPassword } from './dev-api';
 
 describe('the password in the address', () => {
   it('is read from the query, and from the query after the # of a hash deck', () => {
@@ -16,5 +18,25 @@ describe('the password in the address', () => {
       'http://h:1/#/presenter/1?y=2',
     );
     expect(withoutPassword('http://h:1/#/3')).toBe('http://h:1/#/3');
+  });
+});
+
+describe('DevApi', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("asks for the password in the deck's language", async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response('{}', { status: 401 })),
+    );
+    const prompt = vi.spyOn(window, 'prompt').mockReturnValue(null);
+    TestBed.configureTestingModule({
+      providers: [{ provide: UI_TEXT, useValue: mergeUiText({ 'dev.password': 'Parola' }) }],
+    });
+    const api = TestBed.inject(DevApi);
+    expect(await api.token()).toBeNull();
+    expect(prompt).toHaveBeenCalledWith('Parola');
+    expect(api.locked()).toBe(true);
+    prompt.mockRestore();
   });
 });

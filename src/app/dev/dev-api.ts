@@ -1,4 +1,5 @@
-import { Injectable, isDevMode, signal } from '@angular/core';
+import { Injectable, inject, isDevMode, signal } from '@angular/core';
+import { UI_TEXT, uiText } from '../i18n/ui-text';
 
 /** Where the dev companion server answers. The Angular dev server forwards this address to it. */
 export const API = '/__slide-ng';
@@ -44,6 +45,7 @@ export class DevApi {
   /** The server wants a password and we do not have it: writes and device sync stay off. */
   readonly locked = signal(false);
   private session?: Promise<string | null>;
+  private text = inject(UI_TEXT);
 
   /** The session token, or null when there is no companion server (or no access). Asked once per page. */
   token(): Promise<string | null> {
@@ -60,7 +62,7 @@ export class DevApi {
       }
       let res = await fetch(`${API}/session`, { credentials: 'same-origin' });
       if (res.status === 401) {
-        const typed = window.prompt('Password for this slide.ng session');
+        const typed = window.prompt(uiText(this.text, 'dev.password'));
         if (typed && (await this.login(typed)))
           res = await fetch(`${API}/session`, { credentials: 'same-origin' });
       }
