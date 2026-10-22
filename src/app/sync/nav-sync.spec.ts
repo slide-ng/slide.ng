@@ -37,7 +37,11 @@ describe('firstMoveTime', () => {
 // A viewer (or presenter) window with a fake Nav; `deliver` plays the messages of the other windows.
 function viewer(isPresenter = false) {
   let deliver: (channel: string, data: unknown) => void = () => {};
-  const transport: SyncTransport = { send: () => {}, listen: (h) => (deliver = h) };
+  const sent: { channel: string; data: any }[] = [];
+  const transport: SyncTransport = {
+    send: (channel, data) => sent.push({ channel, data }),
+    listen: (h) => (deliver = h),
+  };
   TestBed.configureTestingModule({
     providers: [{ provide: SYNC_TRANSPORTS, multi: true, useValue: transport }],
   });
@@ -67,7 +71,7 @@ function viewer(isPresenter = false) {
     if (tick) TestBed.tick();
     return no();
   };
-  return { move, nav };
+  return { move, nav, sent };
 }
 
 describe('startNavSync (a viewer)', () => {
@@ -132,6 +136,16 @@ describe("startNavSync (MCP's goto_slide)", () => {
       }
     });
   }
+
+  it('a viewer that takes the move as it came tells the dev server it landed, on the hub-only channel', () => {
+    const { move, sent } = viewer();
+    const now = Date.now();
+    sent.length = 0;
+    move('slide-ng-mcp', 4, now, now, false, 'viewer');
+    expect(move('slide-ng-mcp', 4, now, now, true, 'presenter')).toBe(4);
+    // goto_slide waits for this instead of a fixed time; no window follows a `position` message.
+    expect(sent).toEqual([{ channel: 'position', data: { page: 4, clicks: 0 } }]);
+  });
 
   it('both moves are seen also when the clock ticks between the two', () => {
     const { move } = viewer(true);

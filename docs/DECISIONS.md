@@ -535,7 +535,9 @@ Source: an independent review of the repository (nine findings). Each fix has a 
    token, counted by the same limit on wrong passwords as the login; spaces at the password's start or end are left out of the compare, as HTTP cannot carry them in a header. `goto_slide` sends two `shared` messages, one as a viewer (presenters
    follow) and one as a presenter (viewers follow), because a window ignores moves made by its own kind. It answers the click step
    a window reports back; a viewer on another machine may not drive, so it reports on a `position` channel that only the hub reads
-   (no window follows it).
+   (no window follows it). Every window that follows the move reports once its slide is there, also when it took the step as asked
+   (on `position`, as nothing needs to follow it), so goto_slide waits for the first report rather than a fixed time: a fixed half
+   second gave the asked step when the slide loaded slowly. A window that does not follow (its sync is off) is waited for 5 s.
 
 ## Made while measuring the first load
 

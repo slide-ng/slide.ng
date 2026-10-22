@@ -968,6 +968,10 @@ try {
   );
   const rgoto = async (args) =>
     JSON.parse((await rmcp.callTool({ name: 'goto_slide', arguments: args })).content[0].text);
+  // A slow window (10x CPU slowdown, so its report comes late): goto_slide waits for the report. It used to wait a fixed
+  // half second and then answer the asked step, so this check failed now and then on a busy machine.
+  const cdp = await far.newCDPSession(farViewer);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 10 });
   const moved = await rgoto({ no: 2, clicks: 50 });
   const stayed = await rgoto({ no: 2, clicks: 50 });
   t.ok(

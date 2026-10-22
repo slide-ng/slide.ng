@@ -14,8 +14,10 @@ export function gotoMessages(page, clicks, time = Date.now()) {
   }));
 }
 
-// How long goto_slide waits for a window to report the step it took (a window that takes the asked step reports nothing).
-const REPORT_WAIT = 500;
+// How long goto_slide waits at most for a window to report the step it took. Every window that follows the move reports once
+// its slide is there, so the answer comes as soon as the first one does; the limit is for windows that do not follow (sync
+// turned off), whose answer is then the asked step. A fixed short wait gave the asked step when the slide loaded slowly.
+const REPORT_WAIT = 5000;
 
 export const DEV_TOOLS = [
   {

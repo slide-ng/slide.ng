@@ -58,11 +58,21 @@ const post = (port: number, headers: Record<string, string>) =>
     body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }),
   });
 
-// A browser window: joins the sync hub and keeps what it receives.
-function windowOn(port: number) {
+// A browser window: joins the sync hub and keeps what it receives. `landed`: like the app, it says where it is once a move
+// it follows is there (after `delay` ms, a slide that loads slowly).
+function windowOn(port: number, { landed = false, delay = 0 } = {}) {
   const received: any[] = [];
   const socket = new WebSocket(`ws://127.0.0.1:${port}/__slide-ng/ws?token=tok`);
-  socket.on('message', (m) => received.push(JSON.parse(String(m))));
+  socket.on('message', (m) => {
+    const message = JSON.parse(String(m));
+    received.push(message);
+    const { page, clicks, lastUpdate } = message.data ?? {};
+    if (landed && lastUpdate?.type === 'presenter')
+      setTimeout(
+        () => socket.send(JSON.stringify({ channel: 'position', data: { page, clicks } })),
+        delay,
+      );
+  });
   return new Promise<{ socket: WebSocket; received: any[] }>((done) =>
     socket.on('open', () => done({ socket, received })),
   );
@@ -131,8 +141,8 @@ describe('MCP over HTTP on the dev server', () => {
   it('goto_slide moves every window, presenters and viewers, and refuses a slide that does not exist', async () => {
     const { port } = await start();
     const client = await connect(port);
-    const a = await windowOn(port);
-    const b = await windowOn(port);
+    const a = await windowOn(port, { landed: true });
+    const b = await windowOn(port, { landed: true });
     const moved = await call(client, 'goto_slide', { no: 3, clicks: 2 });
     expect(moved.json).toEqual({ no: 3, clicks: 2, windows: 2 });
     await tick();
@@ -174,6 +184,41 @@ describe('MCP over HTTP on the dev server', () => {
       clicks: 4,
       windows: 0,
     });
+    await client.close();
+  });
+
+  it('goto_slide waits for a window whose slide loads slowly, and answers as soon as it reports', async () => {
+    const { port } = await start();
+    const client = await connect(port);
+    // The report comes after 1.5 s; goto_slide used to give up after 0.5 s and answer the asked step.
+    const viewer = await windowOn(port);
+    viewer.socket.on('message', (m) => {
+      const { data } = JSON.parse(String(m));
+      if (data.lastUpdate?.type === 'presenter')
+        setTimeout(
+          () =>
+            viewer.socket.send(
+              JSON.stringify({ channel: 'position', data: { page: data.page, clicks: 1 } }),
+            ),
+          1500,
+        );
+    });
+    expect((await call(client, 'goto_slide', { no: 2, clicks: 50 })).json).toEqual({
+      no: 2,
+      clicks: 1,
+      windows: 1,
+    });
+    viewer.socket.close();
+    // A window that takes the step reports it at once, so the answer does not wait for the limit.
+    const quick = await windowOn(port, { landed: true });
+    const at = Date.now();
+    expect((await call(client, 'goto_slide', { no: 3 })).json).toEqual({
+      no: 3,
+      clicks: 0,
+      windows: 1,
+    });
+    expect(Date.now() - at).toBeLessThan(2000);
+    quick.socket.close();
     await client.close();
   });
 

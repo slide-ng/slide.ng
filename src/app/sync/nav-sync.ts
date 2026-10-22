@@ -80,6 +80,9 @@ export function startNavSync(nav: Nav) {
   // not follow a report).
   const report = () =>
     mayShare ? send() : sync.reportPosition({ page: nav.no(), clicks: nav.clicks() });
+  // A move from outside taken as it came is not sent on, but the dev server hears that it landed: goto_slide waits for that
+  // instead of a fixed time, which a slide that loads slowly outlasted.
+  const landed = () => sync.reportPosition({ page: nav.no(), clicks: nav.clicks() });
 
   // Our position changed: tell the others. The very first position of a viewer is not news
   // (a viewer that just opened would drag the presenter back to its own slide). The very first position of a presenter
@@ -99,7 +102,8 @@ export function startNavSync(nav: Nav) {
       first = false;
       // A viewer's move reached the presenter: pass it on, so the other viewers follow too (as Slidev's presenter does).
       if (fromOutside && nav.isPresenter && from) return send(from);
-      if (fromOutside || (initial && !nav.isPresenter)) return;
+      if (fromOutside) return landed();
+      if (initial && !nav.isPresenter) return;
       if (initial) return send(undefined, false, firstMoveTime(readSaved(), page, clicks));
       if (followed) return report();
       send();
@@ -134,7 +138,7 @@ export function startNavSync(nav: Nav) {
       if (s.lastUpdate.time < followed || s.lastUpdate.time < sync.ownMoveTime) return;
       followed = s.lastUpdate.time;
       const page = Math.min(s.page, nav.total);
-      if (page === nav.no() && s.clicks === nav.clicks()) return;
+      if (page === nav.no() && s.clicks === nav.clicks()) return landed();
       applied = `${page}:${s.clicks}`;
       appliedFrom = s.lastUpdate.type === 'viewer' ? s.lastUpdate.id : '';
       const before = nav.clicks();
