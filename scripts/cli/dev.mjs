@@ -21,7 +21,14 @@ import { checkPortFree, takeDevLock } from './dev-lock.mjs';
 import { applyLangFlag, applyThemeFlag, parseFlags } from './flags.mjs';
 import { packageRoot } from './package-root.mjs';
 import { askPassword } from './prompt.mjs';
-import { editorCommand, keyHint, listenForKeys, openCommand, startProgram } from './dev-keys.mjs';
+import {
+  editorCommand,
+  keyHint,
+  listenForKeys,
+  openCommand,
+  qrNeedsRemote,
+  startProgram,
+} from './dev-keys.mjs';
 import { remoteLines, remoteQrLines } from './remote-info.mjs';
 import { angularOutput, overlayError, withSlideSources } from './runtime.mjs';
 import { watchChildren } from './watch-children.mjs';
@@ -177,7 +184,24 @@ export async function devCommand(argv) {
     const secret = randomSecret();
     let waiting = null;
     let served = false;
+    // The shortcuts line, printed again once Angular's output after its first good build has ended (it scrolled the line
+    // printed at the start away), also after `r`. Only on a terminal, where the keys are read.
+    const hintAgain = process.stdin.isTTY && plan.log !== 'silent';
+    let hint = 'not yet'; // then 'due' (after the first good build) and 'done'
+    let hintTimer;
+    const hintSoon = () => {
+      if (hint !== 'due') return;
+      clearTimeout(hintTimer);
+      hintTimer = setTimeout(() => {
+        hint = 'done';
+        console.log(keyHint(plan.remote));
+      }, 500);
+    };
     const onBuild = ({ ok, error }) => {
+      if (ok && hintAgain && hint === 'not yet') {
+        hint = 'due';
+        hintSoon();
+      }
       if (ok) {
         served = true;
         waiting?.close();
@@ -209,9 +233,13 @@ export async function devCommand(argv) {
         },
         quiet,
         onBuild,
+        onOutput: hintSoon,
       }),
     ];
-    children[2].once('exit', () => waiting?.close());
+    children[2].once('exit', () => {
+      waiting?.close();
+      clearTimeout(hintTimer);
+    });
     const watcher = watchChildren(
       [
         { name: 'the slide generator', child: children[0] },
@@ -294,7 +322,7 @@ export async function devCommand(argv) {
                   addresses,
                   routerMode: deckRouterMode(plan.entry),
                 }).join('\n')
-              : '[slide.ng] the QR code is for --remote (start with slide-ng --remote)',
+              : qrNeedsRemote(),
           ),
       },
       (error) => console.error(`[slide.ng] ${error instanceof Error ? error.message : error}`),
@@ -348,7 +376,7 @@ const stopChild = (child) =>
 
 // The Angular dev server, with its errors pointing at the deck's files (slides.md line, the author's own components/ file)
 // instead of the generated copies, as the build does (runtime.mjs). Its colours stay when the terminal has them.
-function angularServer(ngArgs, { appRoot, env, quiet, onBuild }) {
+function angularServer(ngArgs, { appRoot, env, quiet, onBuild, onOutput }) {
   // wait-for-port.mjs lets the waiting page (waiting-page.mjs) hand the port over when the first good build is done.
   const preload = pathToFileURL(join(packageRoot, 'scripts/dev/wait-for-port.mjs')).href;
   const child = spawn(process.execPath, ['--import', preload, ...ngArgs], {
@@ -364,7 +392,9 @@ function angularServer(ngArgs, { appRoot, env, quiet, onBuild }) {
   // Once it is being stopped, what it and its helpers still print (a dying esbuild's panic) is dropped.
   const relay = (from, to) =>
     createInterface({ input: from }).on('line', (line) => {
-      if (!child.stopping) tidy.line(withSlideSources(line, appRoot), to);
+      if (child.stopping) return;
+      tidy.line(withSlideSources(line, appRoot), to);
+      onOutput?.();
     });
   relay(child.stdout, quiet ? null : process.stdout);
   relay(child.stderr, process.stderr);

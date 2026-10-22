@@ -5,6 +5,7 @@ import {
   keyHint,
   listenForKeys,
   openCommand,
+  qrNeedsRemote,
   windowsCommandLine,
 } from './dev-keys.mjs';
 
@@ -97,6 +98,11 @@ describe('keyHint', () => {
   it('lists the keys, the QR code only with --remote', () => {
     expect(keyHint(false)).toBe('[slide.ng] shortcuts: r restart | o open | e edit | q quit');
     expect(keyHint(true)).toContain('| c qr code');
+  });
+  it('says how to start with --remote, after -- under npm run', () => {
+    expect(qrNeedsRemote({})).toContain('(start with slide-ng dev --remote)');
+    const npm = { npm_lifecycle_event: 'dev', npm_config_user_agent: 'npm/10.9.4 node/v22.23.3' };
+    expect(qrNeedsRemote(npm)).toContain('(start with npm run dev -- --remote)');
   });
 });
 

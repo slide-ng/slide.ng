@@ -31,7 +31,7 @@ encode spaces as `%20`), so a password with spaces at its ends must be typed wit
 
 `--tunnel` and `--base` are refused with a message (`--base` is for `build`).
 
-On a terminal the dev server also reads keys, as Slidev's does, and prints a line that lists them:
+On a terminal the dev server also reads keys, as Slidev's does, and prints a line that lists them (again below Angular's output once its first build is done, also after `r`):
 
 | key | what it does                                                                                                                                                                                                                       |
 | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -39,7 +39,7 @@ On a terminal the dev server also reads keys, as Slidev's does, and prints a lin
 | `o` | open `http://localhost:<port>/` in the default browser                                                                                                                                                                             |
 | `e` | open the entry file in `$VISUAL`, `$EDITOR` (flags allowed, such as `code -w`) or else `code`; under `npm run` and `npx`, npm's own `EDITOR=vi` (`notepad.exe` on Windows) counts as unset, so `code` is used when it is installed |
 | `q` | quit (Ctrl+C too)                                                                                                                                                                                                                  |
-| `c` | with `--remote`: print a QR code of the private slide show for each address, so a phone can open it                                                                                                                                |
+| `c` | with `--remote`: print a QR code of the private slide show for each address, so a phone can open it; without it, say how to start with it (`npm run dev -- --remote` under npm)                                                    |
 
 The QR code holds the password, like the private address it encodes: do not show it to people who should not edit the deck.
 

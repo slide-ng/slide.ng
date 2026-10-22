@@ -21,6 +21,18 @@ export function keyHint(remote) {
 }
 
 /**
+ * What `c` says without `--remote`: how to start again with it. Under `npm run <script>` the flag goes after `--`.
+ */
+export function qrNeedsRemote(env = process.env) {
+  const script = env.npm_lifecycle_event;
+  const how =
+    script && /^npm\//.test(env.npm_config_user_agent ?? '')
+      ? `npm run ${script} -- --remote`
+      : 'slide-ng dev --remote';
+  return `[slide.ng] the QR code is for --remote (start with ${how})`;
+}
+
+/**
  * Calls `actions[name]()` for each key typed on `input`; Ctrl+C calls `actions.interrupt`. Returns `pause` and `resume`
  * (for a program that needs the terminal, such as an editor in it), `restoreRaw` and `stop`.
  * @param {NodeJS.ReadableStream & { isTTY?: boolean, setRawMode?: (on: boolean) => void }} input
