@@ -102,6 +102,21 @@ function runSide(
   return { finished, cancel: end };
 }
 
+/** One side of a class transition on its own (`<slide-ng-switch>` shows and hides its children separately). */
+export function classTransitionSide(
+  element: HTMLElement,
+  t: ResolvedTransition,
+  kind: 'enter' | 'leave',
+): Omit<Running, 'left'> {
+  const c = transitionClasses(t);
+  const reduced = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const duration = reduced && t.duration != null ? 0 : t.duration;
+  const ms = typeof duration === 'number' ? duration : duration?.[kind];
+  return kind === 'enter'
+    ? runSide(element, c.enterFromClass, c.enterActiveClass, c.enterToClass, ms)
+    : runSide(element, c.leaveFromClass, c.leaveActiveClass, c.leaveToClass, ms);
+}
+
 /** Plays a class transition between the leaving and the entering slide. */
 export function classTransition(
   entering: HTMLElement,

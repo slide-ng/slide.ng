@@ -157,7 +157,7 @@ Node (22.22.3 or newer) and Angular (22.2) are the same as in 1.x. These changes
 - The page description and the PDF subject made from `info` keep `#`, `_`, `*` and `>` that are not markdown (`C#`, `#42`, `snake_case`).
 - Where the 2.0 features meet:
   - the presenter's click preview: a click on a greyed-out part goes to its click again (a part not revealed yet is inert);
-  - `<slide-ng-switch transition="...">` builds with a custom transition name;
+  - `<slide-ng-switch transition="...">` builds with a custom transition name, and animates with its CSS classes (`.swing-enter-active`, ...) as a custom slide transition does, where nothing moved;
   - the sync menu, the click preview, the notes pages, `/overview` and `/notes-edit`, the progress bar's minutes, the presenter's regions and the banner for slides left out are translated;
   - in a right-to-left deck the sync menu's arrow keys follow the mirrored menu, and the settings menu stays inside a narrow window;
   - MCP's `goto_slide` moves a window whose clock is ahead of the dev server's;

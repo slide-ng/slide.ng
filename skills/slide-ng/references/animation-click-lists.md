@@ -28,7 +28,7 @@ description: slide-ng-clicks, slide-ng-switch and slide-ng-click-gap
 <slide-ng-click-gap size="2" />
 ```
 
-- `<slide-ng-switch>`: one child per click. A number lasts until the next child starts; `3-5` is explicit. `unmount` takes hidden children out of the page; `transition="fade"` (or a slide transition name) animates the change.
+- `<slide-ng-switch>`: one child per click. A number lasts until the next child starts; `3-5` is explicit. `unmount` takes hidden children out of the page; `transition="fade"` (or a slide transition name) animates the change; a custom name (`transition="swing"`) runs the `.swing-enter-active`, `.swing-enter-from`, ... classes from the deck's styles.
 - `<slide-ng-click-gap size="2" />` leaves two clicks empty.
 
 <!-- verify -->

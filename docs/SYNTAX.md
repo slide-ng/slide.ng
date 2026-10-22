@@ -350,6 +350,7 @@ More props, as in Slidev:
 
 - `<slide-ng-switch unmount>` takes the children that are not shown out of the page (their Angular components stay alive);
   `transition="fade"` (or `slide-left`, `slide-up`, `fade-out`, a `forward | backward` pair) animates the change, a bare `transition` is a fade.
+  Any other name runs its CSS classes, as a custom slide transition does: `transition="swing"` uses `.swing-enter-active`, `.swing-enter-from`, `.swing-leave-to`, ... from the deck's styles.
   Slidev's `tag` and `childTag` have no use: the children are the elements written inside, not slots to wrap.
 - `<slide-ng-video printPoster="/still.png" printTimestamp="12">`: where the video does not play (print, export, overview) `printPoster`
   replaces `poster`, and the frame at `printTimestamp` (seconds, or `last`) is shown; without `printPoster` the frame at `printTimestamp` or `timestamp` is shown.

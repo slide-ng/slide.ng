@@ -2,6 +2,7 @@ import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ClicksContext } from './clicks';
 import { Nav } from './nav';
+import { RENDER_CONTEXT } from './slide-context';
 import { SlideNgClick } from './slide-ng-click';
 import { SlideNgSwitch, parseSlots, switchTransition } from './slide-ng-switch';
 
@@ -88,5 +89,54 @@ describe('slide-ng-switch unmount and the click numbers', () => {
     await fixture.whenStable();
     // before: 1, the switch: 2-3, the clicks inside its children: 4 and 5, after: 6, the late one: 7.
     expect([start('before'), start('after'), start('late')]).toEqual(['1', '6', '7']);
+  });
+});
+
+@Component({
+  imports: [SlideNgSwitch],
+  providers: [
+    ClicksContext,
+    { provide: Nav, useValue: { direction: () => 1 } },
+    { provide: RENDER_CONTEXT, useValue: 'slide' },
+  ],
+  template: `
+    <style>
+      .swing-enter-active,
+      .swing-leave-active {
+        transition: opacity 40ms;
+      }
+      .swing-enter-from,
+      .swing-leave-to {
+        opacity: 0;
+      }
+    </style>
+    <slide-ng-switch transition="swing">
+      <div id="a" at="1">a</div>
+      <div id="b" at="2">b</div>
+    </slide-ng-switch>
+  `,
+})
+class SwingSlide {}
+
+describe('slide-ng-switch with a custom transition name', () => {
+  it("runs Vue's classes with the deck's CSS, as slide transitions do", async () => {
+    const fixture = TestBed.createComponent(SwingSlide);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const root = fixture.nativeElement as HTMLElement;
+    const ctx = fixture.debugElement.injector.get(ClicksContext);
+    const [a, b] = ['#a', '#b'].map((s) => root.querySelector(s)!);
+    ctx.setCurrent(1);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    ctx.setCurrent(2);
+    fixture.detectChanges();
+    expect(b.classList).toContain('swing-enter-active');
+    expect(a.classList).toContain('swing-leave-active');
+    // The leaving child is hidden only when its transition ends.
+    expect(a.classList).not.toContain('slidev-vclick-display-none');
+    await new Promise((r) => setTimeout(r, 300));
+    expect(b.classList).not.toContain('swing-enter-active');
+    expect(a.classList).toContain('slidev-vclick-display-none');
   });
 });
