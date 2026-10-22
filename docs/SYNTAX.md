@@ -1255,7 +1255,8 @@ presses a button, and a touch on the slide hides it again. On a screen taller th
   Enter or a double click edits it.
 - **Progress bar**: `progressBar` is a `progressbar` named "Progress through the slides" (translatable: `progress.label`).
 - **Contrast and size**: the interface's text is at least 4.5:1 (3:1 for large text) in light and dark mode, also the notes of later
-  clicks, which are faded to 0.75; its icon buttons are at least 24 by 24 pixels. A theme that changes the colours or `.slidev-note-fade`
+  clicks, which are faded to 0.75 once (a part inside a faded paragraph is not faded again), and the "No notes." placeholder; its
+  icon buttons are at least 24 by 24 pixels. A theme that changes the colours or `.slidev-note-fade`
   has to keep that. The settings and sync menus and the info dialog stay inside the window down to 320 by 180 pixels (400% zoom) and
   scroll.
 - **Reduced motion**: when the system asks for less motion (`prefers-reduced-motion: reduce`), slide transitions, click fades,

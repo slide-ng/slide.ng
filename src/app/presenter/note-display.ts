@@ -29,7 +29,7 @@ import { MARK, prepareNote } from './note-marks';
       ></div>
     } @else {
       <div
-        class="slidev-note prose dark:prose-invert overflow-auto outline-none opacity-50 italic select-none"
+        class="slidev-note prose dark:prose-invert overflow-auto outline-none opacity-75 italic select-none"
       >
         <p>{{ placeholder() }}</p>
       </div>
