@@ -49,6 +49,24 @@ describe('withSlideSources', () => {
     const named = 'src/slides/generated/slide-002.ts:3:1 (slide 2, slides.md:7)';
     expect(withSlideSources(named, app)).toBe(named);
   });
+  it('says that an @let without its ; declares nothing, and names a near @let name or global', () => {
+    const app = mkdtempSync(join(tmpdir(), 'slide-ng-runtime-'));
+    mkdirSync(join(app, 'src/slides/generated'), { recursive: true });
+    writeFileSync(
+      join(app, 'src/slides/generated/slide-007.ts'),
+      '// GENERATED from slides.md:3 (slide 7) - do not edit\n  template: "<p>&#64;let pct = 5</p>@let total = 3;",\n',
+    );
+    const error = (name: string) =>
+      withSlideSources(`TS2339: Property '${name}' does not exist on type 'Slide007'.`, app);
+    expect(error('pct')).toContain(
+      '(the @let pct = ... line has no ; at its end, so it is shown as text and declares nothing: end it with ;)',
+    );
+    expect(error('totl')).toContain('(did you mean total?)');
+    expect(error('$clikcs')).toContain('(did you mean $clicks?)');
+    expect(error('unrelated')).toBe(
+      "TS2339: Property 'unrelated' does not exist on type 'Slide007'.",
+    );
+  });
   it("names the author's own file for an error in a copied theme or deck file", () => {
     const app = mkdtempSync(join(tmpdir(), 'slide-ng-runtime-'));
     mkdirSync(join(app, 'src/slides/generated'), { recursive: true });

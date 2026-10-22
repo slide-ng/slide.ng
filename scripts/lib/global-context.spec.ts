@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { uncalledGlobals } from './global-context.mjs';
+import { calledValues, uncalledGlobals } from './global-context.mjs';
 
 describe('uncalledGlobals', () => {
   it("finds Slidev's uncalled forms in interpolations, bindings and control flow", () => {
@@ -31,5 +31,17 @@ describe('uncalledGlobals', () => {
 
   it('leaves text outside expressions alone', () => {
     expect(uncalledGlobals('<p>Slidev has $clicks and $page.</p>')).toEqual([]);
+  });
+});
+
+describe('calledValues', () => {
+  it('finds the values of $nav that are called as if they were signals', () => {
+    expect(calledValues('{{ $nav.total() }} {{ $slidev.nav.slides?.() }}')).toEqual([
+      ['$nav.total()', 'total'],
+      ['$slidev.nav.slides?.()', 'slides'],
+    ]);
+    expect(calledValues('{{ $nav.total }} {{ $nav.currentPage() }} $nav.total() in text')).toEqual(
+      [],
+    );
   });
 });

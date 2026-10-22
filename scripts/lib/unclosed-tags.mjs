@@ -37,13 +37,37 @@ const shorten = (text) => {
 };
 const plainTag = (name) => name.replace(/^:[^:]+:/, ''); // `:svg:g` is <g>
 
-/** Throws a slide-level error when `html` would fail on a closing tag because an element is open or a tag closes nothing. */
-export function assertClosedTags(html, tag, no) {
+const INCOMPLETE_BLOCK = /^Incomplete block "([\w ]+)"/;
+
+/**
+ * Throws a slide-level error when `html` would fail on a closing tag because an element is open or a tag closes nothing, or
+ * on a control-flow block that is not complete (`@if (x >= 1 {`: Angular's "Incomplete block", followed by a false "All
+ * imports are unused"). `lineOf(text)` gives ` (slides.md:12)` for the line of the markdown that has `text`, or ''.
+ */
+export function assertClosedTags(html, tag, no, lineOf = () => '') {
   const { errors, rootNodes } = parser.parse(html, `slide-${no}.html`, {
     tokenizeExpansionForms: true,
     tokenizeBlocks: true,
     tokenizeLet: true,
   });
+  const incomplete = errors.find((e) => INCOMPLETE_BLOCK.test(e.msg));
+  if (incomplete) {
+    // The block's start, up to its `{` (markdown may put the next tag on the same line).
+    const line = html.slice(incomplete.span.start.offset).split('\n')[0];
+    const first = (
+      line.includes('{') ? line.slice(0, line.indexOf('{') + 1) : line.split('<')[0]
+    ).trim();
+    const opened = (first.match(/\(/g) ?? []).length > (first.match(/\)/g) ?? []).length;
+    const why = opened
+      ? 'its ( is never closed'
+      : !first.includes('{')
+        ? 'a { must follow its condition'
+        : 'its condition goes in ( )';
+    const name = /^@(else if|[a-z]+)/.exec(first)?.[1] ?? INCOMPLETE_BLOCK.exec(incomplete.msg)[1];
+    throw new Error(
+      `slide ${no}${lineOf(first)}: "${shorten(first)}" is not a complete @${name} block: ${why} (write @${name} (...) { ... }; an @ that is text is written &#64;)`,
+    );
+  }
   const closing = errors.filter((e) => UNEXPECTED.test(e.msg));
   if (!closing.length) return;
   const open = firstUnclosed(rootNodes);

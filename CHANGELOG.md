@@ -171,6 +171,8 @@ Node (22.22.3 or newer) and Angular (22.2) are the same as in 1.x. These changes
 - Angular's errors in a slide name the line of the markdown they are on (`<flag-badgee>` on line 26 says `slides.md:26`), or else the slide's `---` line; they named the line before the slide.
 - The dev server's error overlay reads the same live and after a reload, as the terminal does: with the did-you-mean and the line, named once (a reload repeated it and added "✘ [ERROR]" and "[plugin angular-compiler]").
 - A generator error (an unclosed `<div>`, say) that comes while an Angular error stands is shown in the overlay; the overlay kept the Angular error the author had fixed already, and the banner did not show.
+- Angular control-flow slips get plain words: `@if (x >= 1 {` names the block and its line, where Angular gave a raw "Incomplete block" (NG5002) and a false "All imports are unused" (NG8113); `@let x = 5` without its `;` gets a warning, and Angular's "Property 'x' does not exist" says that the `;` is missing, or names an `@let` name or global one or two letters away.
+- `{{ $nav.total() }}` stops the generator with "`$nav.total` is a number, not a signal"; it failed with a raw TS2349 at the end of the build.
 
 ### Security
 

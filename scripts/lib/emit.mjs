@@ -1,7 +1,7 @@
 // Writes the TypeScript source of one generated slide component.
 import { readFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
-import { warnUncalledGlobals } from './global-context.mjs';
+import { assertNoCalledValues, warnUncalledGlobals } from './global-context.mjs';
 import { COMPONENTS, LAYOUTS } from './registry.mjs';
 import { layoutName } from './layouts.mjs';
 import { extractStyles, scopeCss } from './scoped-style.mjs';
@@ -264,7 +264,12 @@ export function slideSource(slide, no, deck = {}) {
   // The pictures the app loads before the slide is shown (`preloadImages`); index-source.mjs writes them into the slide list.
   slide.images = slideImages(html, slide.frontmatter, base);
 
-  assertClosedTags(html, def.tag, no);
+  // ` (slides.md:12)` for the first line of the slide's markdown that has `text`, or ''.
+  const lineOfText = (text) => {
+    const i = slide.content.split('\n').findIndex((l) => l.includes(text));
+    return i < 0 ? '' : lineOf(i);
+  };
+  assertClosedTags(html, def.tag, no, lineOfText);
 
   // Look for components outside code samples only (code is just text). A `<code>` written in HTML is live Angular.
   const markup = html
@@ -284,6 +289,12 @@ export function slideSource(slide, no, deck = {}) {
   }))
     console.warn(`[slides] slide ${no}: ${problem}`);
   warnUncalledGlobals(markup, no);
+  assertNoCalledValues(markup, no);
+  // `@let x = 5` without its `;` is not Angular's syntax: markdown shows it as text, and a use of `x` fails to build.
+  for (const m of markup.matchAll(/&#64;let\s+([\w$]+)\s*=[^<\n]*/g))
+    console.warn(
+      `[slides] slide ${no}${lineOfText(`@let ${m[1]}`)}: "${m[0].replace('&#64;', '@').trim()}" has no ; at its end, so it is shown as text and declares nothing: end it with ;`,
+    );
   // A drag position by name (`slide-ng-drag="square"`, `pos="square"`) is looked up in the slide's `dragPos`.
   const dragPos = slide.frontmatter.dragPos ?? {};
   const named = [

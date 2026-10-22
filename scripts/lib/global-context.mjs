@@ -42,3 +42,38 @@ export function warnUncalledGlobals(markup, no) {
       `[slides] slide ${no}: ${name} is a signal here; write ${name}() (Vue reads it without the call)`,
     );
 }
+
+// The fields of `$nav` that are plain values, not signals: `$nav.total()` fails to build with "This expression is not callable"
+// (TS2349), after the whole build.
+const NAV_VALUES = {
+  total: 'a number',
+  slides: 'a list',
+  tocSlides: 'a list',
+  isPresenter: 'true or false',
+};
+const CALLED = new RegExp(
+  `\\$(?:slidev\\.)?nav\\.(${Object.keys(NAV_VALUES).join('|')})\\b\\s*(?:\\?\\.\\s*)?\\(\\s*\\)`,
+  'g',
+);
+
+/** The values of the global context that are called as if they were signals (`$nav.total()`), each once. */
+export function calledValues(markup) {
+  const found = new Map();
+  for (const m of markup.matchAll(EXPRESSIONS))
+    for (const call of m
+      .slice(1)
+      .find((g) => g != null)
+      .matchAll(CALLED))
+      found.set(call[0].replace(/\s+/g, ''), call[1]);
+  return [...found];
+}
+
+export function assertNoCalledValues(markup, no) {
+  const [first] = calledValues(markup);
+  if (!first) return;
+  const [call, name] = first;
+  const plain = call.replace(/\??\.?\(\)$/, '');
+  throw new Error(
+    `slide ${no}: ${plain} is ${NAV_VALUES[name]}, not a signal: write ${plain} without the () (only the values that change, such as $nav.currentPage(), are called)`,
+  );
+}

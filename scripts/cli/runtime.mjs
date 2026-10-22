@@ -71,6 +71,36 @@ export function markdownLine(lines, line, column) {
   return first;
 }
 
+// What a slide's template can read besides its `@let` names (SlideBase, src/app/lib/slide-base.ts).
+const SLIDE_MEMBERS = [
+  '$clicks',
+  '$page',
+  '$renderContext',
+  '$frontmatter',
+  '$nav',
+  '$slidev',
+  'themeConfig',
+  'clicks',
+];
+
+/**
+ * A hint for "Property 'x' does not exist on type 'Slide007'": an `@let x = ...` without its `;` is text (the generator
+ * writes its @ as &#64;), and a name one or two letters away from a `@let` name or a global (`$clikcs`) is a typo.
+ */
+function undeclaredHint(name, file) {
+  let template;
+  try {
+    template = readFileSync(file, 'utf8');
+  } catch {
+    return '';
+  }
+  if (new RegExp(`&#64;let\\s+${name.replace(/\$/g, '\\$')}\\s*=`).test(template))
+    return ` (the @let ${name} = ... line has no ; at its end, so it is shown as text and declares nothing: end it with ;)`;
+  const lets = [...template.matchAll(/(?<!&#64;)@let\s+([\w$]+)\s*=/g)].map((m) => m[1]);
+  const near = nearest(name, [...lets, ...SLIDE_MEMBERS]);
+  return near ? ` (did you mean ${near}?)` : '';
+}
+
 // Angular's errors name the generated file (src/slides/generated/slide-003.ts); add the markdown file and line it came from,
 // which the generator wrote into the file's first line.
 export function withSlideSources(text, appRoot) {
@@ -107,6 +137,10 @@ export function withSlideSources(text, appRoot) {
         ? `${match} (did you mean <${near}>?)`
         : `${match} (a component of the deck: is its file in components/, with selector '${tag}'? In a layout, layer or component file, also add it to that file's imports: [...]. An icon: <span class="i-set:name"></span>. A web component: list it in the deck's headmatter, customElements: [${tag}])`;
     })
+    .replace(
+      /Property '([\w$]+)' does not exist on type 'Slide(\d+)'\.?/g,
+      (match, name, no) => match + undeclaredHint(name, join(generated, `slide-${no}.ts`)),
+    )
     .replace(
       /Could not resolve "(\.\.\/[^"]*)"/g,
       (match) =>

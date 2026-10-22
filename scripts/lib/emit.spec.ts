@@ -486,6 +486,26 @@ describe('slideSource warnings', () => {
       /slide 4: @if \(true\) \{ is never closed; add \} where the @if block should end/,
     );
   });
+  it('names a control-flow block that is not complete (no raw NG5002 and false NG8113)', () => {
+    expect(() => slideSource(slide({}, '@if (x >= 1 {\n\ntext\n\n}'), 4)).toThrow(
+      'slide 4: "@if (x >= 1 {" is not a complete @if block: its ( is never closed (write @if (...) { ... }; an @ that is text is written &#64;)',
+    );
+    expect(() => slideSource(slide({}, '@if x > 1 {\n\ntext\n\n}'), 4)).toThrow(
+      'is not a complete @if block: its condition goes in ( )',
+    );
+  });
+  it('warns that an @let without its ; is text', () => {
+    expect(warnings('@let pct = 5\n\n{{ pct }}').join()).toContain(
+      'slide 2: "@let pct = 5" has no ; at its end, so it is shown as text and declares nothing: end it with ;',
+    );
+    expect(warnings('@let pct = 5;\n\n{{ pct }}').join()).not.toContain('@let');
+  });
+  it('stops on a value of $nav called as a signal ($nav.total())', () => {
+    expect(() => slideSource(slide({}, 'Of {{ $nav.total() }}'), 4)).toThrow(
+      'slide 4: $nav.total is a number, not a signal: write $nav.total without the ()',
+    );
+    expect(() => slideSource(slide({}, 'Of {{ $nav.total }}'), 4)).not.toThrow();
+  });
   it('names an inline element left open, not the </p> after it (no raw NG5002)', () => {
     expect(() =>
       slideSource(slide({}, 'At <span class="font-bold">14:02 a migration ran.'), 4),

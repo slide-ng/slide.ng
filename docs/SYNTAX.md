@@ -93,7 +93,10 @@ names a component or built-in element that is one or two letters away, or else a
 says how to import it in a layout or component, or how to list a web component in `customElements` (Angular's "Can't bind to"
 errors for that element are left out). An element left open (`<div>`, or `<span>` in a line of text, without its closing tag), a closing tag
 with another name (`<slide-ng-clicsk>` ... `</slide-ng-clicks>`, with a did-you-mean) or a closing tag that closes nothing
-stops the build with a message that names the slide and the tag.
+stops the build with a message that names the slide and the tag. A control-flow block that is not complete, `@if (x >= 1 {`
+(its `(` is never closed), stops the build with a message that names the block and its line. `@let x = 5` without its `;` is
+shown as text, with a warning; Angular's "Property 'x' does not exist" for it says so, and for a name one or two letters away
+from an `@let` name or a global (`$clikcs`) it names the one meant.
 
 ## Importing slides
 
@@ -775,7 +778,9 @@ Shown from the second click.
 Vue reads `$clicks` without the call; here `{{ $clicks }}` would print the signal's function, so the generator warns about the
 uncalled forms (`$clicks`, `$page`, `$renderContext`, `$nav.currentPage`, ...) in interpolations, bindings (either quotes), `@let` and
 control flow. In a comparison an uncalled signal is more than a warning: `$page === 2` or `@if ($clicks > 1)` stops the build with
-Angular's type error (TS2367 for `===`, TS2365 for `>`), as a signal is not a number. `{{ clicks.current() }}` is the older spelling of `{{ $clicks() }}`.
+Angular's type error (TS2367 for `===`, TS2365 for `>`), as a signal is not a number. The other way round, `$nav.total` (a
+number), `$nav.slides` and `$nav.tocSlides` (lists) and `$nav.isPresenter` are plain values: the generator stops on
+`{{ $nav.total() }}` and says to drop the `()`. `{{ clicks.current() }}` is the older spelling of `{{ $clicks() }}`.
 `$page()` is the number of the slide that is drawn, `$nav.currentPage()` the one on screen; they differ in thumbnails and the PDF.
 
 ## Showing code that contains braces
