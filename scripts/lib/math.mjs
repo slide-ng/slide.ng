@@ -102,13 +102,20 @@ const titleMarked = new Marked({
   },
 });
 
+// Text for innerHTML; unlike escapeCode not protected for an Angular template, since a title's HTML is not one.
+const texSource = (latex) =>
+  latex.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
 /** A slide title as HTML: inline markdown and `$math$` drawn by KaTeX, raw HTML escaped. Null when there is no title. */
 export function titleHtml(title) {
   if (title == null) return null;
   // parseInline runs on the whole string so that emphasis, links or code around a formula still pair up;
   // NGMATHnX is plain alphanumerics, so marked leaves it alone and we swap it for the KaTeX output after.
   const { markdown, maths } = extractMath(String(title));
-  return titleMarked
-    .parseInline(markdown, { async: false })
-    .replace(/NGMATH(\d+)X/g, (_, i) => render(maths[+i].latex, false));
+  return titleMarked.parseInline(markdown, { async: false }).replace(
+    /NGMATH(\d+)X/g,
+    // As in the slide's body (renderMath): the drawing says nothing to a screen reader, so its TeX is read out instead.
+    (_, i) =>
+      `<span class="sr-only">${texSource(maths[+i].latex)}</span>${render(maths[+i].latex, false)}`,
+  );
 }

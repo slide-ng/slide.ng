@@ -6,8 +6,14 @@ import { extractMath } from './math.mjs';
 // contents, the tab title or the PDF outline (`annexe\u202Egpj.exe` shows as `annexeexe.jpg`), so titles drop them.
 export const BIDI_CONTROLS = /[\u202A-\u202E\u2066-\u2069]/g;
 
+// TeX's escapes of a single character are that character as text (`400\%` is 400%) and `\,` is a thin space, so a screen
+// reader does not say "backslash". `\\` (a TeX line break) is left as it is, and so is every other command.
+const TEX_ESCAPES = /\\(\\|[%$,{}_&#])/g;
+const texText = (latex) =>
+  latex.trim().replace(TEX_ESCAPES, (all, c) => (c === '\\' ? all : c === ',' ? '\u2009' : c));
+
 // A heading's markdown as text for the tab title, the outline and the overview: `[a](b)` is `a`, `code` and **b** lose their marks,
-// and HTML tags go. `$math$` is its TeX source without the dollars (what a screen reader hears on the slide), and its
+// and HTML tags go. `$math$` is its TeX source without the dollars (what a screen reader hears on the slide), its simple escapes undone, and its
 // `_` or `*` are not taken for emphasis.
 export function plainTitle(title) {
   const { markdown, maths } = extractMath(String(title).replace(BIDI_CONTROLS, ''));
@@ -22,7 +28,7 @@ export function plainTitle(title) {
     .replace(/<(rt|rp)\b[^>]*>[\s\S]*?<\/\1>/gi, '') // a ruby reading is not part of the title text
     .replace(/<\/?[A-Za-z][^>]*>/g, '') // H<sub>2</sub>O is H2O
     .replace(/NGESC(\d+)X/g, (_, i) => escaped[+i])
-    .replace(/NGMATH(\d+)X/g, (_, i) => maths[+i].latex.trim())
+    .replace(/NGMATH(\d+)X/g, (_, i) => texText(maths[+i].latex))
     .trim();
 }
 

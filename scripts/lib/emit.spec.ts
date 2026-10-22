@@ -256,6 +256,11 @@ describe('plainTitle', () => {
       'Fast a_1 * b_2 and $5 or *not*',
     );
   });
+  it('undoes the simple TeX escapes of $math$, keeps other commands', () => {
+    expect(plainTitle('Zoom to $400\\%$')).toBe('Zoom to 400%');
+    expect(plainTitle('$\\$5\\,000 \\{a\\_b\\} \\& \\#1$')).toBe('$5\u2009000 {a_b} & #1');
+    expect(plainTitle('$O(n \\log n) \\\\ x$')).toBe('O(n \\log n) \\\\ x');
+  });
   it('drops bidi overrides, which would reorder the table of contents', () => {
     expect(plainTitle('annexe\u202Egpj.exe \u2067x\u2069')).toBe('annexegpj.exe x');
   });

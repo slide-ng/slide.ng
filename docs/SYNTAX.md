@@ -1243,7 +1243,8 @@ presses a button, and a touch on the slide hides it again. On a screen taller th
 ## Accessibility
 
 - **Screen readers** hear the number and title of each new slide (a polite live region). A title is read as plain text: its markdown marks
-  go and `$math$` is its TeX (the same text is the tab title, the "go to" list and the PDF outline). Elements that wait for a click are
+  go and `$math$` is its TeX, with TeX's one-character escapes undone (`$400\%$` is "400%": `\%`, `\$`, `\{`, `\}`, `\_`, `\&`, `\#`,
+  and `\,` as a thin space), so no "backslash" is read (the same text is the tab title, the "go to" list and the PDF outline). Elements that wait for a click are
   hidden from them until they show. The presenter page has three named regions (Current slide, Next step, Notes); the next-step picture
   is skipped, so headings are not read twice. Line numbers of code and of Magic Move are skipped too.
 - **Landmarks and headings**: the slide (with the bar) is the page's main landmark; the presenter, `/overview` and `/notes` each have a
@@ -1269,7 +1270,8 @@ presses a button, and a touch on the slide hides it again. On a screen taller th
   `image:` or `background:` in the frontmatter is a CSS background and cannot have one: when it carries meaning, put an `<img alt>` in the
   slide or say it in the text.
 - **Mermaid**: `accTitle: ...` and `accDescr: ...` lines in the diagram become the title and description of the SVG, which screen readers read.
-- **Math** is read as its TeX source (`\frac{a}{b}`, not "a over b"): KaTeX is drawn without MathML, and the TeX is in visually hidden text.
+- **Math** is read as its TeX source (`\frac{a}{b}`, not "a over b"): KaTeX is drawn without MathML, and the TeX is in visually hidden text,
+  in the slide and in a title drawn by `<slide-ng-title-renderer>` or the table of contents alike.
   Say a formula in words in the text or the notes when the audience needs it.
 
 ## Translating the interface

@@ -75,6 +75,10 @@ describe('titleHtml', () => {
     expect(titleHtml('Plain title, $5 and $10')).toBe('Plain title, $5 and $10');
     expect(titleHtml(null)).toBeNull();
   });
+  it('gives a screen reader the TeX of its math, as on the slide', () => {
+    const html = titleHtml('Zoom to $400\\% < x$')!;
+    expect(html).toContain('<span class="sr-only">400\\% &lt; x</span><span class="katex">');
+  });
   it('shows raw HTML in a title as text', () => {
     const html = titleHtml('A <img src=x onerror=alert(1)> and <b>tag</b>')!;
     expect(html).not.toContain('<img');
