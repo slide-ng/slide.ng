@@ -494,6 +494,17 @@ describe('slideSource warnings', () => {
       'is not a complete @if block: its condition goes in ( )',
     );
   });
+  it('says that an attribute name cannot have a /, instead of "never closed"', () => {
+    expect(() => slideSource(slide({}, '<div bg-black/50>card</div>'), 4)).toThrow(
+      'slide 4: <div bg-black/50>: an attribute name cannot have a / in it; write it in the class, class="bg-black/50", or as bg="black/50"',
+    );
+    expect(() =>
+      slideSource(slide({}, '<div p-4 hover:(bg-black/10 shadow-lg)>card</div>'), 4),
+    ).toThrow('<div hover:bg-black/10>: an attribute name cannot have a / in it');
+    expect(() =>
+      slideSource(slide({}, '<div class="bg-black/50">card</div><br/>'), 4),
+    ).not.toThrow();
+  });
   it('warns that an @let without its ; is text', () => {
     expect(warnings('@let pct = 5\n\n{{ pct }}').join()).toContain(
       'slide 2: "@let pct = 5" has no ; at its end, so it is shown as text and declares nothing: end it with ;',

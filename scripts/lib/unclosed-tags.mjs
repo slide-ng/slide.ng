@@ -37,6 +37,7 @@ const shorten = (text) => {
 };
 const plainTag = (name) => name.replace(/^:[^:]+:/, ''); // `:svg:g` is <g>
 
+const NOT_TERMINATED = /^Opening tag "([^"]+)" not terminated/;
 const INCOMPLETE_BLOCK = /^Incomplete block "([\w ]+)"/;
 
 /**
@@ -66,6 +67,23 @@ export function assertClosedTags(html, tag, no, lineOf = () => '') {
     const name = /^@(else if|[a-z]+)/.exec(first)?.[1] ?? INCOMPLETE_BLOCK.exec(incomplete.msg)[1];
     throw new Error(
       `slide ${no}${lineOf(first)}: "${shorten(first)}" is not a complete @${name} block: ${why} (write @${name} (...) { ... }; an @ that is text is written &#64;)`,
+    );
+  }
+  // A bare attribute with a `/` (`<div bg-black/50>`, UnoCSS's attributify or a variant group): Angular's parser ends the tag at
+  // the `/` ("Opening tag not terminated"), and the element looks unclosed.
+  const slashed = errors.find(
+    (e) =>
+      NOT_TERMINATED.test(e.msg) &&
+      html[e.span.end.offset - 1] === '/' &&
+      /[^\s>]/.test(html[e.span.end.offset] ?? '>'),
+  );
+  if (slashed) {
+    const tagName = plainTag(NOT_TERMINATED.exec(slashed.msg)[1]);
+    const head = /(\S+)$/.exec(html.slice(slashed.span.start.offset, slashed.span.end.offset))[1];
+    const name = head + /^[^\s>]*/.exec(html.slice(slashed.span.end.offset))[0];
+    const split = /^([a-z]+)-([^:]+\/[^:]*)$/.exec(name);
+    throw new Error(
+      `slide ${no}${lineOf(name)}: <${tagName} ${name}>: an attribute name cannot have a / in it; write it in the class, class="${name}"${split ? `, or as ${split[1]}="${split[2]}"` : ''}`,
     );
   }
   const closing = errors.filter((e) => UNEXPECTED.test(e.msg));

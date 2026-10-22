@@ -174,6 +174,7 @@ Node (22.22.3 or newer) and Angular (22.2) are the same as in 1.x. These changes
 - Angular control-flow slips get plain words: `@if (x >= 1 {` names the block and its line, where Angular gave a raw "Incomplete block" (NG5002) and a false "All imports are unused" (NG8113); `@let x = 5` without its `;` gets a warning, and Angular's "Property 'x' does not exist" says that the `;` is missing, or names an `@let` name or global one or two letters away.
 - `{{ $nav.total() }}` stops the generator with "`$nav.total` is a number, not a signal"; it failed with a raw TS2349 at the end of the build.
 - The warning for an HTML `<a href="/3">` with other attributes names its line, so three such links give three different warnings, and a `<a href="#/3" target="_blank">` in a deck with `routerMode: hash`, which reaches the slide, gets none.
+- A bare attribute with a `/` (`<div bg-black/50>`, `<div p-4 hover:(bg-black/10 shadow-lg)>`) says that an attribute name cannot have a `/` in it and to write it in the class or as `bg="black/50"`; the message said that the `<div>` was never closed.
 
 ### Security
 

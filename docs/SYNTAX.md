@@ -897,7 +897,9 @@ frontmatter. The CSS for the classes you use is built automatically. As in Slide
   `setup/mermaid-renderer.ts` does). Use `class` there. An attribute of your component that is not one of its inputs (`<stat-row p="4">`)
   still styles the component's element. Plain HTML attributes are read too: `<table border="1">` gets a border, `<span font="bold">`
   is bold, `<div m="4">` gets a margin. `unocss: { attributify: false }` in the headmatter turns attributify off for the deck
-  (a deck written for 1.x that uses such attributes as HTML); classes and variant groups still work.
+  (a deck written for 1.x that uses such attributes as HTML); classes and variant groups still work. An attribute name cannot have a
+  `/` in it: a bare `<div bg-black/50>` or `<div hover:(bg-black/10)>` stops the generator with a message that says to write it in the
+  class (`class="bg-black/50"`) or with a value (`bg="black/50"`).
 - **Typography**: `class="prose"` styles long text (headings, lists, links, quotes), `dark:prose-invert` for dark mode, `not-prose` to opt out.
 - **Directives** in `<style>` and `styles/`: see Per-slide styles.
   Responsive prefixes (`md:`, `lg:`) follow the browser window, not the slide, which keeps its own size and is scaled: the same slide
