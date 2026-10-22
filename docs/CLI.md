@@ -106,7 +106,7 @@ To export one deck of such a build, name its folder: `slide-ng export a.md --dis
 | `--executable-path`, `--no-sandbox`, `--allow-local` | as for `build`                                                                             |
 
 `--per-slide` joins one PDF per slide, and the joined file loses what Chromium only writes into a single document: links
-from one slide to another (the table of contents, `[go](/5)`) do nothing, and the tags for screen readers are gone (the
+from one slide to another (the table of contents, `[go](/5)`) are plain text, also a link to the slide it is on, and the tags for screen readers are gone (the
 language is kept). The command says so; leave it out unless the deck is too big to print in one go.
 
 The headmatter's `export:` block sets the same options (`withClicks`, `perSlide`, ...); the command line wins. `output`,

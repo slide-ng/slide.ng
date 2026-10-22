@@ -123,7 +123,7 @@ Node (22.22.3 or newer) and Angular (22.2) are the same as in 1.x. These changes
 - Bidi override characters are left out of slide titles in the table of contents, the tab title and the PDF outline.
 - An element left open in a slide (`<div>` without `</div>`, also an inline `<span>` that Angular reported as "Unexpected closing tag "p"" with a false "All imports are unused" warning) stops the build with a message that names it and the slide, instead of Angular's "Unexpected closing tag sn-default". An element whose closing tag has a mistyped name (`<slide-ng-clicsk>` ... `</slide-ng-clicks>`) gets a did-you-mean, and a closing tag that closes nothing is named.
 - PDF pages are exactly the size of a slide (Chromium made them 735.12 pt wide, which left a white line at the edge of dark slides); the notes PDF has the notes' background down to the end of the last page.
-- `export --per-slide` keeps the document language and says that links between slides and the tags for screen readers are lost.
+- `export --per-slide` keeps the document language and says that links between slides and the tags for screen readers are lost; a link to the slide it is on (a table of contents listing its own slide) no longer stays as a link to nowhere.
 - Closing the quick overview frees its cards (a 150-slide deck kept about 18,000 elements after it was closed).
 - A root folder that is a symbolic link (`public -> ../pictures`) gets a warning; it is still not followed.
 - A broken frontmatter or headmatter names the line of the error (not the slide's `---`) and says what is wrong in plain words, with hints for a value that has `: ` in it and for a missing closing `---`.

@@ -6,7 +6,14 @@ import { launchBrowser } from './browser.mjs';
 import { screenshotPages, writePictures } from './images.mjs';
 import { writeMarkdown } from './markdown.mjs';
 import { installRequestFilter } from './request-filter.mjs';
-import { dropServerLinks, listPages, loadPrintPage, printQuery, printUrl } from './page.mjs';
+import {
+  dropServerLinks,
+  dropSlideLinks,
+  listPages,
+  loadPrintPage,
+  printQuery,
+  printUrl,
+} from './page.mjs';
 import { buildPdf, pagePdf } from './pdf.mjs';
 import { writePptx } from './pptx.mjs';
 
@@ -82,6 +89,7 @@ export async function exportSlides({
       });
       await loadPrintPage(page, { url, ...options, warn: (m) => log(`warning: ${m}`) });
       if (served.temporary) await dropServerLinks(page, served.origin);
+      if (options.format === 'pdf' && batches.length > 1) await dropSlideLinks(page);
       const listed = await listPages(page);
       const size = await page.locator('.print-slide-container').first().boundingBox();
       parts.push(await capture(page, listed, size, options));

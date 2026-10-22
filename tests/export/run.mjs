@@ -73,7 +73,7 @@ const links = (file) => {
       .filter((a) => a['/Subtype'] === '/Link')
       .map((a) =>
         a['/Dest']
-          ? `${i + 1}:${pageNo(dests[a['/Dest']][0])}`
+          ? `${i + 1}:${dests[a['/Dest']] ? pageNo(dests[a['/Dest']][0]) : 'nowhere'}`
           : `${i + 1}:${String(a['/A']?.['/URI']).replace(/^u:/, '')}`,
       ),
   );
@@ -112,7 +112,7 @@ t.ok(
 t.ok('the pdf has the click elements that are revealed late', text(pdf).includes('two'));
 t.ok(
   'a markdown link to a slide points at its page in the pdf, a web page keeps its address, other links of the site are no links (not the temporary server)',
-  links(pdf).join() === '8:2,8:https://example.org/',
+  links(pdf).join() === '8:2,8:https://example.org/,8:8',
   links(pdf).join(),
 );
 
@@ -124,7 +124,7 @@ t.ok(
 );
 t.ok(
   'with clicks a link to a slide points at the first page of that slide',
-  links(join(r.dir, 'clicks.pdf')).join() === '13:2,13:https://example.org/',
+  links(join(r.dir, 'clicks.pdf')).join() === '13:2,13:https://example.org/,13:13',
   links(join(r.dir, 'clicks.pdf')).join(),
 );
 
@@ -152,6 +152,11 @@ const perLang = (await PDFDocument.load(readFileSync(join(r.dir, 'per.pdf')))).c
   .lookup(PDFName.of('Lang'))
   ?.decodeText();
 t.ok('--per-slide keeps the language of the page', perLang === 'en', String(perLang));
+t.ok(
+  '--per-slide keeps the web link and leaves no link to a slide (it would lead nowhere)',
+  links(join(r.dir, 'per.pdf')).join() === '13:https://example.org/',
+  links(join(r.dir, 'per.pdf')).join(),
+);
 
 // ---- outline (--with-toc), read back by qpdf and by pdf-lib
 r = slideNg(`export ${common} --with-toc --output toc`);

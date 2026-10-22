@@ -75,6 +75,17 @@ export function dropServerLinks(page, origin) {
   }, origin);
 }
 
+/**
+ * Takes the address off links to a slide (`#slide-ng-page-2`). For `--per-slide`, whose PDFs of one slide each are joined
+ * without their named destinations: Chromium already leaves out a link to a slide of another batch, but one to the slide
+ * itself (a table of contents on the slide it lists) stayed as a link to nowhere.
+ */
+export function dropSlideLinks(page) {
+  return page.evaluate(() => {
+    for (const a of document.querySelectorAll('a[href^="#"]')) a.removeAttribute('href');
+  });
+}
+
 /** The pages of the print page in order: `{ no, id }` for each `.print-slide-container`. */
 export function listPages(page) {
   return page
