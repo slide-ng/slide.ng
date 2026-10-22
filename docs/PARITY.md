@@ -211,7 +211,7 @@ Slidev is Vue and Vite; slide.ng is Angular. Anything that is about Vue, Vite pl
 | Offline folder that opens from disk (`build --offline`, not in Slidev) | docs/OFFLINE.md                  | done                          | Chromium only, see OFFLINE.md for limits; test: from file:// the first slide opens                                                                                                                |
 | Window sync, presenter and notes with the network off                  | features/pwa.md                  | done                          | test: offline: the presenter moves and the audience window follows                                                                                                                                |
 | Fonts served from the build (`fonts.selfHost`, not in Slidev)          | docs/HOSTING.md                  | done                          | fake provider only; test: the web font came from the folder: declared, loaded, and used by the page                                                                                               |
-| Build size budgets                                                     | ng build                         | partial                       | raised to 1.5MB warn / 3MB error (decks measure 450-945 kB); the numbers are in DECISIONS.md, not enforced by a test                                                                              |
+| Build size budgets                                                     | ng build                         | partial                       | guards of 6MB warn / 100MB error (decks measure 450-945 kB); the numbers are in DECISIONS.md, not enforced by a test                                                                              |
 
 ## Head, SEO, PWA
 
@@ -273,5 +273,5 @@ browser exporter page and `overviewSnapshots`. (The VS Code extension is a separ
 8. **Syntax**: MDC/Comark syntax is not parsed. The markdown inside a slide is converted with `marked`, so the markdown-it typographer (smart quotes, `--`, `...`) does not run, and `v-pre` is Angular's `ngNonBindable` (or write `&#123;&#123;` for a literal `{{`).
 9. **CLI**: dev `--base`, `--tunnel`, `--inspect`; the dev server's default port differs (4230).
 10. **Recording and PWA**: no separate camera file and no mp4 or mkv; the PWA part is done (its first visit must be online, like Slidev's; `build --offline` is the answer for talks with no network).
-11. **Size**: the first load of a deck with Monaco and KaTeX is about 850 kB (budget raised to 1.5 MB warning, 3 MB error).
+11. **Size**: the first load of a deck with Monaco and KaTeX is about 850 kB (the budget warns above 6 MB and fails above 100 MB).
 12. **Unverified ground**: Firefox and Safari, real devices over a LAN, a real screen-share picker, wake lock behaviour and hosts that need hash routing were not tried (STATUS.md, NOT VERIFIED).
