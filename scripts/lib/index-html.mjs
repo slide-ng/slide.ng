@@ -94,11 +94,21 @@ function tagKey(tag) {
   return `meta:${name.toLowerCase()}:${typeof attrs.media === 'string' ? attrs.media : ''}`;
 }
 
+// The page says its encoding first (`<meta charset="utf-8">`, src/index.html), as it must; an index.html's own charset
+// (or the old `http-equiv="Content-Type"` form) would be a second one, far into <head>, so it is dropped.
+const isCharset = (tag) => {
+  if (!/^<meta\b/i.test(tag)) return false;
+  const attrs = parseAttributes(tag.replace(/^<meta\b|\/?>\s*$/gi, ''));
+  return 'charset' in attrs || String(attrs['http-equiv']).toLowerCase() === 'content-type';
+};
+
 /**
  * Puts the `<title>` and `<meta>` tags of `added` (the index.html parts) over the page's: a page tag with the same key as
  * an added one is removed, and of added tags with the same key the last one is kept. The page's own tags are left alone.
+ * An added charset is dropped (the page has its own).
  */
 export function replaceHeadTags(page, added) {
+  added = added.replace(TAG, (tag) => (isCharset(tag) ? '' : tag));
   const last = new Map();
   for (const m of added.matchAll(TAG)) {
     const key = tagKey(m[0]);

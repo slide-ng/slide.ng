@@ -59,6 +59,16 @@ describe('injectIndexHtml', () => {
     expect(html).toContain('<meta charset="utf-8">');
     expect(html).toContain('og:site_name');
   });
+  it("drops an index.html's charset: the page has its own, first", () => {
+    const own =
+      '<html>\n<head>\n  <meta charset="utf-8">\n  <title>t</title>\n</head>\n<body></body>\n</html>';
+    const html = injectIndexHtml(own, {
+      head: '<meta charset="UTF-8" />\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n<meta name="x">',
+      body: '',
+    });
+    expect(html.match(/charset/gi)).toHaveLength(1);
+    expect(html).toContain('<meta name="x">');
+  });
   it('keeps tags meant to repeat: a theme-color per media and Open Graph arrays', () => {
     const own =
       '<html>\n<head>\n  <meta property="og:title" content="hm">\n  <meta property="og:image" content="og-image.png">\n  <meta name="theme-color" content="#fff">\n</head>\n<body></body>\n</html>';

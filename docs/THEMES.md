@@ -115,7 +115,7 @@ head manager does, a `<title>` or a `<meta name>`/`<meta property>` replaces the
 made from the headmatter or from an earlier root: the later one wins. A light and a dark `theme-color` (two `media`) are both kept,
 and so are tags meant to repeat, the Open Graph arrays (`og:image`, `og:video`, `og:audio`, `og:locale:alternate`,
 `article:tag`, `article:author`, `book:tag`, `book:author`, `music:*`, `video:actor`,
-`video:director`, `video:writer`, `video:tag`): every copy from every root stays. While the deck runs, the tab's title still follows the slides' titles. The
+`video:director`, `video:writer`, `video:tag`): every copy from every root stays. A `<meta charset>` (or `http-equiv="Content-Type"`) is dropped: the page is UTF-8 and says so first. While the deck runs, the tab's title still follows the slides' titles. The
 attributes of its `<html>` and `<body>` are added to the page's tags; the headmatter's `htmlAttrs` win over them, and
 `class` values are joined. `lang` comes from the headmatter only (`lang`, or `--lang`, else `en`), because it also picks the
 interface language, the date and number locale and the direction: the `lang` of an `index.html` is not used, and the generator
