@@ -46,8 +46,6 @@ one can be written. The decisions are in DECISIONS.md ("Made while testing for 1
 - A paragraph right after a heading is dimmed (`h1 + p`, as in Slidev), also when it holds only a component; a theme can undo it.
 - A dark-only theme forced into light with `colorSchema` keeps its dark panels with light code colours.
 - In `dev`, a device that joins later sees drawings saved earlier only after the next regeneration.
-- Keyboard and screen reader use of the menus is not complete: Escape does not always give focus back, the overview moves a highlight
-  instead of the focus, and the context menu has no arrow-key support.
 
 ## Not done
 

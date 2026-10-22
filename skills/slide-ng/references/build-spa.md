@@ -24,7 +24,7 @@ Verify: the last line is `Built N slides into <out> (base /talk/).` and `<out>/i
 - `--base` is a path (`/talk/`), not a full address. Build for the prefix you deploy under.
 - Files of `public/` that slides name with a leading slash (`/photo.png`, `<img src>`, `<video src poster>`, `url()`) get the base in front in a build.
 - **Safe output**: the build empties its output folder only when it is new, empty, or has a `.slide-ng-build` file. Any other folder with files is refused. The current folder, your home folder and `/` are always refused.
-- Size: a deck without heavy features is about 450 kB at start; with Monaco and KaTeX about 850 kB. Budget warns at 1.5 MB, fails at 3 MB. Monaco, Mermaid and Magic Move are lazy chunks.
+- Size: a deck without heavy features is about 450 kB at start; with Monaco and KaTeX about 850 kB. The build warns above 6 MB at start (fails only above 100 MB). Monaco, Mermaid and Magic Move are lazy chunks.
 - Only `--download`, `seoMeta.ogImage: auto` and the `pwa` icons need Chromium (`CHROME_PATH`), also in CI (`npx playwright-core install --with-deps chromium`).
 - In the slide.ng repository `npm run build` is the plain Angular build; `slide-ng build` is the command for publishing.
 

@@ -243,5 +243,5 @@ service workers there. A new build gets a new cache name, so visitors get the ne
 ## Bundle size
 
 A deck without heavy features is about 450 kB at startup (compressed about 110 kB). Decks that use Monaco or KaTeX add their
-style sheets to that (about 850 kB with both). The build warns above 1.5 MB and fails above 3 MB at startup; Monaco, Mermaid,
+style sheets to that (about 850 kB with both). The build warns above 6 MB at startup (and fails only above 100 MB); Monaco, Mermaid,
 Magic Move and the like are lazy chunks and do not count.
