@@ -84,7 +84,7 @@ and opens the slides by itself once it is fixed). The usual YAML slips in a fron
 - a missing closing `---`: the slide's text is read as YAML, and the message names the first line that is not `key: value`.
   A heading alone is a YAML comment there, not an error, so `layout: section`, an empty line and `# Part 1` get a warning that
   names the heading (the slide after it would otherwise take the section's layout); `format` gives the same warning and keeps the
-  line. A note to self (`# TODO`, `# Note`) is not warned about. A last
+  line. A note to self (`# TODO`, `# FIXME`) is not warned about. A last
   slide written `---` and `layout: end` with no closing `---` shows "layout: end" as its text, also with a warning.
 
 A mistyped name gets the nearest real one: `layout: image-rigth` ("Did you mean "image-right"?"), `<slide-ng-tocc />` or

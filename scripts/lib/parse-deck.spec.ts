@@ -118,6 +118,12 @@ describe('parseDeck: a slide that starts right after ---', () => {
     const { problems } = await parse('# Z\n\n---\nlayout: center\n\n# TODO later\n---\n\nText\n');
     expect(problems).toEqual([]);
   });
+  it('still warns for a real heading that starts with a note word', async () => {
+    const { problems } = await parse(
+      '# Z\n\n---\nlayout: section\n\n# Notes from the field\n\n---\n\n# Next\n',
+    );
+    expect(problems.join()).toContain('"# Notes from the field" is in the frontmatter');
+  });
   it('warns when a missing closing --- turns a heading into a YAML comment', async () => {
     const { problems, slides } = await parse(
       '# Z\n\n---\nlayout: section\n\n# Part 1: Basics\n\n---\n\n# Next\n',

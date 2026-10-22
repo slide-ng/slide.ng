@@ -6,8 +6,9 @@
 // A heading, not a commented-out key (`# layoutClass: gap-16`, `# TODO: ...`).
 const HEADING = /^(#{1,6})\s+\S/;
 const KEY_COMMENT = /^#\s*[\w-]+\s*:/;
-// A note to self (`# TODO later`, `## Note`), which is written in frontmatter on purpose.
-const NOTE_COMMENT = /^#{1,6}\s*(?:todo|fixme|note|notes|xxx|hack|nb|wip)\b/i;
+// A note to self (`# TODO later`, `# FIXME: ...`), which is written in frontmatter on purpose. Only these markers with one `#`:
+// `# Notes` or `## Todo app` can be a slide's real heading, which is what this check is for.
+const NOTE_COMMENT = /^#\s*(?:todo|fixme|xxx|hack|wip)\b/i;
 // The frontmatter keys a slide's text would hardly start with.
 const SLIDE_KEY =
   /^(?:layout|class|transition|background|image|clicks|clicksStart|hide|disabled|hideInToc|level|routeAlias|src|zoom|dragPos)\s*:\s*\S/;
