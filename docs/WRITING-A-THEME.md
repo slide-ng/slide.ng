@@ -59,6 +59,10 @@ imports it into every slide that uses the tag.
 export default { shortcuts: { 'my-muted': 'op60 text-sm' } };
 ```
 
+Write sides with logical properties (`border-inline-start`, `padding-inline-start`, `ms-4`, `ps-4`) rather than `left` and `right`,
+so the theme mirrors in a right-to-left deck (`lang: ar`, `he`, `fa`, `ur`). The app's own blockquote line is a
+`border-inline-start`: a theme that sets `border-left` on a blockquote shows both lines in such a deck.
+
 ## 5. Default settings
 
 `theme.json` can set headmatter defaults under `"headmatter"`, such as `"colorSchema": "dark"` or the fonts

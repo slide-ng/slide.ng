@@ -39,8 +39,8 @@ html.dark {
   color: var(--paper-accent);
 }
 .slidev-layout blockquote {
-  border-left: 3px solid var(--paper-accent);
-  padding-left: 1rem;
+  border-inline-start: 3px solid var(--paper-accent);
+  padding-inline-start: 1rem;
   color: var(--paper-muted);
   font-style: italic;
 }

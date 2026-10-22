@@ -308,9 +308,9 @@ setup file, a theme file) next to the samples of the same page. Fragments that c
         "docs/PARITY.md": "f4e1ed4dfded5a248a733c3a52d97126bb35d0df1dd7385df50971e89432907e",
         "docs/SYNTAX.md": "e20503cf080fa1932d3ca4d35a9d4dd65171a32240889937da0c22fcf77a0b29",
         "docs/THEMES.md": "61e89ba89606f8631a889b2076d0fc893c5cde33868b30c63117380da471db74",
-        "docs/WRITING-A-THEME.md": "8b19f9a8c19049d3a31a81760642a7e53568c0b624466f94afa55babaaff428a"
+        "docs/WRITING-A-THEME.md": "ff7a69112276b9619eb5a860e3da7d1e0cd4b30339a770e591a336d74e39d716"
       },
-      "hash": "513ec2e13f294161f686c6e36a288cabf3aec078fd997d2b543d22969561e007"
+      "hash": "0959ee2b64692b5ba0aeda6061352d1f78f78e240a30ffa3a577466e382c489e"
     },
     "references/core-fonts.md": {
       "sources": {
@@ -452,9 +452,9 @@ setup file, a theme file) next to the samples of the same page. Fragments that c
     "references/layout-custom.md": {
       "sources": {
         "docs/THEMES.md": "61e89ba89606f8631a889b2076d0fc893c5cde33868b30c63117380da471db74",
-        "docs/WRITING-A-THEME.md": "8b19f9a8c19049d3a31a81760642a7e53568c0b624466f94afa55babaaff428a"
+        "docs/WRITING-A-THEME.md": "ff7a69112276b9619eb5a860e3da7d1e0cd4b30339a770e591a336d74e39d716"
       },
-      "hash": "ddec3edff4cc5bff16a0c1a95b832905b1be128467254ad44e8b4adc5990d3fe"
+      "hash": "59880a4d9b71131c4ef8eb4a8dfdad22e9bc8a8e47c3e9bad1f07134cb83d9d7"
     },
     "references/layout-draggable.md": {
       "sources": {
@@ -690,9 +690,9 @@ setup file, a theme file) next to the samples of the same page. Fragments that c
     "references/theme-write.md": {
       "sources": {
         "docs/THEMES.md": "61e89ba89606f8631a889b2076d0fc893c5cde33868b30c63117380da471db74",
-        "docs/WRITING-A-THEME.md": "8b19f9a8c19049d3a31a81760642a7e53568c0b624466f94afa55babaaff428a"
+        "docs/WRITING-A-THEME.md": "ff7a69112276b9619eb5a860e3da7d1e0cd4b30339a770e591a336d74e39d716"
       },
-      "hash": "ddec3edff4cc5bff16a0c1a95b832905b1be128467254ad44e8b4adc5990d3fe"
+      "hash": "59880a4d9b71131c4ef8eb4a8dfdad22e9bc8a8e47c3e9bad1f07134cb83d9d7"
     }
   }
 }
