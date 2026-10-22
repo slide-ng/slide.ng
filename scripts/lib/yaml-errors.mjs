@@ -7,10 +7,36 @@
  */
 export function describeYamlError(error, raw, firstLine, part) {
   const lines = raw.replace(/\n$/, '').split('\n');
-  // The error's own line; a quote or bracket that is never closed is reported after the last line, so stay inside.
+  // A quote that is never closed is reported where the text ends: the line that opens it is the one to fix.
+  const quote = /closing ['"]?quote/i.test(error.message ?? '') ? openQuote(lines) : null;
+  if (quote)
+    return {
+      line: firstLine + quote.at - 1,
+      message: `the ${quote.char} that starts ${quote.key ? `the value of "${quote.key}"` : 'this value'} is never closed; add the closing ${quote.char}`,
+    };
+  // The error's own line; a bracket that is never closed is reported after the last line, so stay inside.
   const at = Math.min(Math.max(error.linePos?.[0]?.line ?? 1, 1), lines.length);
   const text = lines[at - 1] ?? '';
   return { line: firstLine + at - 1, message: plainWords(error, text, part) };
+}
+
+// The line (from 1) and key of the quoted value that is still open at the end, read line by line as YAML does: a quoted value
+// may go on over several lines, so one that opens and closes later is fine. `''` inside single quotes is a quote, not the end.
+function openQuote(lines) {
+  let open = null;
+  lines.forEach((line, i) => {
+    let rest = line;
+    if (!open) {
+      const m = /^\s*(?:-\s+)?(?:([\w$-]+)\s*:\s+)?(['"])(.*)$/.exec(line);
+      if (!m || /^\s*#/.test(line)) return;
+      open = { at: i + 1, key: m[1], char: m[2] };
+      rest = m[3];
+    }
+    const closed =
+      open.char === '"' ? /(?<!\\)(?:\\\\)*"/.test(rest) : /'/.test(rest.replace(/''/g, ''));
+    if (closed) open = null;
+  });
+  return open;
 }
 
 function plainWords(error, text, part) {
@@ -29,7 +55,7 @@ function plainWords(error, text, part) {
       if (/end with a [\]}]/.test(own)) return `a ${own.includes(']') ? '[' : '{'} is not closed`;
       break;
     case 'MISSING_CHAR':
-      if (/closing "?quote/i.test(own)) return 'a quote is not closed';
+      if (/closing ['"]?quote/i.test(own)) return 'a quote is not closed';
       if (/Implicit map keys/.test(own))
         return `"${text.trim()}" is not a "key: value" line; if it is the slide's text, the --- that ends the ${part} is missing above it`;
       break;

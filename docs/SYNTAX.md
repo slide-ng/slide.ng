@@ -79,6 +79,7 @@ and opens the slides by itself once it is fixed). The usual YAML slips in a fron
 
 - a value with `: ` in it, `title: Part 2: the plan`, reads as a second key: quote it, `title: "Part 2: the plan"`;
 - a line indented with a tab: YAML needs spaces;
+- a quote that is never closed, `title: 'Feature flags`: the message names the line that opens it;
 - a missing closing `---`: the slide's text is read as YAML, and the message names the first line that is not `key: value`.
 
 A mistyped name gets the nearest real one: `layout: image-rigth` ("Did you mean "image-right"?"), `<slide-ng-tocc />` or
