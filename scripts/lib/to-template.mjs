@@ -4,7 +4,7 @@
 // `[prop]="v"`, `{{ x }}`). So we hide that syntax behind placeholders,
 // run the markdown converter, then put the syntax back untouched.
 import { Marked } from 'marked';
-import { extractFences } from './fences.mjs';
+import { extractFences, slideWhere } from './fences.mjs';
 import { renderFence } from './code/render-fence.mjs';
 import { escapeCode, protect } from './protect.mjs';
 import { extractMath, renderMath } from './math.mjs';
@@ -125,8 +125,9 @@ export function toTemplate(markdown, ctx = {}) {
   );
 
   // 4. Put everything back.
-  html = html.replace(/<p>NGMATH(\d+)X<\/p>/g, (_, i) => renderMath(math.maths[+i]));
-  html = html.replace(/NGMATH(\d+)X/g, (_, i) => renderMath(math.maths[+i]));
+  const mathAt = (item) => renderMath(item, () => slideWhere(ctx, item.latex));
+  html = html.replace(/<p>NGMATH(\d+)X<\/p>/g, (_, i) => mathAt(math.maths[+i]));
+  html = html.replace(/NGMATH(\d+)X/g, (_, i) => mathAt(math.maths[+i]));
   html = html.replace(/<p>NGFENCE(\d+)X<\/p>/g, (_, i) => renderFence(fences[+i], ctx));
   html = html.replace(/NGFENCE(\d+)X/g, (_, i) => renderFence(fences[+i], ctx)); // in a tight list item
   html = html.replace(

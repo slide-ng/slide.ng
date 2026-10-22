@@ -40,14 +40,15 @@ export const setKatexOptions = (options = {}) => {
   katexOptions = options;
 };
 
-function render(latex, displayMode) {
+// `where()`: `slide N (file:line): ` for the warnings, when known (only worked out when there is a warning).
+function render(latex, displayMode, where = () => '') {
   try {
     // `output: 'html'`: the MathML part is left out because Angular does not know MathML-only tags like <annotation>.
     return katex.renderToString(latex, {
       throwOnError: false,
       // KaTeX's own strict warnings name no formula; say which one (a deck's setup/katex.ts `strict` still wins).
       strict: (code, message) => {
-        console.warn(`[slides] math "${latex.trim().slice(0, 50)}": ${message}`);
+        console.warn(`[slides] ${where()}math "${latex.trim().slice(0, 50)}": ${message}`);
         return 'ignore';
       },
       ...katexOptions,
@@ -55,7 +56,7 @@ function render(latex, displayMode) {
       output: 'html',
     });
   } catch (e) {
-    console.warn(`[slides] math could not be drawn: ${e.message}`);
+    console.warn(`[slides] ${where()}math could not be drawn: ${e.message}`);
     return protect(latex);
   }
 }
@@ -63,10 +64,13 @@ function render(latex, displayMode) {
 // KaTeX's HTML, made safe: no braces left, and ngNonBindable so `{{` in a formula stays text.
 const safe = (html) => protect(html);
 
-/** @param {{ block: boolean, latex: string, ranges?: string, options?: string }} item */
-export function renderMath({ block, latex, ranges, options }) {
+/**
+ * @param {{ block: boolean, latex: string, ranges?: string, options?: string }} item
+ * @param {() => string} [where] `slide N (file:line): ` for the warnings
+ */
+export function renderMath({ block, latex, ranges, options }, where = () => '') {
   // KaTeX's drawing is hidden from screen readers (no MathML), so the TeX source is read out instead.
-  const drawn = `<span class="sr-only">${escapeCode(latex)}</span>${safe(render(latex, !!block))}`;
+  const drawn = `<span class="sr-only">${escapeCode(latex)}</span>${safe(render(latex, !!block, where))}`;
   if (!block) return `<span ngNonBindable>${drawn}</span>`;
   const o = parseOptions(options);
   const a = attrs({

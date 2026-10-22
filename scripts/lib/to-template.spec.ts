@@ -1,3 +1,6 @@
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { toTemplate } from './to-template.mjs';
 import { initHighlighter } from './code/highlighter.mjs';
 
@@ -258,4 +261,21 @@ describe('toTemplate: twoslash', () => {
     await initHighlighter({ langs: ['ts', 'html', 'md'] }); // back to the plain setup for the other tests
     // The first twoslash run loads the TypeScript libraries, which is slow on a busy machine.
   }, 30_000);
+});
+
+describe('math warnings', () => {
+  it('name the slide and the file and line of the formula', () => {
+    const root = mkdtempSync(join(tmpdir(), 'math-'));
+    const file = join(root, 'slides.md');
+    const md = '# Sums\n\n$$\na = 1 \\\\\nb = 2\n$$\n';
+    writeFileSync(file, `---\ntitle: x\n---\n\n${md}`);
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    toTemplate(md, { file, root, slide: { no: 3 } });
+    const messages = warn.mock.calls.map((c) => String(c[0]));
+    warn.mockRestore();
+    rmSync(root, { recursive: true });
+    expect(messages.some((m) => /^\[slides\] slide 3 \(slides\.md:8\): math "a = 1/.test(m))).toBe(
+      true,
+    );
+  });
 });
