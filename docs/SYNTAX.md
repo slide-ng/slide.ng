@@ -954,7 +954,9 @@ a later click changes has a badge with that click's number. Click a badge or a g
 current slide changes: the audience, `/notes` and the next-step pane do not. The choice is remembered in the browser (`slide-ng-presenter-click-preview`).
 
 - `slide-ng-click`, `slide-ng-after`, ranges, `<slide-ng-clicks>` items and `{monaco-run}` output (`showOutputAt`) are drawn greyed out until their click; a range on screen is marked again where it ends.
-- `slide-ng-click-hide` stays as it is until it goes, with its badge.
+- `slide-ng-click-hide` (and the end of `slide-ng-click="2" slide-ng-click-hide="3"`) stays as it is until it goes, with its badge. That badge's
+  number is struck through and it is named "Go to click N, where this part goes away"; as the next click the part's outline is dotted, not
+  dashed (class `slide-ng-click-hides`), so it does not look like a part that appears there.
 - Code line steps, magic-move, `slide-ng-mark` and `slide-ng-motion` click variants are drawn as they are at the current click, with a badge for their next change.
 - `<slide-ng-switch>` shows only its current child; the badge on the switch says when it changes.
 - A part with a click animation preset (`.up`, `.left`, `.scale`, ...) or a deck's own hidden style (Slidev's
@@ -973,7 +975,7 @@ Themes change the look with `--slide-ng-ghost-opacity` (0.47, 0.4 in dark mode: 
 `--slide-ng-ghost-badge-background` and `--slide-ng-ghost-badge-foreground`. The classes on the parts are `slide-ng-click-ahead` and `slide-ng-click-next`,
 with the click in `data-slide-ng-click-at`. Screen readers skip the greyed-out parts (the next slide pane already has the next click),
 and what a greyed-out part holds is inert: its links, buttons and fields are no Tab stops until the part shows. The keyboard way is the
-badges: each badge is a button named "Go to click N". The notes PDF (`export-notes`, `/presenter/print`) has no click preview.
+badges: each badge is a button named "Go to click N", 24 by 24 screen pixels to hit. The notes PDF (`export-notes`, `/presenter/print`) has no click preview.
 
 ## Progress bar
 
@@ -1251,7 +1253,8 @@ presses a button, and a touch on the slide hides it again. On a screen taller th
   main landmark and a level-one heading (visually hidden on the presenter and `/notes`); `/entry` and the notes print page have a main
   landmark. The quick overview, the right-click menu and the "go to" box are named dialogs, with all their controls inside.
 - **Keyboard**: in the quick overview (`o`) the arrow keys move the focus from card to card, and each card is named "Go to slide N: title".
-  In the presenter's click preview the badges are the keyboard way to a later click (see Click preview). After Edit Notes, Escape gives
+  In the presenter's click preview the badges are the keyboard way to a later click (see Click preview); after Enter on one the focus
+  moves to the badge of the click after it (to the Current slide region at the last click). After Edit Notes, Escape gives
   the focus back to the Edit Notes button. On `/overview` (while developing) each note is a named group that says it can be edited:
   Enter or a double click edits it.
   Escape in the settings menu (also in its number fields) closes it and gives the focus back to its button, as in the sync menu.
@@ -1262,7 +1265,8 @@ presses a button, and a touch on the slide hides it again. On a screen taller th
 - **Progress bar**: `progressBar` is a `progressbar` named "Progress through the slides" (translatable: `progress.label`).
 - **Contrast and size**: the interface's text is at least 4.5:1 (3:1 for large text) in light and dark mode, also the notes of later
   clicks, which are faded to 0.75 once (a part inside a faded paragraph is not faded again), and the "No notes." placeholder; its
-  icon buttons are at least 24 by 24 pixels. A theme that changes the colours or `.slidev-note-fade`
+  icon buttons are at least 24 by 24 pixels, also the click preview's badges (however small the presenter draws the slide) and the
+  timer's pause and reset buttons, which sit side by side with a gap. A theme that changes the colours or `.slidev-note-fade`
   has to keep that. The settings and sync menus and the info dialog stay inside the window down to 320 by 180 pixels (400% zoom) and
   scroll.
 - **Reduced motion**: when the system asks for less motion (`prefers-reduced-motion: reduce`), slide transitions, click fades,

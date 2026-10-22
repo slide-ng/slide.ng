@@ -28,6 +28,8 @@ export interface ClickPart {
   el: Element;
   info: ClickInfo;
   steps?: number[];
+  /** The click where the element goes away (`slide-ng-click-hide`, or the end of `slide-ng-click="2" slide-ng-click-hide="3"`). */
+  hidesAt?: number;
 }
 
 // "As many clicks as the slide has": asking for this many shows the final state (the slide clamps it).
@@ -200,7 +202,7 @@ export class ClicksContext {
   register(
     key: unknown,
     info: Pick<ClickInfo, 'delta' | 'max'> | ClickInfo | null,
-    part?: { el: Element; steps?: number[] },
+    part?: { el: Element; steps?: number[]; hidesAt?: number },
   ) {
     if (!info) return;
     this.relativeSizeMap.set(key, info.delta);

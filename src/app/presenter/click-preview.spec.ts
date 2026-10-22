@@ -91,6 +91,19 @@ describe('previewMarks', () => {
       { el: a, at: 3, isNext: false },
     ]);
   });
+  it('says which parts go away at their click (slide-ng-click-hide)', () => {
+    const c = ctx();
+    const [a, b] = [el(), el()];
+    const parts: ClickPart[] = [
+      { el: a, info: c.calculateSince(1)!, hidesAt: 1 },
+      { el: b, info: c.calculateRange([2, 3])!, hidesAt: 3 },
+    ];
+    expect(previewMarks(parts, 0, 3)).toEqual([
+      { el: a, at: 1, isNext: true, hides: true },
+      { el: b, at: 2, isNext: false },
+    ]);
+    expect(previewMarks(parts, 2, 3)).toEqual([{ el: b, at: 3, isNext: true, hides: true }]);
+  });
   it('leaves out clicks the slide never reaches', () => {
     const c = ctx();
     expect(previewMarks([{ el: el(), info: c.calculateSince(5)! }], 0, 3)).toEqual([]);

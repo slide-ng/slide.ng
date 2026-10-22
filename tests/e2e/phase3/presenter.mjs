@@ -198,6 +198,17 @@ export async function run({ t, open, press, hud, until, pathOf, windowGroup }) {
     (await clock()).replace(/\s/g, '') === '10:00',
     await clock(),
   );
+  const timerButtons = await presenter
+    .locator('#timer-toggle, #timer-reset')
+    .evaluateAll((l) => l.map((e) => e.getBoundingClientRect().toJSON()));
+  const [play, reset] = timerButtons;
+  t.ok(
+    'the timer buttons are at least 24 by 24 pixels, side by side with a gap',
+    timerButtons.length === 2 &&
+      timerButtons.every((r) => r.width >= 24 && r.height >= 24) &&
+      reset.left >= play.right + 2,
+    JSON.stringify(timerButtons),
+  );
   // The buttons show only on hover or focus; a touch screen cannot hover (a phone as the remote), so there they always show.
   const buttonsOpacity = (page) =>
     page.locator('#timer .timer-buttons').evaluate((e) => getComputedStyle(e).opacity);

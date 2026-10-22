@@ -13,20 +13,21 @@ import { Timer } from './timer';
       class="group flex items-center justify-center ps-4 select-none"
       [class]="color()"
     >
-      <!-- The buttons are always there (so Tab reaches them) and show on hover or focus, over the clock icon; always without hover. -->
-      <div class="relative w-22px h-12 flex items-center justify-center">
+      <!-- The buttons are always there (so Tab reaches them) and show on hover or focus, over the clock icon; always without hover.
+           Side by side, each 24 by 24 px with a gap, so a finger on pause does not reset. -->
+      <div class="relative w-13 h-12 flex items-center justify-center">
         <div
           class="timer-icon group-hover:op-0 group-focus-within:op-0 text-2xl"
           [class]="timer.mode === 'countdown' ? 'i-carbon:timer' : 'i-carbon:time'"
           aria-hidden="true"
         ></div>
         <div
-          class="timer-buttons absolute inset-0 flex flex-col items-center justify-center op-0 group-hover:op-100 group-focus-within:op-100"
+          class="timer-buttons absolute inset-0 flex items-center justify-center gap-1 op-0 group-hover:op-100 group-focus-within:op-100"
         >
           <button
             id="timer-toggle"
             type="button"
-            class="relative cursor-pointer bg-transparent border-0 p-0 text-inherit"
+            class="relative w-6 h-6 flex items-center justify-center cursor-pointer bg-transparent border-0 p-0 text-inherit"
             [attr.aria-label]="(timer.status() === 'running' ? 'timer.pause' : 'timer.start') | t"
             (click)="timer.toggle()"
           >
@@ -37,7 +38,7 @@ import { Timer } from './timer';
           <button
             id="timer-reset"
             type="button"
-            class="cursor-pointer bg-transparent border-0 p-0 text-inherit"
+            class="w-6 h-6 flex items-center justify-center cursor-pointer bg-transparent border-0 p-0 text-inherit"
             [attr.aria-label]="'timer.reset' | t"
             (click)="timer.reset()"
           >

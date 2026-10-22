@@ -195,6 +195,38 @@ export async function run({ t, open, press, hud, pathOf, windowGroup }) {
       .first()
       .getAttribute('aria-label')) === 'Go to click 2',
   );
+  const hiding = await presenter.evaluate((main) => {
+    const badge = [
+      ...document.querySelectorAll(`${main} .slide-ng-ghost-badge[data-click="5"]`),
+    ].find((b) => b.classList.contains('slide-ng-ghost-badge-hides'));
+    return {
+      part: document.querySelector(`${main} #ph`).classList.contains('slide-ng-click-hides'),
+      shows: document.querySelector(`${main} #pr`).classList.contains('slide-ng-click-hides'),
+      label: badge?.getAttribute('aria-label'),
+      struck: badge && getComputedStyle(badge).textDecorationLine,
+    };
+  }, main);
+  t.ok(
+    'click preview: a part that its click hides is marked as going away, not as appearing',
+    hiding.part &&
+      !hiding.shows &&
+      hiding.label === 'Go to click 5, where this part goes away' &&
+      hiding.struck === 'line-through',
+    JSON.stringify(hiding),
+  );
+  const sizes = await presenter.evaluate(
+    (main) =>
+      [...document.querySelectorAll(`${main} .slide-ng-ghost-badge`)].map((b) => {
+        const r = b.getBoundingClientRect();
+        return Math.min(r.width, r.height);
+      }),
+    main,
+  );
+  t.ok(
+    'click preview: each badge is at least 24 by 24 pixels to hit',
+    sizes.length > 0 && sizes.every((n) => n >= 23.5),
+    sizes.join(),
+  );
   t.ok(
     'click preview: the audience window is unchanged',
     (await opacity(viewer, 'p1')) === 0 &&
@@ -302,6 +334,22 @@ export async function run({ t, open, press, hud, pathOf, windowGroup }) {
   );
   await presenter.locator('#nav-drawing').click();
   await presenter.waitForTimeout(300);
+
+  // From the keyboard: the badge goes away with its click, so the focus moves to the next badge.
+  await presenter.locator(`${main} .slide-ng-ghost-badge[data-click="3"]`).focus();
+  await press(presenter, 'Enter', 400);
+  const focused = await presenter.evaluate(() =>
+    document.activeElement?.classList.contains('slide-ng-ghost-badge')
+      ? document.activeElement.getAttribute('data-click')
+      : document.activeElement?.tagName,
+  );
+  t.ok(
+    'click preview: Enter on a badge goes to its click and the focus moves to the next badge',
+    (await hud(presenter)) === 'slide 2/2 clicks 3/7' && focused === '4',
+    `${await hud(presenter)} focus ${focused}`,
+  );
+  await press(presenter, 'ArrowLeft', 400);
+  await presenter.evaluate(() => document.activeElement?.blur());
 
   // ---- a link inside a greyed-out part is inert (no Tab stop, the badges are the keyboard path) and a click on it
   // jumps to its click instead of following it

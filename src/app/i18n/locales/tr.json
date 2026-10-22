@@ -153,6 +153,7 @@
   "sync.cannotSendHere": "Bu pencere başka bir cihazda: sunucuyu izleyebilir, ama diğerlerini hareket ettiremez.",
   "overview.openPage": "Genel bakış sayfasını notlarla aç",
   "presenter.goToClick": "{no}. tıklamaya git",
+  "presenter.goToClickHides": "Bu bölümün kaybolduğu {no}. tıklamaya git",
   "presenter.resizeNotes": "Not panelini yeniden boyutlandır",
   "presenter.resizeNotesHeight": "Not panelinin yüksekliğini değiştir",
   "presenter.editNotes": "Notları düzenle",

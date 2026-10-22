@@ -95,7 +95,15 @@ export class SlideNgClick implements OnInit, OnDestroy {
       ? this.ctx.calculateUntil(this.showAt(), hideAt)
       : this.ctx.calculate(this.showAt() ?? hideAt);
     this.info.set(info);
-    this.ctx.register(this, info, { el: this.el });
+    // `hide` alone: shown until its click, then gone; with a show click: gone where its range ends.
+    const hidesAt = !info
+      ? undefined
+      : this.showThenHide()
+        ? info.end
+        : this.hide()
+          ? info.start
+          : undefined;
+    this.ctx.register(this, info, { el: this.el, hidesAt });
   }
 
   ngOnDestroy() {

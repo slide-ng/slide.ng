@@ -180,6 +180,7 @@ export const EN = {
     'This window is on another device: it can follow the presenter, but not move the others.',
   'overview.openPage': 'Open the overview page, with the notes',
   'presenter.goToClick': 'Go to click {no}',
+  'presenter.goToClickHides': 'Go to click {no}, where this part goes away',
   'presenter.resizeNotes': 'Resize notes panel',
   'presenter.resizeNotesHeight': 'Resize notes panel height',
   'presenter.editNotes': 'Edit Notes',

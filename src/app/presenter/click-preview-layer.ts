@@ -16,16 +16,20 @@ import { T } from '../i18n/t';
 
 const AHEAD = 'slide-ng-click-ahead';
 const NEXT = 'slide-ng-click-next';
+const HIDES = 'slide-ng-click-hides';
 const AT = 'data-slide-ng-click-at';
 // A finished move of one of these properties can put an element somewhere else, so the badges are measured again.
 const MOVES =
   /^(transform|translate|scale|rotate|top|left|right|bottom|width|height|margin|padding)/;
 
-const BADGE = 16; // about the size of a badge, in slide pixels
+// A badge is 24 by 24 screen pixels however small the presenter draws the slide (a target size a finger or a shaky hand
+// can hit), so in slide pixels it is 24 divided by the canvas scale.
+const BADGE = 24;
 
 interface Badge {
   at: number;
   isNext: boolean;
+  hides: boolean;
   /** from the inline start of the canvas: the left edge, or the right edge in a right-to-left part */
   x: number;
   y: number;
@@ -49,14 +53,17 @@ interface Badge {
         type="button"
         class="slide-ng-ghost-badge"
         [class.slide-ng-ghost-badge-next]="b.isNext"
+        [class.slide-ng-ghost-badge-hides]="b.hides"
         [class.slide-ng-ghost-badge-rtl]="b.rtl"
         [style.left.px]="b.rtl ? null : b.x"
         [style.right.px]="b.rtl ? b.x : null"
         [style.top.px]="b.y"
         [attr.data-click]="b.at"
-        [title]="'presenter.goToClick' | t: { no: b.at }"
-        [attr.aria-label]="'presenter.goToClick' | t: { no: b.at }"
-        (click)="go(b.at)"
+        [title]="(b.hides ? 'presenter.goToClickHides' : 'presenter.goToClick') | t: { no: b.at }"
+        [attr.aria-label]="
+          (b.hides ? 'presenter.goToClickHides' : 'presenter.goToClick') | t: { no: b.at }
+        "
+        (click)="go(b.at, $event)"
       >
         {{ b.at }}
       </button>
@@ -86,6 +93,12 @@ export class ClickPreviewLayer {
 
   constructor() {
     // After the slide has applied its own click classes, so the measured places are the ones on screen.
+    afterRenderEffect(() => {
+      this.badges();
+      if (!this.refocus) return;
+      this.refocus = false;
+      untracked(() => this.moveFocus());
+    });
     afterRenderEffect(() => {
       const ctx = this.nav.ctx();
       this.ui.canvasScale();
@@ -121,9 +134,24 @@ export class ClickPreviewLayer {
     destroyRef.onDestroy(() => this.apply([]));
   }
 
-  protected go(at: number) {
+  protected go(at: number, e?: MouseEvent) {
     if (this.drawing()) return;
+    // From the keyboard the badge goes away with the jump: the focus moves on to the badge of the click after it.
+    if (e?.detail === 0) this.refocus = true;
     this.nav.ctx()?.setCurrent(at);
+  }
+  private refocus = false;
+
+  // The next badge (the lowest click), or the current slide's pane when there is none left, so the focus is not lost.
+  private moveFocus() {
+    const next = Array.from(this.host.querySelectorAll<HTMLElement>('.slide-ng-ghost-badge')).sort(
+      (a, b) => +a.dataset['click']! - +b.dataset['click']!,
+    )[0];
+    if (next) return next.focus({ preventScroll: true });
+    const pane = this.host.closest<HTMLElement>('[role="region"]');
+    if (!pane) return;
+    if (!pane.hasAttribute('tabindex')) pane.setAttribute('tabindex', '-1');
+    pane.focus({ preventScroll: true });
   }
 
   // Only a part that is not on screen yet: a part already shown keeps its own clicks (links, buttons).
@@ -141,7 +169,7 @@ export class ClickPreviewLayer {
     const keep = new Set(marks.map((m) => m.el));
     for (const el of this.tagged) {
       if (keep.has(el)) continue;
-      el.classList.remove(AHEAD, NEXT);
+      el.classList.remove(AHEAD, NEXT, HIDES);
       el.removeAttribute(AT);
       this.mute(el, false);
       this.wake(el, false);
@@ -152,10 +180,13 @@ export class ClickPreviewLayer {
     if (!canvas) return this.badges.set([]);
     const box = canvas.getBoundingClientRect();
     const scale = box.width / (canvas.offsetWidth || 1) || 1;
+    this.host.style.setProperty('--slide-ng-badge-unscale', String(1 / scale));
+    const size = BADGE / scale;
     const badges: Badge[] = [];
-    for (const { el, at, isNext } of marks) {
+    for (const { el, at, isNext, hides } of marks) {
       el.classList.add(AHEAD);
       el.classList.toggle(NEXT, isNext);
+      el.classList.toggle(HIDES, !!hides);
       el.setAttribute(AT, String(at));
       this.mute(el, el.classList.contains('slidev-vclick-hidden'));
       this.wake(el, el.classList.contains('slidev-vclick-hidden'));
@@ -169,10 +200,10 @@ export class ClickPreviewLayer {
       let x = Math.max(0, (rtl ? box.right - r.right : r.left - box.left) / scale);
       // Parts that start at the same place (an empty switch above the next block) get their badges side by side.
       while (
-        badges.some((o) => o.rtl === rtl && Math.abs(o.x - x) < BADGE && Math.abs(o.y - y) < BADGE)
+        badges.some((o) => o.rtl === rtl && Math.abs(o.x - x) < size && Math.abs(o.y - y) < size)
       )
-        x += BADGE;
-      badges.push({ at, isNext, x, y, rtl });
+        x += size;
+      badges.push({ at, isNext, hides: !!hides, x, y, rtl });
     }
     for (const el of this.tagged) if (this.isGhost(el)) this.seal(el);
     this.badges.set(badges);

@@ -182,26 +182,44 @@ html.dark .slidev-presenter .grid-section {
   outline: 2px dashed var(--slide-ng-ghost-next, var(--slidev-theme-primary));
   outline-offset: 2px;
 }
+/* A badge is 24 by 24 screen pixels to hit (the canvas is scaled, so its sizes are divided by the scale: --slide-ng-badge-unscale);
+   the round mark drawn inside it is 18 px, the 3 px around it are only there to be clicked. */
 .slide-ng-ghost-badge {
+  --u: calc(1px * var(--slide-ng-badge-unscale, 1));
   position: absolute;
   transform: translate(-40%, -40%);
-  min-width: 1.4em;
-  height: 1.4em;
-  padding: 0 0.3em;
+  box-sizing: border-box;
+  min-width: calc(24 * var(--u));
+  height: calc(24 * var(--u));
+  padding: calc(3 * var(--u));
   border-radius: 9999px;
+  background-clip: content-box;
   font:
-    600 11px/1.4em ui-sans-serif,
+    600 calc(11 * var(--u)) / calc(18 * var(--u)) ui-sans-serif,
     system-ui,
     sans-serif;
   text-align: center;
-  background: var(--slide-ng-ghost-badge-background);
+  background-color: var(--slide-ng-ghost-badge-background);
   color: var(--slide-ng-ghost-badge-foreground);
   opacity: 0.9;
   pointer-events: auto;
   cursor: pointer;
 }
 .slide-ng-ghost-badge-next {
-  background: var(--slide-ng-ghost-next, var(--slidev-theme-primary));
+  background-color: var(--slide-ng-ghost-next, var(--slidev-theme-primary));
+}
+.slide-ng-ghost-badge:focus-visible {
+  outline: 2px solid var(--slide-ng-ghost-next, var(--slidev-theme-primary));
+  outline-offset: 0;
+}
+/* A part on screen that goes away at its click (slide-ng-click-hide): the number is struck through, and as the next click
+   its outline is dotted instead of dashed, so it does not read as a part that appears there. */
+.slide-ng-ghost-badge-hides {
+  text-decoration: line-through;
+  text-decoration-thickness: calc(1.5 * var(--u));
+}
+.slide-ng-click-next.slide-ng-click-hides {
+  outline-style: dotted;
 }
 /* Right to left: the badge sits at the part's inline start, its top right corner. */
 .slide-ng-ghost-badge-rtl {

@@ -8,6 +8,8 @@ export interface PreviewMark {
   at: number;
   /** That click is the very next one. */
   isNext: boolean;
+  /** At that click the element goes away (it is on screen now), rather than shows. */
+  hides?: boolean;
 }
 
 /**
@@ -35,13 +37,19 @@ export function previewMarks(
   current: number,
   total: number,
 ): PreviewMark[] {
-  const first = new Map<Element, number>();
+  const first = new Map<Element, { at: number; hides: boolean }>();
   for (const part of parts) {
     const at = changesOf(part).find((c) => c < total + 1 && Math.min(c, total) > current);
     if (at == null) continue;
     const seen = first.get(part.el);
-    if (seen == null || at < seen) first.set(part.el, at);
+    const hides = part.hidesAt != null && Math.ceil(part.hidesAt) === at;
+    if (seen == null || at < seen.at) first.set(part.el, { at, hides });
   }
   const next = Math.ceil(Math.min(current + 1, total));
-  return [...first].map(([el, at]) => ({ el, at, isNext: at === next }));
+  return [...first].map(([el, { at, hides }]) => ({
+    el,
+    at,
+    isNext: at === next,
+    ...(hides ? { hides } : {}),
+  }));
 }
