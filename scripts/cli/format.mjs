@@ -27,7 +27,8 @@ export async function formatMarkdown(text, filepath = 'slides.md') {
       `${filepath}:${line}: the ${i === 0 ? 'headmatter' : `frontmatter of slide ${i + 1}`} is not valid YAML: ${message}; fix it and format again (the file is left as it is)`,
     );
   });
-  // A frontmatter that lost its closing `---` is valid YAML, but printing it again would make the slip harder to see.
+  // A frontmatter that may have lost its closing `---` is valid YAML and is printed again as it is (comments are kept), so
+  // it is only a warning: the same one dev and build give. A heading in a frontmatter can also be a comment on purpose.
   const lines = text.split(/\r?\n/);
   parsed.slides.forEach((slide, i) => {
     const value = slide.frontmatterDoc?.toJS?.();
@@ -38,10 +39,7 @@ export async function formatMarkdown(text, filepath = 'slides.md') {
       start: slide.start,
       lines,
     });
-    if (slip)
-      throw new Error(
-        `${filepath}:${slip.line}: slide ${i + 1}: ${slip.message}; fix it and format again (the file is left as it is)`,
-      );
+    if (slip) console.warn(`${filepath}:${slip.line}: slide ${i + 1}: ${slip.message}`);
   });
   // A last slide written `---` then `# B` keeps the `---` in its content; printed again it would make an empty slide.
   for (const slide of parsed.slides) slide.content = slide.content.replace(/^---[ \t]*\n/, '');

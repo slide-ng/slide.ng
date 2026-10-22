@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { formatMarkdown } from './format.mjs';
 
 const messy = `---
@@ -60,11 +60,24 @@ describe('formatMarkdown', () => {
       /^talk\.md:9: the frontmatter of slide 2 is not valid YAML: the value of "foo" has ": " in it, which reads as a second key; put it in quotes: foo: "a: b"; fix it and format again/,
     );
   });
-  it('leaves a frontmatter that lost its closing --- for the author to fix', async () => {
+  it('warns about a frontmatter that may have lost its closing ---, and keeps the heading', async () => {
     const text = '---\ntitle: t\n---\n\n# A\n\n---\nlayout: section\n\n# Part 1\n\n---\n\n# B\n';
-    await expect(formatMarkdown(text, 'talk.md')).rejects.toThrow(
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const out = await formatMarkdown(text, 'talk.md');
+    expect(warn.mock.calls[0][0]).toMatch(
       /^talk\.md:10: slide 2: "# Part 1" is in the frontmatter, where it is a YAML comment/,
     );
+    expect(out).toContain('# Part 1');
+    warn.mockRestore();
+  });
+  it('formats a frontmatter with a note to self in it, without a warning', async () => {
+    const text =
+      '---\ntitle: t\n---\n\n# A\n\n---\nlayout: center\n\n# TODO later\n---\n\nreal text\n';
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const out = await formatMarkdown(text, 'talk.md');
+    expect(warn).not.toHaveBeenCalled();
+    expect(out).toContain('# TODO later');
+    warn.mockRestore();
   });
   it('says what is wrong in the words dev and build use', async () => {
     await expect(

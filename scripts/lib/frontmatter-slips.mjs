@@ -6,6 +6,8 @@
 // A heading, not a commented-out key (`# layoutClass: gap-16`, `# TODO: ...`).
 const HEADING = /^(#{1,6})\s+\S/;
 const KEY_COMMENT = /^#\s*[\w-]+\s*:/;
+// A note to self (`# TODO later`, `## Note`), which is written in frontmatter on purpose.
+const NOTE_COMMENT = /^#{1,6}\s*(?:todo|fixme|note|notes|xxx|hack|nb|wip)\b/i;
 // The frontmatter keys a slide's text would hardly start with.
 const SLIDE_KEY =
   /^(?:layout|class|transition|background|image|clicks|clicksStart|hide|disabled|hideInToc|level|routeAlias|src|zoom|dragPos)\s*:\s*\S/;
@@ -26,7 +28,7 @@ export function frontmatterSlip({ raw = '', keys, content = '', start, lines = [
     });
     for (let i = last + 1; i < yaml.length; i++) {
       const heading = HEADING.exec(yaml[i]);
-      if (!heading || KEY_COMMENT.test(yaml[i])) continue;
+      if (!heading || KEY_COMMENT.test(yaml[i]) || NOTE_COMMENT.test(yaml[i].trim())) continue;
       const afterGap = yaml.slice(last + 1, i).some((l) => !l.trim());
       if (afterGap || heading[1].length > 1)
         return {

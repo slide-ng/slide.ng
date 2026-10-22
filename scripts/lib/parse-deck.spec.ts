@@ -114,6 +114,10 @@ describe('parseDeck: a slide that starts right after ---', () => {
     );
     expect(problems).toEqual([]);
   });
+  it('does not warn for a note to self after an empty line in a frontmatter', async () => {
+    const { problems } = await parse('# Z\n\n---\nlayout: center\n\n# TODO later\n---\n\nText\n');
+    expect(problems).toEqual([]);
+  });
   it('warns when a missing closing --- turns a heading into a YAML comment', async () => {
     const { problems, slides } = await parse(
       '# Z\n\n---\nlayout: section\n\n# Part 1: Basics\n\n---\n\n# Next\n',
