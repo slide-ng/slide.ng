@@ -77,7 +77,7 @@ function resolveSafe(line, ctx) {
 /**
  * `slide N (parts/a.md:12): ` for a warning about the slide being generated: its number and the line of the file that has
  * `text` (the first line of it that is found), or less when that is not known.
- * @param {{ file?: string, root?: string, slide?: { no: number } }} ctx
+ * @param {{ file?: string, root?: string, slide?: { no: number, source?: { filepath?: string, contentStart?: number, end?: number } } }} ctx
  */
 export function slideWhere(ctx, text) {
   if (!ctx.slide) return '';
@@ -91,7 +91,14 @@ export function slideWhere(ctx, text) {
         .split('\n')[0]
         .trim();
       const lines = readFileSync(ctx.file, 'utf8').replace(/\r/g, '').split('\n');
-      if (needle) line = lines.findIndex((l) => l.includes(needle));
+      // Look in the slide's own lines first: the same text (a `\begin{aligned}`, a snippet line) may be in an earlier slide.
+      const own = ctx.slide.source?.filepath === ctx.file ? ctx.slide.source : null;
+      const from = own?.contentStart ?? 0;
+      const to = own?.end ?? lines.length;
+      if (needle) {
+        line = lines.findIndex((l, i) => i >= from && i < to && l.includes(needle));
+        if (line < 0) line = lines.findIndex((l) => l.includes(needle));
+      }
     } catch {
       // the file is not readable: the name is enough
     }

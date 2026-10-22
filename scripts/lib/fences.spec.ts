@@ -62,4 +62,15 @@ describe('the missing snippet warning', () => {
     warn.mockRestore();
     rmSync(root, { recursive: true });
   });
+  it('names the line in its own slide when an earlier slide has the same snippet line', () => {
+    const root = mkdtempSync(join(tmpdir(), 'fences-'));
+    const file = join(root, 'slides.md');
+    writeFileSync(file, '# A\n\n<<< ./nope.ts\n\n---\n\n# B\n\n<<< ./nope.ts\n');
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const source = { filepath: file, contentStart: 5, end: 9 };
+    extractFences('# B\n\n<<< ./nope.ts', { file, root, slide: { no: 2, source } });
+    expect(warn.mock.calls[0][0]).toMatch(/^\[slides\] slide 2 \(slides\.md:9\): /);
+    warn.mockRestore();
+    rmSync(root, { recursive: true });
+  });
 });
