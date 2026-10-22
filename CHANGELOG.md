@@ -86,6 +86,7 @@ Node (22.22.3 or newer) and Angular (22.2) are the same as in 1.x. These changes
 
 ### Fixed
 
+- A slide's `<style>` block with a quoted value in a selector (`[lang='de']`) is applied; it used to stay in the slide as broken markup, with the build warning `Unexpected "#123"`.
 - `<slide-ng-youtube id="luoMHjh-XcQ?start=1234" />` starts at the given time, as in Slidev, instead of failing to find the video. YouTube's embed options in the id (`start`, `end`, `list`, `loop`, ...) are kept and others dropped; `start` and `list` can also be attributes. A start time (`start`, or `t` of a shared link) may be written YouTube's way (`1m30s`); one that is not a time is dropped with a warning.
 - `slide-ng dev --remote` with `routerMode: hash`: the printed addresses and the `c` QR code are `/#/?password=...` and `/#/presenter/1?password=...`, and the page logs in with them. The page also reads `?password=` before the router's first redirect, which dropped it, so an address with the password no longer asks for it again.
 - A class or size on `<slide-ng-video>` (`class="h-60"`) sizes the video, on screen and in print, instead of only its box.

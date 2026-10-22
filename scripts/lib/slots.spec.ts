@@ -48,6 +48,14 @@ describe('extractStyles', () => {
     expect(markdown).toContain('`<style>`');
     expect(css).toBe('h1 { color: red }');
   });
+  it('keeps a style block whose selector has a quoted value', () => {
+    const { markdown, css } = extractStyles(
+      '<div lang="de">Text</div>\n\n<style>\n.slidev-layout [lang=\'de\'] { hyphens: auto; }\n[title="a"] { color: red }\n</style>',
+    );
+    expect(markdown).not.toContain('style');
+    expect(markdown).toContain('<div lang="de">Text</div>');
+    expect(css).toBe('.slidev-layout [lang=\'de\'] { hyphens: auto; }\n[title="a"] { color: red }');
+  });
   it('scopes css under the slide tag using nesting', () => {
     expect(scopeCss('h1 { color: red }', 'slide-003')).toBe('slide-003 {\nh1 { color: red }\n}');
     expect(scopeCss('', 'slide-003')).toBe('');
