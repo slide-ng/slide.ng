@@ -1,4 +1,4 @@
-import { rangeOutsideLines, twoslashReason } from './render-code.mjs';
+import { missingErrors, rangeOutsideLines, twoslashReason } from './render-code.mjs';
 
 describe('twoslashReason', () => {
   it("uses a Twoslash error's title and description (its message starts with an empty line)", () => {
@@ -29,5 +29,15 @@ describe('rangeOutsideLines', () => {
   it('accepts steps that pick a line, and the words all, hide and 0', () => {
     expect(rangeOutsideLines(['11,12', '13-20', 'all', '0', '*'], code, 10)).toBe('');
     expect(rangeOutsideLines(['1-2|4'.split('|')[0]], code)).toBe('');
+  });
+});
+
+describe('missingErrors', () => {
+  it('lists the @errors codes that TypeScript does not report', () => {
+    const code = "// @errors: 2322 2588\nconst a: number = 'x';\n";
+    expect(missingErrors(code, [{ code: 2322 }])).toEqual(['2588']);
+    expect(missingErrors(code, [{ code: 2322 }, { code: 2588 }])).toEqual([]);
+    expect(missingErrors('const a = 1;', [])).toEqual([]);
+    expect(missingErrors('// @errors: 2322', undefined)).toEqual(['2322']);
   });
 });

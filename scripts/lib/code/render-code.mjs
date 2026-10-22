@@ -18,14 +18,27 @@ const slidevCode = {
 export function highlightedPre(code, lang, info = '') {
   const twoslash = /\btwoslash\b/.test(info) ? twoslashTransformer() : null;
   let html;
+  let found; // what twoslash found, read from the transformers' shared meta after it ran
+  const keep = {
+    pre() {
+      found = this.meta.twoslash;
+    },
+  };
   try {
     html = codeToHtml(
       code,
       lang,
       twoslash
-        ? { transformers: [twoslash, slidevCode], meta: { __raw: info } }
+        ? { transformers: [twoslash, slidevCode, keep], meta: { __raw: info } }
         : { transformers: [slidevCode] },
     );
+    if (found) {
+      const missing = missingErrors(code, found.errors);
+      if (missing.length)
+        console.warn(
+          `[slides] ${warnSlidePrefix()}twoslash: // @errors lists ${missing.join(', ')}, but the ${lang} block has no such error (check the code or the list)`,
+        );
+    }
   } catch (e) {
     // A code error in a twoslash block must not stop the whole build.
     console.warn(
@@ -34,6 +47,19 @@ export function highlightedPre(code, lang, info = '') {
     html = codeToHtml(code, lang, { transformers: [slidevCode] });
   }
   return protect(html).replace('<pre ', '<pre ngNonBindable ');
+}
+
+/**
+ * The error codes a twoslash block's `// @errors: 2322 2588` lists that TypeScript does not report. Twoslash runs with
+ * `noErrorValidation` (an error the list leaves out is still drawn, as in 1.0), so this is only a warning.
+ * @param {string} code @param {{ code?: number }[] | undefined} errors what twoslash found
+ */
+export function missingErrors(code, errors = []) {
+  const listed = [...code.matchAll(/^[ \t]*\/\/[ \t]*@errors:[ \t]*([^\n]*)$/gm)].flatMap((m) =>
+    m[1].split(/[\s,]+/).filter((c) => /^\d+$/.test(c)),
+  );
+  const found = new Set(errors.map((e) => String(e.code)));
+  return [...new Set(listed)].filter((c) => !found.has(c));
 }
 
 // Twoslash's own errors have a title and a description, and their message starts with an empty line.

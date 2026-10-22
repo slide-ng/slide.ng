@@ -552,6 +552,7 @@ const count = Math.max(1, 2);
 ````
 
 `//    ^?` shows the type of the word above the `^`, on a line of its own. A TypeScript error in the block is shown under its line (add `// @errors: <code>` to expect it), and the types still work.
+A code that `// @errors` lists but TypeScript does not report gets a warning naming the slide; the block is still drawn (an error the list leaves out is shown too, it is not checked).
 `twoslash: false` in the headmatter shows the blocks without types; `dev` or `build` runs Twoslash in that mode only (a build and an export count as `build`).
 
 ## Marks and motion
