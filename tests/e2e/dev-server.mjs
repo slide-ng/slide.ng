@@ -662,17 +662,16 @@ try {
       return shown(p);
     };
     const errPage = await open(browser, `${base}/2`);
-    writeFileSync(
-      WORK,
-      good.replace('\n\n---\n\n# Three', '\n\n<slide-ng-tocc />\n\n---\n\n# Three'),
-    );
+    const withTag = good.replace('\n\n---\n\n# Three', '\n\n<slide-ng-tocc />\n\n---\n\n# Three');
+    const tagLine = withTag.split('\n').indexOf('<slide-ng-tocc />') + 1;
+    writeFileSync(WORK, withTag);
     const unknown = (s) => s.message.includes('(did you mean <slide-ng-toc>?)');
     const live = await waitShown(errPage, unknown);
     t.ok(
       'error overlay: an Angular error names the markdown line of the error, once, with the did-you-mean',
       live &&
         unknown(live) &&
-        live.file.endsWith('(slide 2, work.md:23)') &&
+        live.file.endsWith(`(slide 2, work.md:${tagLine})`) &&
         live.file.split('(slide').length === 2,
       JSON.stringify(live),
     );

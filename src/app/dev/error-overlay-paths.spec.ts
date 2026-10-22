@@ -25,6 +25,8 @@ describe('withDeckPaths', () => {
   it('adds the place once, also to text that the terminal named already', () => {
     const named = '/a/src/slides/generated/slide-002.ts:12:4 (slide 2, slides.md:11)';
     expect(withDeckPaths(named, dirs, slides)).toBe(named);
+    const longer = '/a/src/slides/generated/slide-002.ts:13:398 (slide 2, slides.md:30)';
+    expect(withDeckPaths(longer, dirs, slides)).toBe(longer);
   });
   it('leaves a path alone that it does not know', () => {
     const text = 'src/slides/generated/roots/gone/x.ts and src/slides/generated/slide-009.ts';

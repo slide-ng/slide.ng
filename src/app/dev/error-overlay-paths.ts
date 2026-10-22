@@ -17,10 +17,13 @@ export function withDeckPaths(
     .replace(/\S*src\/slides\/generated\/roots\/([\w.-]+)\/([^\s:]+)/g, (match, id, rest) =>
       Object.hasOwn(rootDirs, id) ? `${rootDirs[id].replace(/[\\/]$/, '')}/${rest}` : match,
     )
-    .replace(/src\/slides\/generated\/slide-(\d+)\.ts(:\d+:\d+)?(?!:\d| \(slide)/g, (match, no) => {
-      const where = slides[+no - 1];
-      return where ? `${match} (slide ${+no}, ${where})` : match;
-    });
+    .replace(
+      /src\/slides\/generated\/slide-(\d+)\.ts(:\d+:\d+)?(?!\d|:\d| \(slide)/g,
+      (match, no) => {
+        const where = slides[+no - 1];
+        return where ? `${match} (slide ${+no}, ${where})` : match;
+      },
+    );
 }
 
 /** Whether the overlay on the page is about the error the companion server holds: the same first line (the stored one may

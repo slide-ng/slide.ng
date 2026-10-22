@@ -109,7 +109,7 @@ export function withSlideSources(text, appRoot) {
   let tags = null; // read once, when an element is not known
   return text
     .replace(
-      /src\/slides\/generated\/(slide-(\d+))\.ts(?::(\d+):(\d+))?(?!:\d| \(slide)/g,
+      /src\/slides\/generated\/(slide-(\d+))\.ts(?::(\d+):(\d+))?(?!\d|:\d| \(slide)/g,
       (match, name, no, line, column) => {
         try {
           const lines = readFileSync(join(generated, `${name}.ts`), 'utf8').split('\n');
