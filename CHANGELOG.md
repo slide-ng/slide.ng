@@ -173,6 +173,7 @@ Node (22.22.3 or newer) and Angular (22.2) are the same as in 1.x. These changes
 - A generator error (an unclosed `<div>`, say) that comes while an Angular error stands is shown in the overlay; the overlay kept the Angular error the author had fixed already, and the banner did not show.
 - Angular control-flow slips get plain words: `@if (x >= 1 {` names the block and its line, where Angular gave a raw "Incomplete block" (NG5002) and a false "All imports are unused" (NG8113); `@let x = 5` without its `;` gets a warning, and Angular's "Property 'x' does not exist" says that the `;` is missing, or names an `@let` name or global one or two letters away.
 - `{{ $nav.total() }}` stops the generator with "`$nav.total` is a number, not a signal"; it failed with a raw TS2349 at the end of the build.
+- The warning for an HTML `<a href="/3">` with other attributes names its line, so three such links give three different warnings, and a `<a href="#/3" target="_blank">` in a deck with `routerMode: hash`, which reaches the slide, gets none.
 
 ### Security
 

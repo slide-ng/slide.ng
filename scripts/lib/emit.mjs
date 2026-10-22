@@ -220,6 +220,15 @@ export function slideSource(slide, no, deck = {}) {
   const css = deck.cssDirectives?.get(written) ?? written;
   warnInlineControlFlow(markdown, no);
   const lineOf = sourceLines(slide, deck.root);
+  // ` (slides.md:12)` for the nth line (from 0) of the slide's markdown that has `text` (or matches it), or ''.
+  const lineOfText = (text, nth = 0) => {
+    const has = (l) => (typeof text === 'string' ? l.includes(text) : text.test(l));
+    const i = slide.content
+      .split('\n')
+      .map((l, i) => (has(l) ? i : -1))
+      .filter((i) => i >= 0)[nth];
+    return i == null ? '' : lineOf(i);
+  };
   checkClickValues(slide.content, (m, line) =>
     console.warn(`[slides] slide ${no}${lineOf(line)}: ${m}`),
   );
@@ -230,7 +239,7 @@ export function slideSource(slide, no, deck = {}) {
     .map((sl) => sl.frontmatter?.routeAlias)
     .filter(Boolean)
     .map(String);
-  const layout = `${openTag(def, slide.frontmatter)}${body(markdown, def, no, { file: slide.file, root: deck.root, roots: deck.roots?.map((r) => r.dir), allowOutsideRoot: deck.allowOutsideRoot, headmatter: deck.headmatter, monaco: deck.monaco, codeblocks: deck.transformers?.codeblocks, slide: slideInfo(slide, no), aliases, total: deck.slides?.length, hiddenAliases: deck.hiddenAliases }, layoutKey)}</${def.tag}>`;
+  const layout = `${openTag(def, slide.frontmatter)}${body(markdown, def, no, { file: slide.file, root: deck.root, roots: deck.roots?.map((r) => r.dir), allowOutsideRoot: deck.allowOutsideRoot, headmatter: deck.headmatter, monaco: deck.monaco, codeblocks: deck.transformers?.codeblocks, slide: slideInfo(slide, no), lineOf: lineOfText, aliases, total: deck.slides?.length, hiddenAliases: deck.hiddenAliases }, layoutKey)}</${def.tag}>`;
   if (deck.roots?.length)
     warnMissingPublicFiles(
       layout,
@@ -264,11 +273,6 @@ export function slideSource(slide, no, deck = {}) {
   // The pictures the app loads before the slide is shown (`preloadImages`); index-source.mjs writes them into the slide list.
   slide.images = slideImages(html, slide.frontmatter, base);
 
-  // ` (slides.md:12)` for the first line of the slide's markdown that has `text`, or ''.
-  const lineOfText = (text) => {
-    const i = slide.content.split('\n').findIndex((l) => l.includes(text));
-    return i < 0 ? '' : lineOf(i);
-  };
   assertClosedTags(html, def.tag, no, lineOfText);
 
   // Look for components outside code samples only (code is just text). A `<code>` written in HTML is live Angular.

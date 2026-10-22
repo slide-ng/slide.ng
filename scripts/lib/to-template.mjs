@@ -42,11 +42,12 @@ const joinLines = (md) =>
 
 /**
  * @param {string} markdown
- * @param {{ file?: string, root?: string, headmatter?: any, monaco?: boolean, aliases?: string[], total?: number, hiddenAliases?: string[], slide?: { no: number } }} [ctx]
+ * @param {{ file?: string, root?: string, headmatter?: any, monaco?: boolean, aliases?: string[], total?: number, hiddenAliases?: string[], slide?: { no: number }, lineOf?: (pattern: RegExp, nth?: number) => string }} [ctx]
  *   file, root: where snippet paths start; headmatter: deck-wide code settings; monaco: false makes editor blocks plain
  *   code; aliases: the deck's routeAlias names, which
  *   links to slides may use; total, hiddenAliases: the slide count and the aliases of hidden slides, to warn about links
- *   that reach no slide (with `slide`, whose number the warning names)
+ *   that reach no slide (with `slide`, whose number the warning names); lineOf: ` (slides.md:12)` for the nth line of the
+ *   slide's markdown that matches, or ''
  */
 export function toTemplate(markdown, ctx = {}) {
   const kept = []; // Angular syntax we put back at the end
@@ -116,7 +117,16 @@ export function toTemplate(markdown, ctx = {}) {
     aliases: ctx.aliases,
     total: ctx.total,
     hidden: ctx.hiddenAliases,
-    warn: ctx.slide && ((m) => console.warn(`[slides] slide ${ctx.slide.no}: ${m}`)),
+    hash: ctx.headmatter?.routerMode === 'hash',
+    warn:
+      ctx.slide &&
+      ((m, at) => {
+        // The line of that <a> in the markdown: the nth one with this href.
+        const href = at.href.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const where =
+          ctx.lineOf?.(new RegExp(`href\\s*=\\s*["']?${href}(?=["'\\s>])`), at.nth) ?? '';
+        console.warn(`[slides] slide ${ctx.slide.no}${where}: ${m}`);
+      }),
   });
   // Angular decodes `&#123;&#123;` back to `{{` and reads an interpolation: the first brace of a pair is written as one.
   html = html.replace(/&#123;(?=&#123;)/g, "{{ '{' }}");

@@ -82,10 +82,14 @@ const MOVABLE = new Set(['href', 'class', 'id', 'style']);
 /**
  * An `<a href="/3">` (or `./3`, `#/3`, a routeAlias) written as HTML in a slide's markup becomes `<slide-ng-link to="3">`, as a
  * markdown link does: a plain href would leave the deck with `routerMode: hash`, a `--base` or an offline build. An <a> with
- * other attributes is left as it is, with a warning.
- * @param {string} html @param {{ aliases?: string[], total?: number, hidden?: string[], warn?: (message: string) => void }} [deck]
+ * other attributes is left as it is, with a warning, unless it is a `#/3` in a deck with `routerMode: hash`, where it works as
+ * it is (also in a new tab). `warn` gets the message and which `<a>` of that href it is (`{ href, nth }`, nth from 0), so the
+ * warning can name its line.
+ * @param {string} html
+ * @param {{ aliases?: string[], total?: number, hidden?: string[], hash?: boolean, warn?: (message: string, at: { href: string, nth: number }) => void }} [deck]
  */
-export function htmlSlideLinks(html, { aliases = [], total, hidden, warn } = {}) {
+export function htmlSlideLinks(html, { aliases = [], total, hidden, hash = false, warn } = {}) {
+  const seen = new Map();
   return html.replace(HTML_LINK, (whole, attrText = '', inner) => {
     const attrs = [...attrText.matchAll(HTML_ATTR)].map((m) => ({
       name: m[1].toLowerCase(),
@@ -98,11 +102,16 @@ export function htmlSlideLinks(html, { aliases = [], total, hidden, warn } = {})
     // A bare `5` is a relative address in HTML (only markdown reads it as slide 5, as Slidev does).
     const to = !DIGITS.test(href) && slideTarget(href, aliases);
     if (!to) return whole;
+    const at = { href, nth: seen.get(href) ?? 0 };
+    seen.set(href, at.nth + 1);
     const problem = warn && brokenSlideLink(href, { aliases, total, hidden });
-    if (problem) warn(problem);
+    if (problem) warn(problem, at);
     if (attrs.some((a) => !MOVABLE.has(a.name))) {
+      const inHash = href.startsWith('#/');
+      if (inHash && hash) return whole; // the address of the slide in this deck, also in a new tab
       warn?.(
-        `<a href="${href}"> is an HTML link to a slide with other attributes, so it is left as it is: with routerMode: hash, a --base or an offline build it does not reach the slide. Write it as [text](${href}) or <slide-ng-link to="${to}">`,
+        `<a href="${href}"> is an HTML link to a slide with other attributes, so it is left as it is: ${inHash ? 'without routerMode: hash' : 'with routerMode: hash, a --base or an offline build'} it does not reach the slide. Write it as [text](${href}) or <slide-ng-link to="${to}">`,
+        at,
       );
       return whole;
     }

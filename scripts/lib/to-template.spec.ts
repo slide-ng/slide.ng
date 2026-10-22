@@ -279,3 +279,20 @@ describe('math warnings', () => {
     );
   });
 });
+
+describe('toTemplate: the line of an HTML link warning', () => {
+  it('names the line of each <a> that is left as it is', () => {
+    const md = '<a href="/3" target="_blank">a</a>\n\nText\n\n<a href=\'/3\' target="_blank">b</a>';
+    const lines = md.split('\n');
+    const lineOf = (pattern: RegExp, nth = 0) =>
+      ` (slides.md:${lines.map((l, i) => (pattern.test(l) ? i + 1 : 0)).filter(Boolean)[nth]})`;
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    toTemplate(md, { slide: { no: 2 }, lineOf });
+    const calls = warn.mock.calls.map((c) => String(c[0]));
+    warn.mockRestore();
+    expect(calls.map((c) => c.slice(0, 32))).toEqual([
+      '[slides] slide 2 (slides.md:1): ',
+      '[slides] slide 2 (slides.md:5): ',
+    ]);
+  });
+});

@@ -21,6 +21,24 @@ describe('htmlSlideLinks', () => {
     expect(htmlSlideLinks(kept, { warn })).toBe(kept);
     expect(warn.mock.calls[0][0]).toContain('[text](/3) or <slide-ng-link to="3">');
   });
+  it('says which <a> of an href it is, so the warning can name its line', () => {
+    const warn = vi.fn();
+    htmlSlideLinks('<a href="/3" target="_blank">a</a> <a href="/3" target="_blank">b</a>', {
+      warn,
+    });
+    expect(warn.mock.calls.map((c) => c[1])).toEqual([
+      { href: '/3', nth: 0 },
+      { href: '/3', nth: 1 },
+    ]);
+  });
+  it('leaves #/3 with a target alone in a hash deck, where it reaches the slide', () => {
+    const warn = vi.fn();
+    const kept = '<a href="#/3" target="_blank">new tab</a>';
+    expect(htmlSlideLinks(kept, { warn, hash: true })).toBe(kept);
+    expect(warn).not.toHaveBeenCalled();
+    expect(htmlSlideLinks(kept, { warn })).toBe(kept);
+    expect(warn.mock.calls[0][0]).toContain('without routerMode: hash it does not reach the slide');
+  });
   it('warns about a number past the last slide', () => {
     const warn = vi.fn();
     htmlSlideLinks('<a href="/9">x</a>', { total: 4, warn });
