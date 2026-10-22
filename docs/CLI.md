@@ -10,7 +10,7 @@ Starts the dev server: the deck at `http://localhost:4230`, the presenter at `/p
 
 | flag                  | what it does                                                                                                                                            |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--port`, `-p`        | port (default 4230)                                                                                                                                     |
+| `--port`, `-p`        | port (default 4230; a `PORT` environment variable is ignored)                                                                                           |
 | `--open`, `-o`        | open the browser                                                                                                                                        |
 | `--remote[=password]` | listen on every address, for a phone or a second computer. Always with a password: the given one, `SLIDE_NG_PASSWORD`, or a random one that is printed. |
 | `--bind`              | the address to listen on with `--remote` (default `0.0.0.0`)                                                                                            |

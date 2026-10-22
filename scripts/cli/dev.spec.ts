@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { deckRouterMode, devPlan, ngServeArgs } from './dev.mjs';
+import { deckRouterMode, devPlan, ngServeArgs, ngServeEnv } from './dev.mjs';
 
 describe('devPlan', () => {
   it('has sensible defaults', () => {
@@ -82,6 +82,12 @@ describe('ngServeArgs', () => {
       '--port',
       '4230',
     ]);
+  });
+});
+
+describe('ngServeEnv', () => {
+  it('leaves PORT out, so --port (or its default) is the port Angular listens on', () => {
+    expect(ngServeEnv({ PORT: '4411', SLIDES_FILE: 'a.md' })).toEqual({ SLIDES_FILE: 'a.md' });
   });
 });
 

@@ -202,7 +202,11 @@ export async function devCommand(argv) {
       companion,
       angularServer([ngBinary(), ...ngServeArgs(plan, restart)], {
         appRoot,
-        env: { ...env, SLIDE_NG_WAIT_PORT: String(plan.port), SLIDE_NG_WAIT_SECRET: secret },
+        env: {
+          ...ngServeEnv(env),
+          SLIDE_NG_WAIT_PORT: String(plan.port),
+          SLIDE_NG_WAIT_SECRET: secret,
+        },
         quiet,
         onBuild,
       }),
@@ -297,6 +301,15 @@ export async function devCommand(argv) {
     );
     if (plan.log !== 'silent') console.log(keyHint(plan.remote));
   }
+}
+
+/**
+ * The environment of `ng serve`: Angular's dev-server builder takes a `PORT` variable over `--port` (Codespaces, PaaS hosts
+ * and CI often set one), and everything else here (the waiting page, the printed addresses, MCP's `get_info`) uses `--port`.
+ */
+export function ngServeEnv(env) {
+  const { PORT: _port, ...rest } = env;
+  return rest;
 }
 
 /** `ng serve`'s arguments; `--open` only on the first start, so a restart (`r`) does not open another tab. */
