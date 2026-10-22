@@ -1115,7 +1115,7 @@ SLIDE_NG_PASSWORD=secret slide-ng dev --remote   # keeps the password out of the
 ```
 
 It prints the public and private deck addresses and the presenter address (`/presenter/1?password=secret`). Use that address on the presenter's device; a viewer opens `http://<your address>:4230/1?password=secret`.
-The password lets a device sync and write (slides, drawings and the `{monaco-write}` files), and opens the presenter, notes, overview and notes editor pages: without it they go to the slides. It is sent without encryption, so use it on a network you trust. See [SECURITY-MODEL.md](SECURITY-MODEL.md).
+The public address only shows the slides: a device that opens it and dismisses the password prompt does not follow the presenter. The password lets a device sync and write (slides, drawings and the `{monaco-write}` files), and opens the presenter, notes, overview and notes editor pages: without it they go to the slides. It is sent without encryption, so use it on a network you trust. See [SECURITY-MODEL.md](SECURITY-MODEL.md).
 
 The dev server also serves MCP over HTTP at `http://localhost:4230/__mcp` (streamable HTTP, as Slidev's): the slide tools of `slide-ng mcp`,
 plus `get_info` (with `--remote` it also lists the addresses other machines open, `remoteUrls`, without the password) and `goto_slide`, which moves every open window. With `--remote` a client sends the password as `Authorization: Bearer <password>` (spaces inside it included; spaces at its start or end are ignored; a password that is not ASCII may be sent as UTF-8 or Latin-1; `fetch` cannot send a character above U+00FF, so a client built on it sends the UTF-8 bytes itself, see CLI.md).

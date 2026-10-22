@@ -24,6 +24,9 @@ temporary `.slide-ng/build` folder inside the deck's folder.
 With several entries each deck is built in turn into its own folder of `--out`, named after its file without `.md`, and served
 under that name below `--base` (Slidev's multiple builds). The rest of `--out` is emptied, so it holds only these folders. Each folder is a whole site with its own `404.html` and `_redirects`;
 a host that serves only one folder per site needs one site per deck, or a rule that sends `/x/a/*` to `/x/a/index.html`.
+With a deck at the root as well (built on its own and copied there), the rule of each deck under the sub-path must come before
+the root's catch-all: otherwise `/x/a/3` gets the root deck's `index.html`. In nginx that is one `location /x/a/` block per deck
+(`try_files $uri $uri/ /x/a/index.html;`) next to `location /`; in a `_redirects` file, the `/x/a/*` lines first.
 
 Decks on one origin (these folders, or the project sites of one GitHub Pages user) keep to themselves: the windows that
 follow each other, the drawings and the settings kept in the browser (presenter layout, drawing mode, wake lock, sync mode
