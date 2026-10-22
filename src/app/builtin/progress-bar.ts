@@ -80,10 +80,10 @@ export function minutesLabel(
     ></div>
     @if (minutesText(); as text) {
       <span
-        class="slide-ng-progress-minutes absolute right-2 text-xs op75"
+        class="slide-ng-progress-minutes absolute end-2 text-xs op75"
         [style.top]="position() === 'top' ? '100%' : null"
         [style.bottom]="position() === 'top' ? null : '100%'"
-        >{{ text }}</span
+        ><bdi>{{ text }}</bdi></span
       >
     }
   `,

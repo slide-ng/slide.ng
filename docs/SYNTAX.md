@@ -1317,8 +1317,9 @@ a key that does not exist and about a lost placeholder.
 
 `lang` also sets Angular's `LOCALE_ID`, so `{{ price | currency: 'EUR' }}`, `{{ day | date }}` and `{{ n | number }}` in slides are
 written for that language (only that locale's data goes into the build). A right-to-left language (`ar`, `he`, `fa`, `ur`) sets `dir="rtl"`
-on the page, unless `htmlAttrs.dir` says otherwise, and the bar, the menus and the presenter are mirrored. An interface language
-written the other way (`uiLang: en` in an Arabic deck) keeps the direction of its text.
+on the page, unless `htmlAttrs.dir` says otherwise, and the bar, the menus and the presenter are mirrored, as are a blockquote's line
+and the progress bar's minutes. Mermaid drawings stay left to right, as Mermaid lays them out (their Arabic or Hebrew labels still read
+right to left). An interface language written the other way (`uiLang: en` in an Arabic deck) keeps the direction of its text.
 
 ### One deck in several languages
 

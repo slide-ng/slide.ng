@@ -166,6 +166,14 @@ const title = (page, selector) => page.locator(selector).first().getAttribute('t
     bar.x > 640 && full.x > next.x,
     JSON.stringify({ bar: bar.x, full: full.x, next: next.x }),
   );
+  const quote = await page
+    .locator('#slide-content blockquote')
+    .evaluate((e) => [getComputedStyle(e).borderLeftWidth, getComputedStyle(e).borderRightWidth]);
+  t.ok(
+    'a blockquote has its line on the right',
+    quote[0] === '0px' && quote[1] === '1px',
+    quote.join('|'),
+  );
   // The overview grid is mirrored, so its arrows are too: left goes to the next card (on the left).
   await page.keyboard.press('o');
   await page.waitForSelector('#overview', { timeout: 5000 });
@@ -176,6 +184,14 @@ const title = (page, selector) => page.locator(selector).first().getAttribute('t
     'overview: ArrowLeft goes to the next card in a mirrored grid',
     new URL(page.url()).pathname === '/2',
     page.url(),
+  );
+  // Mermaid lays out its labels for left-to-right text, so its drawing stays left to right (the legend text would run over its boxes).
+  await page.waitForSelector('#slide-content .mermaid svg', { timeout: 10000 });
+  t.ok(
+    'a Mermaid drawing stays left to right',
+    (await page
+      .locator('#slide-content .mermaid svg')
+      .evaluate((e) => getComputedStyle(e).direction)) === 'ltr',
   );
   await page.close();
 
