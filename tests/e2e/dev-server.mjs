@@ -510,6 +510,21 @@ try {
     ),
     read().slice(0, 200),
   );
+  t.ok(
+    '/overview: how the save ended is said in a live region',
+    await page
+      .waitForFunction(
+        () =>
+          document.querySelector('#overview-note-announce[role="status"]')?.textContent.trim() ===
+          'Notes of slide 1: Saved.',
+        null,
+        { timeout: 3000 },
+      )
+      .then(
+        () => true,
+        () => false,
+      ),
+  );
   await sleep(4000); // the deck is rebuilt and the page reloads
   await page.goto(`${base}/notes-edit`);
   const area = page.locator('#notes-edit-text');
@@ -519,6 +534,10 @@ try {
     { timeout: 60000 },
   );
   const notesText = await area.inputValue();
+  t.ok(
+    '/notes-edit has a main landmark',
+    (await page.locator('main #notes-edit-text').count()) === 1,
+  );
   t.ok(
     '/notes-edit shows every note after its --- #N line',
     /^--- #1\n\nSaid in the overview\.\n\n--- #2\n[\s\S]*--- #3\n$/.test(notesText),

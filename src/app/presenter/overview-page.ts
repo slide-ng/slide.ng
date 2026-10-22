@@ -37,6 +37,16 @@ type Status = 'editing' | 'saving' | 'saved' | 'conflict' | 'error';
       }
     </header>
     <main>
+      <!-- What happened to a note that was edited, for a screen reader (the text under the note is only seen). -->
+      <div
+        id="overview-note-announce"
+        class="sr-only"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        {{ announcement() }}
+      </div>
       <ol id="overview-list" class="m-0 p-0 list-none">
         @for (slide of slides; track $index) {
           @let no = $index + 1;
@@ -130,6 +140,10 @@ export class OverviewPage {
     error: 'overviewPage.error',
   };
   protected clicksOf = (no: number) => this.clicks()[no] ?? CLICKS_MAX;
+  private text = inject(UI_TEXT);
+  /** The live region's text: the last save of a note, with the slide it belongs to. */
+  protected announcement = signal('');
+  private announced?: ReturnType<typeof setTimeout>;
 
   constructor() {
     inject(Dark); // applies the light or dark class to <html>
@@ -182,5 +196,12 @@ export class OverviewPage {
 
   private setStatus(no: number, status: Status) {
     this.status.update((all) => ({ ...all, [no]: status }));
+    // How a save ended is said out loud; "Editing" and "Saving" are not, the focus already tells.
+    if (status === 'editing' || status === 'saving') return;
+    const said = `${uiText(this.text, 'overviewPage.notesOf', { no })}: ${uiText(this.text, this.statusText[status])}`;
+    // Emptied first, so the same words a second time are heard again.
+    this.announcement.set('');
+    clearTimeout(this.announced);
+    this.announced = setTimeout(() => this.announcement.set(said), 50);
   }
 }

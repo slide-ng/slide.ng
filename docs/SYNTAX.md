@@ -1250,13 +1250,13 @@ presses a button, and a touch on the slide hides it again. On a screen taller th
   hidden from them until they show. The presenter page has three named regions (Current slide, Next step, Notes); the next-step picture
   is skipped, so headings are not read twice. Line numbers of code and of Magic Move are skipped too.
 - **Landmarks and headings**: the slide (with the bar) is the page's main landmark; the presenter, `/overview` and `/notes` each have a
-  main landmark and a level-one heading (visually hidden on the presenter and `/notes`); `/entry` and the notes print page have a main
+  main landmark (`/notes-edit` too) and a level-one heading (visually hidden on the presenter and `/notes`); `/entry` and the notes print page have a main
   landmark. The quick overview, the right-click menu and the "go to" box are named dialogs, with all their controls inside.
 - **Keyboard**: in the quick overview (`o`) the arrow keys move the focus from card to card, and each card is named "Go to slide N: title".
   In the presenter's click preview the badges are the keyboard way to a later click (see Click preview); after Enter on one the focus
   moves to the badge of the click after it (to the Current slide region at the last click). After Edit Notes, Escape gives
   the focus back to the Edit Notes button. On `/overview` (while developing) each note is a named group that says it can be edited:
-  Enter or a double click edits it.
+  Enter or a double click edits it, and how the save ended ("Saved.", "Not saved.") is said in a polite live region.
   Escape in the settings menu (also in its number fields) closes it and gives the focus back to its button, as in the sync menu.
   The bar's pen button says whether the drawing toolbar is open (`aria-expanded`), and Escape on the toolbar gives it the focus back.
 - **Right-click menu by keyboard**: Shift+F10 or the menu key opens it, with the focus on its first item. The arrow keys, Home, End and

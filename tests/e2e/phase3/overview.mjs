@@ -31,6 +31,14 @@ export async function run({ t, base, browser, problems, open, press, until }) {
     '/overview: the notes follow the chosen click',
     (await row.locator('.slidev-note-click-mark-active').count()) === 1,
   );
+  // Slide 3 has no notes: its placeholder is faded to 0.75, not 0.5, for 4.5:1.
+  t.ok(
+    '/overview: the "No notes." placeholder keeps its contrast, and saves are said in a live region',
+    (await page
+      .locator('.overview-row[data-no="3"] .slidev-note')
+      .evaluate((e) => getComputedStyle(e).opacity)) === '0.75' &&
+      (await page.locator('main #overview-note-announce[role="status"]').count()) === 1,
+  );
   t.ok(
     '/overview: a slide without clicks has no slider',
     (await page.locator('.overview-row[data-no="3"] app-clicks-slider').count()) === 0,

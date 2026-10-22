@@ -48,17 +48,19 @@ interface Draft {
       <div class="flex-auto"></div>
       <a routerLink="/entry" class="text-sm op75 hover:op100">{{ 'pages.all' | t }}</a>
     </header>
-    <textarea
-      #area
-      id="notes-edit-text"
-      class="flex-auto w-full p-6 font-mono text-sm bg-transparent outline-none resize-none"
-      style="unicode-bidi: plaintext"
-      spellcheck="false"
-      [attr.aria-label]="'notesEdit.label' | t"
-      [disabled]="(status() === 'loading' && !draft) || status() === 'offline'"
-      [value]="text()"
-      (input)="edit($any($event.target).value)"
-    ></textarea>
+    <main class="flex-auto flex flex-col min-h-0">
+      <textarea
+        #area
+        id="notes-edit-text"
+        class="flex-auto w-full p-6 font-mono text-sm bg-transparent outline-none resize-none"
+        style="unicode-bidi: plaintext"
+        spellcheck="false"
+        [attr.aria-label]="'notesEdit.label' | t"
+        [disabled]="(status() === 'loading' && !draft) || status() === 'offline'"
+        [value]="text()"
+        (input)="edit($any($event.target).value)"
+      ></textarea>
+    </main>
   `,
 })
 export class NotesEditPage {
