@@ -1,6 +1,6 @@
 import { request } from 'node:http';
 import { createServer } from 'node:net';
-import { startWaitingPage, waitingHtml } from './waiting-page.mjs';
+import { devServerHostAllowed, startWaitingPage, waitingHtml } from './waiting-page.mjs';
 
 const freePort = () =>
   new Promise<number>((done) => {
@@ -9,6 +9,24 @@ const freePort = () =>
       s.close(() => done(port));
     });
   });
+
+describe('devServerHostAllowed', () => {
+  it("answers the addresses Vite's Host check answers, and no others", () => {
+    const ok = [
+      'localhost:4230',
+      'localhost',
+      'deck.localhost:4230',
+      '127.0.0.1:4230',
+      '192.168.1.5:4230',
+      '[::1]:4230',
+      '[fe80::1]',
+    ];
+    expect(ok.filter((host) => !devServerHostAllowed(host, undefined))).toEqual([]);
+    const refused = ['LOCALHOST:4230', 'evil.example:4230', 'my-laptop.local:4230', '[nope]'];
+    expect(refused.filter((host) => devServerHostAllowed(host, undefined))).toEqual([]);
+    expect(devServerHostAllowed('my-laptop.local:4230', 'my-laptop.local')).toBe(true);
+  });
+});
 
 describe('the waiting page', () => {
   it('escapes the error, and leaves it out in remote mode', () => {
@@ -43,6 +61,10 @@ describe('the waiting page', () => {
         .end(),
     );
     expect(rebound).toBe(403);
+    // The page's own polling gets 200, so the console shows no error every second.
+    const poll = await fetch(`http://127.0.0.1:${port}/3`, { headers: { 'x-slide-ng-poll': '1' } });
+    expect(poll.status).toBe(200);
+    expect(poll.headers.get('x-slide-ng-waiting')).toBe('1');
     const wrong = await fetch(`http://127.0.0.1:${port}/__slide-ng-release`, {
       method: 'POST',
       headers: { 'x-slide-ng-wait': 'nope' },

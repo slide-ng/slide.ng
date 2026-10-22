@@ -2,10 +2,30 @@
 // refused". `slide-ng dev` serves this page on the port meanwhile: it shows the error and reloads itself as soon as the
 // slides are served (wait-for-port.mjs makes the Angular server ask this page to step aside first).
 import { createServer } from 'node:http';
-import { hostAllowed } from './auth.mjs';
+import { isIP } from 'node:net';
 
 const escape = (text) =>
   text.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+/**
+ * The Host check of the Angular dev server (Vite's `isHostAllowed` with the `allowedHosts` Angular gives it: none of its own,
+ * plus the address it listens on), so the waiting page answers the same addresses as the slides will: any IP address,
+ * `localhost` and `*.localhost` (as written: `LOCALHOST` is refused), and the `--bind` address. A DNS rebinding page, which
+ * needs a name, is refused.
+ */
+export function devServerHostAllowed(hostHeader, bindHost) {
+  if (hostHeader === undefined) return true; // not a browser: it can send any Host it likes anyway
+  const host = String(hostHeader).trim();
+  if (/^(?:file|.+-extension):/i.test(host)) return true;
+  if (host.startsWith('[')) {
+    const end = host.indexOf(']');
+    return end > 0 && isIP(host.slice(1, end)) === 6;
+  }
+  const colon = host.indexOf(':');
+  const name = colon === -1 ? host : host.slice(0, colon);
+  if (isIP(name) === 4) return true;
+  return name === 'localhost' || name.endsWith('.localhost') || (!!bindHost && name === bindHost);
+}
 
 /** The page. `error` is shown only on this machine's own browser when `remote` is off (it names files of the computer). */
 export function waitingHtml(error, { remote = false } = {}) {
@@ -30,7 +50,8 @@ ${detail}
 <script>
 setInterval(async () => {
   try {
-    const res = await fetch(location.href, { cache: 'no-store' });
+    // Asked this way the waiting page answers 200 (a 503 would log an error in the console every second).
+    const res = await fetch(location.href, { cache: 'no-store', headers: { 'x-slide-ng-poll': '1' } });
     if (!res.headers.has('x-slide-ng-waiting')) location.reload();
   } catch {}
 }, 1000);
@@ -46,10 +67,10 @@ setInterval(async () => {
 export function startWaitingPage({ port, host, remote, secret, onRelease }) {
   let error = '';
   let closed = false;
-  const hostnames = (process.env.SLIDE_NG_HOSTNAMES ?? '').split(',').filter(Boolean);
   const server = createServer((req, res) => {
-    // The same Host check as the rest of the dev server: a DNS rebinding page must not read the error (it names files).
-    if (!hostAllowed(req.headers.host, { remote, hostnames })) {
+    // The Host check of the Angular dev server it stands in for: a DNS rebinding page must not read the error (it names
+    // files).
+    if (!devServerHostAllowed(req.headers.host, host)) {
       res.writeHead(403).end();
       return;
     }
@@ -61,6 +82,10 @@ export function startWaitingPage({ port, host, remote, secret, onRelease }) {
       res.writeHead(200).end();
       close();
       onRelease?.();
+      return;
+    }
+    if (req.headers['x-slide-ng-poll']) {
+      res.writeHead(200, { 'cache-control': 'no-store', 'x-slide-ng-waiting': '1' }).end();
       return;
     }
     res.writeHead(503, {
