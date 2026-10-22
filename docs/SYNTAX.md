@@ -149,7 +149,7 @@ All layouts of Slidev, with the same names and props (pictures of each are in [`
 | `iframe-left`, `iframe-right` | web page on one side                                                                                                          | `url`, `scale`, `class` (goes to the content)            |
 | `two-cols`                    | two columns, slots `::left::` (also the default text) and `::right::`                                                         | `class` (both columns), `layoutClass` (the whole layout) |
 | `two-cols-header`             | a header, two columns and a bottom row: `::left::`, `::right::`, `::bottom::`; the text before the first marker is the header | `class`, `layoutClass`                                   |
-| `404`, `error`                | shown when an address matches no slide, or a slide fails                                                                      |                                                          |
+| `404`, `error`                | `404` is shown when an address matches no slide; `error` only by a slide with `layout: error` (the app never shows it itself) |                                                          |
 
 `image` is an address or a colour for the background. `image: /photo.png` is the file `public/photo.png`: the `public/`
 folder is the site's root, so the address has no `/public` in it (the generator warns about `/public/photo.png` and about a
@@ -640,6 +640,7 @@ As in Slidev, a markdown link to a slide moves inside the deck, and a link to a 
   (`/name` may be a page of the site, so it is not warned about) and a link to the alias of a slide with `hide:` or `disabled:`.
 - `#id` and `./#id` scroll to that element of the slide. `#5` is such an anchor too: write `5` or `#/5` for slide 5.
 - An `http:` or `https:` address gets `target="_blank" rel="noopener"`. Slidev opens every other link in a new tab; here `mailto:` and the like stay as they are.
+  To open a web page in the same tab, write the link as HTML: `<a href="https://example.com">x</a>` is left as written.
 - An `<a>` written as HTML whose `href` is `/`, `./` or `#/` and a slide number or `routeAlias` (`<a href="/3">`) becomes a `<slide-ng-link>`
   in the same way, keeping its `class`, `id` and `style` (a bare `<a href="3">` is a relative address in HTML and stays). With other
   attributes (`target`, a binding) it is left as written, with a warning that names its line: it does not reach the slide with hash
@@ -900,6 +901,12 @@ frontmatter. The CSS for the classes you use is built automatically. As in Slide
   (a deck written for 1.x that uses such attributes as HTML); classes and variant groups still work. An attribute name cannot have a
   `/` in it: a bare `<div bg-black/50>` or `<div hover:(bg-black/10)>` stops the generator with a message that says to write it in the
   class (`class="bg-black/50"`) or with a value (`bg="black/50"`).
+- **Shortcuts**: `text-primary`, `bg-primary` and `border-primary` are shortcuts for the theme's colour (`--slidev-theme-primary`), as
+  in Slidev, so they take no opacity: `bg-primary/10` and `border-primary/40` do nothing. Write the colour out (`bg-teal-600/10`), or
+  use `color-mix(in srgb, var(--slidev-theme-primary) 10%, transparent)` in a `<style>`.
+- **What is scanned**: the deck's files are read as text, as in Slidev, so a word in backticks in a slide or a note (`` `grid` ``)
+  still makes its utility and attributify CSS (`[grid=""]`). That rule also styles an element whose `grid` attribute is a
+  component's input; name the input otherwise, or leave the word out of backticks.
 - **Typography**: `class="prose"` styles long text (headings, lists, links, quotes), `dark:prose-invert` for dark mode, `not-prose` to opt out.
 - **Directives** in `<style>` and `styles/`: see Per-slide styles.
   Responsive prefixes (`md:`, `lg:`) follow the browser window, not the slide, which keeps its own size and is scaled: the same slide

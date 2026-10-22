@@ -32,7 +32,7 @@ npm run export  # a PDF
 Every command and flag is in [docs/CLI.md](docs/CLI.md). Everything is documented at [slide-ng.dev](https://slide-ng.dev) and in [docs/](docs/).
 
 To work on slide.ng itself, clone this repository and run `npm install` and `npm start` (the example deck); other commands are run with
-`node bin/slide-ng.mjs <command>`. See [CONTRIBUTING.md](CONTRIBUTING.md).
+`node bin/slide-ng.mjs <command>`. See [CONTRIBUTING.md](https://github.com/slide-ng/slide.ng/blob/main/CONTRIBUTING.md).
 
 ## Features
 
@@ -47,7 +47,7 @@ Status and gaps: [docs/STATUS.md](docs/STATUS.md).
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of Conduct](CODE_OF_CONDUCT.md). Report security problems through [SECURITY.md](SECURITY.md).
+See [CONTRIBUTING.md](https://github.com/slide-ng/slide.ng/blob/main/CONTRIBUTING.md) and the [Code of Conduct](https://github.com/slide-ng/slide.ng/blob/main/CODE_OF_CONDUCT.md). Report security problems through [SECURITY.md](https://github.com/slide-ng/slide.ng/blob/main/SECURITY.md).
 
 ## Maintainers
 

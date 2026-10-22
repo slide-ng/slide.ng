@@ -10,16 +10,16 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 Node (22.22.3 or newer) and Angular (22.2) are the same as in 1.x. These changes can alter a deck that 1.x showed correctly:
 
-- `routeAlias: overview`, `entry` or `notes-edit` stops `build` and `dev`: they are pages of the app now. Rename the alias. A markdown link `[x](/overview)` opens the app's overview page instead of that slide.
+- `routeAlias: overview`, `entry` or `notes-edit` stops `build` and `dev`: they are pages of the app now. Rename the alias. A markdown link `[x](/overview)` opens the app's overview page instead of that slide, with a full page load.
 - `lang` now also sets the locale of the `date`, `number` and `currency` pipes (`lang: en-GB` writes "30 September 2026"; `pt_br` writes `1.234.567,891`). Give a pipe its own locale argument to keep the old format.
 - Attributify reads plain HTML attributes as utilities: `<table border="1">` gets a border, `<span font="bold">` is bold, `<div m="4">` gets a margin. `unocss: { attributify: false }` in the headmatter turns it off.
-- An `index.html` next to `slides.md` is merged into the page: its `<title>`, `<meta>` and scripts now count. Rename it if it was not meant for the deck.
+- An `index.html` next to `slides.md` is merged into the page: its `<title>`, `<meta>` and scripts now count, and what its `<body>` holds is added to the page after the slides (out of sight, but screen readers read it). Rename it if it was not meant for the deck.
 - `themeConfig` is applied as CSS variables (`--slidev-theme-<key>`), so a `themeConfig.primary` recolours `text-primary`, the progress bar and the controls.
 - Pictures of the next slides are loaded ahead (`preloadImages` is on); `preloadImages: false` turns it off.
-- Markdown links to `http(s)` addresses open in a new tab.
+- Markdown links to `http(s)` addresses open in a new tab. To keep one in the same tab, write it as HTML: `<a href="https://example.com">x</a>` is left as written.
 - The screen wake lock is on by default (`wakeLock: false` turns it off; a choice stored in the browser is kept).
 - `{monaco-run}` code runs in strict mode: assigning a name that was never declared stops with a `ReferenceError`. Declare it, or set `monacoRunUseStrict: false`.
-- `slide-ng-click.hide` (and `slide-ng-after.hide`) hides the element at its click instead of being ignored, and `slide-ng-click-hide="3"` hides at click 3 instead of the next click.
+- `slide-ng-click.hide` (and `slide-ng-after.hide`) hides the element at its click instead of being ignored, so that click counts: the slide has one more click, and `export --with-clicks` one more page. `slide-ng-click-hide="3"` hides at click 3 instead of the next click.
 - An `<a href="/3">` written as HTML with attributes other than `class`, `id` or `style` (such as `target`) is left as written, with a warning; in a `routerMode: hash` deck it loads `/3` from the server. Write a markdown link (`[x](3)`) or `<slide-ng-link to="3">`. A plain `<a href="/3">` goes to the slide, as in 1.x.
 - The address leaves out `?clicks=0`.
 
@@ -179,7 +179,7 @@ Node (22.22.3 or newer) and Angular (22.2) are the same as in 1.x. These changes
 ### Security
 
 - markdown-it is 14.3.3 and 15.0.3 in the lock file, for its quadratic-time parsing advisories (GHSA-vfgh-jcmw-g37q, GHSA-gfr2-rv44-r23c).
-- `npm audit` on a fresh install still reports 17 advisories (7 high), all in packages that slide.ng's dependencies bring in, none with a fix in the same major version of what slide.ng depends on (the fixes npm audit offers are downgrades):
+- `npm install @slide-ng/core` in a new project reports 18 vulnerabilities (1 low, 9 moderate, 8 high). npm counts `@slide-ng/core` itself as one, because it depends on the others; the other 17 are in packages that slide.ng's dependencies bring in, none with a fix in the same major version of what slide.ng depends on (the fixes npm audit offers are downgrades):
   - vite 8.3.0 (its `launch-editor`), pinned exactly by the latest `@angular/build` (22.2.3); it only runs in `slide-ng dev`;
   - `@slidev/parser` 53.0.0 brings in `@slidev/types` with `unplugin-vue-markdown` (`gray-matter`, `js-yaml`, `argparse`, `sprintf-js`), `vite-plugin-static-copy` (`chokidar` 3, `braces`) and its own `monaco-editor`; slide.ng uses only the parser, at build time, on the deck's own files;
   - `monaco-editor` 0.57.0 (the latest) pins DOMPurify 3.4.15;
