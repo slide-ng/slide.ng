@@ -1,4 +1,15 @@
-import { Component, ElementRef, computed, effect, inject, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  Injector,
+  afterNextRender,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+  viewChild,
+} from '@angular/core';
 import { Drawings } from '../drawing/drawings';
 import { Fullscreen } from '../lib/fullscreen';
 import { Nav } from '../lib/nav';
@@ -8,7 +19,9 @@ import { CONTEXT_MENU_SETUP } from '../setup/tokens';
 import { T } from '../i18n/t';
 import { splitAt } from '../i18n/ui-text';
 
-// The right-click menu (Slidev's ContextMenu): four arrows, then a list of actions.
+// The right-click menu (Slidev's ContextMenu): four arrows, then a list of actions. Shift+F10 or the menu key opens it
+// from the keyboard: the focus goes to its first item, the arrow keys (and Tab) move between the items instead of through
+// the slides, and Escape closes it and gives the focus back to where it was.
 
 @Component({
   selector: 'app-context-menu',
@@ -32,6 +45,7 @@ import { splitAt } from '../i18n/ui-text';
           [style.top.px]="top()"
           (contextmenu)="$event.preventDefault()"
           (click)="ui.contextMenu.set(null)"
+          (keydown)="key($event)"
         >
           @for (a of arrows(); track a.title) {
             <button
@@ -169,12 +183,75 @@ export class ContextMenu {
   );
   private fit = (pos: number, size: number, max: number) => (pos + size > max ? max - size : pos);
 
+  private injector = inject(Injector);
+  /** What had the focus when the menu opened: it gets it back when the menu closes. */
+  private opener: HTMLElement | null = null;
+
   constructor() {
     // Measure the menu once it is on screen.
     effect(() => {
       const el = this.menu()?.nativeElement;
       this.size.set({ width: el?.offsetWidth ?? 0, height: el?.offsetHeight ?? 0 });
     });
+    let open = false;
+    effect(() => {
+      const now = this.ui.contextMenu() !== null;
+      if (now === open) return;
+      open = now;
+      untracked(() => {
+        if (now) {
+          const active = document.activeElement;
+          this.opener = active instanceof HTMLElement && active !== document.body ? active : null;
+          afterNextRender(() => this.entries()[0]?.focus(), { injector: this.injector });
+        } else {
+          const opener = this.opener;
+          this.opener = null;
+          // Only when the focus was left on nothing (the menu item went away): an action that moved it keeps it there.
+          afterNextRender(
+            () => {
+              const lost = !document.activeElement || document.activeElement === document.body;
+              if (lost && opener?.isConnected) opener.focus({ preventScroll: true });
+            },
+            { injector: this.injector },
+          );
+        }
+      });
+    });
+  }
+
+  private entries() {
+    return Array.from(
+      this.menu()?.nativeElement.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [],
+    );
+  }
+
+  // The keys of an open menu stay in it: they never reach the deck behind it.
+  protected key(e: KeyboardEvent) {
+    if (e.isComposing) return;
+    e.stopPropagation();
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      this.ui.contextMenu.set(null);
+      return;
+    }
+    const items = this.entries();
+    const i = items.indexOf(document.activeElement as HTMLElement);
+    const rtl = getComputedStyle(e.currentTarget as Element).direction === 'rtl';
+    const by: Record<string, number> = {
+      ArrowDown: 1,
+      ArrowUp: -1,
+      ArrowRight: rtl ? -1 : 1,
+      ArrowLeft: rtl ? 1 : -1,
+      Tab: e.shiftKey ? -1 : 1,
+    };
+    let next: number | null = null;
+    if (e.key === 'Home') next = 0;
+    else if (e.key === 'End') next = items.length - 1;
+    else if (by[e.key] && i < 0) next = by[e.key] > 0 ? 0 : items.length - 1;
+    else if (by[e.key]) next = (i + by[e.key] + items.length) % items.length;
+    if (next == null || !items.length) return;
+    e.preventDefault();
+    items[next].focus();
   }
 
   // Another right-click anywhere closes the menu (the new one opens after).

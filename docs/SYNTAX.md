@@ -1256,6 +1256,9 @@ presses a button, and a touch on the slide hides it again. On a screen taller th
   Enter or a double click edits it.
   Escape in the settings menu (also in its number fields) closes it and gives the focus back to its button, as in the sync menu.
   The bar's pen button says whether the drawing toolbar is open (`aria-expanded`), and Escape on the toolbar gives it the focus back.
+- **Right-click menu by keyboard**: Shift+F10 or the menu key opens it, with the focus on its first item. The arrow keys, Home, End and
+  Tab move between the items, Enter or Space runs one, and Escape closes the menu and gives the focus back to where it was. While the
+  menu is open the deck's keys (arrows, `o`, `g`, ...) do nothing, also when it was opened with the mouse.
 - **Progress bar**: `progressBar` is a `progressbar` named "Progress through the slides" (translatable: `progress.label`).
 - **Contrast and size**: the interface's text is at least 4.5:1 (3:1 for large text) in light and dark mode, also the notes of later
   clicks, which are faded to 0.75 once (a part inside a faded paragraph is not faded again), and the "No notes." placeholder; its
