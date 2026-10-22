@@ -134,6 +134,14 @@ export class Drawings {
     this.brush.update((b) => ({ ...b, size }));
     this.setMode(this.lastMode);
   }
+  /** Stop drawing. The focus on a toolbar button (which goes away) goes back to the bar's drawing button, not to the page;
+   *  not after a mouse click (`byKeyboard` false), where Space must move through the slides again. */
+  close(byKeyboard = true) {
+    const inToolbar = byKeyboard && document.activeElement?.closest('#drawing-toolbar');
+    this.enabled.set(false);
+    if (inToolbar) document.querySelector<HTMLElement>('#nav-drawing')?.focus();
+  }
+
   toggle() {
     this.enabled.update((v) => !v);
   }
@@ -200,7 +208,7 @@ export class Drawings {
     if (e.code === 'KeyZ' && (e.ctrlKey || e.metaKey)) {
       if (e.shiftKey) this.redo();
       else this.undo();
-    } else if (e.code === 'Escape') this.enabled.set(false);
+    } else if (e.code === 'Escape') this.close();
     else if (plain && tools[e.code]) this.pickTool(tools[e.code]);
     else if (plain && e.code === 'KeyC') this.clear();
     else if (

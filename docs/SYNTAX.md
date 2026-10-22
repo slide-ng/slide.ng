@@ -1254,6 +1254,8 @@ presses a button, and a touch on the slide hides it again. On a screen taller th
   In the presenter's click preview the badges are the keyboard way to a later click (see Click preview). After Edit Notes, Escape gives
   the focus back to the Edit Notes button. On `/overview` (while developing) each note is a named group that says it can be edited:
   Enter or a double click edits it.
+  Escape in the settings menu (also in its number fields) closes it and gives the focus back to its button, as in the sync menu.
+  The bar's pen button says whether the drawing toolbar is open (`aria-expanded`), and Escape on the toolbar gives it the focus back.
 - **Progress bar**: `progressBar` is a `progressbar` named "Progress through the slides" (translatable: `progress.label`).
 - **Contrast and size**: the interface's text is at least 4.5:1 (3:1 for large text) in light and dark mode, also the notes of later
   clicks, which are faded to 0.75 once (a part inside a faded paragraph is not faded again), and the "No notes." placeholder; its

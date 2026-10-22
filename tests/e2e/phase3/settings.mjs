@@ -54,6 +54,24 @@ export async function run({ t, open, until }) {
     'the PDF entry is disabled while the deck has no PDF next to it',
     await page.locator('#download-pdf').isDisabled(),
   );
+  // Escape inside the menu, also from a number field (which keeps the keys from the page), closes it and the focus goes
+  // back to the button.
+  const escapes = [];
+  for (const id of ['filter-invert', 'filter-brightness-number']) {
+    if (!(await page.locator('#settings-menu').count())) await menu();
+    await page.locator(`#${id}`).focus();
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(200);
+    escapes.push(
+      `${await page.locator('#settings-menu').count()}:${await page.evaluate(() => document.activeElement?.id)}`,
+    );
+  }
+  t.ok(
+    'Escape in the settings menu closes it and gives the focus back to its button',
+    escapes.join() === '0:nav-settings,0:nav-settings',
+    escapes.join(),
+  );
+  await menu();
 
   // the dock follows Slidev's order
   const dock = await page.locator('nav [id^=nav-]').evaluateAll((l) => l.map((e) => e.id));

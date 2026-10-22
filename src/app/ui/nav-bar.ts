@@ -132,6 +132,8 @@ import { presenterEnabled } from '../lib/switches';
             class="relative"
             [title]="(drawings.enabled() ? 'nav.drawingHide' : 'nav.drawingShow') | t"
             [active]="drawings.enabled()"
+            [attr.aria-expanded]="drawings.enabled()"
+            [attr.aria-controls]="drawings.enabled() ? 'drawing-toolbar' : null"
             (click)="drawings.toggle()"
           >
             <div class="i-carbon:pen"></div>
@@ -253,6 +255,7 @@ import { presenterEnabled } from '../lib/switches';
               #settingsMenu
               id="settings-menu"
               class="bg-main text-main shadow-xl absolute bottom-10 start-0 z-menu py-2 border border-main rounded-md max-w-[calc(100vw-1rem)] overflow-y-auto"
+              (keydown.escape)="closeSettings($event)"
             >
               <app-settings />
             </div>
@@ -312,6 +315,16 @@ export class NavBar {
   fitSettings() {
     const menu = this.settingsMenu()?.nativeElement;
     if (menu) fitMenu(menu);
+  }
+
+  // Escape anywhere in the settings menu (also in a number field, which keeps its keys from the page) closes it, and the
+  // focus goes back to the button instead of to the page.
+  protected closeSettings(e: Event) {
+    if ((e as KeyboardEvent).isComposing) return;
+    e.preventDefault();
+    e.stopPropagation();
+    this.ui.settings.set(false);
+    this.el.querySelector<HTMLElement>('#nav-settings')?.focus();
   }
 
   // A click anywhere outside the bar closes the settings menu.
