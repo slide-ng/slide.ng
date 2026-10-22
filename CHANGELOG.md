@@ -132,6 +132,7 @@ Node (22.22.3 or newer) and Angular (22.2) are the same as in 1.x. These changes
 - A failed generation prints its reason once, without a second "generating the slides failed" line.
 - A `{monaco-run}` stuck in an endless loop no longer holds up every other run in the page until its 5 second cut-off: running it again, or leaving the slide, stops it at once.
 - Leaving a slide while its TypeScript `{monaco-run}` is being turned into JavaScript no longer logs "Could not find source file".
+- A TypeScript `{monaco-run}` that runs before Monaco's TypeScript support is ready (often on the print page and in an export) waits for it; the output read "TypeScript not registered!".
 - The "twoslash failed" warning gives the reason (Twoslash's own title and description) and the slide; it read "twoslash failed for a ts block ()".
 - A code title icon that its installed set does not have (`~i-carbon:bucket~`) gets a warning that names the slide, instead of an empty box.
 - `r` in the dev server no longer prints an esbuild Go panic ("all goroutines are asleep") into the terminal: the Angular dev server and its esbuild service are stopped together.

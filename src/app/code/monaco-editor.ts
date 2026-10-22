@@ -222,6 +222,22 @@ export class MonacoEditor {
   // Runs the editor's text: TypeScript is turned into JavaScript by Monaco's own TypeScript worker.
   private runners = Object.assign({}, ...(inject(CODE_RUNNERS, { optional: true }) ?? []));
 
+  // Monaco registers its TypeScript mode lazily, after the first TypeScript model exists: until then
+  // `getTypeScriptWorker()` rejects with "TypeScript not registered!". A run that starts right away (an autorun on a
+  // print page) waits for it instead of showing that error. Undefined when the slide was left meanwhile.
+  private async typeScriptWorker(model: Monaco.editor.ITextModel, signal?: AbortSignal) {
+    const deadline = Date.now() + 10_000;
+    for (;;) {
+      try {
+        return await this.monaco!.typescript.getTypeScriptWorker();
+      } catch (e) {
+        if (!/not registered/i.test(String(e)) || Date.now() > deadline) throw e;
+      }
+      await new Promise((r) => setTimeout(r, 50));
+      if (model.isDisposed() || signal?.aborted) return undefined;
+    }
+  }
+
   protected execute = async (code: string, signal?: AbortSignal) => {
     await this.ready;
     // A runner from a theme replaces the built-in one for its language. The code block's language picks it (as in Slidev),
@@ -244,7 +260,8 @@ export class MonacoEditor {
     const model = this.model;
     if (model && model.getLanguageId() === 'typescript') {
       try {
-        const worker = await this.monaco!.typescript.getTypeScriptWorker();
+        const worker = await this.typeScriptWorker(model, signal);
+        if (!worker) return { lines: [], error: 'Stopped' };
         const client = await worker(model.uri);
         const out = await client.getEmitOutput(model.uri.toString());
         js =
