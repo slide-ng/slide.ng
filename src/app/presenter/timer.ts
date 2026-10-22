@@ -58,7 +58,8 @@ function readSaved(): TimerState | null {
     const t = JSON.parse(sessionStorage.getItem(scopedKey(SAVED)) ?? 'null');
     return t &&
       ['running', 'paused', 'stopped'].includes(t.status) &&
-      typeof t.startedAt === 'number'
+      typeof t.startedAt === 'number' &&
+      (t.changedAt === undefined || typeof t.changedAt === 'number')
       ? (t as TimerState)
       : null;
   } catch {
@@ -83,8 +84,17 @@ export class Timer {
   constructor() {
     // A reload of the presenter page keeps a running or paused timer (it is kept per tab). A new tab gets it from the
     // other windows, which answer its hello with the timer (sync-state.ts), or in dev from the server (ws-hub.mjs).
+    // Only when this window knows no newer change of the timer (a reset made while the tab was away comes back with the
+    // other windows' answers, and the newer change wins: mergeShared).
     const saved = readSaved();
-    if (saved && saved.status !== 'stopped' && this.state().status === 'stopped') this.set(saved);
+    const now = this.state();
+    if (
+      saved &&
+      saved.status !== 'stopped' &&
+      now.status === 'stopped' &&
+      (saved.changedAt ?? 0) >= (now.changedAt ?? 0)
+    )
+      this.set(saved);
     // Every timer this window shows is kept for the tab, also one that came from another window or the dev server: a tab
     // that got the timer back that way may be the only one that knows it after the dev server restarts (`r`).
     effect(() => {
@@ -103,8 +113,12 @@ export class Timer {
     });
   }
 
+  /** A change made here: it gets the time it was made, so it wins over older ones (shared-state.ts mergeShared). */
   private set(timer: TimerState) {
     this.sync.patchShared({ timer });
+  }
+  private change(timer: Omit<TimerState, 'changedAt'>) {
+    this.set({ ...timer, changedAt: Date.now() });
   }
 
   start() {
@@ -112,12 +126,12 @@ export class Timer {
     if (t.status === 'running') return;
     // Resuming moves the start forward by the time spent paused.
     const startedAt = t.status === 'paused' ? Date.now() - (t.pausedAt - t.startedAt) : Date.now();
-    this.set({ status: 'running', startedAt, pausedAt: 0 });
+    this.change({ status: 'running', startedAt, pausedAt: 0 });
   }
 
   pause() {
     if (this.state().status === 'running')
-      this.set({ ...this.state(), status: 'paused', pausedAt: Date.now() });
+      this.change({ ...this.state(), status: 'paused', pausedAt: Date.now() });
   }
 
   toggle() {
@@ -125,6 +139,6 @@ export class Timer {
     else this.start();
   }
   reset() {
-    this.set({ status: 'stopped', startedAt: 0, pausedAt: 0 });
+    this.change({ status: 'stopped', startedAt: 0, pausedAt: 0 });
   }
 }

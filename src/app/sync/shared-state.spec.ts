@@ -1,4 +1,4 @@
-import { cleanDrawings, cleanShared } from './shared-state';
+import { cleanDrawings, cleanShared, initialShared, mergeShared } from './shared-state';
 
 describe('cleanShared', () => {
   it('keeps known keys with the right types', () => {
@@ -87,6 +87,30 @@ describe('cleanShared', () => {
       cleanShared({ lastUpdate: { id: 'x'.repeat(500), type: 'viewer', time: 1 } }).lastUpdate?.id
         .length,
     ).toBe(64);
+  });
+});
+
+describe('the timer: the newest change wins', () => {
+  it("moves a change's time onto our clock, and drops a junk one", () => {
+    const timer = { status: 'stopped', startedAt: 0, pausedAt: 0 };
+    expect(cleanShared({ timer: { ...timer, changedAt: 900, sentAt: 1000 } }, 5000).timer).toEqual({
+      ...timer,
+      changedAt: 4900,
+    });
+    expect(cleanShared({ timer: { ...timer, changedAt: 'x' } }).timer).toEqual(timer);
+  });
+
+  it('a timer changed before the one held is dropped; the rest of the message is taken', () => {
+    const reset = { status: 'stopped' as const, startedAt: 0, pausedAt: 0, changedAt: 2000 };
+    const state = { ...initialShared(), timer: reset };
+    const stale = { status: 'running' as const, startedAt: 1000, pausedAt: 0, changedAt: 1000 };
+    expect(mergeShared(state, { timer: stale, clicks: 2 })).toEqual({ ...state, clicks: 2 });
+    const newer = { ...stale, changedAt: 3000 };
+    expect(mergeShared(state, { timer: newer }).timer).toBe(newer);
+    // A timer without a time (never changed) does not replace a changed one; it still fills a fresh window.
+    const plain = { status: 'running' as const, startedAt: 1000, pausedAt: 0 };
+    expect(mergeShared(state, { timer: plain }).timer).toBe(reset);
+    expect(mergeShared(initialShared(), { timer: plain }).timer).toBe(plain);
   });
 });
 

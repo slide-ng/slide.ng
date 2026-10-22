@@ -1,8 +1,8 @@
 // The WebSocket sync transport: every message one window sends goes to all the other windows.
 // It only passes on `{ channel, data }` for the channels the app uses, and drops the rest. It remembers the last slide a
 // window reported (for the MCP `get_info` tool; `goto_slide` waits for the next one), and it can send a message to every
-// window (`goto_slide`). It also keeps the last running or paused timer: a presenter page opened again after every other
-// window was closed asks for it with its hello, and gets it back.
+// window (`goto_slide`). It also keeps the newest running, paused or reset timer: a presenter page opened again after
+// every other window was closed asks for it with its hello, and gets it back.
 import { WebSocketServer } from 'ws';
 
 // `position` is only for the hub: a window that may not drive (a viewer on another machine) says where it is after a move.
@@ -67,8 +67,28 @@ export function isMessage(text) {
  */
 export function keptTimer(kept, now) {
   const t = kept?.timer;
-  if (!t || typeof t !== 'object' || (t.status !== 'running' && t.status !== 'paused')) return null;
+  if (!t || typeof t !== 'object') return null;
+  // A reset is kept too when it has a time: a tab that comes back with an older running timer then takes the reset.
+  if (t.status !== 'running' && t.status !== 'paused' && !(t.status === 'stopped' && t.changedAt))
+    return null;
   return typeof t.sentAt === 'number' ? { ...t, sentAt: t.sentAt + (now - kept.at) } : t;
+}
+
+/** When a timer was changed (its `changedAt`), by the hub's clock at `at`, the time it came; null without one. */
+const changedOnHub = (timer, at) =>
+  typeof timer?.changedAt === 'number' && typeof timer.sentAt === 'number'
+    ? timer.changedAt + at - timer.sentAt
+    : null;
+
+/**
+ * The timer to keep after `timer` came at hub time `at`: the newer change of the two (shared-state.ts mergeShared), so a
+ * tab that comes back and sends the older timer it kept does not replace a later reset. A timer without a time replaces
+ * the kept one, as before timers had one.
+ */
+export function keepTimer(kept, timer, at) {
+  const ours = kept && changedOnHub(kept.timer, kept.at);
+  const theirs = changedOnHub(timer, at);
+  return ours === null || theirs === null || theirs >= ours ? { timer, at } : kept;
 }
 
 export function createHub() {
@@ -86,7 +106,7 @@ export function createHub() {
       const position = positionOf(text);
       if (position) ((wss.position = position), wss.emit('position', position));
       if (m.channel === 'position') return; // for the hub only
-      if (m.channel === 'shared' && m.data?.timer) kept = { timer: m.data.timer, at: Date.now() };
+      if (m.channel === 'shared' && m.data?.timer) kept = keepTimer(kept, m.data.timer, Date.now());
       const timer = m.channel === 'hello' ? keptTimer(kept, Date.now()) : null;
       if (timer) socket.send(JSON.stringify({ channel: 'shared', data: { timer } }));
       for (const other of wss.clients)

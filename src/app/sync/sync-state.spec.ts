@@ -132,6 +132,22 @@ describe('SyncState', () => {
     );
   });
 
+  it('a hello is answered with a reset too, so a tab that comes back with an older timer takes it', () => {
+    const { transport, sync } = setup();
+    const now = Date.now();
+    sync.patchShared({ timer: { status: 'stopped', startedAt: 0, pausedAt: 0, changedAt: now } });
+    transport.sent.length = 0;
+    transport.deliver('hello', {});
+    expect(transport.sent.map(([channel, data]) => [channel, Object.keys(data as object)])).toEqual(
+      [['shared', ['timer']]],
+    );
+    // The older running timer that tab sends is not taken.
+    transport.deliver('shared', {
+      timer: { status: 'running', startedAt: now - 60_000, pausedAt: 0, changedAt: now - 60_000 },
+    });
+    expect(sync.shared().timer.status).toBe('stopped');
+  });
+
   it('a handler that was removed hears nothing more', () => {
     const { transport, sync } = setup();
     let hello = 0;

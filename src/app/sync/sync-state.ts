@@ -103,7 +103,7 @@ export class SyncState {
   }
 
   /** A window that just opened asks for the current position; presenters answer (see nav-sync), and every window that
-   *  knows a running or paused timer answers with it (a presenter tab that was closed and opened again gets it back). */
+   *  knows a running, paused or reset timer answers with it (a presenter tab that was closed and opened again gets it back). */
   sendHello() {
     this.send('hello', {});
   }
@@ -135,8 +135,9 @@ export class SyncState {
           [u.type]: { page: next.page, clicks: next.clicks, lastUpdate: u },
         }));
     } else if (channel === 'hello') {
+      // A reset is answered too (it has a time): a tab that comes back with an older running timer then takes the reset.
       const timer = this.shared().timer;
-      if (timer.status !== 'stopped') this.patchShared({ timer });
+      if (timer.status !== 'stopped' || timer.changedAt) this.patchShared({ timer });
       this.helloHandlers.forEach((fn) => fn());
     } else if (channel === 'drawings') {
       const patch = cleanDrawings(data);
