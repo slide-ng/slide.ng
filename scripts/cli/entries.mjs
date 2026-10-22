@@ -3,9 +3,12 @@
 import { existsSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
 
-/** The entry files of a command, resolved; `slides.md` when none is given. */
+/** The entry files of a command, resolved; `slides.md` when none is given. A file named twice is refused. */
 export function deckEntries(positionals, fallback = 'slides.md') {
-  return (positionals.length ? positionals : [fallback]).map((p) => resolve(p));
+  const entries = (positionals.length ? positionals : [fallback]).map((p) => resolve(p));
+  const twice = entries.find((entry, i) => entries.indexOf(entry) !== i);
+  if (twice) throw new Error(`${twice} is listed twice; name each deck once`);
+  return entries;
 }
 
 /** Refuses a missing entry before the first deck is built, so a typo in the last one does not wait for the others. */

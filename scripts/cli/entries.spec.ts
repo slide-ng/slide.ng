@@ -15,6 +15,9 @@ describe('deckEntries', () => {
     expect(deckEntries([])).toEqual([resolve('slides.md')]);
     expect(deckEntries(['a.md', 'b/c.md'])).toEqual([resolve('a.md'), resolve('b/c.md')]);
   });
+  it('refuses a file named twice, also written another way', () => {
+    expect(() => deckEntries(['a.md', './a.md'])).toThrow(`${resolve('a.md')} is listed twice`);
+  });
 });
 
 describe('buildTargets', () => {
