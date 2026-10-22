@@ -1,4 +1,4 @@
-import { APP_BASE_HREF, Location, LocationStrategy } from '@angular/common';
+import { APP_BASE_HREF, Location, LocationStrategy, PlatformLocation } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
 import {
   MEMORY_KEEP,
@@ -28,6 +28,35 @@ describe('memoryStart', () => {
     expect(memoryStart('print?range=1-3')).toBe('/print?range=1-3');
     expect(memoryStart('/presenter/print')).toBe('/presenter/print');
   });
+});
+
+describe('MemoryLocationStrategy at an address with a hash', () => {
+  for (const [hash, path, bar] of [
+    ['#/presenter/2', '', '/talk/'],
+    ['#/3', '/3', '/talk/'],
+    ['#top', '', null],
+  ] as const) {
+    it(`opens ${path || 'slide 1'} for ${hash}, and the address bar is ${bar ?? 'left alone'}`, () => {
+      const replaced: string[] = [];
+      const platform = {
+        pathname: '/talk/',
+        search: '',
+        hash,
+        getBaseHrefFromDOM: () => '/talk/',
+        replaceState: (_s: unknown, _t: string, url: string) => replaced.push(url),
+      };
+      TestBed.configureTestingModule({
+        providers: [
+          { provide: PlatformLocation, useValue: platform },
+          { provide: APP_BASE_HREF, useValue: '/talk/' },
+          { provide: LocationStrategy, useClass: MemoryLocationStrategy },
+          { provide: MEMORY_KEEP, useValue: false },
+        ],
+      });
+      expect(TestBed.inject(LocationStrategy).path()).toBe(path || '/');
+      expect(replaced).toEqual(bar ? [bar] : []);
+    });
+  }
 });
 
 describe('MemoryLocationStrategy', () => {

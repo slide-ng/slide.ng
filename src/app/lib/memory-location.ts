@@ -64,8 +64,9 @@ export class MemoryLocationStrategy extends LocationStrategy {
       : pathname;
     const start = memoryStart(below + this.platform.search, this.platform.hash);
     // A slide read from the hash is taken once: the address bar goes back to the deck's address, so a reload starts
-    // like any other (at slide 1, or at the kept slide in the dev server).
-    if (start !== '/' && this.platform.hash) {
+    // like any other (at slide 1, or at the kept slide in the dev server). A route in the hash that is not read
+    // (`#/presenter/2`, `#/overview`) goes too, as it is not where the deck is; an anchor such as `#top` stays.
+    if ((start !== '/' && this.platform.hash) || this.platform.hash.startsWith('#/')) {
       this.platform.replaceState(null, '', pathname + this.platform.search);
     }
     this.entries = [{ url: start === '/' ? (this.kept() ?? start) : start, state: null }];
