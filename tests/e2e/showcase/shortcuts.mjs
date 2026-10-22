@@ -62,6 +62,16 @@ export async function run({ t, open, press, pathOf, hud }) {
   await press(page, 'Enter');
   t.ok('goto by title opens Part B', at() === '/24', at());
   await press(page, 'g');
+  await page.keyboard.type('٢٤'); // 24 in Arabic-Indic digits
+  await page.waitForTimeout(100);
+  const option = await page.locator('#goto-results li').first().textContent();
+  await press(page, 'Escape');
+  t.ok(
+    'goto finds a number typed in Arabic-Indic digits, and an option reads "24 Part B"',
+    /^\s*24 +Part B/.test(option),
+    option,
+  );
+  await press(page, 'g');
   await page.keyboard.type('zdf'); // d and f are shortcuts, but not while typing in the box
   await page.waitForTimeout(100);
   const typedSafely =

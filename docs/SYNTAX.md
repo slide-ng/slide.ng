@@ -1262,6 +1262,7 @@ presses a button, and a touch on the slide hides it again. On a screen taller th
 - **Right-click menu by keyboard**: Shift+F10 or the menu key opens it, with the focus on its first item. The arrow keys, Home, End and
   Tab move between the items, Enter or Space runs one, and Escape closes the menu and gives the focus back to where it was. While the
   menu is open the deck's keys (arrows, `o`, `g`, ...) do nothing, also when it was opened with the mouse.
+- **"Go to" box**: a slide number may be typed with Arabic-Indic or Persian digits (`٣`, `۳`); each option reads "N title".
 - **Progress bar**: `progressBar` is a `progressbar` named "Progress through the slides" (translatable: `progress.label`).
 - **Presenter panes**: the borders of the notes pane (separators named "Resize notes panel" and "Resize notes panel height") are Tab stops
   with their size in `aria-valuenow`: the arrow keys move a border 16 pixels (64 with Shift), Home and End give the notes their smallest

@@ -18,4 +18,10 @@ describe('foldForSearch', () => {
     expect(finds('Café crème', 'cafe creme')).toBe(true);
     expect(finds('Intro', 'zzz', 'not a tag!')).toBe(false);
   });
+
+  it('reads Arabic-Indic and Persian digits as 0-9', () => {
+    expect(foldForSearch('٣')).toBe('3');
+    expect(foldForSearch('۵')).toBe('5');
+    expect(foldForSearch('٠١٢٣٤٥٦٧٨٩ ۰۱۲۳۴۵۶۷۸۹')).toBe('0123456789 0123456789');
+  });
 });

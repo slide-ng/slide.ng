@@ -15,6 +15,7 @@ import { Ui } from '../lib/ui-state';
 /**
  * Text folded for the search: lower case by the rules of the deck's language (Turkish `İ` is `i`, `I` is `ı`), without
  * accents, and with the dotless `ı` as `i`, so "izmir", "IZMIR" and "İZMİR" all find "İzmir" and "isik" finds "Işık".
+ * Arabic-Indic (٣) and Persian (۳) digits are the digits 0-9, so they find slide 3 too.
  */
 export function foldForSearch(text: string, lang?: string): string {
   let lower: string;
@@ -23,7 +24,11 @@ export function foldForSearch(text: string, lang?: string): string {
   } catch {
     lower = text.toLowerCase(); // not a language tag
   }
-  return lower.normalize('NFD').replace(/\p{M}/gu, '').replace(/ı/g, 'i');
+  return lower
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .replace(/ı/g, 'i')
+    .replace(/[\u0660-\u0669\u06F0-\u06F9]/g, (d) => String((d.charCodeAt(0) - 0x0660) % 0x90));
 }
 
 // "Go to slide" box (key `g`, like Slidev's Goto). Type a number or part of a title,
@@ -79,8 +84,9 @@ export function foldForSearch(text: string, lang?: string): string {
               [class]="i === selected() ? 'bg-active op100' : 'op80'"
               (click)="open(r.no)"
             >
-              <span class="opacity-80 text-sm w-6 text-end">{{ r.no }}</span>
-              <span>{{ r.title }}</span>
+              <!-- The space keeps the number and the title apart in the option's text (the gap is only drawn). -->
+              <span class="opacity-80 text-sm w-6 text-end">{{ r.no }}</span
+              >{{ ' ' }}<span>{{ r.title }}</span>
             </li>
           }
         </ul>
