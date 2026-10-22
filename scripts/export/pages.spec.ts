@@ -9,9 +9,11 @@ describe('pagesToExport', () => {
   });
   it('says that text which is not a range is not one, instead of "matches no slide"', () => {
     expect(() => pagesToExport(deck, '2-x')).toThrow(
-      'export: the range "2-x" is not a range ("2-x"): write slide numbers and ranges, such as 1,3-5 or 4-',
+      'export: "2-x" is not a range: write slide numbers and ranges, such as 1,3-5 or 4-',
     );
-    expect(() => pagesToExport(deck, '1,two')).toThrow('is not a range ("two")');
+    expect(() => pagesToExport(deck, '1,two')).toThrow(
+      'in the range "1,two", "two" is not a slide number or range',
+    );
     expect(() => pagesToExport(deck, '9')).toThrow('matches no slide (the deck has 6)');
   });
 });

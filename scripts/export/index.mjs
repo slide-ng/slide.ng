@@ -28,10 +28,12 @@ export function pagesToExport(deck, range) {
       : String(range)
           .split(/[,;]/)
           .find((part) => !/^\s*\d*\s*(-\s*\d*\s*)?$/.test(part) || !/\d/.test(part));
-  if (bad !== undefined)
+  if (bad !== undefined) {
+    const whole = bad.trim() === String(range).trim();
     throw new Error(
-      `export: the range "${range}" is not a range ("${bad.trim()}"): write slide numbers and ranges, such as 1,3-5 or 4-`,
+      `export: ${whole ? `"${bad.trim()}" is not a range` : `in the range "${range}", "${bad.trim()}" is not a slide number or range`}: write slide numbers and ranges, such as 1,3-5 or 4-`,
     );
+  }
   // Slidev's parser returns 0 for `0`; only real slides count.
   const pages = parseRangeString(total, range).filter((n) => n >= 1 && n <= total);
   if (!pages.length)
