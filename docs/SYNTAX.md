@@ -1118,7 +1118,7 @@ It prints the public and private deck addresses and the presenter address (`/pre
 The password lets a device sync and write (slides, drawings and the `{monaco-write}` files), and opens the presenter, notes, overview and notes editor pages: without it they go to the slides. It is sent without encryption, so use it on a network you trust. See [SECURITY-MODEL.md](SECURITY-MODEL.md).
 
 The dev server also serves MCP over HTTP at `http://localhost:4230/__mcp` (streamable HTTP, as Slidev's): the slide tools of `slide-ng mcp`,
-plus `get_info` (with `--remote` it also lists the addresses other machines open, `remoteUrls`, without the password) and `goto_slide`, which moves every open window. With `--remote` a client sends the password as `Authorization: Bearer <password>` (spaces inside it included; spaces at its start or end are ignored; a password that is not ASCII may be sent as UTF-8 or Latin-1).
+plus `get_info` (with `--remote` it also lists the addresses other machines open, `remoteUrls`, without the password) and `goto_slide`, which moves every open window. With `--remote` a client sends the password as `Authorization: Bearer <password>` (spaces inside it included; spaces at its start or end are ignored; a password that is not ASCII may be sent as UTF-8 or Latin-1; `fetch` cannot send a character above U+00FF, so a client built on it sends the UTF-8 bytes itself, see CLI.md).
 `mcp: false` in the headmatter turns it off.
 
 ## The page, export and build

@@ -31,6 +31,6 @@ While `slide-ng dev` runs, the same tools are served at `http://localhost:4230/_
 { "mcpServers": { "slide-ng": { "type": "http", "url": "http://localhost:4230/__mcp" } } }
 ```
 
-- With `--remote` the client sends `Authorization: Bearer <password>` (spaces inside it included, spaces at its start or end ignored; a non-ASCII password may be UTF-8 or Latin-1); a page from another site is refused (Origin check).
+- With `--remote` the client sends `Authorization: Bearer <password>` (spaces inside it included, spaces at its start or end ignored; a non-ASCII password may be UTF-8 or Latin-1; `fetch`, and so the MCP SDK client, cannot send a character above U+00FF such as `ş`: send the UTF-8 bytes yourself, `'Bearer ' + Buffer.from(pw, 'utf8').toString('latin1')`); a page from another site is refused (Origin check).
 - `mcp: false` in the headmatter turns it off (404).
 - `slide-ng mcp` (stdio) has no `get_info` or `goto_slide`: they need the running presentation.

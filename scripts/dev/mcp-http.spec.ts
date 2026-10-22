@@ -281,6 +281,12 @@ describe('MCP over HTTP on the dev server', () => {
     const latin = await start({ SLIDE_NG_REMOTE: '1', SLIDE_NG_PASSWORD: 'wörd' });
     expect(await raw(latin.port, Buffer.from('wörd', 'utf8'))).toBe(200);
     expect((await post(latin.port, { authorization: 'Bearer wörd' })).status).toBe(200);
+    // The last UTF-8 byte of à, Š, Ġ and Р is 0xA0, which reads as a no-break space: it is not trimmed away.
+    for (const password of ['voilà', 'Š', 'Ġx Ġ', 'пароль Р']) {
+      const server = await start({ SLIDE_NG_REMOTE: '1', SLIDE_NG_PASSWORD: password });
+      expect(await raw(server.port, Buffer.from(password, 'utf8'))).toBe(200);
+      expect(await raw(server.port, Buffer.from(` ${password}\t`, 'utf8'))).toBe(200);
+    }
   });
 
   it('ignores the spaces around the password, which HTTP cannot carry', async () => {
