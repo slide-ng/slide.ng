@@ -46,6 +46,7 @@ describe('createCommand', () => {
     await createCommand([dir, '--force'], process.cwd());
     expect(readFileSync(join(dir, 'README.md'), 'utf8')).toBe('Hello {{name}}');
     expect(readFileSync(join(dir, '.gitignore'), 'utf8')).toBe('mine\n');
+    expect(existsSync(join(dir, '_gitignore'))).toBe(false);
     expect(JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')).name).not.toContain('{{');
   });
   it('ignores the files that export writes by default', async () => {

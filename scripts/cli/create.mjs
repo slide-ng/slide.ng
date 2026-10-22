@@ -7,6 +7,7 @@ import {
   readFileSync,
   readdirSync,
   renameSync,
+  rmSync,
   writeFileSync,
 } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
@@ -48,8 +49,8 @@ export async function createCommand(argv, packageRoot = ownRoot) {
   const added = ['package.json', 'README.md', 'slides.md'].filter(
     (f) => !existsSync(join(target, f)),
   );
-  const addIgnore =
-    !existsSync(join(target, '.gitignore')) && !existsSync(join(target, '_gitignore'));
+  const ownUnderscore = existsSync(join(target, '_gitignore'));
+  const addIgnore = !existsSync(join(target, '.gitignore')) && !ownUnderscore;
   cpSync(join(packageRoot, 'template'), target, {
     recursive: true,
     force: false,
@@ -60,7 +61,9 @@ export async function createCommand(argv, packageRoot = ownRoot) {
     if (existsSync(path)) writeFileSync(path, fillTemplate(readFileSync(path, 'utf8'), values));
   }
   // npm leaves out files called .gitignore when it packs a package, so the template keeps it as _gitignore.
+  // With a .gitignore of the deck's own the copy is not wanted (a `_gitignore` the deck had already is left alone).
   if (addIgnore) renameSync(join(target, '_gitignore'), join(target, '.gitignore'));
+  else if (!ownUnderscore) rmSync(join(target, '_gitignore'), { force: true });
   // Quoted when it has a space, so the line can be pasted.
   const dir = /\s/.test(positionals[0]) ? JSON.stringify(positionals[0]) : positionals[0];
   console.log(`Created ${target}\n\n  cd ${dir}\n  npm install\n  npm run dev\n`);
