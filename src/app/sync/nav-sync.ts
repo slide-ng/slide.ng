@@ -83,7 +83,7 @@ export function startNavSync(nav: Nav) {
 
   // Our position changed: tell the others. The very first position of a viewer is not news
   // (a viewer that just opened would drag the presenter back to its own slide). The very first position of a presenter
-  // goes out with an old time: the audience takes it only when it follows no newer move.
+  // goes out with an old time (0 for a new page): the audience does not follow it (see below).
   effect(() => {
     const page = nav.no(),
       clicks = nav.clicks(),
@@ -124,6 +124,11 @@ export function startNavSync(nav: Nav) {
       // Our own move: passed on by the presenter, or made by this window while it was the presenter page (the state stays
       // when the window moves from /presenter/3 to /1).
       if (s.lastUpdate.via === sync.id || s.lastUpdate.id === sync.id) return;
+      // A presenter's first position after its page opened (time 0) is not a move. A window at the start of the deck
+      // (slide 1, no click: a viewer that opens later) joins it; a window anywhere else keeps its own slide (its address).
+      // Else a window that opened or reloaded at /6 after the presenter that moved was closed went to an idle presenter's
+      // slide.
+      if (!s.lastUpdate.time && (nav.no() !== 1 || nav.clicks() !== 0)) return;
       // An older move than the one we follow (another presenter window answering a late window's hello), or than our own
       // last move.
       if (s.lastUpdate.time < followed || s.lastUpdate.time < sync.ownMoveTime) return;

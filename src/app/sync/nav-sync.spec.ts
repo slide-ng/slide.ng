@@ -67,7 +67,7 @@ function viewer(isPresenter = false) {
     if (tick) TestBed.tick();
     return no();
   };
-  return { move };
+  return { move, nav };
 }
 
 describe('startNavSync (a viewer)', () => {
@@ -77,6 +77,15 @@ describe('startNavSync (a viewer)', () => {
     expect(move('a', 3, now, now)).toBe(3); // presenter A moves to slide 3
     expect(move('b', 1, 0, now + 10)).toBe(3); // presenter B (re)loads on slide 1: not a move
     expect(move('b', 2, now + 20, now + 20)).toBe(2); // B moves: it leads now
+  });
+
+  it("joins an idle presenter's first position from the start of the deck, and keeps any other slide", () => {
+    const { move, nav } = viewer();
+    const now = Date.now();
+    expect(move('b', 4, 0, now)).toBe(4); // at slide 1: a viewer that opens later joins the presenter
+    nav.jump(3, 0); // a window at /3 (reloaded there after the presenter that moved was closed)
+    expect(move('c', 5, 0, now)).toBe(3); // C opened at slide 5 and never moved: not a move
+    expect(move('c', 2, now + 10, now + 10)).toBe(2); // C moves: followed
   });
 
   it('takes the newest of two answers to its hello that come before it looks, in either order', () => {

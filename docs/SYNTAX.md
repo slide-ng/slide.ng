@@ -930,6 +930,9 @@ A viewer on another device (not `localhost`, not a folder) only follows, so ther
 Opening the menu, with the mouse or with Enter on the button, puts the focus on the ticked mode; there the arrow keys move between the modes (not through the slides; on a right-to-left page ArrowLeft is the next mode, as seen), and Escape closes it and puts the focus back on the sync button.
 Use one presenter page. Two presenter pages do not follow each other: each keeps its own slide, and the audience follows the one that moved last
 (a window that opens later or a presenter page that opens or reloads does not change that, also when the devices' clocks are not set alike).
+A presenter page that opens shows where it is but does not move the audience: an audience page that opens at the start of the deck joins it,
+and one that opens or reloads at another slide (its address) keeps that slide until a presenter moves, also when the presenter that moved
+last was closed.
 To use a phone as the remote, open the presenter page on the phone and only the audience page on the laptop that drives the projector; an
 audience page on another device only follows.
 

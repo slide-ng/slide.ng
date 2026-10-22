@@ -128,6 +128,18 @@ export async function run({ t, open, press, hud, until, windowGroup }) {
       (await hud(b)).startsWith('slide 1/4'),
     `${before} / audience ${await hud(audience)} / later ${await hud(later)} / b ${await hud(b)}`,
   );
+  // The presenter that moved is closed: a reload of the audience keeps its own slide, not the idle presenter's.
+  await a.close();
+  await audience.reload();
+  await audience.waitForFunction(() =>
+    /clicks \d+\/\d+/.test(document.querySelector('#hud')?.innerText ?? ''),
+  );
+  await audience.waitForTimeout(800);
+  t.ok(
+    "with the presenter that moved closed, a reloaded audience keeps its slide, not an idle presenter's",
+    (await hud(audience)) === before,
+    `${before} / audience ${await hud(audience)}`,
+  );
   await two.close();
 
   // The timer comes with the sender's clock (here an hour ahead, after a minute of running): it shows one minute here.
