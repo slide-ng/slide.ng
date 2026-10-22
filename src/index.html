@@ -7,8 +7,9 @@
     <!-- /notes-edit (dev): a saved note reloads the page. Keys typed before the app is back are kept here (in the tab's
          storage, in case the page reloads again) and typed into the notes then (src/app/presenter/notes-edit-page.ts).
          Only on a load of /notes-edit itself (after the base, or after #/ with routerMode: hash) while its draft is fresh;
-         any other page clears what was kept. After <base>, so document.baseURI is the deck's base. -->
-    <script>
+         any other page clears what was kept. After <base>, so document.baseURI is the deck's base. Only in the dev server:
+         the generator drops it, with this comment, from any other build (lib/head.mjs dropDevOnly). -->
+    <script data-slide-ng-dev-only>
       (function () {
         try {
           var KEYS = 'slide-ng-notes-keys';

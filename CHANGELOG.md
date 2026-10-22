@@ -81,7 +81,7 @@ Node (22.22.3 or newer) and Angular (22.2) are the same as in 1.x. These changes
 - The speaker notes now get the typography preset's `prose` styles they always asked for (Slidev's look): body colour and spacing.
 - The old-names check also catches Slidev's PascalCase components (`<Toc />`, `<VClicks>`, `<SlidevVideo>`, `<Youtube>`, `<RenderWhen>`, `<LightOrDark>`, `<Link>`, ...) and `<slidev-video>`, lists the old names of every slide in one run, and tells `<v-click>` / `<v-after>` to become `<div slide-ng-click>` / `<div slide-ng-after>`.
 - Monaco's stylesheet (with its icon font, about 125 kB compressed) comes with the lazy Monaco chunk instead of the deck's styles: a deck with one `{monaco}` block no longer waits for it on the first slide. Measured on that change alone, the first paint of a 10-slide deck on slow 3G went from 10.6 s to 4.9 s and its first load from 241 kB to 133 kB compressed; with the rest of 2.0.0 the same deck's first load is 660 kB (157 kB compressed) and its first paint about 7.0 s (2000 ms latency, 50 kB/s, 4x CPU slowdown). The three Monaco CSS files that nothing loaded are no longer in `dist/`.
-- A static build no longer contains the side editor, the dev server's sync and drag saving, or the `/notes-edit` page (which only opens with the dev server).
+- A static build no longer contains the side editor, the dev server's sync and drag saving, or the `/notes-edit` page (which only opens with the dev server) and its inline script in `index.html`.
 - The npm package no longer contains the README's pictures (`docs/assets/`, 540 kB, a fifth of the unpacked size); the README loads them from GitHub.
 
 ### Fixed

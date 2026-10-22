@@ -147,6 +147,17 @@ function attributeText(attrs, warn) {
 }
 
 /**
+ * `src/index.html` without what only the dev server uses: a `<script data-slide-ng-dev-only>` and the comment just before it
+ * (the /notes-edit page's early keys; that page needs the dev server).
+ */
+export function dropDevOnly(html) {
+  return html.replace(
+    /(?:[ \t]*<!--(?:(?!-->)[\s\S])*-->\s*)?[ \t]*<script data-slide-ng-dev-only>[\s\S]*?<\/script>\n?/g,
+    '',
+  );
+}
+
+/**
  * Puts the parts into `src/index.html`: the <html> attributes, the <title>, and the tags before </head>.
  * @param {string} template
  * @param {ReturnType<typeof headParts>} parts

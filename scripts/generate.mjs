@@ -25,7 +25,7 @@ import { readDrawings } from './lib/drawings.mjs';
 import { applyRoots } from './lib/theme-files.mjs';
 import { monacoWriteTargets, resetMonacoWriteTargets } from './lib/code/monaco.mjs';
 import { applyOffline, buildOptions, modeSwitch, wantsRemoteAssets } from './lib/build-options.mjs';
-import { headParts, renderIndexHtml } from './lib/head.mjs';
+import { dropDevOnly, headParts, renderIndexHtml } from './lib/head.mjs';
 import { deckUiText, uiTextSource } from './lib/ui-text.mjs';
 import { langOverride } from './lib/lang.mjs';
 import { injectIndexHtml, rootIndexHtml } from './lib/index-html.mjs';
@@ -85,13 +85,14 @@ function writeMonacoTargets(root) {
 
 // The page itself (src/index.html is the template): title, description, social tags, favicon, manifest link, then the
 // `index.html` of each root (lib/index-html.mjs).
-function writeIndexHtml(deck, base) {
+function writeIndexHtml(deck, base, dev) {
   const warn = (m) => console.warn(`[slides] ${m}`);
   const plan = ogImagePlan(deck.headmatter, deck.root);
   const ogImage =
     plan.kind === 'file' || plan.kind === 'auto' ? ogImageAddress(deck.headmatter, base) : null;
   const parts = headParts(deck.headmatter, { ogImage, pwa: pwaEnabled(deck.headmatter), warn });
-  const page = renderIndexHtml(readFileSync('src/index.html', 'utf8'), parts, warn);
+  const template = readFileSync('src/index.html', 'utf8');
+  const page = renderIndexHtml(dev ? template : dropDevOnly(template), parts, warn);
   write(`${OUT}index.html`, injectIndexHtml(page, rootIndexHtml(deck.roots, base), warn));
 }
 
@@ -142,7 +143,7 @@ async function generate() {
     deck.fontFaces = bundled?.css ?? null;
     if (bundled) console.log(`[slides] bundled ${bundled.files} font files`);
   } else emptyFolder(`${OUT}fonts`);
-  writeIndexHtml(deck, build.base);
+  writeIndexHtml(deck, build.base, build.dev);
   deck.drawings = readDrawings(deck.root, deck.headmatter);
   // Themes and addons: copies them into the app, finds their layouts, components and layers (see lib/theme-files.mjs).
   const { unoConfigs, uno } = await applyRoots(deck, OUT, write, (m) =>

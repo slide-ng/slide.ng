@@ -202,6 +202,11 @@ t.ok(
   'a static build has no /notes-edit page (it only opens with the dev server)',
   !allJs.includes('notes-edit-text'),
 );
+t.ok(
+  "nor the dev server's early-keys script of that page",
+  !allJs.includes('slideNgEarlyKeys') &&
+    !readFileSync(join(site, 'index.html'), 'utf8').includes('slideNgEarlyKeys'),
+);
 
 // ---- download, and the PDF itself
 const pdf = join(site, 'talk.pdf');

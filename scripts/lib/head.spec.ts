@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 import {
   applyTitleTemplate,
+  dropDevOnly,
   describe as describeInfo,
   faviconHref,
   headParts,
@@ -101,6 +103,19 @@ describe('headParts', () => {
     expect(headParts({}, { pwa: true }).tags).toContain(
       '<link rel="manifest" href="manifest.webmanifest">',
     );
+  });
+});
+
+describe('dropDevOnly', () => {
+  it("takes the dev server's early-keys script and its comment out of src/index.html, and nothing else", () => {
+    const page = readFileSync('src/index.html', 'utf8');
+    const out = dropDevOnly(page);
+    expect(page).toContain('slideNgEarlyKeys');
+    expect(out).not.toContain('slideNgEarlyKeys');
+    expect(out).not.toContain('notes-edit');
+    expect(out).not.toContain('<script');
+    expect(out).toContain('<base href="/" />\n    <meta name="viewport"');
+    expect(out).toContain('<!-- Shown only when the app takes more than a second');
   });
 });
 
