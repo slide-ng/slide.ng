@@ -1,6 +1,7 @@
 // The icon in front of a code block, code group or Magic Move title. Port of Slidev's TitleIcon.vue:
 // `~i-logos:vue~` in the title names the icon; otherwise a known name in the title (`npm`, `package.json`, `.ts`, ...)
 // picks one from @iconify-json/vscode-icons, but only when that set is installed (an icon of a missing set draws nothing).
+import { nearest } from '../did-you-mean.mjs';
 import { iconNames, installedSets } from '../icons.mjs';
 import { warnSlidePrefix } from './highlighter.mjs';
 
@@ -109,7 +110,15 @@ export function titleIconProblem(title, names = iconNames) {
   const [, set, name] = parts;
   const known = names(set);
   if (!known || known.has(name)) return '';
-  const near = [...known].filter((n) => n.startsWith(name) || name.startsWith(n)).slice(0, 3);
+  // A name a letter or two away (`bukcet`), or a variant of the whole name (`bucket` -> `bucket-2`); not a name that only
+  // shares the first letters (`not-an-mdi-icon` is not `no`).
+  const typo = nearest(name, known);
+  const near = typo
+    ? [typo]
+    : [...known]
+        .filter((n) => n.startsWith(`${name}-`))
+        .sort((a, b) => a.length - b.length || a.localeCompare(b))
+        .slice(0, 3);
   return `the code title icon "${icon}" is not in the installed ${set} icon set, so nothing is drawn${near.length ? ` (did you mean ${near.map((n) => `"i-${set}:${n}"`).join(', ')}?)` : ''}`;
 }
 

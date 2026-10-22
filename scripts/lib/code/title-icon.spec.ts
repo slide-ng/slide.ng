@@ -50,6 +50,12 @@ describe('titleIconProblem', () => {
       'the code title icon "i-carbon:bucket" is not in the installed carbon icon set, so nothing is drawn (did you mean "i-carbon:bucket-2"?)',
     );
   });
+  it('suggests a name a letter away, not one that only shares the first letters', () => {
+    const mdi = () => new Set(['no', 'note', 'bucket', 'github']);
+    expect(titleIconProblem('~i-mdi:not-an-mdi-icon~', mdi)).not.toContain('did you mean');
+    expect(titleIconProblem('~i-mdi:githbu~', mdi)).toContain('(did you mean "i-mdi:github"?)');
+    expect(titleIconProblem('~i-mdi:bukcet~', mdi)).toContain('(did you mean "i-mdi:bucket"?)');
+  });
   it('says nothing for a known icon, a set that is not installed or no ~icon~', () => {
     expect(titleIconProblem('~i-carbon:code~', carbon)).toBe('');
     expect(titleIconProblem('~i-logos:vue~', carbon)).toBe('');
