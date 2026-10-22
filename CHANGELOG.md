@@ -186,10 +186,10 @@ Node (22.22.3 or newer) and Angular (22.2) are the same as in 1.x. These changes
 ### Security
 
 - markdown-it is 14.3.3 and 15.0.3 in the lock file, for its quadratic-time parsing advisories (GHSA-vfgh-jcmw-g37q, GHSA-gfr2-rv44-r23c).
-- `npm install @slide-ng/core` in a new project reports 18 vulnerabilities (1 low, 9 moderate, 8 high). npm counts `@slide-ng/core` itself as one, because it depends on the others; the other 17 are in packages that slide.ng's dependencies bring in, none with a fix in the same major version of what slide.ng depends on (the fixes npm audit offers are downgrades):
+- `npm install @slide-ng/core` in a new project reports vulnerabilities (18 when this was written: 1 low, 9 moderate, 8 high). npm counts `@slide-ng/core` itself as one, because it depends on the others; the others are in packages that slide.ng's dependencies bring in, none with a fix in the same major version of what slide.ng depends on (the fixes npm audit offers are downgrades):
   - vite 8.3.0 (its `launch-editor`), pinned exactly by the latest `@angular/build` (22.2.3); it only runs in `slide-ng dev`;
   - `@slidev/parser` 53.0.0 brings in `@slidev/types` with `unplugin-vue-markdown` (`gray-matter`, `js-yaml`, `argparse`, `sprintf-js`), `vite-plugin-static-copy` (`chokidar` 3, `braces`) and its own `monaco-editor`; slide.ng uses only the parser, at build time, on the deck's own files;
-  - `monaco-editor` 0.57.0 (the latest) pins DOMPurify 3.4.15;
+  - `monaco-editor` 0.57.0 (the latest) pins DOMPurify 3.4.15, which has advisories fixed in 3.4.17, one of them critical (GHSA-cg2g-xh64-v4q7, GHSA-mrv2-3pqr-j5jr, GHSA-c6gr-qvv4-5v3f). slide.ng's own lock file overrides it to 3.4.17; a deck project can do the same with `"overrides": { "dompurify": "^3.4.17" }` in its `package.json`;
   - `pptxgenjs` 4.0.1 (the latest) brings in `image-size` 1.x, which reads the pictures of the PPTX export on the machine that exports.
 
 ## [1.0.0] - 2026-10-18
