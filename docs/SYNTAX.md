@@ -1263,6 +1263,9 @@ presses a button, and a touch on the slide hides it again. On a screen taller th
   Tab move between the items, Enter or Space runs one, and Escape closes the menu and gives the focus back to where it was. While the
   menu is open the deck's keys (arrows, `o`, `g`, ...) do nothing, also when it was opened with the mouse.
 - **Progress bar**: `progressBar` is a `progressbar` named "Progress through the slides" (translatable: `progress.label`).
+- **Presenter panes**: the borders of the notes pane (separators named "Resize notes panel" and "Resize notes panel height") are Tab stops
+  with their size in `aria-valuenow`: the arrow keys move a border 16 pixels (64 with Shift), Home and End give the notes their smallest
+  and biggest size.
 - **Contrast and size**: the interface's text is at least 4.5:1 (3:1 for large text) in light and dark mode, also the notes of later
   clicks, which are faded to 0.75 once (a part inside a faded paragraph is not faded again), and the "No notes." placeholder; its
   icon buttons are at least 24 by 24 pixels, also the click preview's badges (however small the presenter draws the slide) and the

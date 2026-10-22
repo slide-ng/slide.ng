@@ -57,6 +57,27 @@ export async function run({ t, open, windowGroup }) {
     'and at its minimum the other way',
     (await page.locator('#pane-resize-width').getAttribute('aria-valuenow')) === '240',
   );
+  // The keyboard way: a Tab stop, the arrows move the border (Shift: further), Home and End go to the limits.
+  const handle = page.locator('#pane-resize-width');
+  const value = () => handle.getAttribute('aria-valuenow');
+  await handle.focus();
+  const steps = [];
+  for (const key of ['ArrowLeft', 'Shift+ArrowLeft', 'End', 'ArrowRight', 'Home']) {
+    await page.keyboard.press(key);
+    await page.waitForTimeout(150);
+    steps.push(await value());
+  }
+  t.ok(
+    'the notes borders resize from the keyboard, with their limits for screen readers',
+    (await handle.getAttribute('tabindex')) === '0' &&
+      (await handle.getAttribute('aria-valuemin')) === '240' &&
+      (await handle.getAttribute('aria-valuemax')) === '720' &&
+      steps.join() === '256,320,720,704,240' &&
+      (await page.locator('#pane-resize-rows').getAttribute('tabindex')) === '0' &&
+      new URL(page.url()).pathname === '/presenter/1',
+    `${steps.join()} ${page.url()}`,
+  );
+  await page.evaluate(() => document.activeElement?.blur());
   await drag('#pane-resize-width', -160, 0);
 
   // Each layout keeps its own sizes.

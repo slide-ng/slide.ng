@@ -83,6 +83,14 @@ html.dark .slidev-presenter .grid-section {
 .pane-resizer:active::before {
   opacity: 0.3;
 }
+/* The keyboard moves them too (arrow keys, Home, End): the focused one shows its line and a ring. */
+.pane-resizer:focus-visible {
+  outline: 2px solid var(--slidev-theme-primary);
+  outline-offset: -2px;
+}
+.pane-resizer:focus-visible::before {
+  opacity: 0.6;
+}
 .pane-resizer-col {
   width: 12px;
   transform: translateX(-50%);

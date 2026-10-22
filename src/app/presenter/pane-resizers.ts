@@ -31,7 +31,11 @@ interface Drag {
           role="separator"
           aria-orientation="vertical"
           [title]="'presenter.resizeNotes' | t"
+          tabindex="0"
           [attr.aria-valuenow]="size().width"
+          [attr.aria-valuemin]="limits().width[0]"
+          [attr.aria-valuemax]="limits().width[1]"
+          (keydown)="key($event, 'width')"
           [style.left.px]="h.width.x"
           [style.top.px]="h.width.top"
           [style.height.px]="h.width.length"
@@ -48,7 +52,11 @@ interface Drag {
           role="separator"
           aria-orientation="horizontal"
           [title]="'presenter.resizeNotesHeight' | t"
+          tabindex="0"
           [attr.aria-valuenow]="size().rows"
+          [attr.aria-valuemin]="limits().rows[0]"
+          [attr.aria-valuemax]="limits().rows[1]"
+          (keydown)="key($event, 'rows')"
           [style.top.px]="h.rows.y"
           [style.left.px]="h.rows.left"
           [style.width.px]="h.rows.length"
@@ -112,6 +120,17 @@ export class PaneResizers {
     };
   });
 
+  /** The smallest and the biggest size each handle can give, for a screen reader and for Home and End. */
+  protected limits = computed(() => {
+    const b = this.boxes();
+    const w = b ? b.grid.right - b.grid.left : Infinity;
+    const h = b ? b.grid.bottom - b.grid.top : Infinity;
+    return {
+      width: [clampWidth(0, w), clampWidth(1e9, w)],
+      rows: [clampRows(0, h), clampRows(1e9, h)],
+    };
+  });
+
   constructor() {
     const measure = () => {
       const box = (e: HTMLElement) => e.getBoundingClientRect();
@@ -153,17 +172,10 @@ export class PaneResizers {
     if (e.button !== 0) return;
     e.preventDefault();
     (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-    const b = this.boxes();
-    // The row starts from what is on screen (the CSS may hold it smaller than the saved size).
-    const shown = !b
-      ? this.size().rows
-      : this.prefs.layout() === 2
-        ? b.main.bottom - b.main.top
-        : b.note.bottom - b.note.top;
     this.drag =
       kind === 'width'
         ? { kind, from: e.clientX, start: this.size().width }
-        : { kind, from: e.clientY, start: shown };
+        : { kind, from: e.clientY, start: this.shown('rows') };
   }
 
   protected move(e: PointerEvent) {
@@ -186,6 +198,38 @@ export class PaneResizers {
       );
       this.prefs.setPaneSize({ rows });
     }
+  }
+
+  // The keyboard way (a window splitter): the arrow keys move the border 16 px (64 with Shift) the way they point, Home
+  // and End give the notes their smallest and their biggest size.
+  protected key(e: KeyboardEvent, kind: 'width' | 'rows') {
+    const b = this.boxes();
+    if (!b || e.altKey || e.ctrlKey || e.metaKey) return;
+    const r = resizers(this.prefs.layout(), this.wide(), this.stacked());
+    const step = e.shiftKey ? 64 : 16;
+    const toward: Record<string, number> =
+      kind === 'width' ? { ArrowLeft: -1, ArrowRight: 1 } : { ArrowUp: -1, ArrowDown: 1 };
+    const by = toward[e.key];
+    const [min, max] = this.limits()[kind];
+    // Moving the border toward the notes makes them smaller.
+    const grows = kind === 'width' ? !r.notesOnRight : !r.notesBelow;
+    let size: number | null = null;
+    if (by) size = this.shown(kind) + (grows ? by : -by) * step;
+    else if (e.key === 'Home') size = min;
+    else if (e.key === 'End') size = max;
+    if (size == null) return;
+    e.preventDefault();
+    e.stopPropagation(); // not a move through the slides
+    if (kind === 'width')
+      this.prefs.setPaneSize({ width: clampWidth(size, b.grid.right - b.grid.left) });
+    else this.prefs.setPaneSize({ rows: clampRows(size, b.grid.bottom - b.grid.top) });
+  }
+
+  // The size on screen (the CSS may hold the row smaller than the saved size).
+  private shown(kind: 'width' | 'rows') {
+    const b = this.boxes();
+    if (kind === 'width' || !b) return this.size()[kind];
+    return this.prefs.layout() === 2 ? b.main.bottom - b.main.top : b.note.bottom - b.note.top;
   }
 
   protected stop() {
