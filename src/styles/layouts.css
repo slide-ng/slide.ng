@@ -223,6 +223,12 @@
   place-content: center;
   user-select: none;
 }
+/* Its inline code is a light box on black in either mode, with the layout's white text (the code background of a light deck
+   would put that text on #f5f5f5). */
+.slidev-layout.end :not(pre) > code:not(.twoslash-popup-code) {
+  background: rgba(255, 255, 255, 0.14);
+  color: inherit;
+}
 
 /* two-cols-header: header on top, two columns, bottom row */
 .two-cols-header {
