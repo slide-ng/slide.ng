@@ -917,7 +917,7 @@ frontmatter. The CSS for the classes you use is built automatically. As in Slide
 
 Open `/presenter` (or press the presenter button) for the presenter page: current slide, next step, notes with click markers, a clicks slider and the timer.
 The audience page (`/3`) in another window or on another device follows it; `/notes` shows only the notes and follows too.
-An audience page opened (or reloaded) while a presenter page is open goes to the presenter's slide and click, whatever its address says (`/3` shows the presenter's slide 7), as in Slidev; Disable in its sync menu lets it look around on its own.
+An audience page opened (or reloaded) while a presenter page is open goes to the presenter's slide and click, whatever its address says (`/3` shows the presenter's slide 7), as in Slidev, once that presenter has moved: a presenter page that only opened takes along an audience page at slide 1, not one at another slide. Disable in its sync menu lets it look around on its own.
 `/overview` lists every slide with its notes beside it and a clicks slider under it (the button at the top of the quick overview, `o`,
 goes there); `/entry` links to the slides, presenter, notes and overview pages.
 In notes, `[click]` marks where the next click starts and `[click:3]` moves three clicks on (counted from the marker before it, as in Slidev); double click a marker to jump there. The layout button cycles three arrangements.
