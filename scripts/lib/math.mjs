@@ -2,7 +2,7 @@
 // KaTeX is plain JavaScript, so the browser only needs its CSS.
 import katex from 'katex';
 import { Marked } from 'marked';
-import { splitRanges, parseOptions } from './code/meta.mjs';
+import { splitRanges, parseOptions, rangeOutside } from './code/meta.mjs';
 import { attrs, escapeCode, protect } from './protect.mjs';
 
 // $$ {ranges} {options} <newline> latex <newline> $$      or a single line: $$ latex $$
@@ -65,6 +65,16 @@ function render(latex, displayMode, where = () => '') {
 const safe = (html) => protect(html);
 
 /**
+ * How many rows the steps of a math block (`$$ {1|3}`) can pick: the rows of its environment (`\begin{aligned}`), split
+ * by `\\`. Every `\\` counts (also in a nested matrix), so this is never too few. 0 without an environment, where
+ * KaTeX draws no rows and the steps change nothing.
+ */
+export function mathRows(latex) {
+  if (!/\\begin\{/.test(latex)) return 0;
+  return (latex.match(/\\\\(?!\s*\\end\b)/g) ?? []).length + 1;
+}
+
+/**
  * @param {{ block: boolean, latex: string, ranges?: string, options?: string }} item
  * @param {() => string} [where] `slide N (file:line): ` for the warnings
  */
@@ -73,6 +83,9 @@ export function renderMath({ block, latex, ranges, options }, where = () => '') 
   const drawn = `<span class="sr-only">${escapeCode(latex)}</span>${safe(render(latex, !!block, where))}`;
   if (!block) return `<span ngNonBindable>${drawn}</span>`;
   const o = parseOptions(options);
+  const rows = mathRows(latex);
+  const outside = rows ? rangeOutside(splitRanges(ranges), rows, o.startLine, 'row') : '';
+  if (outside) console.warn(`[slides] ${where()}math: ${outside}`);
   const a = attrs({
     ranges: splitRanges(ranges).join('|'),
     at: o.at,

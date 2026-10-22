@@ -94,3 +94,23 @@ export function parseMonacoInfo(info) {
   const m = MONACO.exec(info.trim());
   return m ? { lang: m[1] ?? '', kind: m[2], options: parseOptions(m[3]) } : null;
 }
+
+/**
+ * Why a step of the ranges (`{3-5}`) picks none of the `count` lines (or rows of a formula) shown, or ''. Ranges use the
+ * numbers shown, so with `startLine:10` they are 10, 11, ...; a step that picks none of them dims every one.
+ * @param {string[]} ranges @param {number} count @param {unknown} [startLine] @param {'line' | 'row'} [unit]
+ */
+export function rangeOutside(ranges, count, startLine, unit = 'line') {
+  const first = Number.isInteger(Number(startLine)) && startLine != null ? Number(startLine) : 1;
+  const last = first + count - 1;
+  for (const step of ranges) {
+    if (!/^[\d\s,-]+$/.test(step) || /^\s*0\s*$/.test(step)) continue; // `all`, `*`, `hide`, `0` (none)
+    const picks = step.split(',').some((part) => {
+      const [a, b = a] = part.split('-').map((n) => Number(n.trim()));
+      return Number.isFinite(a) && Number.isFinite(b) && a <= last && b >= first;
+    });
+    if (!picks)
+      return `the ${unit} range {${step}} is outside the ${unit}s shown (${first}-${last}${first !== 1 ? `, with startLine:${first}` : ''}), so it highlights no ${unit}; ranges use the numbers shown`;
+  }
+  return '';
+}

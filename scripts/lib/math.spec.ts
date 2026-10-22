@@ -1,4 +1,4 @@
-import { extractMath, renderMath, titleHtml } from './math.mjs';
+import { extractMath, mathRows, renderMath, titleHtml } from './math.mjs';
 import { hasMath } from './features.mjs';
 
 const found = (md: string) => extractMath(md) as { markdown: string; maths: any[] };
@@ -87,5 +87,23 @@ describe('titleHtml', () => {
     expect(html).toContain('</strong>');
     expect(html).toContain('class="katex"');
     expect(html).not.toContain('**');
+  });
+});
+
+describe('math row steps', () => {
+  const aligned = '\\begin{aligned}\na &= 1 \\\\\nb &= 2\n\\end{aligned}';
+  it('counts the rows of the environment', () => {
+    expect(mathRows(aligned)).toBe(2);
+    expect(mathRows('a = 1')).toBe(0);
+  });
+  it('warns about a step outside the rows, as for code', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    renderMath({ block: true, latex: aligned, ranges: '1|2|all' }, () => 'slide 4: ');
+    expect(warn).not.toHaveBeenCalled();
+    renderMath({ block: true, latex: aligned, ranges: '1|5' }, () => 'slide 4: ');
+    expect(warn).toHaveBeenCalledWith(
+      '[slides] slide 4: math: the row range {5} is outside the rows shown (1-2), so it highlights no row; ranges use the numbers shown',
+    );
+    warn.mockRestore();
   });
 });

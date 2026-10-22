@@ -474,7 +474,8 @@ $$ {1|2|all}
 $$
 ```
 
-`{1|2|all}` after the opening `$$` steps through the formula's lines with clicks (the same range syntax as code). Inside math, `{{` is math, never
+`{1|2|all}` after the opening `$$` steps through the formula's lines with clicks (the same range syntax as code; the lines are the rows of its
+environment, split by `\\`, and a step that picks none of them gets a warning, as for code). Inside math, `{{` is math, never
 an interpolation. KaTeX's CSS and fonts are only part of the build when a deck uses math. `mhchem` is not loaded.
 
 ## Diagrams

@@ -2,7 +2,7 @@
 // The wrapper (src/app/code/code-block-wrapper.ts) adds the copy button, the title bar, the
 // click-stepped line highlights and the maximum height.
 import { codeToHtml, twoslashTransformer, warnSlidePrefix } from './highlighter.mjs';
-import { cleanTitle, parseInfo } from './meta.mjs';
+import { cleanTitle, parseInfo, rangeOutside } from './meta.mjs';
 import { titleIcon, warnTitleIcon } from './title-icon.mjs';
 import { attrs, protect } from '../protect.mjs';
 
@@ -80,18 +80,7 @@ export function twoslashReason(e) {
  * @param {string[]} ranges @param {string} code @param {unknown} [startLine]
  */
 export function rangeOutsideLines(ranges, code, startLine) {
-  const first = Number.isInteger(Number(startLine)) && startLine != null ? Number(startLine) : 1;
-  const last = first + code.replace(/\n$/, '').split('\n').length - 1;
-  for (const step of ranges) {
-    if (!/^[\d\s,-]+$/.test(step) || /^\s*0\s*$/.test(step)) continue; // `all`, `*`, `hide`, `0` (no line)
-    const picks = step.split(',').some((part) => {
-      const [a, b = a] = part.split('-').map((n) => Number(n.trim()));
-      return Number.isFinite(a) && Number.isFinite(b) && a <= last && b >= first;
-    });
-    if (!picks)
-      return `the line range {${step}} is outside the lines shown (${first}-${last}${first !== 1 ? `, with startLine:${first}` : ''}), so it highlights no line; ranges use the numbers shown`;
-  }
-  return '';
+  return rangeOutside(ranges, code.replace(/\n$/, '').split('\n').length, startLine, 'line');
 }
 
 // `ctx.headmatter` gives the deck-wide defaults (`lineNumbers`, `codeCopy`).

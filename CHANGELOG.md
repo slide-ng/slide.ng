@@ -145,6 +145,7 @@ Node (22.22.3 or newer) and Angular (22.2) are the same as in 1.x. These changes
 - The dev server's "watching" line names the deck's own folders (`layouts`, `components`, ...) and its themes, instead of `src/app`, which in an installed package is inside `node_modules`.
 - A `<<<` snippet that is not found in a file imported with `src:` says that its path starts at that file, and gives the `@/` path when the file is in the deck's folder.
 - The "Code snippet not found" warning and KaTeX's warnings (`\\` does nothing in display mode, ...) name the slide and the file and line they come from (`slide 5 (parts/generics.md:12): ...`).
+- A step of a math block's ranges (`$$ {1|5}`) that picks none of the formula's rows gets a warning, as code blocks do.
 - A step of a code block's line ranges that picks none of the numbers shown (`{3-5}` with `startLine:10`) gets a warning; it dimmed every line without a word.
 - `dev` on a deck whose first Angular build fails serves a page with the error on the port, instead of nothing (connection refused); an open tab loads the slides by itself once the build works. A page opened or reloaded while a build is broken shows Angular's error overlay again; it was sent only to the pages open at the time.
 - `e` in `npm run dev` or `npx slide-ng dev` opens `code` when it is installed instead of always vi: npm sets `EDITOR=vi` (`notepad.exe` on Windows) for the programs it starts, and that value now counts as unset there. `$VISUAL` and an `EDITOR` of your own still win.
