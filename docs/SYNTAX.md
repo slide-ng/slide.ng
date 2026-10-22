@@ -74,7 +74,8 @@ Other keys are kept in the slide's metadata and ignored, unless a theme or a com
 
 Messages start with the file and line they are about (`slides.md:12: ...`), or with the slide (`[slides] slide 4: ...`); a
 warning keeps the deck running, an error stops the build (in the dev server a red banner or Angular's error overlay shows the
-message and the last good slides stay on screen until the file is fixed; when the very first build fails, the page shows the error
+message, the same after a reload as in the terminal, and the last good slides stay on screen until the file is fixed; an error
+of the generator that comes while an Angular error stands replaces it in the overlay; when the very first build fails, the page shows the error
 and opens the slides by itself once it is fixed). The usual YAML slips in a frontmatter, and what the message says:
 
 - a value with `: ` in it, `title: Part 2: the plan`, reads as a second key: quote it, `title: "Part 2: the plan"`;
@@ -87,7 +88,7 @@ and opens the slides by itself once it is fixed). The usual YAML slips in a fron
 
 A mistyped name gets the nearest real one: `layout: image-rigth` ("Did you mean "image-right"?"), `<slide-ng-tocc />` or
 `slide-ng-clik` (any unknown `slide-ng-*` element or attribute is a warning), a command or a flag of the CLI. Angular's own
-errors name the slide and its line in `slides.md`; for an unknown element (`'my-countr' is not a known element`) the message
+errors name the slide and the line of `slides.md` that the error is on (the slide's `---` line when the text at fault is not in the markdown as written); for an unknown element (`'my-countr' is not a known element`) the message
 names a component or built-in element that is one or two letters away, or else asks whether its file is in `components/`,
 says how to import it in a layout or component, or how to list a web component in `customElements` (Angular's "Can't bind to"
 errors for that element are left out). An element left open (`<div>`, or `<span>` in a line of text, without its closing tag), a closing tag

@@ -1,4 +1,4 @@
-import { showStandingBuildError } from './build-error';
+import { overlayContent, showStandingBuildError } from './build-error';
 import { DevApi } from './dev-api';
 
 class FakeOverlay extends HTMLElement {
@@ -25,5 +25,21 @@ describe('showStandingBuildError', () => {
     await showStandingBuildError(api('one'));
     expect(await showStandingBuildError(api('two'))).toBe(false);
     expect(document.querySelectorAll('vite-error-overlay')).toHaveLength(1);
+  });
+});
+
+describe('overlayContent', () => {
+  it("puts the generator's error first while the last good slides are kept", () => {
+    expect(
+      overlayContent({ error: 'NG8001: x', file: 'f', problem: 'slide 2: <div> is never closed' }),
+    ).toEqual({
+      message: 'slide 2: <div> is never closed',
+      file: '',
+    });
+    expect(overlayContent({ error: 'NG8001: x', file: 'f', problem: '' })).toEqual({
+      message: 'NG8001: x',
+      file: 'f',
+    });
+    expect(overlayContent({ error: '', problem: 'slide 2: x' })).toBeNull();
   });
 });

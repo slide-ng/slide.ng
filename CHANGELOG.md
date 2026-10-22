@@ -168,6 +168,9 @@ Node (22.22.3 or newer) and Angular (22.2) are the same as in 1.x. These changes
 - The docs in the package link to the example themes, the tests and SECURITY.md on GitHub; those files are not in the package, so the relative links led nowhere.
 - A quote that is never closed in the headmatter or a frontmatter, `title: 'Feature flags`, is named in plain words on the line that opens it; the message gave the YAML parser's words ("Missing closing 'quote") and the last line of the block.
 - A frontmatter that lost its closing `---` no longer swallows a slide without a word: a heading that became a YAML comment (`layout: section`, an empty line, `# Part 1`) gets a warning with its line, and so does a last slide's `layout: end` shown as text; `format` leaves such a file as it is.
+- Angular's errors in a slide name the line of the markdown they are on (`<flag-badgee>` on line 26 says `slides.md:26`), or else the slide's `---` line; they named the line before the slide.
+- The dev server's error overlay reads the same live and after a reload, as the terminal does: with the did-you-mean and the line, named once (a reload repeated it and added "✘ [ERROR]" and "[plugin angular-compiler]").
+- A generator error (an unclosed `<div>`, say) that comes while an Angular error stands is shown in the overlay; the overlay kept the Angular error the author had fixed already, and the banner did not show.
 
 ### Security
 

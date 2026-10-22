@@ -10,13 +10,7 @@ import { preparserExtensions } from './setup/node-setups.mjs';
 import { themeConfigVars } from './theme-config.mjs';
 import { describeYamlError } from './yaml-errors.mjs';
 import { frontmatterSlip } from './frontmatter-slips.mjs';
-
-/**
- * The line (from 1) a slide starts on in its file: its `---`. The parser's `start` (from 0) is that line for a slide with
- * frontmatter, and the line after the `---` for one without.
- */
-export const slideLine = (source) =>
-  Math.max(1, source ? (source.contentStart > source.start ? source.start + 1 : source.start) : 1);
+import { slideLine } from './slide-line.mjs';
 
 // `sources` is optional: a { path: text } map that replaces reading files (used by tests).
 // `options.theme` is the `--theme` flag. The result has `roots` (theme, addons, the deck's own folder) and a headmatter

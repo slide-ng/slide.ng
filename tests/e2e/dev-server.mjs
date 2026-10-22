@@ -637,6 +637,78 @@ try {
     `${keptOnEntry} ${read().slice(-80)}`,
   );
 
+  // ---- the error overlay: the same text live and after a reload (with the did-you-mean and the markdown line of the
+  // error), and a generator error that comes after an Angular one replaces it
+  {
+    const good = read();
+    const shown = (p) =>
+      p
+        .evaluate(() => {
+          const r = document.querySelector('vite-error-overlay')?.shadowRoot;
+          return r
+            ? {
+                message: r.querySelector('.message-body')?.textContent ?? '',
+                file: r.querySelector('.file')?.textContent ?? '',
+              }
+            : null;
+        })
+        .catch(() => null);
+    const waitShown = async (p, test) => {
+      for (let i = 0; i < 120; i++) {
+        const s = await shown(p);
+        if (s && test(s)) return s;
+        await sleep(500);
+      }
+      return shown(p);
+    };
+    const errPage = await open(browser, `${base}/2`);
+    writeFileSync(
+      WORK,
+      good.replace('\n\n---\n\n# Three', '\n\n<slide-ng-tocc />\n\n---\n\n# Three'),
+    );
+    const unknown = (s) => s.message.includes('(did you mean <slide-ng-toc>?)');
+    const live = await waitShown(errPage, unknown);
+    t.ok(
+      'error overlay: an Angular error names the markdown line of the error, once, with the did-you-mean',
+      live &&
+        unknown(live) &&
+        live.file.endsWith('(slide 2, work.md:23)') &&
+        live.file.split('(slide').length === 2,
+      JSON.stringify(live),
+    );
+    await errPage.reload();
+    const reloaded = await waitShown(errPage, unknown);
+    t.ok(
+      'error overlay: after a reload it reads as it did live',
+      JSON.stringify(reloaded) === JSON.stringify(live),
+      `${JSON.stringify(reloaded)} vs ${JSON.stringify(live)}`,
+    );
+    writeFileSync(
+      WORK,
+      good.replace('\n\n---\n\n# Three', '\n\n<div class="mt-2">\n\nOpen\n\n---\n\n# Three'),
+    );
+    const unclosed = (s) => /slide 2: <div class="mt-2"> is never closed/.test(s.message);
+    const generator = await waitShown(errPage, unclosed);
+    t.ok(
+      'error overlay: a generator error after an Angular one replaces it',
+      generator && unclosed(generator) && !generator.message.includes('slide-ng-tocc'),
+      JSON.stringify(generator),
+    );
+    await errPage.reload();
+    const generatorReloaded = await waitShown(errPage, unclosed);
+    t.ok(
+      'error overlay: the generator error also shows after a reload',
+      generatorReloaded && unclosed(generatorReloaded),
+      JSON.stringify(generatorReloaded),
+    );
+    writeFileSync(WORK, good);
+    await errPage.waitForFunction(() => !document.querySelector('vite-error-overlay'), null, {
+      timeout: 60000,
+    });
+    await errPage.close();
+    await sleep(3000);
+  }
+
   // ---- bad requests, through the proxy
   const drag = (headers, extra = {}) =>
     api(PORT, '/slides/2/drag', {

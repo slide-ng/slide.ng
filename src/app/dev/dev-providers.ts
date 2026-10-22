@@ -8,7 +8,7 @@ import {
 import { ROOT_DIRS, SLIDE_SOURCES } from '../../slides/generated/source-paths';
 import { DRAG_SAVER } from '../drag/drag-state';
 import { SYNC_TRANSPORTS } from '../sync/transport';
-import { showStandingBuildError } from './build-error';
+import { StandingError, showStandingBuildError } from './build-error';
 import { DevApi } from './dev-api';
 import { watchErrorOverlay } from './error-overlay-paths';
 import { WebSocketTransport } from './ws-transport';
@@ -17,8 +17,11 @@ import { WebSocketTransport } from './ws-transport';
 // A production build replaces this file with dev-providers.prod.ts (angular.json), so none of it is in a static site.
 export const DEV_PROVIDERS: (Provider | EnvironmentProviders)[] = isDevMode()
   ? [
-      // The dev server's error overlay names the author's files, not the generated copies.
-      provideEnvironmentInitializer(() => watchErrorOverlay(ROOT_DIRS, SLIDE_SOURCES)),
+      // The dev server's error overlay names the author's files, not the generated copies, and reads as the terminal does.
+      provideEnvironmentInitializer(() => {
+        const api = inject(DevApi);
+        watchErrorOverlay(ROOT_DIRS, SLIDE_SOURCES, () => api.get<StandingError>('/build-error'));
+      }),
       // A build error that stands when the page opens or reloads is shown again (Angular sends it only once).
       provideEnvironmentInitializer(() => void showStandingBuildError(inject(DevApi))),
       {

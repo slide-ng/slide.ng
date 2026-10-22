@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { angularOutput, withSlideSources } from './runtime.mjs';
+import { angularOutput, overlayError, withSlideSources } from './runtime.mjs';
 
 describe('withSlideSources', () => {
   it("adds the markdown file and line to Angular's errors about a generated slide", () => {
@@ -17,6 +17,37 @@ describe('withSlideSources', () => {
     expect(withSlideSources('src/slides/generated/slide-009.ts:1:1', app)).toBe(
       'src/slides/generated/slide-009.ts:1:1',
     );
+  });
+  it('names the line of the markdown the error comes from, and adds the place once', () => {
+    const app = mkdtempSync(join(tmpdir(), 'slide-ng-runtime-'));
+    mkdirSync(join(app, 'src/slides/generated'), { recursive: true });
+    const md = join(app, 'slides.md');
+    writeFileSync(
+      md,
+      '---\ntitle: t\n---\n\n# One\n\n---\nlayout: center\n---\n\n<flag-badgee a="1" />\n\n<flag-badgee b="2" />\n',
+    );
+    const template = JSON.stringify(
+      '<sn-center><flag-badgee a="1" /><flag-badgee b="2" /></sn-center>',
+    );
+    writeFileSync(
+      join(app, 'src/slides/generated/slide-002.ts'),
+      `// GENERATED from slides.md:7 (slide 2) - do not edit\n// LINES ${JSON.stringify({ file: md, from: 6, to: 14 })}\nimport x;\n  template: ${template},\n`,
+    );
+    const line4 = `  template: ${template},`;
+    const at = (html: string) => line4.indexOf(JSON.stringify(html).slice(1, -1));
+    expect(
+      withSlideSources(`src/slides/generated/slide-002.ts:4:${at('<flag-badgee b')}:`, app),
+    ).toBe(`src/slides/generated/slide-002.ts:4:${at('<flag-badgee b')} (slide 2, slides.md:13):`);
+    expect(
+      withSlideSources(`src/slides/generated/slide-002.ts:4:${at('<flag-badgee a')}`, app),
+    ).toBe(`src/slides/generated/slide-002.ts:4:${at('<flag-badgee a')} (slide 2, slides.md:11)`);
+    // Outside the template (or text the markdown does not have): the slide's --- line.
+    expect(withSlideSources('src/slides/generated/slide-002.ts:3:1', app)).toBe(
+      'src/slides/generated/slide-002.ts:3:1 (slide 2, slides.md:7)',
+    );
+    // Text that names the place already is left alone (the page's overlay gets it from the terminal's text).
+    const named = 'src/slides/generated/slide-002.ts:3:1 (slide 2, slides.md:7)';
+    expect(withSlideSources(named, app)).toBe(named);
   });
   it("names the author's own file for an error in a copied theme or deck file", () => {
     const app = mkdtempSync(join(tmpdir(), 'slide-ng-runtime-'));
@@ -53,6 +84,28 @@ describe('withSlideSources', () => {
     expect(error('risk-meter')).toContain(
       "(a component of the deck: is its file in components/, with selector 'risk-meter'?",
     );
+  });
+});
+
+describe('overlayError', () => {
+  it("splits the terminal's error block into the overlay's message and file line", () => {
+    const block = [
+      "✘ [ERROR] NG8001: 'flag-badgee' is not a known element: (did you mean <flag-badge>?)",
+      "1. If 'flag-badgee' is an Angular component, then ... Find more at https://next.angular.dev/errors/NG8001 [plugin angular-compiler]",
+      '',
+      '    /d/.slide-ng/app/src/slides/generated/slide-005.ts:11:450 (slide 5, slides.md:68):',
+      '      11 │ ...</table>\\n<flag-badgee name=\\"checkout-v2\\" /></sn...',
+      '         ╵              ~~~~~~~~~~~~~~~~~~~~~',
+    ].join('\n');
+    expect(overlayError(block)).toEqual({
+      message:
+        "NG8001: 'flag-badgee' is not a known element: (did you mean <flag-badge>?)\n1. If 'flag-badgee' is an Angular component, then ... Find more at https://next.angular.dev/errors/NG8001",
+      file: '/d/.slide-ng/app/src/slides/generated/slide-005.ts:11:450 (slide 5, slides.md:68)',
+    });
+    expect(overlayError('✘ [ERROR] Could not resolve "x"')).toEqual({
+      message: 'Could not resolve "x"',
+      file: '',
+    });
   });
 });
 

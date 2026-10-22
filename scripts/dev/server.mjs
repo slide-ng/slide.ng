@@ -46,7 +46,10 @@ if (self && process.argv[1] && self === real(process.argv[1])) {
   // can show the error again (GET /build-error); Angular sends it only once, to the pages open at the time.
   process.on('message', (m) => {
     if (m && typeof m === 'object' && 'buildError' in m)
-      ctx.buildError = typeof m.buildError === 'string' ? m.buildError : '';
+      ctx.buildError =
+        m.buildError && typeof m.buildError.message === 'string'
+          ? { message: m.buildError.message, file: String(m.buildError.file ?? '') }
+          : null;
   });
   const { port } = await startServer(ctx);
   console.log(

@@ -23,7 +23,7 @@ import { packageRoot } from './package-root.mjs';
 import { askPassword } from './prompt.mjs';
 import { editorCommand, keyHint, listenForKeys, openCommand, startProgram } from './dev-keys.mjs';
 import { remoteLines, remoteQrLines } from './remote-info.mjs';
-import { angularOutput, withSlideSources } from './runtime.mjs';
+import { angularOutput, overlayError, withSlideSources } from './runtime.mjs';
 import { watchChildren } from './watch-children.mjs';
 
 export const DEV_FLAGS = {
@@ -194,7 +194,7 @@ export async function devCommand(argv) {
         });
       if (error) {
         waiting?.show(error);
-        tellCompanion({ buildError: error });
+        tellCompanion({ buildError: overlayError(error) });
       }
     };
     const children = [

@@ -22,6 +22,7 @@ import { localAssets } from './local-assets.mjs';
 import { slideImages } from './slide-images.mjs';
 import { expandGroups } from './uno-directives.mjs';
 import { checkClickValues, clickSettings } from './click-values.mjs';
+import { slideLine } from './slide-line.mjs';
 
 const pad = (no) => String(no).padStart(3, '0');
 export const slideName = (no) => `slide-${pad(no)}`;
@@ -349,11 +350,15 @@ export function slideSource(slide, no, deck = {}) {
     );
   const styles = scopeCss(rebaseCss(css, base), slideName(no));
 
-  // Where the slide is in the markdown: the build runner adds it to Angular's errors (cli/runtime.mjs).
+  // Where the slide is in the markdown (its `---` line): the build runner adds it to Angular's errors (cli/runtime.mjs). The
+  // second line gives the lines of the slide, so an error in the template can name the line of the markdown it comes from.
   const where = slide.source
-    ? `${relative(deck.root ?? dirname(slide.source.filepath), slide.source.filepath) || 'slides.md'}:${Math.max(1, slide.source.start)}`
+    ? `${relative(deck.root ?? dirname(slide.source.filepath), slide.source.filepath) || 'slides.md'}:${slideLine(slide.source)}`
     : 'slides.md';
-  return `// GENERATED from ${where} (slide ${no}) - do not edit
+  const lines = slide.source
+    ? `\n// LINES ${JSON.stringify({ file: slide.source.filepath, from: slide.source.start, to: slide.source.end })}`
+    : '';
+  return `// GENERATED from ${where} (slide ${no}) - do not edit${lines}
 import { ${schema ? 'CUSTOM_ELEMENTS_SCHEMA, ' : ''}Component${styles ? ', ViewEncapsulation' : ''} } from '@angular/core';
 import { CLICKS_START, CLICKS_TOTAL, ClicksContext } from '../../app/lib/clicks';
 import { SlideBase } from '../../app/lib/slide-base';
