@@ -2,6 +2,7 @@
 // refused". `slide-ng dev` serves this page on the port meanwhile: it shows the error and reloads itself as soon as the
 // slides are served (wait-for-port.mjs makes the Angular server ask this page to step aside first).
 import { createServer } from 'node:http';
+import { hostAllowed } from './auth.mjs';
 
 const escape = (text) =>
   text.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -45,7 +46,13 @@ setInterval(async () => {
 export function startWaitingPage({ port, host, remote, secret, onRelease }) {
   let error = '';
   let closed = false;
+  const hostnames = (process.env.SLIDE_NG_HOSTNAMES ?? '').split(',').filter(Boolean);
   const server = createServer((req, res) => {
+    // The same Host check as the rest of the dev server: a DNS rebinding page must not read the error (it names files).
+    if (!hostAllowed(req.headers.host, { remote, hostnames })) {
+      res.writeHead(403).end();
+      return;
+    }
     if (req.url === '/__slide-ng-release' && req.method === 'POST') {
       if (req.headers['x-slide-ng-wait'] !== secret) {
         res.writeHead(403).end();
