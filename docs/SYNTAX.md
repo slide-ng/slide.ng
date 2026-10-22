@@ -153,7 +153,8 @@ All layouts of Slidev, with the same names and props (pictures of each are in [`
 
 `image` is an address or a colour for the background. `image: /photo.png` is the file `public/photo.png`: the `public/`
 folder is the site's root, so the address has no `/public` in it (the generator warns about `/public/photo.png` and about a
-picture that `public/` does not have). An unknown layout name prints a warning that names the nearest layout, lists the names
+picture that `public/` does not have, and about a relative one, `./logo.png`, that is neither next to the markdown file nor in
+`public/`). An unknown layout name prints a warning that names the nearest layout, lists the names
 and uses `default`.
 
 ### Slots: `::name::`

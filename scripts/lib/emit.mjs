@@ -246,6 +246,12 @@ export function slideSource(slide, no, deck = {}) {
       slide.frontmatter,
       no,
       deck.roots.map((r) => join(r.dir, 'public')),
+      {
+        file: slide.file ?? slide.source?.filepath,
+        name:
+          (slide.file ?? slide.source?.filepath) &&
+          (relative(deck.root ?? '.', slide.file ?? slide.source.filepath) || 'slides.md'),
+      },
     );
   const base = deck.assetBase ?? '/'; // where the deck is served from in a build; `/public` files get it in front
   // Variant groups (`hover:(a b)`) are expanded, as Slidev's transformerVariantGroup does.

@@ -564,6 +564,31 @@ describe('slideSource: pictures that public/ does not have', () => {
       '[slides] slide 2: "/public/img/logo.png" names the public/ folder, which is the site\'s root: write "/img/logo.png"',
     ]);
   });
+  it('warns about a relative address that is neither next to the markdown nor in public/', () => {
+    writeFileSync(join(root, 'here.png'), 'png');
+    const relative = (frontmatter: Record<string, unknown>, md: string) => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      slideSource({ ...slide(frontmatter, md), file: join(root, 'slides.md') }, 2, {
+        root,
+        roots: [{ dir: root }],
+      });
+      const calls = warn.mock.calls.map((c) => String(c[0]));
+      warn.mockRestore();
+      return calls;
+    };
+    expect(
+      relative(
+        {},
+        '![](./here.png) ![](./img/logo.png) ![](./logo.png)\n\n<img src="./pics/team.jpg">\n\n`<img src="./x.png">`',
+      ),
+    ).toEqual([
+      '[slides] slide 2: the picture "./logo.png" is not found (a relative address starts at the folder of slides.md)',
+      '[slides] slide 2: the picture "./pics/team.jpg" is not found (a relative address starts at the folder of slides.md)',
+    ]);
+    expect(relative({ layout: 'image-right', image: './gone.png' }, '# A')).toEqual([
+      expect.stringContaining('the picture "./gone.png" is not found'),
+    ]);
+  });
   it('leaves remote pictures and code samples alone', () => {
     expect(
       warnings(
