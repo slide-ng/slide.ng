@@ -1327,4 +1327,7 @@ pages/demo.md
 
 Build each into its own folder: `slide-ng build slides.md --out dist/en` and `slide-ng build slides.tr.md --out dist/tr`. `--lang tr`
 (for `dev`, `build` and `export`) sets `lang` for one run without changing the file; it also replaces `uiLang`, so the interface follows it.
+`--lang` is meant for slides written in that language: it also sets `<html lang>` and the PDF's `/Lang`, so `--lang en` on a Turkish deck tells
+screen readers and PDF readers that the Turkish text is English. To change only the interface's language, set `uiLang: en` in the
+headmatter instead; the slides keep `lang: tr`.
 An existing build keeps its language: `export --dist` and `export --url` refuse `--lang`.
