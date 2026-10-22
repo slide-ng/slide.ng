@@ -114,6 +114,29 @@ describe('parseDeck: a slide that starts right after ---', () => {
     );
     expect(problems).toEqual([]);
   });
+  it('warns when a missing closing --- turns a heading into a YAML comment', async () => {
+    const { problems, slides } = await parse(
+      '# Z\n\n---\nlayout: section\n\n# Part 1: Basics\n\n---\n\n# Next\n',
+    );
+    expect(slides).toHaveLength(2);
+    expect(problems).toEqual([
+      '/deck/slides.md:6: slide 2: "# Part 1: Basics" is in the frontmatter, where it is a YAML comment and is not shown; if it is the slide\'s text, the "---" that ends the frontmatter is missing above it',
+    ]);
+  });
+  it("warns when a last slide's frontmatter has no closing --- and shows as text", async () => {
+    const { problems } = await parse('# Z\n\n---\nlayout: end\n');
+    expect(problems).toEqual([
+      '/deck/slides.md:4: slide 2: "layout: end" is shown as the slide\'s text; to make it frontmatter, end it with a "---" line',
+    ]);
+    // After an empty line, it is text on purpose.
+    expect((await parse('# Z\n\n---\n\nlayout: end\n')).problems).toEqual([]);
+  });
+  it('names the --- line of the slide', async () => {
+    const { problems } = await parse(
+      '# Z\n\n---\nlayout: center\n---\n\n# A\n\n---\n# Slide A\n\nText\n\n---\n\n# C\n',
+    );
+    expect(problems.join()).toContain('slides.md:9: slide 3: the lines after');
+  });
   it('drops the --- of a last slide written without a blank line', async () => {
     const { slides } = await parse('# A\n\n---\n# B\n');
     expect(slides.at(-1)!.content).toBe('# B');

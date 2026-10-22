@@ -6,6 +6,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { parse, prettify, stringify } from '@slidev/parser/fs';
 import { parseFlags } from './flags.mjs';
+import { frontmatterSlip } from '../lib/frontmatter-slips.mjs';
 import { describeYamlError } from '../lib/yaml-errors.mjs';
 
 /** The formatted text of a markdown deck. Throws when formatting would change the number of slides. */
@@ -25,6 +26,22 @@ export async function formatMarkdown(text, filepath = 'slides.md') {
     throw new Error(
       `${filepath}:${line}: the ${i === 0 ? 'headmatter' : `frontmatter of slide ${i + 1}`} is not valid YAML: ${message}; fix it and format again (the file is left as it is)`,
     );
+  });
+  // A frontmatter that lost its closing `---` is valid YAML, but printing it again would make the slip harder to see.
+  const lines = text.split(/\r?\n/);
+  parsed.slides.forEach((slide, i) => {
+    const value = slide.frontmatterDoc?.toJS?.();
+    const slip = frontmatterSlip({
+      raw: slide.frontmatterRaw ?? '',
+      keys: value != null && typeof value === 'object' && Object.keys(value).length > 0,
+      content: slide.content.replace(/^---[ \t]*\n/, ''),
+      start: slide.start,
+      lines,
+    });
+    if (slip)
+      throw new Error(
+        `${filepath}:${slip.line}: slide ${i + 1}: ${slip.message}; fix it and format again (the file is left as it is)`,
+      );
   });
   // A last slide written `---` then `# B` keeps the `---` in its content; printed again it would make an empty slide.
   for (const slide of parsed.slides) slide.content = slide.content.replace(/^---[ \t]*\n/, '');

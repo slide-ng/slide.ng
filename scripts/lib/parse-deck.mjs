@@ -9,6 +9,14 @@ import { mergeHeadmatter, resolveRoots } from './roots.mjs';
 import { preparserExtensions } from './setup/node-setups.mjs';
 import { themeConfigVars } from './theme-config.mjs';
 import { describeYamlError } from './yaml-errors.mjs';
+import { frontmatterSlip } from './frontmatter-slips.mjs';
+
+/**
+ * The line (from 1) a slide starts on in its file: its `---`. The parser's `start` (from 0) is that line for a slide with
+ * frontmatter, and the line after the `---` for one without.
+ */
+export const slideLine = (source) =>
+  Math.max(1, source ? (source.contentStart > source.start ? source.start + 1 : source.start) : 1);
 
 // `sources` is optional: a { path: text } map that replaces reading files (used by tests).
 // `options.theme` is the `--theme` flag. The result has `roots` (theme, addons, the deck's own folder) and a headmatter
@@ -122,6 +130,16 @@ export async function parseDeck(file = 'slides.md', sources, options = {}) {
     );
   });
 
+  const read = new Map();
+  const fileLines = (path) => {
+    if (!read.has(path))
+      try {
+        read.set(path, (sources?.[path] ?? readFileSync(path, 'utf8')).split(/\r?\n/));
+      } catch {
+        read.set(path, []);
+      }
+    return read.get(path);
+  };
   // `---` straight followed by `# Title` and text reads the lines up to the next `---` as frontmatter, as in Slidev; they are
   // not `key: value` pairs, so the slide's text is lost. Say so.
   data.slides.forEach((slide, i) => {
@@ -134,10 +152,22 @@ export async function parseDeck(file = 'slides.md', sources, options = {}) {
       (value != null && typeof value !== 'object') ||
       (!hasKeys &&
         raw.split('\n').some((l) => /^#{1,6}\s+\S/.test(l) && !/^#\s*[\w-]+\s*:/.test(l)));
-    if (!text) return;
+    const file = slide.source?.filepath ?? entry;
+    if (!text) {
+      // A frontmatter with keys that lost its closing `---`, or a last slide's frontmatter that never had one.
+      const slip = frontmatterSlip({
+        raw,
+        keys: hasKeys,
+        content: slide.content.replace(/^---[ \t]*\n/, ''),
+        start: slide.source?.start ?? 0,
+        lines: fileLines(file),
+      });
+      if (slip) problems.push(`${file}:${slip.line}: slide ${i + 1}: ${slip.message}`);
+      return;
+    }
     const first = raw.split('\n').find((l) => l.trim()) ?? '';
     problems.push(
-      `${slide.source?.filepath ?? entry}:${Math.max(1, slide.source?.start ?? 1)}: slide ${i + 1}: the lines after "---" (${first.trim().slice(0, 40)}) were read as frontmatter, so they are not shown; put an empty line after "---" to start a slide with text`,
+      `${file}:${slideLine(slide.source)}: slide ${i + 1}: the lines after "---" (${first.trim().slice(0, 40)}) were read as frontmatter, so they are not shown; put an empty line after "---" to start a slide with text`,
     );
   });
 

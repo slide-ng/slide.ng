@@ -60,6 +60,12 @@ describe('formatMarkdown', () => {
       /^talk\.md:9: the frontmatter of slide 2 is not valid YAML: the value of "foo" has ": " in it, which reads as a second key; put it in quotes: foo: "a: b"; fix it and format again/,
     );
   });
+  it('leaves a frontmatter that lost its closing --- for the author to fix', async () => {
+    const text = '---\ntitle: t\n---\n\n# A\n\n---\nlayout: section\n\n# Part 1\n\n---\n\n# B\n';
+    await expect(formatMarkdown(text, 'talk.md')).rejects.toThrow(
+      /^talk\.md:10: slide 2: "# Part 1" is in the frontmatter, where it is a YAML comment/,
+    );
+  });
   it('says what is wrong in the words dev and build use', async () => {
     await expect(
       formatMarkdown('---\ntitle: a\ntitle: b\n---\n\n# A\n', 'talk.md'),

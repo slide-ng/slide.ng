@@ -81,6 +81,9 @@ and opens the slides by itself once it is fixed). The usual YAML slips in a fron
 - a line indented with a tab: YAML needs spaces;
 - a quote that is never closed, `title: 'Feature flags`: the message names the line that opens it;
 - a missing closing `---`: the slide's text is read as YAML, and the message names the first line that is not `key: value`.
+  A heading alone is a YAML comment there, not an error, so `layout: section`, an empty line and `# Part 1` get a warning that
+  names the heading (the slide after it would otherwise take the section's layout); `format` leaves such a file as it is. A last
+  slide written `---` and `layout: end` with no closing `---` shows "layout: end" as its text, also with a warning.
 
 A mistyped name gets the nearest real one: `layout: image-rigth` ("Did you mean "image-right"?"), `<slide-ng-tocc />` or
 `slide-ng-clik` (any unknown `slide-ng-*` element or attribute is a warning), a command or a flag of the CLI. Angular's own

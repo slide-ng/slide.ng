@@ -167,6 +167,7 @@ Node (22.22.3 or newer) and Angular (22.2) are the same as in 1.x. These changes
   - `<slide-ng-progress-bar>` no longer gets the "not a slide.ng name" warning, `{{ $nav.previousNo }}` gets the uncalled-signal warning, a markdown link to `./overview`, `./entry` or `./notes-edit` no longer gets the dead-link warning, and `slide-ng-click="[2, 4]"` is checked as a range instead of being reported as text.
 - The docs in the package link to the example themes, the tests and SECURITY.md on GitHub; those files are not in the package, so the relative links led nowhere.
 - A quote that is never closed in the headmatter or a frontmatter, `title: 'Feature flags`, is named in plain words on the line that opens it; the message gave the YAML parser's words ("Missing closing 'quote") and the last line of the block.
+- A frontmatter that lost its closing `---` no longer swallows a slide without a word: a heading that became a YAML comment (`layout: section`, an empty line, `# Part 1`) gets a warning with its line, and so does a last slide's `layout: end` shown as text; `format` leaves such a file as it is.
 
 ### Security
 
