@@ -1,5 +1,6 @@
 // A mistyped click animation preset (`slide-ng-click.fadee`, `clickAnimation: scael`) only loses its animation, without a
-// word. Warn when a preset is one or two letters away from a built-in one and no CSS of the deck or its themes defines it
+// word. Warn when a preset is one or two letters away from a built-in one (or from the `hide` modifier) and no CSS of the
+// deck or its themes defines it
 // (a preset of your own is the class `slidev-vclick-anim-<name>`, docs/SYNTAX.md "Click animation presets").
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
@@ -57,11 +58,14 @@ export function presetProblems({ markup, frontmatter = {}, headmatter = {}, css 
   const problems = [];
   for (const name of used) {
     if (BUILTIN_PRESETS.includes(name) || own.has(name)) continue;
-    const near = nearest(name, BUILTIN_PRESETS);
-    if (near && !said.has(name) && said.add(name))
-      problems.push(
-        `the click animation preset "${name}" is not built in and no styles define .slidev-vclick-anim-${name}, so it has no animation. Did you mean "${near}"?`,
-      );
+    // `.hide` is a modifier, not a preset: a typo of it (`.hidee`) shows the element at its click instead of hiding it.
+    const near = nearest(name, [...BUILTIN_PRESETS, 'hide']);
+    if (!near || said.has(name) || !said.add(name)) continue;
+    problems.push(
+      near === 'hide'
+        ? `the click modifier "${name}" is not "hide" or a built-in preset, and no styles define .slidev-vclick-anim-${name}, so the element is shown at its click instead of hidden. Did you mean "hide"?`
+        : `the click animation preset "${name}" is not built in and no styles define .slidev-vclick-anim-${name}, so it has no animation. Did you mean "${near}"?`,
+    );
   }
   return problems;
 }

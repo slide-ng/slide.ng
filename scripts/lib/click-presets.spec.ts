@@ -15,6 +15,11 @@ describe('presetProblems', () => {
       'Did you mean "scale"?',
     );
   });
+  it('warns about a mistyped hide modifier, which shows the element instead of hiding it', () => {
+    expect(presetProblems({ markup: '<div click-anim="hidee" slide-ng-click="2">' })).toEqual([
+      'the click modifier "hidee" is not "hide" or a built-in preset, and no styles define .slidev-vclick-anim-hidee, so the element is shown at its click instead of hidden. Did you mean "hide"?',
+    ]);
+  });
   it('says nothing for built-in presets, unrelated names, or presets the styles define', () => {
     expect(
       presetProblems({

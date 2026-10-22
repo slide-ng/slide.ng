@@ -310,7 +310,7 @@ clickAnimation: up
 Presets: `fade` (hidden is 0.5 opacity instead of invisible; until its click it is inert like any hidden element: screen readers skip it and its links and buttons take no focus or clicks), `fade-in` (a slower fade), `up`, `down`, `left`, `right` (20px away), `scale` (0.9),
 `none` (no transition). They work on `slide-ng-click`, `slide-ng-after` and `slide-ng-click-hide`. The element gets the class
 `slidev-vclick-anim-<name>`, so a preset of your own is CSS in `styles/index.css` (a name one or two letters away from a
-built-in one, `fadee`, gets a warning unless the styles define it):
+built-in one, `fadee`, or from the `hide` modifier, `hidee`, gets a warning unless the styles define it):
 
 ```css
 .slidev-vclick-anim-pop.slidev-vclick-hidden {
