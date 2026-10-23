@@ -8,6 +8,7 @@ import { EXPORT_FLAGS, resolveExportOptions } from '../export/options.mjs';
 import { serveDirectory } from '../export/static-server.mjs';
 import { addressMode, builtRouterMode } from '../lib/build-options.mjs';
 import { parseDeck } from '../lib/parse-deck.mjs';
+import { deckInLanguage } from '../lib/languages.mjs';
 import { applyLangFlag, applyThemeFlag, parseFlags } from './flags.mjs';
 import { checkToolDir, removeInside } from '../lib/tool-dir.mjs';
 import { checkDistinctOutputs, checkExportFlags, deckEntries } from './entries.mjs';
@@ -35,7 +36,8 @@ export async function exportCommand(argv, { notes = false } = {}) {
 
 async function planExport(entry, flags, notes) {
   checkToolDir(dirname(entry)); // before anything is written or removed under .slide-ng
-  const deck = await parseDeck(entry);
+  // `--lang tr` of a deck with `languages`: the PDF's outline and the file names are those of the Turkish slides.
+  const deck = await deckInLanguage(await parseDeck(entry), process.env.SLIDE_NG_LANG);
   const options = resolveExportOptions(flags, deck.headmatter);
   pagesToExport(deck, options.range); // a range that picks no slide fails now, not after the build
   const outBase = outputBase({

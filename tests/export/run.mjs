@@ -423,6 +423,27 @@ t.ok(
 );
 execFileSync(process.execPath, ['scripts/generate.mjs'], { stdio: 'ignore' });
 
+// ---- `languages:` in the headmatter: --lang picks the language of the slides that are exported
+const langDir = join(scratch, 'languages');
+mkdirSync(langDir, { recursive: true });
+for (const name of ['slides.md', 'slides.tr.md'])
+  writeFileSync(join(langDir, name), readFileSync(resolve('tests/e2e/i18n/languages', name)));
+r = slideNg('export --lang tr --output tr.pdf', { entry: join(langDir, 'slides.md') });
+const trText = text(join(r.dir, 'tr.pdf'));
+const trLang = (await PDFDocument.load(readFileSync(join(r.dir, 'tr.pdf')))).catalog
+  .lookup(PDFName.of('Lang'))
+  ?.decodeText();
+t.ok(
+  'export --lang tr of a deck with languages exports the Turkish slides',
+  trText.includes('Merhaba') &&
+    trText.includes('5 Mart 2026') &&
+    !trText.includes('Hello') &&
+    /Title:\s+Diller/.test(pdfInfo(join(r.dir, 'tr.pdf'))) &&
+    trLang === 'tr',
+  `${trLang} ${trText.replace(/\s+/g, ' ').slice(0, 120)}`,
+);
+execFileSync(process.execPath, ['scripts/generate.mjs'], { stdio: 'ignore' });
+
 // ---- a Mermaid diagram taller than the slide is clipped in the PDF, like on screen, not lost
 const tallDir = join(scratch, 'tall');
 mkdirSync(tallDir, { recursive: true });
