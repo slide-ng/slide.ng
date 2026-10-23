@@ -27,7 +27,7 @@ import { Settings } from './settings';
 import { SyncControls } from './sync-controls';
 import { presenterEnabled } from '../lib/switches';
 
-// The bar at the bottom left (Slidev's NavControls). The deck shows it only while the mouse is
+// The bar at the bottom left (Slidev's NavControls), or where `navPosition` puts it. The deck shows it only while the mouse is
 // over that corner; the presenter page always shows it (`persist`, no frame around it).
 @Component({
   selector: 'app-nav-bar',
@@ -228,7 +228,7 @@ import { presenterEnabled } from '../lib/switches';
         }
 
         @if (syncControls) {
-          <app-sync-controls />
+          <app-sync-controls [below]="menusBelow()" />
         }
 
         <div class="flex relative" #menu>
@@ -254,7 +254,9 @@ import { presenterEnabled } from '../lib/switches';
             <div
               #settingsMenu
               id="settings-menu"
-              class="bg-main text-main shadow-xl absolute bottom-10 start-0 z-menu py-2 border border-main rounded-md max-w-[calc(100vw-1rem)] overflow-y-auto"
+              class="bg-main text-main shadow-xl absolute start-0 z-menu py-2 border border-main rounded-md max-w-[calc(100vw-1rem)] overflow-y-auto"
+              [class.bottom-10]="!menusBelow()"
+              [class.top-10]="menusBelow()"
               (keydown.escape)="closeSettings($event)"
             >
               <app-settings />
@@ -284,6 +286,8 @@ import { presenterEnabled } from '../lib/switches';
 export class NavBar {
   /** The presenter page keeps the bar open and drops its frame. */
   persist = input(false);
+  /** The bar is at the top of the page (`navPosition`): its menus open below it. */
+  menusBelow = input(false);
   protected nav = inject(Nav);
   protected drawings = inject(Drawings);
   protected editor = inject(SideEditorState);
