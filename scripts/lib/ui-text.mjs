@@ -113,6 +113,35 @@ export const UI_DIR: '' | 'ltr' | 'rtl' = ${JSON.stringify(dir)};
 }
 
 /**
+ * `ui-text.ts` of a deck in several languages: the same exports, for the language the page starts in (languages.ts). The
+ * locale data of every language is registered; the texts of each are `uiText` of its own deck.
+ * @param {{ lang: string, locale: string, translations: Record<string, string>, dir: string }[]} languages
+ */
+export function uiTextsSource(languages) {
+  const locales = [...new Set(languages.map((l) => l.locale))].filter((l) => l !== 'en-US');
+  const byLang = Object.fromEntries(
+    languages.map(({ lang, locale, translations, dir }) => [lang, { locale, translations, dir }]),
+  );
+  return `// GENERATED: the interface text and the locale of each of the deck's languages (headmatter \`languages\`) - do not edit
+${locales.length ? "import { registerLocaleData } from '@angular/common';\n" : ''}${locales.map((l, i) => `import locale${i} from '@angular/common/locales/${l}';`).join('\n')}
+import { LANGUAGE } from './languages';
+${locales.map((_, i) => `\nregisterLocaleData(locale${i});`).join('')}
+
+const TEXTS: Record<string, { locale: string; translations: Record<string, string>; dir: '' | 'ltr' | 'rtl' }> = ${JSON.stringify(byLang, null, 2)};
+const PICKED = TEXTS[LANGUAGE] ?? TEXTS[${JSON.stringify(languages[0].lang)}];
+
+/** LOCALE_ID: the locale of the page's language for the date, number and currency pipes. */
+export const LOCALE = PICKED.locale;
+
+/** The translated texts; every other key is English (src/app/i18n/en.ts). */
+export const UI_TRANSLATIONS: Record<string, string> = PICKED.translations;
+
+/** The direction of the interface language when the page runs the other way, else ''. */
+export const UI_DIR = PICKED.dir;
+`;
+}
+
+/**
  * The direction the interface text needs of its own: `rtl` or `ltr` when the interface language (`uiLang`) is written the
  * other way than the page (`htmlAttrs.dir`, else `lang`), else ''. An `htmlAttrs.dir` of `auto` gives ''.
  */

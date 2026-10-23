@@ -395,10 +395,14 @@ export default class ${slideClass(no)} extends SlideBase {}
 `;
 }
 
-/** The source of every slide. Old names (renamed.mjs) are collected from all slides first, so one run reports them all. */
+/**
+ * The source of every slide. Old names (renamed.mjs) are collected from all slides first, so one run reports them all. A
+ * translation's slide in `deck.fallbacks` is the entry file's (lib/languages.mjs): it gets null, no source of its own.
+ */
 export function slideSources(deck) {
   const renamed = [];
   const sources = deck.slides.map((s, i) => {
+    if (deck.fallbacks?.includes(i)) return null;
     try {
       return slideSource(s, i + 1, deck);
     } catch (e) {

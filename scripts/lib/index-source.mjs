@@ -33,11 +33,12 @@ function metaOf(slide, index, rubyMap) {
   };
 }
 
+// `deck.slideFiles`: the module of each slide, when it is not `slide-003` (a translation's, lib/languages.mjs).
 export function indexSource(deck) {
   // `notesAutoRuby` in the headmatter wraps listed words in <ruby> in the note HTML of every slide.
   const rubyMap = deck.headmatter?.notesAutoRuby;
   const imports = deck.slides.map(
-    (_, i) => `import ${slideClass(i + 1)} from './${slideName(i + 1)}';`,
+    (_, i) => `import ${slideClass(i + 1)} from './${deck.slideFiles?.[i] ?? slideName(i + 1)}';`,
   );
   const metas = deck.slides.map((s, i) => metaOf(s, i, rubyMap));
   checkUniqueAliases(metas.map((m) => m.routeAlias));
@@ -52,7 +53,7 @@ export function indexSource(deck) {
   // The page for an address with no slide: the `404` layout, so a theme's or the deck's own replaces the built-in one.
   const notFound = deck.layouts?.['404'] ?? LAYOUTS['404'];
   const notFoundFrom = notFound.importPath ?? `../../app/${notFound.file}`;
-  return `// GENERATED from slides.md - do not edit
+  return `// GENERATED from ${deck.lang ? `the ${deck.lang} slides` : 'slides.md'} - do not edit
 import type { SlideMeta } from '../../app/lib/slide-meta';
 import { ${notFound.className} as NotFoundPage } from '${notFoundFrom}';
 ${imports.join('\n')}

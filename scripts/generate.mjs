@@ -25,9 +25,18 @@ import { readDrawings } from './lib/drawings.mjs';
 import { applyRoots } from './lib/theme-files.mjs';
 import { monacoWriteTargets, resetMonacoWriteTargets } from './lib/code/monaco.mjs';
 import { applyOffline, buildOptions, modeSwitch, wantsRemoteAssets } from './lib/build-options.mjs';
-import { dropDevOnly, headParts, renderIndexHtml } from './lib/head.mjs';
-import { deckUiText, uiTextSource } from './lib/ui-text.mjs';
-import { langOverride } from './lib/lang.mjs';
+import { dropDevOnly, headParts, pageTitle, renderIndexHtml } from './lib/head.mjs';
+import { deckUiText, uiTextSource, uiTextsSource } from './lib/ui-text.mjs';
+import { isRtl, langOverride } from './lib/lang.mjs';
+import {
+  baseHeadmatter,
+  languageIndexSource,
+  languageSlideFile,
+  languagesSource,
+  pairSlides,
+  pickedLanguage,
+  readLanguages,
+} from './lib/languages.mjs';
 import { injectIndexHtml, rootIndexHtml } from './lib/index-html.mjs';
 import { bundleRemoteAssets, emptyFolder } from './lib/remote-assets.mjs';
 import { bundleFonts, wantsFontFiles } from './lib/font-bundle.mjs';
@@ -108,21 +117,58 @@ async function readDeck() {
   }
 }
 
+// A warning while a translation is generated names its language: `[slides] tr: slide 3: ...`. The pieces of the generator
+// write their warnings to the console themselves, so the console is wrapped for that time.
+async function inLanguage(lang, job) {
+  const warn = console.warn;
+  console.warn = (m, ...rest) =>
+    warn(typeof m === 'string' ? m.replace(/^\[slides\] /, `[slides] ${lang}: `) : m, ...rest);
+  try {
+    return await job();
+  } finally {
+    console.warn = warn;
+  }
+}
+
+// The other languages of `languages:` in the headmatter (lib/languages.mjs): each file read over the entry file's headmatter,
+// with the language of its key. The entry file's own language is set the same way.
+async function readTranslations(deck, languages) {
+  deck.lang = deck.headmatter.lang = languages[0].lang;
+  const base = baseHeadmatter(deck.ownHeadmatter);
+  const translations = [];
+  for (const { lang, file } of languages.slice(1)) {
+    const t = await parseDeck(file, undefined, { theme: THEME, base });
+    t.lang = t.headmatter.lang = lang;
+    t.problems.forEach((p) => console.warn(`[slides] ${lang}: ${p}`));
+    translations.push(t);
+  }
+  return translations;
+}
+
 async function generate() {
   snippetFiles.clear();
   const deck = await readDeck();
   deckRead = true;
   const build = buildOptions();
   deck.problems.forEach((p) => console.warn(`[slides] ${p}`));
-  // Options of `slide-ng build` (see lib/build-options.mjs).
-  if (build.download && deck.headmatter.download == null) deck.headmatter.download = true;
-  if (build.withoutNotes)
-    deck.slides.forEach((s) => {
-      s.note = null;
-    });
-  if (build.routerMode) deck.headmatter.routerMode = build.routerMode;
-  if (build.offline) applyOffline(deck.headmatter);
-  langOverride(deck.headmatter, LANG);
+  const warn = (m) => console.warn(`[slides] ${m}`);
+  const languages = readLanguages(deck.ownHeadmatter, deck.entry, warn, {
+    allowOutsideRoot: deck.allowOutsideRoot,
+  });
+  const translations = languages ? await readTranslations(deck, languages) : [];
+  // Options of `slide-ng build` (see lib/build-options.mjs), for every language.
+  for (const d of [deck, ...translations]) {
+    if (build.download && d.headmatter.download == null) d.headmatter.download = true;
+    if (build.withoutNotes)
+      d.slides.forEach((s) => {
+        s.note = null;
+      });
+    if (build.routerMode) d.headmatter.routerMode = build.routerMode;
+    if (build.offline) applyOffline(d.headmatter);
+  }
+  // `--lang`: with `languages` it picks the language the page starts in; without, it sets the deck's `lang`.
+  const startLang = languages ? (pickedLanguage(languages, LANG, warn) ?? deck.lang) : null;
+  if (!languages) langOverride(deck.headmatter, LANG);
   deck.assetBase = build.building ? build.base : '/';
   // `monaco` and `twoslash` may be on in one mode only; off, `{monaco}` blocks are plain code and Twoslash does not run.
   deck.monaco = modeSwitch(deck.headmatter.monaco, build.dev);
@@ -130,7 +176,8 @@ async function generate() {
   mkdirSync(OUT, { recursive: true });
   // Remote pictures are fetched into the build only for a production build with `remoteAssets: true`.
   if (wantsRemoteAssets(deck.headmatter, build.building, build.offline)) {
-    const n = await bundleRemoteAssets(deck.slides, `${OUT}remote-assets`, (m) =>
+    const all = [deck, ...translations].flatMap((d) => d.slides);
+    const n = await bundleRemoteAssets(all, `${OUT}remote-assets`, (m) =>
       console.warn(`[slides] ${m}`),
     );
     console.log(`[slides] bundled ${n} remote images`);
@@ -155,7 +202,24 @@ async function generate() {
   setKatexOptions(await katexOptions(deck.roots));
   deck.transformers = await transformersSetup(deck.roots);
   await applyPreTransformers(deck.slides, deck.transformers.pre, deck.headmatter);
-  const features = detectFeatures(deck.slides, { monaco: deck.monaco, twoslash });
+  // A translation's slides, paired with the entry file's by number once the transformers ran on them; then its layouts.
+  for (const t of translations) {
+    await applyPreTransformers(t.slides, deck.transformers.pre, t.headmatter);
+    const names = { root: deck.root, entry: deck.entry, file: t.entry, lang: t.lang };
+    const paired = pairSlides(deck.slides, t.slides, { ...names, entryLang: deck.lang }, warn);
+    t.slides = paired.slides;
+    t.fallbacks = paired.fallbacks;
+    await inLanguage(t.lang, () =>
+      t.slides.forEach((s, i) => {
+        if (!t.fallbacks.includes(i)) s.layout = layoutName(s.frontmatter, i, deck.layouts);
+      }),
+    );
+  }
+  const own = (t) => t.slides.filter((_, i) => !t.fallbacks.includes(i));
+  const features = detectFeatures([...deck.slides, ...translations.flatMap(own)], {
+    monaco: deck.monaco,
+    twoslash,
+  });
   await initHighlighter({
     langs: features.langs,
     headmatter: deck.headmatter,
@@ -166,6 +230,9 @@ async function generate() {
     deck.slides
       .map((_, i) => `${slideName(i + 1)}.ts`)
       .concat(
+        translations.flatMap((t) => deck.slides.map((_, i) => `${slideName(i + 1)}.${t.lang}.ts`)),
+        (languages ?? []).map((l) => `deck.${l.lang}.ts`),
+        'languages.ts',
         'index.ts',
         'index.html',
         'layers.ts',
@@ -191,6 +258,28 @@ async function generate() {
   deck.cssDirectives = await slideStyleDirectives(deck.slides, uno);
   const sources = slideSources(deck);
   sources.forEach((source, i) => write(`${OUT}${slideName(i + 1)}.ts`, source));
+  // Each translation: the deck of the entry file with its own headmatter and slides (the roots and the rest are shared).
+  const decks = [deck];
+  for (const t of translations) {
+    const d = {
+      ...deck,
+      lang: t.lang,
+      headmatter: t.headmatter,
+      slides: t.slides,
+      fallbacks: t.fallbacks,
+      hiddenAliases: t.hiddenAliases,
+      slideFiles: t.slides.map((_, i) =>
+        languageSlideFile(slideName(i + 1), t.lang, t.fallbacks.includes(i)),
+      ),
+    };
+    await inLanguage(t.lang, async () => {
+      d.cssDirectives = await slideStyleDirectives(own(t), uno);
+      slideSources(d).forEach(
+        (source, i) => source != null && write(`${OUT}${d.slideFiles[i]}.ts`, source),
+      );
+    });
+    decks.push(d);
+  }
   // The dev server's error overlay in the page names the generated copies; dev/error-overlay-paths.ts names the author's files
   // instead. Only for the dev server (`--watch`): the folders of this computer have no place in a build.
   const dev = process.argv.includes('--watch');
@@ -203,29 +292,59 @@ async function generate() {
   );
   copyLocalAssets(deck.root, deck.localAssets, `${OUT}local-assets`);
   writeMonacoTargets(deck.root);
-  write(`${OUT}index.ts`, indexSource(deck));
   // The interface language, its translations and the locale of the pipes (lib/ui-text.mjs).
-  write(
-    `${OUT}ui-text.ts`,
-    uiTextSource(await deckUiText(deck, (m) => console.warn(`[slides] ${m}`))),
-  );
+  if (!languages) {
+    write(`${OUT}index.ts`, indexSource(deck));
+    write(`${OUT}ui-text.ts`, uiTextSource(await deckUiText(deck, warn)));
+    write(`${OUT}languages.ts`, languagesSource([], ''));
+  } else {
+    // index.ts and ui-text.ts take the language the page starts in from languages.ts.
+    const texts = [];
+    for (const d of decks) {
+      await inLanguage(d.lang, () => write(`${OUT}deck.${d.lang}.ts`, indexSource(d)));
+      texts.push({ ...(await deckUiText(d, (m) => warn(`${d.lang}: ${m}`))), lang: d.lang });
+    }
+    write(`${OUT}index.ts`, languageIndexSource(decks.map((d) => d.lang)));
+    write(`${OUT}ui-text.ts`, uiTextsSource(texts));
+    const dirOf = (h) =>
+      h.htmlAttrs?.dir != null ? String(h.htmlAttrs.dir) : isRtl(h.lang) ? 'rtl' : '';
+    write(
+      `${OUT}languages.ts`,
+      languagesSource(
+        decks.map((d) => ({
+          lang: d.lang,
+          dir: dirOf(d.headmatter),
+          title: pageTitle(d.headmatter),
+        })),
+        startLang,
+      ),
+    );
+  }
   // The dev server shows a generator error in the page (dev/problem-banner.ts); a good run clears it. Slides that could not be
   // imported (a missing `src:` file) are named there too, while the rest of the deck is shown.
-  writeProblem(WATCH ? deck.importProblems.join('\n') : '', false);
+  const importProblems = [deck, ...translations].flatMap((d) => d.importProblems);
+  writeProblem(WATCH ? importProblems.join('\n') : '', false);
   write(`${OUT}features.css`, featureCss(features));
   // The generated slides are scanned too: icon tags and alerts only become class names there.
-  const slideFiles = deck.slides.map((_, i) => `${OUT}${slideName(i + 1)}.ts`);
+  const slideFiles = decks.flatMap((d) =>
+    d.slides.map((_, i) => `${OUT}${d.slideFiles?.[i] ?? slideName(i + 1)}.ts`),
+  );
   write(
     `${OUT}uno.css`,
     await makeCss(
-      [...deck.files, ...slideFiles, ...tsFiles(`${OUT}roots`)],
+      [
+        ...deck.files,
+        ...translations.flatMap((t) => t.files),
+        ...slideFiles,
+        ...tsFiles(`${OUT}roots`),
+      ],
       unoConfigs,
       [...tsFiles('src/app')],
       { attributify: attributifyOn(deck.headmatter) },
     ),
   );
   console.log(
-    `[slides] generated ${deck.slides.length} ${deck.slides.length === 1 ? 'slide' : 'slides'}`,
+    `[slides] generated ${deck.slides.length} ${deck.slides.length === 1 ? 'slide' : 'slides'}${languages ? ` in ${languages.length} languages (${languages.map((l) => l.lang).join(', ')})` : ''}`,
   );
   // A file a {monaco-write} editor saves to is not watched: the editor shows it already, and a regeneration on each save would
   // take the focus from the editor while the speaker types.
@@ -234,7 +353,13 @@ async function generate() {
   // The deck's index.html is watched even before it exists, so that adding one shows up (themes are watched whole).
   const indexFile = join(deck.root, 'index.html');
   return {
-    files: [...deck.files, ...deck.missing, ...snippets, indexFile],
+    files: [
+      ...deck.files,
+      ...deck.missing,
+      ...translations.flatMap((t) => [...t.files, ...t.missing]),
+      ...snippets,
+      indexFile,
+    ],
     folders: rootFolders(deck.roots),
   };
 }

@@ -164,7 +164,7 @@ export const EN = {
   'editor.problemSlides': 'Some slides could not be read and are left out: {problem}',
   'dev.password': 'Password for this slide.ng session',
 
-  // The sync menu, the click preview and the notes pages (sync-controls.ts, click-preview-layer.ts, pane-resizers.ts, note-editor.ts, entry-page.ts, overview-page.ts, notes-edit-page.ts)
+  // The sync and language menus, the click preview and the notes pages (sync-controls.ts, language-menu.ts, click-preview-layer.ts, pane-resizers.ts, note-editor.ts, entry-page.ts, overview-page.ts, notes-edit-page.ts)
   'nav.clickPreviewShow': 'Show upcoming clicks',
   'nav.clickPreviewHide': 'Hide upcoming clicks',
   'nav.sync': 'Change sync settings',
@@ -178,6 +178,8 @@ export const EN = {
   'sync.off': 'Disable',
   'sync.cannotSendHere':
     'This window is on another device: it can follow the presenter, but not move the others.',
+  'nav.language': 'Change language',
+  'language.menu': 'Language',
   'overview.openPage': 'Open the overview page, with the notes',
   'presenter.goToClick': 'Go to click {no}',
   'presenter.goToClickHides': 'Go to click {no}, where this part goes away',

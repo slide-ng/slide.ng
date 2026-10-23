@@ -11,6 +11,8 @@ export class Ui {
   readonly settings = signal(false);
   /** The sync mode menu of the bar. */
   readonly syncMenu = signal(false);
+  /** The language menu of the bar (a deck with `languages`). */
+  readonly languageMenu = signal(false);
   /** The right-click menu: where it opened, or null when closed. */
   readonly contextMenu = signal<{ x: number; y: number } | null>(null);
   /** Slide scale: 0 = fit the window, 1 = real size (1:1). */
@@ -61,6 +63,7 @@ export class Ui {
     this.info.set(false);
     this.settings.set(false);
     this.syncMenu.set(false);
+    this.languageMenu.set(false);
     this.contextMenu.set(null);
   }
 }
