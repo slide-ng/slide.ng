@@ -60,6 +60,17 @@ describe('choosePort', () => {
   });
 });
 
+describe('choosePort with a host', () => {
+  it('counts a port taken on 127.0.0.1 as taken for 0.0.0.0 too', async () => {
+    const { server, port } = await listen();
+    await expect(choosePort(port, '0.0.0.0', true)).rejects.toThrow(`port ${port} is in use`);
+    server.close();
+  });
+  it('refuses an address this machine does not have', async () => {
+    await expect(choosePort(4230, '203.0.113.7', true)).rejects.toThrow(/EADDRNOTAVAIL/);
+  });
+});
+
 describe('updateLockPort', () => {
   it('writes the port the server ended up on', () => {
     const dir = toolDir();

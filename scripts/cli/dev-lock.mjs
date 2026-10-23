@@ -50,14 +50,17 @@ export function takeDevLock(toolDir, port) {
   throw new Error(`could not take ${file}`);
 }
 
-/** Whether nothing listens on `port` at `address` (undefined: every address). No such address here (no IPv6) counts as free. */
-function freeAt(port, address) {
+/**
+ * Whether nothing listens on `port` at `address` (undefined: every address). With `mayBeMissing` (the extra loopback
+ * probes), an address this machine does not have (no IPv6) counts as free; for the address asked for it is an error.
+ */
+function freeAt(port, address, mayBeMissing = false) {
   return new Promise((done, fail) => {
     const s = createServer();
     s.once('error', (e) =>
       e.code === 'EADDRINUSE'
         ? done(false)
-        : e.code === 'EAFNOSUPPORT' || e.code === 'EADDRNOTAVAIL'
+        : mayBeMissing && (e.code === 'EAFNOSUPPORT' || e.code === 'EADDRNOTAVAIL')
           ? done(true)
           : fail(e),
     );
@@ -66,13 +69,16 @@ function freeAt(port, address) {
 }
 
 /**
- * Whether nothing listens on `port` (on `host`, or on any address). Without a host the loopback addresses are tried too:
- * on macOS a server on 127.0.0.1 does not stop another one from listening on every address, so that test alone would
- * call a taken port free. Errors other than "in use" (no permission) are thrown.
+ * Whether nothing listens on `port` (on `host`, or on any address). For every address (no host, `0.0.0.0` or `::`) the
+ * loopback addresses are tried too: on macOS a server on 127.0.0.1 does not stop another one from listening on every
+ * address, so that test alone would call a taken port free. Errors other than "in use" (no permission, an address this
+ * machine does not have) are thrown.
  */
 async function portFree(port, host) {
-  for (const address of host ? [host] : [undefined, '127.0.0.1', '::1'])
-    if (!(await freeAt(port, address))) return false;
+  if (!(await freeAt(port, host))) return false;
+  if (host && host !== '0.0.0.0' && host !== '::') return true;
+  for (const address of ['127.0.0.1', '::1'])
+    if (!(await freeAt(port, address, true))) return false;
   return true;
 }
 
