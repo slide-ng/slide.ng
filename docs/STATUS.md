@@ -68,8 +68,11 @@ one can be written. The decisions are in DECISIONS.md ("Made while testing for 1
 - Phase 2 and phase 3 lists still apply (Monaco and Mermaid limits, `slide-ng-motion` limits, footnote limits, resizing a rotated `slide-ng-drag` box, `{monaco-write}` limits, imported slides outside the deck's folder cannot be edited by the dev server).
 - Interface language (docs/UI-STRINGS.md): Turkish is the only built-in translation. Error messages that come from the browser (camera, recording,
   screen sharing) and generator warnings stay English. In a right-to-left deck the bar, menus and presenter are mirrored, but the arrow keys,
-  swipes and the drawing toolbar's position are not. There is no way to switch the language while presenting; one entry file per language is
-  the recipe (SYNTAX.md "One deck in several languages").
+  swipes and the drawing toolbar's position are not.
+- Several languages (`languages`, SYNTAX.md "One deck in several languages"): a switch loads the page again (Angular's locale is fixed at
+  start), so a running presenter timer, an open dialog or an unsaved side editor text is lost; other devices keep their own language.
+  Drawings are shared by the languages. NOT VERIFIED: an offline folder opened from disk and a PWA; the side editor and notes editor in
+  another language are covered by unit tests of the dev server, not by a browser test.
 - Agent skill: the samples prove that decks generate and compile, not that they look right. In the combined build only the `theme`, `addons` and `codeAliases` of the samples' headmatter are applied; other headmatter keys are checked by the generator alone (`--each` builds every sample alone, slow, run by hand). Features that need a network, a browser or a device are described in the skill, not run. The skill is written by hand; the drift guard only notices that a document changed, not whether the skill was updated well.
 
 ## Problems found and fixed along the way

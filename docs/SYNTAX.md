@@ -1317,24 +1317,58 @@ the addons and the deck are put over each other key by key, the deck last; `de.j
 a key that does not exist and about a lost placeholder.
 
 `lang` also sets Angular's `LOCALE_ID`, so `{{ price | currency: 'EUR' }}`, `{{ day | date }}` and `{{ n | number }}` in slides are
-written for that language (only that locale's data goes into the build). A right-to-left language (`ar`, `he`, `fa`, `ur`) sets `dir="rtl"`
+written for that language (only that locale's data goes into the build, or each language's with `languages`). A right-to-left language (`ar`, `he`, `fa`, `ur`) sets `dir="rtl"`
 on the page, unless `htmlAttrs.dir` says otherwise, and the bar, the menus and the presenter are mirrored, as are a blockquote's line
 and the progress bar's minutes. Mermaid drawings stay left to right, as Mermaid lays them out (their Arabic or Hebrew labels still read
 right to left). An interface language written the other way (`uiLang: en` in an Arabic deck) keeps the direction of its text.
 
 ### One deck in several languages
 
-Write one entry file per language, and import the slides that are the same in every language with `src:`:
+Write the slides of each language in a file of its own, and list the files in the headmatter of the entry file:
 
-```text
-slides.md        lang: en
-slides.tr.md     lang: tr; its own translated slides, and `src: ./pages/demo.md` for a shared one
-pages/demo.md
+```md
+---
+title: My talk
+languages:
+  en: slides.md
+  tr: slides.tr.md
+---
 ```
 
-Build each into its own folder: `slide-ng build slides.md --out dist/en` and `slide-ng build slides.tr.md --out dist/tr`. `--lang tr`
-(for `dev`, `build` and `export`) sets `lang` for one run without changing the file; it also replaces `uiLang`, so the interface follows it.
-`--lang` is meant for slides written in that language: it also sets `<html lang>` and the PDF's `/Lang`, so `--lang en` on a Turkish deck tells
-screen readers and PDF readers that the Turkish text is English. To change only the interface's language, set `uiLang: en` in the
-headmatter instead; the slides keep `lang: tr`.
+```md
+---
+title: Konuşmam
+---
+
+# Merhaba
+```
+
+The bar then has a language button (a translate icon) with a menu of the languages, each named in its own language, the current one
+ticked. Choosing one keeps the address and the slide, and switches the slides, `<html lang>` (and `dir`), the page title, the locale of
+the `date`, `number` and `currency` pipes, and the interface text. The choice is kept in the browser, per deck, like the other settings.
+The page loads again for it (Angular fixes the locale when the app starts), and so do the other windows of the deck in the same browser:
+the presenter and the audience switch together. Another device keeps its own choice. A page starts in the entry file's language until the
+reader chooses another. It works in `dev`, in a build and in an offline folder.
+
+- **Each file is a deck.** It is read like the entry file, with its own headmatter over the entry file's (so `title`, `info` and
+  `titleTemplate` can be translated, and the theme, `fonts` and the rest are written once), and the key of `languages` as its `lang`. Its
+  `uiLang` is its own. The theme, addons, `allowOutsideRoot` and the page's `<head>` come from the entry file. Drawings belong to a
+  slide number, so the languages share them.
+- **Slides are paired by number**, as the number is the address. A slide takes the frontmatter of the entry file's slide with the same
+  number, under its own: `layout`, `routeAlias`, `clicks` and `class` are written once, in the entry file (its `title` is not taken).
+  The generator warns, with files and lines, when the files have a different number of slides. A slide the translation does not have is
+  shown from the entry file; a slide past the entry file's last is left out. `hide: true` drops a slide from its own file only, so hide it
+  in every file.
+- **`--lang tr`** starts the page in Turkish (`dev`, `build`), and `export --lang tr` exports the Turkish slides. A language that is not in
+  `languages` is warned about and ignored.
+- **In `dev`**, the side editor, the notes editor and `slide-ng-drag` write to the file of the language on screen. Every file listed is
+  watched.
+
+A deck without `languages` has no button and nothing of the switch in its build. Without `languages` you can still write one entry file
+per language, importing the slides that are the same everywhere with `src:` (`slides.tr.md` with `lang: tr`), and build each into its own
+folder: `slide-ng build slides.md --out dist/en` and `slide-ng build slides.tr.md --out dist/tr`. `--lang tr` (for `dev`, `build` and
+`export`) then sets `lang` for one run without changing the file; it also replaces `uiLang`, so the interface follows it. `--lang` is meant
+for slides written in that language: it also sets `<html lang>` and the PDF's `/Lang`, so `--lang en` on a Turkish deck tells screen
+readers and PDF readers that the Turkish text is English. To change only the interface's language, set `uiLang: en` in the headmatter
+instead; the slides keep `lang: tr`.
 An existing build keeps its language: `export --dist` and `export --url` refuse `--lang`.
