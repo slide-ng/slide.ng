@@ -50,13 +50,30 @@ export function takeDevLock(toolDir, port) {
   throw new Error(`could not take ${file}`);
 }
 
-/** Whether nothing listens on `port` (on `host`, or on any address). Errors other than "in use" (no permission) are thrown. */
-function portFree(port, host) {
+/** Whether nothing listens on `port` at `address` (undefined: every address). No such address here (no IPv6) counts as free. */
+function freeAt(port, address) {
   return new Promise((done, fail) => {
     const s = createServer();
-    s.once('error', (e) => (e.code === 'EADDRINUSE' ? done(false) : fail(e)));
-    s.listen(port, host, () => s.close(() => done(true)));
+    s.once('error', (e) =>
+      e.code === 'EADDRINUSE'
+        ? done(false)
+        : e.code === 'EAFNOSUPPORT' || e.code === 'EADDRNOTAVAIL'
+          ? done(true)
+          : fail(e),
+    );
+    s.listen(port, address, () => s.close(() => done(true)));
   });
+}
+
+/**
+ * Whether nothing listens on `port` (on `host`, or on any address). Without a host the loopback addresses are tried too:
+ * on macOS a server on 127.0.0.1 does not stop another one from listening on every address, so that test alone would
+ * call a taken port free. Errors other than "in use" (no permission) are thrown.
+ */
+async function portFree(port, host) {
+  for (const address of host ? [host] : [undefined, '127.0.0.1', '::1'])
+    if (!(await freeAt(port, address))) return false;
+  return true;
 }
 
 /** The first free port after `port`, trying at most `tries` of them; undefined when none is. */
