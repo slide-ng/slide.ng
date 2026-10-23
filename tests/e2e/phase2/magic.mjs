@@ -32,7 +32,21 @@ export async function run({ t, open, press, hud }) {
   t.ok('click 1 highlights line 1 of step 1', (await lit()) === '1000', await lit());
   await press(page, 'ArrowRight', 400);
   t.ok('click 2 highlights lines 2-3', (await lit()) === '0110', await lit());
+  // The tokens that start moving take Magic Move's duration (0.8s here), not the 0.2s fade of the line highlights.
+  await page.evaluate(() => {
+    window.__smm = new Set();
+    document.addEventListener('transitionrun', (e) => {
+      if (e.target.matches?.('span.shiki-magic-move-item'))
+        window.__smm.add(getComputedStyle(e.target).transitionDuration);
+    });
+  });
   await press(page, 'ArrowRight', 1500);
+  const durations = await page.evaluate(() => [...window.__smm]);
+  t.ok(
+    'the moving tokens keep the Magic Move duration',
+    durations.length > 0 && durations.every((d) => d === '0.8s'),
+    durations.join(' '),
+  );
   t.ok(
     'click 3 morphs to step 2',
     (await text()).includes('const add = () => count += 1'),

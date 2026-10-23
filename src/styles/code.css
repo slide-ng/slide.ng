@@ -91,9 +91,9 @@ html:not(.dark) .shiki span {
 /* Line highlights: the other lines fade */
 .slidev-code .slidev-code-dishonored {
   opacity: 0.3;
-  transition: opacity 0.2s;
 }
-.slidev-code .slidev-code-highlighted {
+.slidev-code .slidev-code-dishonored:not(.shiki-magic-move-item),
+.slidev-code .slidev-code-highlighted:not(.shiki-magic-move-item) {
   transition: opacity 0.2s;
 }
 

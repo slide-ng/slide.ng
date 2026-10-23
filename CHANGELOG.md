@@ -87,6 +87,7 @@ Node (22.22.3 or newer) and Angular (22.2) are the same as in 1.x. These changes
 
 ### Fixed
 
+- Magic Move takes its duration (`duration` of `shiki.magicMove` or of the block, 0.8 s by default): the 0.2 s fade of the line highlights was put on its words too, so every Magic Move took 0.2 s.
 - Icons are drawn when `slide-ng` runs in a VS Code terminal: UnoCSS's icon preset skips its own loader when `VSCODE_CWD` is set, so no icon of the deck or of the bar was drawn there. slide.ng now gives the preset the installed `@iconify-json` sets itself, found from the deck's folder and from slide.ng's.
 - A slide's `<style>` block with a quoted value in a selector (`[lang='de']`) is applied; it used to stay in the slide as broken markup, with the build warning `Unexpected "#123"`.
 - `<slide-ng-youtube id="luoMHjh-XcQ?start=1234" />` starts at the given time, as in Slidev, instead of failing to find the video. YouTube's embed options in the id (`start`, `end`, `list`, `loop`, ...) are kept and others dropped; `start` and `list` can also be attributes. A start time (`start`, or `t` of a shared link) may be written YouTube's way (`1m30s`); one that is not a time is dropped with a warning.
