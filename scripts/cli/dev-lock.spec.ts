@@ -50,6 +50,18 @@ describe('choosePort', () => {
     expect(chosen).toBe(await nextFreePort(port));
     server.close();
   });
+  it('sees a server that listens on the IPv6 loopback only', async () => {
+    const server = createServer();
+    // a machine without IPv6 cannot hold such a server: nothing to check there
+    const bound = await new Promise<boolean>((r) => {
+      server.once('error', () => r(false));
+      server.listen(0, '::1', () => r(true));
+    });
+    if (!bound) return;
+    const port = (server.address() as { port: number }).port;
+    await expect(choosePort(port, undefined, false)).resolves.toBeGreaterThan(port);
+    server.close();
+  });
   it('refuses a taken --port and names a free one', async () => {
     const { server, port } = await listen();
     const next = await nextFreePort(port);
