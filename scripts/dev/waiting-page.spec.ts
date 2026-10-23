@@ -33,6 +33,21 @@ describe('the waiting page', () => {
     expect(waitingHtml('<foo-barr> is not known')).toContain('&lt;foo-barr&gt; is not known');
     expect(waitingHtml('/home/me/deck/slides.md', { remote: true })).not.toContain('/home/me');
   });
+  it('says the slides are building until a build fails', async () => {
+    expect(waitingHtml('', { building: true })).toContain('Building the slides');
+    expect(waitingHtml('', { building: true })).not.toContain('Angular stopped');
+    const port = await freePort();
+    const page = startWaitingPage({ port, host: '127.0.0.1', secret: 's' });
+    await new Promise((r) => setTimeout(r, 100));
+    expect(await (await fetch(`http://127.0.0.1:${port}/`)).text()).toContain(
+      'Building the slides',
+    );
+    page.show('NG8001: oops');
+    const text = await (await fetch(`http://127.0.0.1:${port}/`)).text();
+    expect(text).toContain('NG8001: oops');
+    expect(text).not.toContain('Building the slides');
+    page.close();
+  });
   it('answers every address with the error, and steps aside for the secret only', async () => {
     const port = await freePort();
     let released = false;

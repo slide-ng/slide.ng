@@ -132,6 +132,18 @@ export async function devCommand(argv) {
     plan.port = port;
     updateLockPort(lock, port);
   }
+  // The port is held from here on, by a page that says the slides are building (waiting-page.mjs) until the Angular server
+  // takes it over: the first generation and the first build take seconds, and a second dev server started meanwhile must
+  // see the port taken. startAll uses this page for its first run.
+  const firstPage = { secret: randomSecret() };
+  firstPage.page = startWaitingPage({
+    port: plan.port,
+    host: plan.host,
+    remote: plan.remote,
+    secret: firstPage.secret,
+    onRelease: () => firstPage.onRelease?.(),
+  });
+  await firstPage.page.ready;
   // On a terminal, ask for the password (Enter keeps the random one), so it never has to be in the command line.
   if (plan.remote && plan.passwordGenerated && process.stdin.isTTY) {
     const typed = await askPassword('[slide.ng] remote password (Enter for a random one): ');
@@ -190,10 +202,22 @@ export async function devCommand(argv) {
     const tellCompanion = (message) => {
       if (companion.connected) companion.send(message, () => {});
     };
-    // Until its first good build the Angular server does not listen: a page on the port says why meanwhile.
-    const secret = randomSecret();
-    let waiting = null;
+    // Until its first good build the Angular server does not listen: a page on the port says why meanwhile. It takes the port
+    // at once, so a second dev server started during the first build sees the port taken and moves to the next one.
     let served = false;
+    const reuse = firstPage.page && !restart;
+    const secret = reuse ? firstPage.secret : randomSecret();
+    const waiting = reuse
+      ? firstPage.page
+      : startWaitingPage({
+          port: plan.port,
+          host: plan.host,
+          remote: plan.remote,
+          secret,
+          onRelease: () => (served = true),
+        });
+    if (reuse) firstPage.onRelease = () => (served = true);
+    firstPage.page = null;
     // The shortcuts line, printed again once Angular's output after its first good build has ended (it scrolled the line
     // printed at the start away), also after `r`. Only on a terminal, where the keys are read.
     const hintAgain = process.stdin.isTTY && plan.log !== 'silent';
@@ -214,20 +238,12 @@ export async function devCommand(argv) {
       }
       if (ok) {
         served = true;
-        waiting?.close();
+        waiting.close();
         tellCompanion({ buildError: null });
         return;
       }
-      if (!served && !waiting)
-        waiting = startWaitingPage({
-          port: plan.port,
-          host: plan.host,
-          remote: plan.remote,
-          secret,
-          onRelease: () => (served = true),
-        });
       if (error) {
-        waiting?.show(error);
+        if (!served) waiting.show(error);
         tellCompanion({ buildError: overlayError(error) });
       }
     };
@@ -247,7 +263,7 @@ export async function devCommand(argv) {
       }),
     ];
     children[2].once('exit', () => {
-      waiting?.close();
+      waiting.close();
       clearTimeout(hintTimer);
     });
     const watcher = watchChildren(

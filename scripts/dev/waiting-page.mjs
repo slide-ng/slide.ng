@@ -1,6 +1,7 @@
 // While the Angular dev server has not had a good build yet it does not listen, so the browser could only show "connection
-// refused". `slide-ng dev` serves this page on the port meanwhile: it shows the error and reloads itself as soon as the
-// slides are served (wait-for-port.mjs makes the Angular server ask this page to step aside first).
+// refused", and another `slide-ng dev` would take the port. `slide-ng dev` serves this page on the port from the start: it
+// says the slides are building, shows the error of a failed build, and reloads itself as soon as the slides are served
+// (wait-for-port.mjs makes the Angular server ask this page to step aside first).
 import { createServer } from 'node:http';
 import { isIP } from 'node:net';
 
@@ -27,8 +28,11 @@ export function devServerHostAllowed(hostHeader, bindHost) {
   return name === 'localhost' || name.endsWith('.localhost') || (!!bindHost && name === bindHost);
 }
 
-/** The page. `error` is shown only on this machine's own browser when `remote` is off (it names files of the computer). */
-export function waitingHtml(error, { remote = false } = {}) {
+/**
+ * The page. `error` is shown only on this machine's own browser when `remote` is off (it names files of the computer).
+ * `building` is the first build, before any error: the page then only says that the slides are on their way.
+ */
+export function waitingHtml(error, { remote = false, building = false } = {}) {
   const detail = remote
     ? '<p>The details are in the terminal of slide-ng dev.</p>'
     : error
@@ -36,16 +40,20 @@ export function waitingHtml(error, { remote = false } = {}) {
       : '<p>The details are in the terminal.</p>';
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>slide.ng: the slides do not build yet</title>
+<title>slide.ng: ${building ? 'building the slides' : 'the slides do not build yet'}</title>
 <style>
   body { font: 16px/1.5 system-ui, sans-serif; margin: 2rem; color: #222; background: #fff; }
   pre { white-space: pre-wrap; background: #fdecec; color: #8a1111; padding: 1rem; border-radius: 6px; font-size: 14px; }
   @media (prefers-color-scheme: dark) { body { color: #eee; background: #181818; } pre { background: #3a1616; color: #ffb4b4; } }
 </style></head>
 <body><main>
-<h1>The slides do not build yet</h1>
+${
+  building
+    ? '<h1>Building the slides</h1>\n<p>The first build takes a few seconds: this page opens the slides by itself.</p>'
+    : `<h1>The slides do not build yet</h1>
 <p>Angular stopped on an error in the deck. Fix it and save: this page opens the slides by itself.</p>
-${detail}
+${detail}`
+}
 </main>
 <script>
 setInterval(async () => {
@@ -61,11 +69,12 @@ setInterval(async () => {
 
 /**
  * Starts the page on `port` (and `host`, as the Angular server would use them). `secret` is what wait-for-port.mjs sends to
- * make it close. Returns `{ show(error), close() }`; `onRelease` is called when the Angular server took the port over.
+ * make it close. Returns `{ ready, show(error), close() }`; `onRelease` is called when the Angular server took the port over.
  * @param {{ port: number, host?: string, remote?: boolean, secret: string, onRelease?: () => void }} options
  */
 export function startWaitingPage({ port, host, remote, secret, onRelease }) {
   let error = '';
+  let failed = false; // until a build fails, the page says the slides are being built
   let closed = false;
   const server = createServer((req, res) => {
     // The Host check of the Angular dev server it stands in for: a DNS rebinding page must not read the error (it names
@@ -94,13 +103,17 @@ export function startWaitingPage({ port, host, remote, secret, onRelease }) {
       'retry-after': '1',
       'x-slide-ng-waiting': '1',
     });
-    res.end(waitingHtml(error, { remote }));
+    res.end(waitingHtml(error, { remote, building: !failed }));
   });
   // The page's own WebSocket (the dev server's live reload) has nothing to talk to yet.
   server.on('upgrade', (_req, socket) => socket.destroy());
   // A port taken meanwhile (another program): the page is only a courtesy, the Angular server reports the port itself.
-  server.on('error', () => (closed = true));
-  server.listen(port, host ?? 'localhost');
+  let listening;
+  const ready = new Promise((done) => (listening = done));
+  server.on('error', () => ((closed = true), listening()));
+  server.listen(port, host ?? 'localhost', () => listening());
+  // The page alone never keeps `slide-ng dev` running: when the generator fails before anything else starts, it exits.
+  server.unref();
   function close() {
     if (closed) return;
     closed = true;
@@ -108,7 +121,12 @@ export function startWaitingPage({ port, host, remote, secret, onRelease }) {
     server.close();
   }
   return {
-    show: (text) => (error = text ?? error),
+    /** Settles once the page listens (or could not). */
+    ready,
+    show: (text) => {
+      failed = true;
+      error = text ?? error;
+    },
     close,
     get closed() {
       return closed;
