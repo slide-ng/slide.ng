@@ -8,6 +8,16 @@ import { assertReadable, allowsOutsideRoot } from './outside-root.mjs';
 import { mergeHeadmatter, resolveRoots } from './roots.mjs';
 import { preparserExtensions } from './setup/node-setups.mjs';
 import { themeConfigVars } from './theme-config.mjs';
+import { didYouMean } from './did-you-mean.mjs';
+
+const NAV_POSITIONS = [
+  'bottom-left',
+  'bottom-center',
+  'bottom-right',
+  'top-left',
+  'top-center',
+  'top-right',
+];
 import { describeYamlError } from './yaml-errors.mjs';
 import { frontmatterSlip } from './frontmatter-slips.mjs';
 import { slideLine } from './slide-line.mjs';
@@ -100,6 +110,13 @@ export async function parseDeck(file = 'slides.md', sources, options = {}) {
   else if (barObject && bar.position != null && !['top', 'bottom'].includes(bar.position))
     problems.push(
       `${entry}: \`progressBar.position: ${JSON.stringify(bar.position)}\` is not used: write top or bottom (bottom is used)`,
+    );
+
+  // `navPosition` (slide.ng's own; the same list as src/app/lib/nav-position.ts): another value keeps the bar at the bottom left.
+  const navAt = data.headmatter.navPosition;
+  if (navAt != null && !NAV_POSITIONS.includes(navAt))
+    problems.push(
+      `${entry}: \`navPosition: ${JSON.stringify(navAt)}\` is not used: write one of ${NAV_POSITIONS.join(', ')} (bottom-left is used).${didYouMean(String(navAt), NAV_POSITIONS)}`,
     );
 
   // Old Slidev decks pick Prism; code here is always Shiki, so Prism theme CSS no longer applies.

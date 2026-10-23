@@ -1,6 +1,7 @@
 // `npm run test:e2e` (last part): the interface language (docs/UI-STRINGS.md). Builds two decks and checks them in a browser:
 //   tests/e2e/i18n/slides.md       `lang: xx`, with locales/xx.json in the deck and in its theme: labels of the bar, the
-//                                  settings menu, goto, overview, info, presenter and print come from the files, the rest is English
+//                                  settings menu, goto, overview, info, presenter and print come from the files, the rest is English;
+//                                  `navPosition: top-right` puts its bar in the top right, with the menus below it
 //   tests/e2e/i18n/rtl/slides.md   `lang: ar` with `uiLang: tr`: the built-in Turkish (isolated left to right), `dir="rtl"`, a
 //                                  mirrored bar and overview, Arabic dates
 import { execSync } from 'node:child_process';
@@ -63,8 +64,27 @@ const title = (page, selector) => page.locator(selector).first().getAttribute('t
     (await page.locator('.slidev-layout').first().innerText()).includes('1,234.5'),
   );
 
+  const box = await page.locator('.nav-bar-box').boundingBox();
+  t.ok(
+    'navPosition: top-right puts the bar in the top right',
+    box !== null && box.y < 2 && Math.abs(box.x + box.width - 1280) < 2,
+    JSON.stringify(box),
+  );
   await page.locator('#nav-settings').click();
   await page.locator('#settings-menu').waitFor();
+  const [button, menu] = await Promise.all(
+    ['#nav-settings', '#settings-menu'].map((s) => page.locator(s).boundingBox()),
+  );
+  t.ok(
+    'navPosition: at the top, the settings menu opens below the bar and stays in the window',
+    button !== null &&
+      menu !== null &&
+      menu.y > button.y + button.height / 2 &&
+      menu.y + menu.height <= 720 &&
+      menu.x >= 0 &&
+      menu.x + menu.width <= 1280,
+    JSON.stringify({ button, menu }),
+  );
   t.ok(
     'settings menu: translated title',
     (await page.locator('#settings-menu').innerText()).includes('xx-cursor-style'),

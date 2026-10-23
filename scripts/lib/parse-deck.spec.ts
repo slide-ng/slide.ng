@@ -296,3 +296,28 @@ describe('parseDeck: progressBar', () => {
     expect(problems.join()).toContain('progressBar.position: "left"');
   });
 });
+
+describe('parseDeck: navPosition', () => {
+  it('takes the six places', async () => {
+    for (const v of [
+      'bottom-left',
+      'bottom-center',
+      'bottom-right',
+      'top-left',
+      'top-center',
+      'top-right',
+    ]) {
+      const { problems } = await parse(`---\nnavPosition: ${v}\n---\n\n# A\n`);
+      expect(problems).toEqual([]);
+    }
+  });
+  it('warns about another value, with the near name', async () => {
+    const { problems } = await parse('---\nnavPosition: top-rigth\n---\n\n# A\n');
+    expect(problems.join()).toContain('`navPosition: "top-rigth"` is not used');
+    expect(problems.join()).toContain('Did you mean "top-right"?');
+    for (const v of ['top', 'left', 'true']) {
+      const { problems } = await parse(`---\nnavPosition: ${v}\n---\n\n# A\n`);
+      expect(problems.join()).toContain('navPosition:');
+    }
+  });
+});

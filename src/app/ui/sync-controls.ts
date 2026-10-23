@@ -1,4 +1,12 @@
-import { Component, ElementRef, Injector, afterNextRender, computed, inject } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  Injector,
+  afterNextRender,
+  computed,
+  inject,
+  input,
+} from '@angular/core';
 import { Nav } from '../lib/nav';
 import { Ui } from '../lib/ui-state';
 import { fitMenu } from '../lib/fit-menu';
@@ -51,7 +59,9 @@ import { T } from '../i18n/t';
       <div
         id="sync-menu"
         (keydown)="menuKey($event)"
-        class="bg-main text-main shadow-xl absolute bottom-10 left-0 z-menu py-2 border border-main rounded-md max-w-[calc(100vw-1rem)] overflow-y-auto"
+        class="bg-main text-main shadow-xl absolute left-0 z-menu py-2 border border-main rounded-md max-w-[calc(100vw-1rem)] overflow-y-auto"
+        [class.bottom-10]="!below()"
+        [class.top-10]="below()"
       >
         <div class="text-sm flex flex-col gap-2">
           <div class="px-3 whitespace-nowrap">
@@ -99,6 +109,8 @@ import { T } from '../i18n/t';
   `,
 })
 export class SyncControls {
+  /** The bar is at the top of the page (`navPosition`): the menu opens below the button. */
+  below = input(false);
   private sync = inject(SyncState);
   private ui = inject(Ui);
   private isPresenter = inject(Nav).isPresenter;

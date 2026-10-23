@@ -4,6 +4,10 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+### Added
+
+- `navPosition` in the headmatter places the navigation bar of the slide page: `bottom-left` (default, as in Slidev), `bottom-center`, `bottom-right`, `top-left`, `top-center` or `top-right` (#78). Left and right follow the writing direction, so a right-to-left deck mirrors them; at the top, the settings and sync menus open below the bar. The presenter page keeps its bar. Another value is warned about, with the near name, and keeps the bottom left.
+
 ## [2.0.0] - 2026-10-23
 
 ### Upgrading from 1.x
