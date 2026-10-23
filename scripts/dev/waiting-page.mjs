@@ -76,7 +76,7 @@ export function startWaitingPage({ port, host, remote, secret, onRelease }) {
   let error = '';
   let failed = false; // until a build fails, the page says the slides are being built
   let closed = false;
-  const server = createServer((req, res) => {
+  const handle = (req, res) => {
     // The Host check of the Angular dev server it stands in for: a DNS rebinding page must not read the error (it names
     // files).
     if (!devServerHostAllowed(req.headers.host, host)) {
@@ -104,21 +104,35 @@ export function startWaitingPage({ port, host, remote, secret, onRelease }) {
       'x-slide-ng-waiting': '1',
     });
     res.end(waitingHtml(error, { remote, building: !failed }));
+  };
+  // Without a host, both loopback addresses: `localhost` is 127.0.0.1 on one machine and ::1 on another (and Node listens
+  // on the first one only), and the browser, a second dev server or a test may ask either. Never the network: the error
+  // names files of this computer.
+  const servers = (host ? [host] : ['127.0.0.1', '::1']).map((address) => {
+    const server = createServer(handle);
+    // The page's own WebSocket (the dev server's live reload) has nothing to talk to yet.
+    server.on('upgrade', (_req, socket) => socket.destroy());
+    const ready = new Promise((done) => {
+      // A port taken meanwhile (another program), or no IPv6 here: the page is only a courtesy, the Angular server reports
+      // the port itself.
+      server.once('error', () => ((server.failed = true), done()));
+      server.listen(port, address, () => done());
+    });
+    // The page alone never keeps `slide-ng dev` running: when the generator fails before anything else starts, it exits.
+    server.unref();
+    return { server, ready };
   });
-  // The page's own WebSocket (the dev server's live reload) has nothing to talk to yet.
-  server.on('upgrade', (_req, socket) => socket.destroy());
-  // A port taken meanwhile (another program): the page is only a courtesy, the Angular server reports the port itself.
-  let listening;
-  const ready = new Promise((done) => (listening = done));
-  server.on('error', () => ((closed = true), listening()));
-  server.listen(port, host ?? 'localhost', () => listening());
-  // The page alone never keeps `slide-ng dev` running: when the generator fails before anything else starts, it exits.
-  server.unref();
+  const ready = Promise.all(servers.map((s) => s.ready)).then(() => {
+    if (servers.every(({ server }) => server.failed)) closed = true;
+  });
   function close() {
     if (closed) return;
     closed = true;
-    server.closeAllConnections?.();
-    server.close();
+    for (const { server } of servers) {
+      if (server.failed) continue;
+      server.closeAllConnections?.();
+      server.close();
+    }
   }
   return {
     /** Settles once the page listens (or could not). */

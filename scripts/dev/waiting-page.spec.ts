@@ -33,6 +33,20 @@ describe('the waiting page', () => {
     expect(waitingHtml('<foo-barr> is not known')).toContain('&lt;foo-barr&gt; is not known');
     expect(waitingHtml('/home/me/deck/slides.md', { remote: true })).not.toContain('/home/me');
   });
+  it('listens on both loopback addresses when no host is given', async () => {
+    const port = await freePort();
+    const page = startWaitingPage({ port, secret: 's' });
+    await page.ready;
+    expect((await fetch(`http://127.0.0.1:${port}/`)).headers.get('x-slide-ng-waiting')).toBe('1');
+    // ::1 too, where this machine has IPv6.
+    const v6 = await fetch(`http://[::1]:${port}/`).then(
+      (r) => r.headers.get('x-slide-ng-waiting'),
+      () => 'no ipv6',
+    );
+    expect(['1', 'no ipv6']).toContain(v6);
+    expect(page.closed).toBe(false);
+    page.close();
+  });
   it('says the slides are building until a build fails', async () => {
     expect(waitingHtml('', { building: true })).toContain('Building the slides');
     expect(waitingHtml('', { building: true })).not.toContain('Angular stopped');
