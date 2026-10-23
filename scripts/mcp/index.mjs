@@ -7,15 +7,23 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { parseFlags } from '../cli/flags.mjs';
 import { TOOLS } from './tools.mjs';
 
-const VERSION = JSON.parse(
-  readFileSync(new URL('../../package.json', import.meta.url), 'utf8'),
-).version;
+// Read when a server is made: the dev server's unit tests bundle this file, and a bundled test has no package.json next to it.
+function version() {
+  try {
+    return JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')).version;
+  } catch {
+    return '0.0.0';
+  }
+}
 
-/** The server, with the tools of one deck. Tests connect it to a pipe instead of stdio. */
-export function createMcpServer(entry) {
-  const ctx = { entry, root: dirname(entry) };
-  const server = new McpServer({ name: 'slide-ng', version: VERSION });
-  for (const tool of TOOLS) {
+/**
+ * The server, with the tools of one deck. Tests connect it to a pipe instead of stdio. The dev server adds its own tools
+ * and what they need (`context`: the sync hub and the address, see scripts/dev/mcp-http.mjs).
+ */
+export function createMcpServer(entry, { tools = TOOLS, context = {} } = {}) {
+  const ctx = { entry, root: dirname(entry), ...context };
+  const server = new McpServer({ name: 'slide-ng', version: version() });
+  for (const tool of tools) {
     server.registerTool(
       tool.name,
       { description: tool.description, inputSchema: tool.schema },

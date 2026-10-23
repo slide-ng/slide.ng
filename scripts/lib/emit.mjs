@@ -1,5 +1,7 @@
 // Writes the TypeScript source of one generated slide component.
+import { readFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
+import { assertNoCalledValues, warnUncalledGlobals } from './global-context.mjs';
 import { COMPONENTS, LAYOUTS } from './registry.mjs';
 import { layoutName } from './layouts.mjs';
 import { extractStyles, scopeCss } from './scoped-style.mjs';
@@ -8,11 +10,19 @@ import { attr } from './protect.mjs';
 import { toTemplate } from './to-template.mjs';
 import { tagDragSites } from './drag-sites.mjs';
 import { hasRootUrl, rebaseCss, rebaseHtml } from './asset-paths.mjs';
-import { assertNoRenamedNames } from './renamed.mjs';
+import { RenamedError, assertNoRenamedNames } from './renamed.mjs';
+import { assertClosedTags } from './unclosed-tags.mjs';
+import { warnUnknownNames } from './unknown-names.mjs';
+import { presetProblems } from './click-presets.mjs';
+import { warnMissingPublicFiles } from './public-paths.mjs';
 import { commonPipes } from './pipes.mjs';
 import { commonDirectives } from './angular-imports.mjs';
 import { setWarnSlide } from './code/highlighter.mjs';
 import { localAssets } from './local-assets.mjs';
+import { slideImages } from './slide-images.mjs';
+import { expandGroups } from './uno-directives.mjs';
+import { checkClickValues, clickSettings } from './click-values.mjs';
+import { slideLine } from './slide-line.mjs';
 
 const pad = (no) => String(no).padStart(3, '0');
 export const slideName = (no) => `slide-${pad(no)}`;
@@ -35,10 +45,13 @@ export function warnInlineControlFlow(markdown, no) {
   }
 }
 
-// A static href or src in an Angular template is not sanitized, so `[x](javascript:...)` would run when clicked.
-// Script addresses are replaced by `#`, like markdown-it does for links, and the author is told. The whole value is read
+// A static href or src (or an <object>'s data) in an Angular template is not sanitized, so `[x](javascript:...)` would
+// run when clicked. Script addresses are replaced by `#`, like markdown-it does for links, and the author is told. The whole value is read
 // (quotes of the other kind, `java&#115;cript:`, spaces and control characters inside the scheme, no quotes at all).
-const URL_ATTR = /(\s(?:href|src|xlink:href)\s*=\s*)(?:"([^"]*)"|'([^']*)'|([^\s<>"'`]+))/gi;
+const URL_ATTR = /(\s(?:href|src|xlink:href|data)\s*=\s*)(?:"([^"]*)"|'([^']*)'|([^\s<>"'`]+))/gi;
+// An inline event handler attribute (`onclick=`, `onerror=`), not an input that happens to start with "on" (`once=`).
+const EVENT_HANDLER =
+  /\s(on(?:click|dblclick|auxclick|contextmenu|(?:mouse|pointer|touch|key|drag|focus|animation|transition)[a-z]*|wheel|scroll[a-z]*|drop|load[a-z]*|error|abort|blur|change|input|invalid|submit|reset|select[a-z]*|toggle|beforetoggle|play[a-z]*|pause|ended|canplay[a-z]*|copy|cut|paste|resize|begin|end|repeat))\s*=/i;
 // Code samples are text: an `href=javascript:` shown in one is left as it is.
 const CODE_SAMPLE = /(<pre[\s>][\s\S]*?<\/pre>|<code(?:\s[^>]*)?>[\s\S]*?<\/code>)/;
 const decodeRefs = (v) =>
@@ -156,15 +169,6 @@ function body(markdown, def, no, ctx, layout) {
     .join('');
 }
 
-// A markdown link to another slide, `[pricing](/pricing)` or `[four](/4)`, moves inside the deck like <slide-ng-link>: with a
-// base, hash routing or an offline folder a plain address would leave the deck.
-export function slideLinks(html, aliases = []) {
-  const names = new Set(aliases.map(String));
-  return html.replace(/<a href="\/([\w-]+)(?:#[^"]*)?">([\s\S]*?)<\/a>/g, (link, to, text) =>
-    /^\d+$/.test(to) || names.has(to) ? `<slide-ng-link to="${to}">${text}</slide-ng-link>` : link,
-  );
-}
-
 // True when the markup has a tag the deck's `customElements` setting names: a list of names, where `sl-*` is a prefix, or `true`.
 export function usesCustomElements(markup, setting) {
   if (!setting) return false;
@@ -176,57 +180,131 @@ export function usesCustomElements(markup, setting) {
   );
 }
 
+// ` (slides.md:12)` for a line of the slide's content, counted from 0. The parser trims the content, so its first line is
+// the first line in the file from `contentStart` on that is not empty (and not a ```yaml block frontmatter). Empty when
+// the file cannot be read (a test).
+const sourceLines = (slide, root) => (line) => {
+  const path = slide.source?.filepath;
+  try {
+    const lines = readFileSync(path, 'utf8').replace(/\r/g, '').split('\n');
+    let first = slide.source.contentStart;
+    const skipEmpty = () => {
+      while (first < lines.length && !lines[first].trim()) first++;
+    };
+    skipEmpty();
+    // A ```yaml block at the top is the slide's frontmatter (block frontmatter), not content.
+    if (/^```ya?ml\s*$/.test(lines[first] ?? '')) {
+      first = lines.findIndex((l, i) => i > first && /^```\s*$/.test(l)) + 1 || first;
+      skipEmpty();
+    }
+    return ` (${relative(root ?? dirname(path), path) || 'slides.md'}:${first + line + 1})`;
+  } catch {
+    return '';
+  }
+};
+
 /**
  * @param {any} slide @param {number} no
- * @param {{ root?: string, headmatter?: any, layers?: string[], layouts?: Record<string, any>, components?: any[], assetBase?: string }} [deck]
- *   where `@/` is, the deck-wide settings, the layouts and components to use (the built-in ones unless a theme adds more),
- *   and the base that `/public` addresses get in a build (`/talk/`, `./`; default `/`, no change)
+ * @param {{ root?: string, roots?: { dir: string }[], headmatter?: any, layers?: string[], layouts?: Record<string, any>, components?: any[], assetBase?: string, slides?: any[] }} [deck]
+ *   where `@/` is, the roots (their `public/` folders hold the pictures), the deck-wide settings, the layouts and components
+ *   to use (the built-in ones unless a theme adds more), the base that `/public` addresses get in a build (`/talk/`, `./`;
+ *   default `/`, no change), and all the slides
  */
 export function slideSource(slide, no, deck = {}) {
   const layouts = deck.layouts ?? LAYOUTS;
   const layoutKey = slide.layout ?? layoutName(slide.frontmatter, no - 1, layouts);
   const def = layouts[layoutKey];
   setWarnSlide(no);
-  const { markdown, css } = extractStyles(tagDragSites(slide.content));
-  if (/@apply\b/.test(css))
-    console.warn(
-      `[slides] slide ${no}: @apply in a <style> does nothing here (there is no UnoCSS directive transformer); put the classes on the element, or write the CSS out`,
-    );
+  const { markdown, css: written } = extractStyles(tagDragSites(slide.content));
+  // `@apply` and `--uno:` were written out before (lib/uno-directives.mjs), as Slidev's transformerDirectives does.
+  const css = deck.cssDirectives?.get(written) ?? written;
   warnInlineControlFlow(markdown, no);
+  const lineOf = sourceLines(slide, deck.root);
+  // ` (slides.md:12)` for the nth line (from 0) of the slide's markdown that has `text` (or matches it), or ''.
+  const lineOfText = (text, nth = 0) => {
+    const has = (l) => (typeof text === 'string' ? l.includes(text) : text.test(l));
+    const i = slide.content
+      .split('\n')
+      .map((l, i) => (has(l) ? i : -1))
+      .filter((i) => i >= 0)[nth];
+    return i == null ? '' : lineOf(i);
+  };
+  checkClickValues(slide.content, (m, line) =>
+    console.warn(`[slides] slide ${no}${lineOf(line)}: ${m}`),
+  );
   const layer = (name) =>
     deck.layers?.includes(name) ? `<app-slide-layer name="${name}"></app-slide-layer>` : '';
-  const layout = `${openTag(def, slide.frontmatter)}${body(markdown, def, no, { file: slide.file, root: deck.root, roots: deck.roots?.map((r) => r.dir), allowOutsideRoot: deck.allowOutsideRoot, headmatter: deck.headmatter, codeblocks: deck.transformers?.codeblocks, slide: slideInfo(slide, no) }, layoutKey)}</${def.tag}>`;
+  // Markdown links to a slide may name it by its routeAlias (`[pricing](/pricing)`).
+  const aliases = (deck.slides ?? [])
+    .map((sl) => sl.frontmatter?.routeAlias)
+    .filter(Boolean)
+    .map(String);
+  const layout = `${openTag(def, slide.frontmatter)}${body(markdown, def, no, { file: slide.file, root: deck.root, roots: deck.roots?.map((r) => r.dir), allowOutsideRoot: deck.allowOutsideRoot, headmatter: deck.headmatter, monaco: deck.monaco, codeblocks: deck.transformers?.codeblocks, slide: slideInfo(slide, no), lineOf: lineOfText, aliases, total: deck.slides?.length, hiddenAliases: deck.hiddenAliases }, layoutKey)}</${def.tag}>`;
+  if (deck.roots?.length)
+    warnMissingPublicFiles(
+      layout,
+      slide.frontmatter,
+      no,
+      deck.roots.map((r) => join(r.dir, 'public')),
+      {
+        file: slide.file ?? slide.source?.filepath,
+        name:
+          (slide.file ?? slide.source?.filepath) &&
+          (relative(deck.root ?? '.', slide.file ?? slide.source.filepath) || 'slides.md'),
+      },
+    );
   const base = deck.assetBase ?? '/'; // where the deck is served from in a build; `/public` files get it in front
-  const aliases = (deck.slides ?? []).map((sl) => sl.frontmatter?.routeAlias).filter(Boolean);
-  const html = safeLinks(
-    closeEntities(
-      keepSpaces(
-        rebaseHtml(
-          localAssets(
-            slideLinks(layer('slide-bottom') + layout + layer('slide-top'), aliases),
-            {
-              file: slide.file ?? slide.source?.filepath,
-              root: deck.root,
-              publics: (deck.roots ?? []).map((r) => join(r.dir, 'public')),
-            },
-            (deck.localAssets ??= new Set()),
+  // Variant groups (`hover:(a b)`) are expanded, as Slidev's transformerVariantGroup does.
+  const html = expandGroups(
+    safeLinks(
+      closeEntities(
+        keepSpaces(
+          rebaseHtml(
+            localAssets(
+              layer('slide-bottom') + layout + layer('slide-top'),
+              {
+                file: slide.file ?? slide.source?.filepath,
+                root: deck.root,
+                publics: (deck.roots ?? []).map((r) => join(r.dir, 'public')),
+              },
+              (deck.localAssets ??= new Set()),
+            ),
+            base,
           ),
-          base,
         ),
       ),
+      no,
     ),
-    no,
   );
+  // The pictures the app loads before the slide is shown (`preloadImages`); index-source.mjs writes them into the slide list.
+  slide.images = slideImages(html, slide.frontmatter, base);
+
+  assertClosedTags(html, def.tag, no, lineOfText);
 
   // Look for components outside code samples only (code is just text). A `<code>` written in HTML is live Angular.
   const markup = html
     .replace(/<pre[\s\S]*?<\/pre>/g, '')
     .replace(/<code ngNonBindable>[\s\S]*?<\/code>/g, '');
-  assertNoRenamedNames(
-    markup,
-    no,
-    (deck.components ?? []).flatMap((c) => (c.selector ? [c.selector] : [])),
+  const ownSelectors = (deck.components ?? []).flatMap((c) =>
+    c.selector ? c.selector.split(',').map((part) => part.trim()) : [],
   );
+  assertNoRenamedNames(markup, no, ownSelectors);
+  warnUnknownNames(markup, no, ownSelectors);
+  for (const problem of presetProblems({
+    markup,
+    frontmatter: slide.frontmatter,
+    headmatter: deck.headmatter,
+    css,
+    roots: deck.roots,
+  }))
+    console.warn(`[slides] slide ${no}: ${problem}`);
+  warnUncalledGlobals(markup, no);
+  assertNoCalledValues(markup, no);
+  // `@let x = 5` without its `;` is not Angular's syntax: markdown shows it as text, and a use of `x` fails to build.
+  for (const m of markup.matchAll(/&#64;let\s+([\w$]+)\s*=[^<\n]*/g))
+    console.warn(
+      `[slides] slide ${no}${lineOfText(`@let ${m[1]}`)}: "${m[0].replace('&#64;', '@').trim()}" has no ; at its end, so it is shown as text and declares nothing: end it with ;`,
+    );
   // A drag position by name (`slide-ng-drag="square"`, `pos="square"`) is looked up in the slide's `dragPos`.
   const dragPos = slide.frontmatter.dragPos ?? {};
   const named = [
@@ -238,24 +316,25 @@ export function slideSource(slide, no, deck = {}) {
       console.warn(
         `[slides] slide ${no}: the drag position "${m[1]}" is not in this slide's dragPos; it starts where the layout puts it`,
       );
-  // UnoCSS here has no variant groups and no `--uno:` directive (docs/SYNTAX.md): say so instead of dropping the styles.
-  if (/\sclass="[^"]*[\w-]:\(/.test(markup))
-    console.warn(
-      `[slides] slide ${no}: variant groups such as hover:(a b) are not supported; write hover:a hover:b`,
-    );
-  if (/--uno(?:css)?:/.test(css))
-    console.warn(
-      `[slides] slide ${no}: --uno: in a <style> is not supported; put the utility classes on the element instead`,
-    );
   // Vue's `<template #name>` slot is an inert HTML <template> here: its content never shows.
   if (/<template\s+(?:#|v-slot)/.test(markup))
     console.warn(
       `[slides] slide ${no}: <template #...> is Vue's slot syntax and shows nothing here; use <div at="1"> children in <slide-ng-switch> and <div dark> / <div light> in <slide-ng-light-or-dark>`,
     );
-  // Angular removes <script> elements from templates without a word; say so, and where code goes instead.
-  if (/<script[\s>]/i.test(markup))
+  // Angular removes <script> elements from templates without a word; say so, and where code goes instead. Only tags count:
+  // `data:text/html,<script>` in an attribute is not an element (safeLinks handles that one).
+  const tags = markup.split(TAG).filter((_, i) => i % 2);
+  if (tags.some((t) => /^<script[\s>/]/i.test(t)))
     console.warn(
       `[slides] slide ${no}: <script> is removed (an Angular template cannot run one); put the code in a component in components/ or in setup/main.ts`,
+    );
+  // A static onclick= or onerror= is kept and runs as script in the deck's page (docs/SECURITY-MODEL.md).
+  const handler = tags
+    .map((t) => t.replace(/"[^"]*"|'[^']*'/g, '""').match(EVENT_HANDLER)?.[1])
+    .find(Boolean);
+  if (handler)
+    console.warn(
+      `[slides] slide ${no}: ${handler}= is an inline event handler; it is kept and runs as script in the deck's page. Angular's (${handler.slice(2).toLowerCase()})="..." calls a component's code instead`,
     );
   const used = (deck.components ?? COMPONENTS).filter((c) => c.test.test(markup));
   const pipes = commonPipes(markup);
@@ -280,21 +359,27 @@ export function slideSource(slide, no, deck = {}) {
   // (names, `sl-*`, or `true` for any), and only the slides that use one get Angular's CUSTOM_ELEMENTS_SCHEMA, so a mistyped
   // component name elsewhere is still an error.
   const schema = usesCustomElements(markup, deck.headmatter?.customElements);
-  const { clicksStart, clicks } = slide.frontmatter;
+  const { clicksStart, clicks } = clickSettings(slide.frontmatter, (m) =>
+    console.warn(`[slides] slide ${no}: ${m}`),
+  );
   const providers = ['ClicksContext'];
-  if (clicksStart) providers.push(`{ provide: CLICKS_START, useValue: ${+clicksStart} }`);
-  if (clicks) providers.push(`{ provide: CLICKS_TOTAL, useValue: ${+clicks} }`);
+  if (clicksStart) providers.push(`{ provide: CLICKS_START, useValue: ${clicksStart} }`);
+  if (clicks) providers.push(`{ provide: CLICKS_TOTAL, useValue: ${clicks} }`);
   if (base === './' && hasRootUrl(css))
     console.warn(
       `[slides] slide ${no}: url(/...) in a <style> is not found in an offline folder (the build cannot rewrite it there); use the picture in an inline style="background-image: url(/...)" or an <img> instead`,
     );
   const styles = scopeCss(rebaseCss(css, base), slideName(no));
 
-  // Where the slide is in the markdown: the build runner adds it to Angular's errors (cli/runtime.mjs).
+  // Where the slide is in the markdown (its `---` line): the build runner adds it to Angular's errors (cli/runtime.mjs). The
+  // second line gives the lines of the slide, so an error in the template can name the line of the markdown it comes from.
   const where = slide.source
-    ? `${relative(deck.root ?? dirname(slide.source.filepath), slide.source.filepath) || 'slides.md'}:${Math.max(1, slide.source.start)}`
+    ? `${relative(deck.root ?? dirname(slide.source.filepath), slide.source.filepath) || 'slides.md'}:${slideLine(slide.source)}`
     : 'slides.md';
-  return `// GENERATED from ${where} (slide ${no}) - do not edit
+  const lines = slide.source
+    ? `\n// LINES ${JSON.stringify({ file: slide.source.filepath, from: slide.source.start, to: slide.source.end })}`
+    : '';
+  return `// GENERATED from ${where} (slide ${no}) - do not edit${lines}
 import { ${schema ? 'CUSTOM_ELEMENTS_SCHEMA, ' : ''}Component${styles ? ', ViewEncapsulation' : ''} } from '@angular/core';
 import { CLICKS_START, CLICKS_TOTAL, ClicksContext } from '../../app/lib/clicks';
 import { SlideBase } from '../../app/lib/slide-base';
@@ -307,5 +392,29 @@ ${importLines.join('\n')}
   template: ${JSON.stringify(html)},${styles ? `\n  styles: [${JSON.stringify(styles)}],\n  encapsulation: ViewEncapsulation.None,` : ''}
 })
 export default class ${slideClass(no)} extends SlideBase {}
+`;
+}
+
+/** The source of every slide. Old names (renamed.mjs) are collected from all slides first, so one run reports them all. */
+export function slideSources(deck) {
+  const renamed = [];
+  const sources = deck.slides.map((s, i) => {
+    try {
+      return slideSource(s, i + 1, deck);
+    } catch (e) {
+      if (!(e instanceof RenamedError)) throw e;
+      renamed.push(e.message);
+      return '';
+    }
+  });
+  if (renamed.length) throw new RenamedError(renamed.join('\n'));
+  return sources;
+}
+
+/** `src/slides/generated/source-paths.ts`: the folder of each root copy, and where each slide is in the markdown. */
+export function sourcePathsModule(rootDirs, slides) {
+  return `// GENERATED - do not edit
+export const ROOT_DIRS: Record<string, string> = ${JSON.stringify(rootDirs)};
+export const SLIDE_SOURCES: string[] = ${JSON.stringify(slides)};
 `;
 }

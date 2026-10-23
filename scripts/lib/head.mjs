@@ -2,6 +2,9 @@
 // `htmlAttrs`, `seoMeta` (Open Graph and Twitter tags) and the PWA manifest link.
 // The headmatter can come from someone else's deck, so every value is escaped and attribute names are checked.
 import { themeColor } from '../build/pwa.mjs';
+import { isRtl, normalizeLang } from './lang.mjs';
+import { ROUTER_MODE_META, ROUTER_MODES } from './build-options.mjs';
+import { plainText } from './plain-text.mjs';
 
 const escapeHtml = (text) =>
   String(text)
@@ -67,11 +70,7 @@ const FAVICON_TYPES = {
 
 // A short plain description from the markdown of `info` (the page's description and the PDF's subject).
 export function describe(info) {
-  return String(info)
-    .replace(/[#*_`>]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 300);
+  return plainText(info).slice(0, 300);
 }
 
 /**
@@ -96,6 +95,12 @@ export function headParts(headmatter, { ogImage = null, pwa = false, warn = () =
     meta('property', 'og:title', seo.ogTitle ?? title),
     meta('property', 'og:description', seo.ogDescription ?? description),
     meta('property', 'og:image', ogImage ?? (seo.ogImage === 'auto' ? null : seo.ogImage)),
+    // How the app routes, for `export --dist` (a build's `--router-mode` may differ from the headmatter it is exported with).
+    meta(
+      'name',
+      ROUTER_MODE_META,
+      ROUTER_MODES.includes(headmatter.routerMode) ? headmatter.routerMode : 'history',
+    ),
   ];
   for (const [key, value] of Object.entries(seo)) {
     if (['ogTitle', 'ogDescription', 'ogImage'].includes(key)) continue;
@@ -142,13 +147,32 @@ function attributeText(attrs, warn) {
 }
 
 /**
+ * `src/index.html` without what only the dev server uses: a `<script data-slide-ng-dev-only>` and the comment just before it
+ * (the /notes-edit page's early keys; that page needs the dev server).
+ */
+export function dropDevOnly(html) {
+  return html.replace(
+    /(?:[ \t]*<!--(?:(?!-->)[\s\S])*-->\s*)?[ \t]*<script data-slide-ng-dev-only>[\s\S]*?<\/script>\n?/g,
+    '',
+  );
+}
+
+/**
  * Puts the parts into `src/index.html`: the <html> attributes, the <title>, and the tags before </head>.
  * @param {string} template
  * @param {ReturnType<typeof headParts>} parts
  * @param {(message: string) => void} [warn]
  */
 export function renderIndexHtml(template, parts, warn = () => {}) {
-  const attrs = { lang: 'en', ...parts.htmlAttrs, ...(parts.lang ? { lang: parts.lang } : {}) };
+  // `lang` in the usual spelling (`pt_br` is `pt-BR`); a value that is not a language tag is written as it is.
+  const lang = parts.lang ? normalizeLang(parts.lang) || parts.lang : null;
+  // A right-to-left language (`ar`, `he`, `fa`, `ur`) turns the page around, unless `htmlAttrs.dir` says otherwise.
+  const attrs = {
+    lang: 'en',
+    ...(lang && isRtl(lang) ? { dir: 'rtl' } : {}),
+    ...parts.htmlAttrs,
+    ...(lang ? { lang } : {}),
+  };
   let html = template.replace(/<html[^>]*>/i, `<html ${attributeText(attrs, warn).join(' ')}>`);
   html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtml(parts.title)}</title>`);
   // The template's own icon is dropped when the deck has one.

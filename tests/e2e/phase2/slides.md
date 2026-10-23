@@ -2,6 +2,10 @@
 title: slide.ng phase 2 showcase
 plantUmlServer: /plantuml
 lineNumbers: false
+shiki:
+  magicMove:
+    easing: linear
+    delayMove: 0.5
 ---
 
 # Phase 2 showcase
@@ -79,7 +83,7 @@ const d = 4;
 npm i @slide-ng/core
 ```
 
-```sh [yarn]
+```sh [yarn ~i-carbon:terminal~]
 yarn add @slide-ng/core
 ```
 
@@ -215,6 +219,8 @@ const plain = 'no twoslash here'
 <slide-ng-auto-fit-text id="fit" class="w-60 h-20 bg-gray-100" min="10" max="60">Some text that should fit its box</slide-ng-auto-fit-text>
 
 <slide-ng-youtube id="luoMHjh-XcQ" width="320" height="180" />
+<slide-ng-youtube id="luoMHjh-XcQ?start=1234&end=1300&foo=bar" width="160" height="90" />
+<slide-ng-youtube id="luoMHjh-XcQ" start="1m30s" width="160" height="90" />
 
 ---
 
@@ -224,7 +230,7 @@ const plain = 'no twoslash here'
   <source src="/missing.webm" type="video/webm" />
 </slide-ng-video>
 
-<slide-ng-video id="vid-once" slide-ng-click autoplay="once"></slide-ng-video>
+<slide-ng-video id="vid-once" slide-ng-click autoplay="once" class="h-20"></slide-ng-video>
 
 <slide-ng-tweet id="20" scale="0.5" />
 
@@ -243,6 +249,8 @@ const plain = 'no twoslash here'
 <div id="mo" class="w-20 h-10 bg-blue-300" slide-ng-motion :initial="{ x: -80, opacity: 0 }" :enter="{ x: 0, opacity: 1 }" :click-4="{ y: 40 }" :leave="{ x: 80 }">motion</div>
 
 <div id="mo2" class="w-20 h-10 bg-green-300" [slide-ng-click]="[5, 6]" slide-ng-motion :initial="{ x: -50 }" :enter="{ x: 0 }" :leave="{ x: 50 }">with slide-ng-click</div>
+
+<div id="mo3" slide-ng-click.up="[5, 6]">a range written as text, with a preset</div>
 
 ---
 
@@ -263,3 +271,52 @@ A claim[^1] and another[^second].
 [^second]: The second one, with `{{ x }}` in it.
 
 <carbon-apps id="i1" /> <mdi-account-circle id="i2" class="text-red-500" /> <ph-star-fill id="i3" />
+
+---
+
+# More built-in props
+
+<slide-ng-switch id="sw-unmount" unmount transition="fade">
+<div at="1" id="swu1">unmount one</div>
+<div at="2" id="swu2">unmount two</div>
+</slide-ng-switch>
+
+<div id="rw-spacer" style="height: 2000px"></div>
+
+<slide-ng-render-when id="rw-visible" context="visible"><p id="rw-shown">seen</p><p fallback id="rw-fallback">not seen yet</p></slide-ng-render-when>
+
+---
+
+# UnoCSS
+
+<div id="u-attr" flex="~ col" text="red-500" p="4">attributify</div>
+<div id="u-hover" bg="green-500" hover:bg="blue-500">hover</div>
+<div id="u-group" class="p-2 hover:(text-blue-500 font-bold)">group</div>
+<div id="u-bare" p-2 hover:(text-blue-500 font-bold)>bare group</div>
+<div id="u-prose" class="prose"><p>Prose text with <a href="https://example.com">a link</a>.</p></div>
+<p id="u-apply" class="from-apply">apply</p>
+<p id="u-uno" class="from-uno">uno</p>
+<p id="u-styles" class="uno-from-styles">styles</p>
+<svg width="120" height="40"><text id="u-svg-text" x="0" y="20" font-size="14">svg</text></svg>
+
+<style>
+.from-apply { @apply text-green-600 italic; }
+.from-uno { --uno: underline font-mono; }
+</style>
+
+---
+
+# Monaco endless loop
+
+```js {monaco-run} {autorun:false}
+while (true) {}
+```
+
+---
+
+# Monaco after the loop
+
+```ts {monaco-run}
+const after: string = 'after the loop'
+console.log(after)
+```

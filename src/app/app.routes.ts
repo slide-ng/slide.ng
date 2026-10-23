@@ -3,7 +3,10 @@ import { CanActivateFn, Router, Routes } from '@angular/router';
 import { Deck } from './deck';
 import { DevApi } from './dev/dev-api';
 import { presenterEnabled } from './lib/switches';
+import { EntryPage } from './presenter/entry-page';
+import { NotesEditPage } from './presenter/notes-edit-page';
 import { NotesPage } from './presenter/notes-page';
+import { OverviewPage } from './presenter/overview-page';
 import { NotesPrint } from './print/notes-print';
 import { PrintPage } from './print/print-page';
 import { Presenter } from './presenter/presenter';
@@ -30,8 +33,11 @@ const unlocked: CanActivateFn = async (_route, state) => {
 };
 const presenterAllowed: CanActivateFn = () =>
   presenterEnabled() || inject(Router).createUrlTree(['/1']);
+// The notes editor writes the markdown files, so it exists only while developing.
+const devOnly: CanActivateFn = () => inject(DevApi).enabled || inject(Router).createUrlTree(['/1']);
 
-// /3 shows slide 3, /print every slide for export, /presenter/3 the presenter page, /notes the notes only. Anything else goes to slide 1.
+// /3 shows slide 3, /print every slide for export, /presenter/3 the presenter page, /notes the notes only, /overview every slide
+// with its notes, /notes-edit all notes in one text (dev), /entry links to these. Anything else goes to slide 1.
 // `data.mode` tells Nav which of the two navigations it is serving.
 export const routes: Routes = [
   { path: 'presenter', pathMatch: 'full', redirectTo: 'presenter/1' },
@@ -43,6 +49,9 @@ export const routes: Routes = [
     canActivate: [presenterAllowed, unlocked],
   },
   { path: 'notes', component: NotesPage, canActivate: [unlocked] },
+  { path: 'overview', component: OverviewPage, canActivate: [unlocked] },
+  { path: 'notes-edit', component: NotesEditPage, canActivate: [devOnly, unlocked] },
+  { path: 'entry', component: EntryPage },
   { path: 'print', component: PrintPage },
   { path: ':no', component: Deck, canActivate: [printQuery] },
   { path: '**', redirectTo: '1' },

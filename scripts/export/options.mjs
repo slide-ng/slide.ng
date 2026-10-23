@@ -20,6 +20,7 @@ export const EXPORT_FLAGS = {
   url: { type: 'string' }, // export a running server (the dev server) instead
   base: { type: 'string' },
   theme: { type: 'string', alias: 't' },
+  lang: { type: 'string' },
 };
 
 export const FORMATS = ['pdf', 'png', 'pptx', 'md'];
@@ -77,6 +78,13 @@ export function resolveExportOptions(flags, headmatter = {}) {
   check('wait', wait >= 0 && wait <= 120000, 'wait is in milliseconds, between 0 and 120000');
   const scale = o.scale ?? 2;
   check('scale', scale >= 0.25 && scale <= 8, 'scale must be between 0.25 and 8');
+  // The language is fixed when the deck is built: an existing build or a running server cannot change it.
+  for (const source of ['dist', 'url'])
+    check(
+      'lang',
+      flags.lang === undefined || flags[source] === undefined,
+      `--lang cannot be used with --${source}: the language is chosen when the deck is built (build it with --lang, or leave --${source} out)`,
+    );
 
   return {
     format,

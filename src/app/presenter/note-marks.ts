@@ -65,6 +65,12 @@ export function prepareNote(
     for (const [parent, list] of parentsMap)
       parent.classList.toggle(FADE, !list.some(([, c]) => c === current));
     for (const [el, clicks] of siblingsMap) el.classList.toggle(FADE, clicks !== current);
+    // Dim once: inside a dimmed element its parts keep their own opacity, or they would multiply (0.75 × 0.75) below 4.5:1.
+    // (The root's own class is not drawn: the stylesheet dims only what is inside it.)
+    for (const el of [...parentsMap.keys(), ...siblingsMap.keys()]) {
+      const around = el === root ? null : el.parentElement?.closest(`.${FADE}`);
+      if (around && around !== root && root.contains(around)) el.classList.remove(FADE);
+    }
     for (const [marker, clicks] of markersMap) {
       marker.classList.remove(FADE);
       marker.classList.toggle(`${MARK}-past`, clicks < current);

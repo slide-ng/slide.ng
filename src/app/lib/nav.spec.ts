@@ -1,4 +1,4 @@
-import { findSlide } from './nav';
+import { clicksQuery, findSlide, slideAddress } from './nav';
 
 describe('findSlide', () => {
   const aliases = [null, 'intro', null];
@@ -12,5 +12,31 @@ describe('findSlide', () => {
   });
   it('gives null when nothing matches', () => {
     expect(findSlide('nope', 3, aliases)).toBeNull();
+  });
+});
+
+describe('slideAddress', () => {
+  it('reads the slide part of a markdown link', () => {
+    expect(slideAddress('4')).toBe('4');
+    expect(slideAddress('/4')).toBe('4');
+    expect(slideAddress('./intro')).toBe('intro');
+    expect(slideAddress('#/4')).toBe('4');
+    expect(slideAddress('/intro#part')).toBe('intro');
+    expect(slideAddress('./café')).toBe('café');
+    expect(slideAddress('./🚀')).toBe('🚀');
+    expect(slideAddress('./My%20Alias')).toBe('My Alias');
+  });
+  it('gives null for other addresses', () => {
+    expect(slideAddress('https://example.org/4')).toBeNull();
+    expect(slideAddress('/file.pdf')).toBeNull();
+    expect(slideAddress('/a/b')).toBeNull();
+    expect(slideAddress('#part')).toBeNull();
+  });
+});
+
+describe('clicksQuery', () => {
+  it('leaves ?clicks= out at click 0, as Slidev does', () => {
+    expect(clicksQuery(0)).toBeUndefined();
+    expect(clicksQuery(3)).toBe('3');
   });
 });

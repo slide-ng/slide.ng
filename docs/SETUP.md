@@ -7,30 +7,32 @@ The folder can be in the deck's own folder, in a theme and in an addon (see THEM
 weakest first (built-in theme, `theme:`, the addons in order, the deck), so the deck has the last word. How the answers of several roots are put
 together is written under each hook.
 
-A setup file is plain TypeScript (or `.mjs` / `.js` for the hooks that run in Node). The tests for all of them are in `tests/e2e/phase5/`:
+A setup file is plain TypeScript (or `.mjs` / `.js` for the hooks that run in Node). The tests for all of them are in [`tests/e2e/phase5/`](https://github.com/slide-ng/slide.ng/tree/main/tests/e2e/phase5):
 a deck with one file of each kind, checked in a real browser.
 
 There are two kinds of hooks:
 
 - **Node hooks** run while the slides are generated: `shiki`, `katex`, `transformers`, `preparser`. They are bundled with esbuild first, so they can
   be written in TypeScript and import their own files and packages, also from a theme in `node_modules`. An error names the root and the file.
-- **Browser hooks** become part of the app: `main`, `root`, `shortcuts`, `context-menu`, `mermaid`, `monaco`, `code-runners`. They must be `.ts`
+- **Browser hooks** become part of the app: `main`, `root`, `routes`, `shortcuts`, `context-menu`, `mermaid`, `mermaid-renderer`, `monaco`, `code-runners`. They must be `.ts`
   files; Angular compiles them with the rest of the app, so `import type { ... } from 'slide-ng/...'` and `@angular/core` work.
 
-| File                    | Runs              | Function receives                | Returns                                     |
-| ----------------------- | ----------------- | -------------------------------- | ------------------------------------------- |
-| `setup/shiki.ts`        | generating        | `{}`                             | Shiki options                               |
-| `setup/katex.ts`        | generating        | nothing                          | KaTeX options                               |
-| `setup/transformers.ts` | generating        | nothing                          | `{ pre, codeblocks }`                       |
-| `setup/preparser.ts`    | generating        | `{ filepath, headmatter, mode }` | a list of extensions                        |
-| `setup/mermaid.ts`      | browser           | nothing                          | Mermaid config                              |
-| `setup/monaco.ts`       | browser           | `monaco`                         | editor options (or nothing)                 |
-| `setup/code-runners.ts` | browser           | nothing                          | `{ language: run }`                         |
-| `setup/shortcuts.ts`    | browser           | `(actions, list)`                | the list of shortcuts                       |
-| `setup/context-menu.ts` | browser           | `items`                          | the list of entries                         |
-| `setup/main.ts`         | browser, at start | nothing                          | Angular providers                           |
-| `setup/root.ts`         | browser, at start | nothing                          | nothing                                     |
-| `setup/providers.ts`    | browser, at start | (the older way)                  | an array of providers is the default export |
+| File                        | Runs              | Function receives                | Returns                                     |
+| --------------------------- | ----------------- | -------------------------------- | ------------------------------------------- |
+| `setup/shiki.ts`            | generating        | `{}`                             | Shiki options                               |
+| `setup/katex.ts`            | generating        | nothing                          | KaTeX options                               |
+| `setup/transformers.ts`     | generating        | nothing                          | `{ pre, codeblocks }`                       |
+| `setup/preparser.ts`        | generating        | `{ filepath, headmatter, mode }` | a list of extensions                        |
+| `setup/mermaid.ts`          | browser           | nothing                          | Mermaid config                              |
+| `setup/mermaid-renderer.ts` | browser           | nothing                          | `(code, options) => svg` (or nothing)       |
+| `setup/monaco.ts`           | browser           | `monaco`                         | editor options (or nothing)                 |
+| `setup/code-runners.ts`     | browser           | nothing                          | `{ language: run }`                         |
+| `setup/shortcuts.ts`        | browser           | `(actions, list)`                | the list of shortcuts                       |
+| `setup/context-menu.ts`     | browser           | `items`                          | the list of entries                         |
+| `setup/main.ts`             | browser, at start | nothing                          | Angular providers                           |
+| `setup/root.ts`             | browser, at start | nothing                          | nothing                                     |
+| `setup/routes.ts`           | browser, at start | the routes                       | the routes to use                           |
+| `setup/providers.ts`        | browser, at start | (the older way)                  | an array of providers is the default export |
 
 ## Shiki: `setup/shiki.ts`
 
@@ -112,6 +114,28 @@ The configs of all roots are put over each other.
 export default () => ({ theme: 'base', themeVariables: { primaryColor: '#ff0000' } });
 ```
 
+## Mermaid renderer: `setup/mermaid-renderer.ts`
+
+Returns a function that draws a diagram with another library, as in Slidev. The function gets the diagram's code and its options (the theme, the
+config of `setup/mermaid.ts` and the fence's own options, merged in that order) and returns the SVG as a string, or a promise of it. Mermaid
+itself is then not loaded. `scale` is still applied to the SVG, and the export waits for it like for a Mermaid drawing. The setup function may be
+async, and it may return nothing to keep Mermaid. When several roots have the file, the last one that returns a function wins.
+A setup that throws is skipped with a warning in the console, and asked again for the next diagram. A renderer that throws, or that resolves
+to something other than a string, shows the red error box in place of the diagram.
+
+```ts
+// setup/mermaid-renderer.ts: Mermaid's hand-drawn look for every diagram
+let counter = 0;
+
+export default () => async (code: string, options: Record<string, unknown>) => {
+  const { default: mermaid } = await import('mermaid');
+  mermaid.initialize({ startOnLoad: false, ...options, look: 'handDrawn' });
+  return (await mermaid.render(`hand-drawn-${++counter}`, code)).svg;
+};
+```
+
+A renderer that uses another library imports it the same way; install the library in the deck first.
+
 ## Monaco: `setup/monaco.ts`
 
 Runs once Monaco is loaded (only for decks that have an editor). It gets the `monaco` module, so it can add themes or languages (TypeScript settings are `monaco.typescript.typescriptDefaults`; the old `monaco.languages.typescript` is undefined in this Monaco version; an editor's model is `file:///model-N.mts`, so an extra library for `import './context'` goes at `file:///context.ts`),
@@ -142,7 +166,22 @@ runner. The function gets the editor's text and returns `{ lines: string[][], er
 ```ts
 // setup/code-runners.ts
 export default () => ({
-  python: async (code: string) => ({ lines: [[await runPython(code)]] }),
+  // A json {monaco-run} block: says whether the text is valid JSON.
+  json: (code: string) => {
+    try {
+      const value = JSON.parse(code);
+      return {
+        lines: [['valid JSON', Array.isArray(value) ? `a list of ${value.length}` : typeof value]],
+      };
+    } catch (e) {
+      return { lines: [], error: e instanceof Error ? e.message : String(e) };
+    }
+  },
+  // A python {monaco-run} block: a runner may be async, for example to send the code to a service of your own.
+  python: async (code: string) => {
+    const answer = await fetch('http://localhost:8000/run', { method: 'POST', body: code });
+    return { lines: (await answer.text()).split('\n').map((line) => [line]) };
+  },
 });
 ```
 
@@ -165,7 +204,7 @@ export default (actions: ShortcutActions, list: Shortcut[]): Shortcut[] => [
 ## Context menu: `setup/context-menu.ts`
 
 Gets the entries of the right-click menu and returns the list to show. An entry is `{ icon, label, run, disabled? }`; `icon` is an icon class such as
-`i-carbon:star`. The roots are chained.
+`i-carbon:star`. The roots are chained. The built-in labels are in the deck's language (UI-STRINGS.md), so pick an entry by its `icon`, not its label.
 
 ```ts
 // setup/context-menu.ts
@@ -205,10 +244,42 @@ export default () => {
 };
 ```
 
+## Routes: `setup/routes.ts`
+
+Gets the app's routes (Angular `Routes`) and returns the list to use, so a deck can add pages. A page is an Angular component; it can be in the
+file itself or be imported from the root (`import { Gallery } from '../components/gallery'`). The roots are chained: each gets the list the
+one before returned. Angular takes the first route that matches, and Slidev's router the most specific one; to keep that, the app's own routes that
+match any address (`:no`, the slide, and `**`) are moved to the end afterwards, so a page appended to the list is reached. Routes the files add
+stay where they put them, a `:lang` route too; a copy of `:no` or `**` (with a guard added, say) is moved like the original.
+A page comes before the slides, so a slide whose `routeAlias` has the page's path is never reached at that address; the build cannot see
+the routes this file makes, so it cannot warn: give pages and aliases different names.
+A file that throws, or returns something other than a list, is skipped: the console says `slide-ng: setup/routes.ts threw` (or what it
+returned), and the deck keeps the routes it had before that file, so the slides still open.
+
+```ts
+// setup/routes.ts
+import { Component } from '@angular/core';
+import type { Routes } from '@angular/router';
+
+@Component({ selector: 'deck-about', template: '<h1>About this talk</h1>' })
+class About {}
+
+export default (routes: Routes): Routes => [...routes, { path: 'about', component: About }];
+```
+
+The page is shown on its own, without the slide frame, the navigation or the keys of the slides. In `dev --remote`, it is not behind the
+presenter password; add Angular's `canActivate` yourself if it should be.
+
+The page is outside the deck, so the services of a deck page are not there: `inject(Nav)` (and `Ui`, `Drawings`, the click context)
+fails with a "No provider" error, and `inject(Nav, { optional: true })` gives `null`. What it can inject is what the whole app has:
+Angular's `Router` (and `RouterLink` in its imports, for a link back such as `routerLink="/1"`), `Dark` from `slide-ng/lib/dark`, and the
+providers of `setup/main.ts` and `setup/providers.ts`.
+
 ## Differences from Slidev
 
 - Slidev's setup files are TypeScript with `define...Setup` helpers from `@slidev/types`; here a plain function is enough, and types come from `slide-ng/...`.
 - `setup/main.ts` returns Angular providers (Slidev's gets the Vue app), `setup/root.ts` has no component to work on.
 - Shortcuts are `{ name, key, run, when }` (Slidev: `{ key, fn, autoRepeat }`), context menu entries are `{ icon, label, run, disabled }`.
-- Not available: `setup/vite.config.ts`, `setup/vue.ts`, `setup/routes.ts`, `setup/code-runners.ts` getting a run context (it gets the text only),
+- `setup/routes.ts` gets Angular routes (Slidev's: Vue router records); the slide routes stay last instead of being ranked by the router.
+- Not available: `setup/vite.config.ts`, `setup/vue.ts`, `setup/code-runners.ts` getting a run context (it gets the text only),
   Monaco's `monacoTypesSource`, and `setup/transformers.ts` markdown-it plugins (the `codeblocks` function is the way to render a block yourself).

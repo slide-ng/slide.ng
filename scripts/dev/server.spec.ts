@@ -213,6 +213,32 @@ describe('writes to slides.md', () => {
     ).toBe(200);
     writeFileSync(join(root, 'slides.md'), SLIDES);
   });
+  it('reads every note and writes one for the overview and the notes editor', async () => {
+    expect((await call('GET', '/__slide-ng/notes')).json.notes).toEqual(['', '']);
+    expect(
+      (await call('PUT', '/__slide-ng/slides/2/note', { note: 'Say hello.', base: '' })).status,
+    ).toBe(200);
+    const file = readFileSync(join(root, 'slides.md'), 'utf8');
+    expect(file).toBe(SLIDES.replace('# Two\n', '# Two\n\n<!--\nSay hello.\n-->\n'));
+    expect((await call('GET', '/__slide-ng/notes')).json.notes).toEqual(['', 'Say hello.']);
+    writeFileSync(join(root, 'slides.md'), SLIDES);
+  });
+  it('refuses a note that changed in the file since the page read it', async () => {
+    const stale = await call('PUT', '/__slide-ng/slides/1/note', { note: 'x', base: 'older' });
+    expect(stale.status).toBe(409);
+    expect((await call('PUT', '/__slide-ng/slides/1/note', { note: 3 })).status).toBe(400);
+    expect(readFileSync(join(root, 'slides.md'), 'utf8')).toBe(SLIDES);
+  });
+  it('writes --> in a note as -- >, and takes a base with --> for the note it wrote', async () => {
+    const put = (note: string, base: string) =>
+      call('PUT', '/__slide-ng/slides/1/note', { note, base });
+    expect((await put('--> <b>x</b>', '')).status).toBe(200);
+    expect(readFileSync(join(root, 'slides.md'), 'utf8')).toContain('<!--\n-- > <b>x</b>\n-->');
+    expect((await call('GET', '/__slide-ng/notes')).json.notes[0]).toBe('-- > <b>x</b>');
+    expect((await put('y', '--> <b>x</b>')).status).toBe(200);
+    expect((await call('GET', '/__slide-ng/notes')).json.notes[0]).toBe('y');
+    writeFileSync(join(root, 'slides.md'), SLIDES);
+  });
 });
 
 describe('{monaco-write}', () => {
@@ -352,6 +378,10 @@ describe('WebSocket', () => {
   });
 });
 
+// `!` and the space never appear in the cookie (hex, digits, `.` and base64url), so a random
+// signature cannot contain the password by chance.
+const PASSWORD = 'pass word!';
+
 describe('--remote with a password', () => {
   let remotePort: number, stop: () => void;
   const ask = (
@@ -364,7 +394,7 @@ describe('--remote with a password', () => {
 
   beforeAll(async () => {
     const remote = readConfig(
-      { SLIDE_NG_TOKEN: 'tok2', SLIDE_NG_PASSWORD: 'pw', SLIDE_NG_REMOTE: '1' },
+      { SLIDE_NG_TOKEN: 'tok2', SLIDE_NG_PASSWORD: PASSWORD, SLIDE_NG_REMOTE: '1' },
       root,
     );
     const started = await startServer({ ...remote, port: 0 });
@@ -389,15 +419,15 @@ describe('--remote with a password', () => {
     expect(r.headers['set-cookie']).toBeUndefined();
   });
   it('gives a cookie for the right password', async () => {
-    const r = await ask('POST', '/__slide-ng/login', { password: 'pw' });
+    const r = await ask('POST', '/__slide-ng/login', { password: PASSWORD });
     expect(r.status).toBe(200);
     cookie = String(r.headers['set-cookie']).split(';')[0];
     expect(String(r.headers['set-cookie'])).toMatch(/HttpOnly.*SameSite=Strict/);
-    expect(cookie).not.toContain('pw');
+    expect(cookie).not.toContain(PASSWORD);
   });
   it('the cookie is short lived and different for every login', async () => {
-    const a = await ask('POST', '/__slide-ng/login', { password: 'pw' });
-    const b = await ask('POST', '/__slide-ng/login', { password: 'pw' });
+    const a = await ask('POST', '/__slide-ng/login', { password: PASSWORD });
+    const b = await ask('POST', '/__slide-ng/login', { password: PASSWORD });
     const header = String(a.headers['set-cookie']);
     expect(Number(/Max-Age=(\d+)/.exec(header)?.[1])).toBeLessThanOrEqual(8 * 3600);
     expect(Number(/Max-Age=(\d+)/.exec(header)?.[1])).toBeGreaterThan(0);
@@ -411,7 +441,7 @@ describe('--remote with a password', () => {
       expect(
         (await ask('POST', '/__slide-ng/login', { password: `bad${i}` }, from('9.9.9.9'))).status,
       ).toBe(401);
-    const locked = await ask('POST', '/__slide-ng/login', { password: 'pw' }, from('9.9.9.9'));
+    const locked = await ask('POST', '/__slide-ng/login', { password: PASSWORD }, from('9.9.9.9'));
     expect(locked.status).toBe(429);
     expect(Number(locked.headers['retry-after'])).toBeGreaterThan(0);
     expect(locked.headers['set-cookie']).toBeUndefined();
@@ -419,11 +449,11 @@ describe('--remote with a password', () => {
     const dodge = await ask(
       'POST',
       '/__slide-ng/login',
-      { password: 'pw' },
+      { password: PASSWORD },
       from('1.2.3.4, 9.9.9.9'),
     );
     expect(dodge.status).toBe(429);
-    const other = await ask('POST', '/__slide-ng/login', { password: 'pw' }, from('8.8.8.8'));
+    const other = await ask('POST', '/__slide-ng/login', { password: PASSWORD }, from('8.8.8.8'));
     expect(other.status).toBe(200);
   });
   it('then hands out the token and accepts writes that have it', async () => {
@@ -457,13 +487,14 @@ describe('--remote with a password', () => {
         await ask(
           'POST',
           '/__slide-ng/login',
-          { password: 'pw' },
+          { password: PASSWORD },
           { origin: 'http://evil.example' },
         )
       ).status,
     ).toBe(403);
     expect(
-      (await ask('POST', '/__slide-ng/login', { password: 'pw' }, { host: 'evil.example' })).status,
+      (await ask('POST', '/__slide-ng/login', { password: PASSWORD }, { host: 'evil.example' }))
+        .status,
     ).toBe(403);
   });
   it('accepts a network address as Host (that is how other devices come in), and a local one is the same', async () => {
@@ -527,6 +558,48 @@ describe('drawings with a symlinked .slide-ng', () => {
       });
       expect(r).toBe(403);
       expect(existsSync(join(victim, 'drawings'))).toBe(false);
+    } finally {
+      started.server.close();
+      started.hub.close();
+    }
+  });
+});
+
+describe('{monaco-write} with a local theme', () => {
+  it("refuses the theme's index.html and code folders, also through a linked folder, and still writes a snippet", async () => {
+    const deck = mkdtempSync(join(tmpdir(), 'slide-ng-themedeck-'));
+    writeFileSync(join(deck, 'slides.md'), '---\ntheme: ./my-theme\n---\n\n# One\n');
+    mkdirSync(join(deck, 'my-theme'));
+    writeFileSync(join(deck, 'my-theme/theme.json'), '{}\n');
+    writeFileSync(join(deck, 'my-theme/index.html'), '<head></head>\n');
+    mkdirSync(join(deck, 'my-theme/setup'));
+    writeFileSync(join(deck, 'my-theme/setup/main.ts'), 'export default {};\n');
+    symlinkSync(join(deck, 'my-theme'), join(deck, 'linked'));
+    writeFileSync(join(deck, 'snippet.ts'), 'old\n');
+    mkdirSync(join(deck, '.slide-ng'));
+    writeFileSync(
+      join(deck, '.slide-ng/monaco-files.json'),
+      JSON.stringify({
+        theme: 'my-theme/index.html',
+        linked: 'linked/index.html',
+        setup: 'my-theme/setup/main.ts',
+        linkedSetup: 'linked/setup/main.ts',
+        ok: 'snippet.ts',
+      }),
+    );
+    const started = await startServer({ ...readConfig({ SLIDE_NG_TOKEN: 'tok' }, deck), port: 0 });
+    try {
+      const put = (id: string) =>
+        callOn(started.port as number, 'PUT', `/__slide-ng/monaco/${id}`, { content: 'pwned' });
+      expect((await put('theme')).status).toBe(403);
+      expect((await put('linked')).status).toBe(403);
+      expect((await put('setup')).status).toBe(403);
+      expect((await put('linkedSetup')).status).toBe(403);
+      expect(readFileSync(join(deck, 'my-theme/setup/main.ts'), 'utf8')).toBe(
+        'export default {};\n',
+      );
+      expect(readFileSync(join(deck, 'my-theme/index.html'), 'utf8')).toBe('<head></head>\n');
+      expect((await put('ok')).status).toBe(200);
     } finally {
       started.server.close();
       started.hub.close();

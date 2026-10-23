@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { declarations, scanRoots, selectorTest } from './scan-roots.mjs';
+import { declarations, pipeDeclarations, scanRoots, selectorTest } from './scan-roots.mjs';
 
 describe('declarations', () => {
   it('finds selector and class of components and directives', () => {
@@ -21,6 +21,17 @@ describe('declarations', () => {
   it('ignores classes that are not exported or not decorated', () => {
     expect(declarations("@Component({ selector: 'a-b' }) class Hidden {}")).toEqual([]);
     expect(declarations('export class Plain {}')).toEqual([]);
+  });
+  it('pairs each selector with its own class when a helper component comes first', () => {
+    const source = `
+      @Component({ selector: 'my-stat-label', template: '<small>label</small>' })
+      class MyStatLabel {}
+      @Component({ selector: 'my-stat', imports: [MyStatLabel], template: '<b>{{ value() }}</b>' })
+      export class MyStat {}
+      @Pipe({ name: 'hidden' }) class HiddenPipe {}
+      @Pipe({ name: 'initials' }) export class InitialsPipe {}`;
+    expect(declarations(source)).toEqual([{ selector: 'my-stat', className: 'MyStat' }]);
+    expect(pipeDeclarations(source)).toEqual([{ name: 'initials', className: 'InitialsPipe' }]);
   });
 });
 

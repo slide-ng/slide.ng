@@ -21,7 +21,7 @@ yarn add @slide-ng/core
 ::
 ````
 
-- The `~icon~` title syntax and automatic file icons of Slidev are not drawn.
+- An icon goes in front of a title (code group tabs, code blocks, Magic Move): `[npm ~i-carbon:terminal~]` (its `@iconify-json` set must be installed; a name the installed set does not have gets a warning), or with `@iconify-json/vscode-icons` installed Slidev's built-in icons are matched from the title (`npm`, `pnpm`, `vue`, `package.json`, `.ts`, ...) as a whole word, a file extension or the start of a file name (`results.tsv` gets none). Every `~...~` is taken out of the shown title and the first is the icon, so do not put two `~` in a title's text.
 - The `::code-group` ... `::` lines are on their own lines, blank lines around the fences.
 
 <!-- verify -->
@@ -39,7 +39,7 @@ title: Code groups
 npm install
 ```
 
-```sh [yarn]
+```sh [yarn ~i-carbon:terminal~]
 yarn install
 ```
 

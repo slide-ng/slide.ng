@@ -9,6 +9,7 @@ slide-ng build --out public-html     # another output folder
 slide-ng build --download            # also writes the PDF and adds the download button
 slide-ng build --without-notes       # speaker notes are not shipped
 slide-ng build --offline             # a folder that opens from disk, no server (see below and OFFLINE.md)
+slide-ng build a.md b.md --base /x/  # several decks: dist/a at /x/a/, dist/b at /x/b/
 ```
 
 In this repository `npm run build` is the plain Angular build (`dist/slide-ng/browser`); `slide-ng build` is the command meant for publishing.
@@ -20,11 +21,24 @@ is new, empty, or has a `.slide-ng-build` file (written by an earlier build). An
 refused with a message. The current folder, your home folder and `/` are always refused. The same rule applies to the
 temporary `.slide-ng/build` folder inside the deck's folder.
 
+With several entries each deck is built in turn into its own folder of `--out`, named after its file without `.md`, and served
+under that name below `--base` (Slidev's multiple builds). The rest of `--out` is emptied, so it holds only these folders. Each folder is a whole site with its own `404.html` and `_redirects`;
+a host that serves only one folder per site needs one site per deck, or a rule that sends `/x/a/*` to `/x/a/index.html`.
+With a deck at the root as well (built on its own and copied there), the rule of each deck under the sub-path must come before
+the root's catch-all: otherwise `/x/a/3` gets the root deck's `index.html`. In nginx that is one `location /x/a/` block per deck
+(`try_files $uri $uri/ /x/a/index.html;`) next to `location /`; in a `_redirects` file, the `/x/a/*` lines first.
+
+Decks on one origin (these folders, or the project sites of one GitHub Pages user) keep to themselves: the windows that
+follow each other, the drawings and the settings kept in the browser (presenter layout, drawing mode, wake lock, sync mode
+and the others) belong to the deck's base path. Only dark mode is shared by every deck of the site, as in Slidev. A deck at
+the root (`/`) keeps the names of earlier versions; settings that a deck under a sub-path saved before 2.0.0 are not read.
+
 ## What is in the build
 
 | file                                                    | what for                                                                                     |
 | ------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | `index.html`, `main-*.js`, `chunk-*.js`, `styles-*.css` | the app (Monaco, Mermaid and so on are separate chunks, fetched only when a slide uses them) |
+| `inline-*.js`                                           | the inline scripts of `index.html`, as files (see Content-Security-Policy below)             |
 | `404.html`                                              | a copy of `index.html`: GitHub Pages shows it for unknown paths, so `/talk/3` opens the app  |
 | `_redirects`                                            | the same rule for Netlify                                                                    |
 | `<exportFilename>.pdf`                                  | only with `--download` or `download: true` in the headmatter                                 |
@@ -40,6 +54,8 @@ The deck lives at `<base>`. Every slide is `<base><number>` (history mode, the d
 
 - **History mode** needs the host to answer unknown paths with `index.html`. That is what `404.html`, `_redirects` and the examples below do.
 - **Hash mode** (`routerMode: hash` in the headmatter) needs nothing from the host: the slide number is after the `#`. Use it on hosts where you cannot change this (a plain file share, some intranets).
+- **Memory mode** (`routerMode: memory`) never changes the address: the deck always opens at slide 1 and a link such as `<base>7` or `<base>presenter/1` opens slide 1 too. Use it for a kiosk or a deck shown inside another page. Only the print pages that export opens are read from the address, so `--download` and the Open Graph picture still work. The other pages of the app (`/presenter`, `/notes`, `/overview`, `/entry` and `/notes-edit`) cannot be opened by their address either, and a new tab or window starts at slide 1: open the presenter with the bar's button in the same window. The browser's Back and Forward buttons leave the deck (the deck adds no history entries), and reloading the presenter page returns to the audience view at slide 1. A slide link (`[x](5)`, `<slide-ng-link to="5">`) has the href `<base>#/5`: the deck reads `#/<number>` once when it starts, so a middle click or "open in new tab" shows that slide, and then drops it from the address; any other `#/...` route (`#/presenter/2`) opens slide 1 and is dropped too. In the dev server the slide is kept when the page reloads after a save (in that tab only).
+- `slide-ng build --router-mode history|hash|memory` replaces the headmatter's `routerMode` for one build; the build records it in `index.html`, so `export --dist` opens the build with the right addresses. `--offline` always uses hash mode: `--router-mode memory` is refused there, and a headmatter `routerMode: memory` is replaced with a warning.
 - `--base` is a path such as `/talk/`, not a full address. All files are found relative to it, so the same build works under any prefix as long as you built it for that prefix.
 
 ## GitHub Pages
@@ -125,6 +141,44 @@ server {
 
 Under a sub-path build with `--base /talk/`, put the files in `/usr/share/nginx/html/talk/` and use `try_files $uri $uri/ /talk/index.html;`.
 
+## Content-Security-Policy
+
+`index.html` has no inline script: the few lines Angular adds there (they switch the full stylesheet on once the page has loaded)
+are written to `inline-*.js` next to it, and so are the inline scripts of the deck's own `index.html`. A classic script (no `type`,
+or a JavaScript one) runs from its file at the same point of the page; a `type="module"` script stays a module; other attributes
+(`data-cfasync="false"`, `id`, `nomodule`) are kept. Data blocks (`application/ld+json`, `application/json`) stay inline, since a
+policy does not stop them. An inline import map or `speculationrules` cannot be a file: the build leaves it and warns that a strict
+policy refuses it. Inline event handlers (`onload="..."`) are not moved either. A host that sends a strict policy therefore runs the deck, as long as styles may be inline
+(Angular puts the styles of the components in `<style>` elements). This policy was tried with a deck that has Monaco, Mermaid and KaTeX:
+
+```
+Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:
+```
+
+Add what the slides themselves load from elsewhere: `img-src https:` for remote pictures (or `remoteAssets: true`), `frame-src` for
+`<slide-ng-youtube>` and other iframes, `font-src` and `style-src` for a web font provider (or `fonts.selfHost`).
+Only `slide-ng build` moves the scripts (not `--offline`, which is opened from disk); `npm run build` in this repository is the plain Angular build and keeps them inline.
+Trusted Types (`require-trusted-types-for 'script'`) are not supported: with them Mermaid diagrams are not drawn and the error overlay
+does not open. Leave that directive out of the policy. `default-src 'none'` instead of `'self'` works, with the sources above listed.
+
+## Embedding the deck in another page
+
+A built deck works in an `<iframe>` on another site. Give the frame the permissions the deck asks for, or the browser logs a
+"Permissions policy violation" and the feature stays off: `fullscreen` for the full screen button (without it the button
+is left out).
+
+```html
+<iframe src="https://you.github.io/talk/" allow="fullscreen" width="960" height="540"></iframe>
+```
+
+The wake lock (which keeps the screen from going to sleep) is on by default since 2.0.0. In a frame the deck asks for it
+only once the reader clicks, taps or presses a key in the deck, or makes it full screen, so a reader who only scrolls past
+it is not kept awake. For a deck that is mostly shown embedded, `wakeLock: false` in the headmatter turns it off. To let an
+embedded deck keep the screen awake, add `screen-wake-lock` to `allow` (`allow="fullscreen; screen-wake-lock"`); without it
+the browser refuses the lock and logs a permissions policy violation once the reader uses the deck.
+
+A host that sends `frame-ancestors` or `X-Frame-Options` must allow the page that embeds the deck.
+
 ## The PDF download button
 
 Headmatter `download: true` shows a download button in the nav bar and the settings menu. It is enabled only if the page
@@ -132,6 +186,12 @@ can really fetch a PDF next to it (so it stays disabled in `npm start` and in bu
 `slide-ng build --download` makes the PDF with the same code as `slide-ng export` and writes it as `<exportFilename>.pdf`
 (a plain file name, see [SYNTAX.md](SYNTAX.md#the-page-export-and-build)). `download: https://example.com/talk.pdf` points the button at a
 file somewhere else, and no PDF is made.
+
+## Printing from the browser
+
+The browser's own Print (Ctrl+P or Cmd+P) on a deck, also inside an iframe, prints only the slide on screen, with the navigation
+bar if it is showing, and without the "Background graphics" option pictures of `image:` layouts and backgrounds are left out.
+For a PDF of the whole deck use the download button (above) or `slide-ng export`.
 
 ## Link previews (Open Graph)
 
@@ -183,5 +243,5 @@ service workers there. A new build gets a new cache name, so visitors get the ne
 ## Bundle size
 
 A deck without heavy features is about 450 kB at startup (compressed about 110 kB). Decks that use Monaco or KaTeX add their
-style sheets to that (about 850 kB with both). The build warns above 1.5 MB and fails above 3 MB at startup; Monaco, Mermaid,
+style sheets to that (about 850 kB with both). The build warns above 6 MB at startup (and fails only above 100 MB); Monaco, Mermaid,
 Magic Move and the like are lazy chunks and do not count.

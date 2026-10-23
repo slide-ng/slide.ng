@@ -65,6 +65,10 @@ describe('parseDeck', async () => {
     );
     expect(result.slides.map((s) => s.title)).toEqual(['A', 'D']);
   });
+  it('keeps the routeAlias of a hidden slide, for the link warning', async () => {
+    const result = await parse('# A\n\n---\nhide: true\nrouteAlias: ghost\n---\n\n# B\n');
+    expect(result.hiddenAliases).toEqual(['ghost']);
+  });
   it('does not split at --- inside a code fence', async () => {
     const result = await parse('# A\n\n```md\n---\nx\n---\n```\n\n---\n\n# B\n');
     expect(result.slides.length).toBe(2);
@@ -109,6 +113,39 @@ describe('parseDeck: a slide that starts right after ---', () => {
       "# Z\n\n---\n# You can also start simply with 'default'\nlayout: center\n---\n\n# A\n",
     );
     expect(problems).toEqual([]);
+  });
+  it('does not warn for a note to self after an empty line in a frontmatter', async () => {
+    const { problems } = await parse('# Z\n\n---\nlayout: center\n\n# TODO later\n---\n\nText\n');
+    expect(problems).toEqual([]);
+  });
+  it('still warns for a real heading that starts with a note word', async () => {
+    const { problems } = await parse(
+      '# Z\n\n---\nlayout: section\n\n# Notes from the field\n\n---\n\n# Next\n',
+    );
+    expect(problems.join()).toContain('"# Notes from the field" is in the frontmatter');
+  });
+  it('warns when a missing closing --- turns a heading into a YAML comment', async () => {
+    const { problems, slides } = await parse(
+      '# Z\n\n---\nlayout: section\n\n# Part 1: Basics\n\n---\n\n# Next\n',
+    );
+    expect(slides).toHaveLength(2);
+    expect(problems).toEqual([
+      '/deck/slides.md:6: slide 2: "# Part 1: Basics" is in the frontmatter, where it is a YAML comment and is not shown; if it is the slide\'s text, the "---" that ends the frontmatter is missing above it',
+    ]);
+  });
+  it("warns when a last slide's frontmatter has no closing --- and shows as text", async () => {
+    const { problems } = await parse('# Z\n\n---\nlayout: end\n');
+    expect(problems).toEqual([
+      '/deck/slides.md:4: slide 2: "layout: end" is shown as the slide\'s text; to make it frontmatter, end it with a "---" line',
+    ]);
+    // After an empty line, it is text on purpose.
+    expect((await parse('# Z\n\n---\n\nlayout: end\n')).problems).toEqual([]);
+  });
+  it('names the --- line of the slide', async () => {
+    const { problems } = await parse(
+      '# Z\n\n---\nlayout: center\n---\n\n# A\n\n---\n# Slide A\n\nText\n\n---\n\n# C\n',
+    );
+    expect(problems.join()).toContain('slides.md:9: slide 3: the lines after');
   });
   it('drops the --- of a last slide written without a blank line', async () => {
     const { slides } = await parse('# A\n\n---\n# B\n');
@@ -162,9 +199,14 @@ describe('parseDeck: src imports', () => {
     expect(slides.map((s) => s.title)).toEqual(['First', 'Extra two', 'Extra three', 'Last']);
   });
   it('reports a missing file as a problem and keeps going', async () => {
-    const { slides, problems } = await main('./pages/nope.md');
+    const { slides, problems, importProblems, missing } = await main('./pages/nope.md');
     expect(slides.map((s) => s.title)).toEqual(['First', 'Last']);
     expect(problems.join()).toContain('not found');
+    // The dev server shows these in its banner and watches for the file to be made.
+    expect(importProblems.join()).toContain('not found');
+    expect(missing.map((f) => f.replaceAll('\\', '/'))).toEqual([
+      expect.stringMatching(/\/pages\/nope\.md$/),
+    ]);
   });
 });
 
@@ -209,5 +251,48 @@ describe('parseDeck: broken YAML', () => {
     await expect(parse('---\ntitle: ok\nfoo: [unclosed\n---\n\n# One\n')).rejects.toThrow(
       '/deck/slides.md:3: the headmatter is not valid YAML',
     );
+  });
+  it("gives the line of the error in a slide's frontmatter, not the line of its ---", async () => {
+    await expect(
+      parse('---\ntitle: ok\n---\n\n# One\n\n---\nlayout: center\nfoo:\n\tbar: 1\n---\n\n# Two\n'),
+    ).rejects.toThrow(
+      '/deck/slides.md:10: the frontmatter of slide 2 is not valid YAML: this line is indented with a tab; YAML needs spaces',
+    );
+  });
+  it('says to quote a value that has ": " in it', async () => {
+    await expect(
+      parse(
+        '---\ntitle: ok\n---\n\n# One\n\n---\nlayout: center\ntitle: Part 2: more\n---\n\n# Two\n',
+      ),
+    ).rejects.toThrow(
+      '/deck/slides.md:9: the frontmatter of slide 2 is not valid YAML: the value of "title" has ": " in it, which reads as a second key; put it in quotes: title: "Part 2: more"',
+    );
+    await expect(parse('---\ntitle: Intro: the basics\n---\n\n# One\n')).rejects.toThrow(
+      '/deck/slides.md:2: the headmatter is not valid YAML: the value of "title" has ": " in it',
+    );
+  });
+  it('points at a missing closing --- when slide text was read as YAML', async () => {
+    await expect(
+      parse('---\ntitle: ok\ntheme: default\n\n# One\n\nSome text here.\n\n---\n\n# Two\n'),
+    ).rejects.toThrow(
+      '/deck/slides.md:7: the headmatter is not valid YAML: "Some text here." is not a "key: value" line; if it is the slide\'s text, the --- that ends the headmatter is missing above it',
+    );
+  });
+});
+
+describe('parseDeck: progressBar', () => {
+  it('takes true, top, bottom and an object without a word', async () => {
+    for (const v of ['true', 'false', 'top', 'bottom', '{ position: top, height: 6 }']) {
+      const { problems } = await parse(`---\nprogressBar: ${v}\n---\n\n# A\n`);
+      expect(problems).toEqual([]);
+    }
+  });
+  it('warns about a value that draws no bar', async () => {
+    for (const v of ['left', '1', '[top]', 'yes']) {
+      const { problems } = await parse(`---\nprogressBar: ${v}\n---\n\n# A\n`);
+      expect(problems.join()).toContain('progressBar:');
+    }
+    const { problems } = await parse('---\nprogressBar: { position: left }\n---\n\n# A\n');
+    expect(problems.join()).toContain('progressBar.position: "left"');
   });
 });

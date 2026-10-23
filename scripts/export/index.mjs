@@ -6,7 +6,14 @@ import { launchBrowser } from './browser.mjs';
 import { screenshotPages, writePictures } from './images.mjs';
 import { writeMarkdown } from './markdown.mjs';
 import { installRequestFilter } from './request-filter.mjs';
-import { listPages, loadPrintPage, printQuery, printUrl } from './page.mjs';
+import {
+  dropServerLinks,
+  dropSlideLinks,
+  listPages,
+  loadPrintPage,
+  printQuery,
+  printUrl,
+} from './page.mjs';
 import { buildPdf, pagePdf } from './pdf.mjs';
 import { writePptx } from './pptx.mjs';
 
@@ -21,6 +28,19 @@ const EXTENSION = { pdf: '.pdf', pptx: '.pptx', md: '.md', png: '' };
 /** The slide numbers `range` picks; an error when it picks none (checked before the deck is built, too). */
 export function pagesToExport(deck, range) {
   const total = deck.slides.length;
+  // Slidev's parser reads `2-x` as slides 2 to the end and `x` as nothing: say that it is not a range instead.
+  const bad =
+    !range || ['all', '*', 'none'].includes(String(range))
+      ? undefined
+      : String(range)
+          .split(/[,;]/)
+          .find((part) => !/^\s*\d*\s*(-\s*\d*\s*)?$/.test(part) || !/\d/.test(part));
+  if (bad !== undefined) {
+    const whole = bad.trim() === String(range).trim();
+    throw new Error(
+      `export: ${whole ? `"${bad.trim()}" is not a range` : `in the range "${range}", "${bad.trim()}" is not a slide number or range`}: write slide numbers and ranges, such as 1,3-5 or 4-`,
+    );
+  }
   // Slidev's parser returns 0 for `0`; only real slides count.
   const pages = parseRangeString(total, range).filter((n) => n >= 1 && n <= total);
   if (!pages.length)
@@ -56,6 +76,10 @@ export async function exportSlides({
     );
     const page = await context.newPage();
     const batches = options.perSlide ? pages.map(String) : [options.range];
+    if (options.format === 'pdf' && batches.length > 1)
+      log(
+        'warning: --per-slide joins one PDF per slide: links between slides and the tags for screen readers are lost (docs/CLI.md)',
+      );
     const parts = [];
     for (const [i, range] of batches.entries()) {
       const url = printUrl({
@@ -64,6 +88,8 @@ export async function exportSlides({
         query: printQuery({ withClicks: options.withClicks, range }),
       });
       await loadPrintPage(page, { url, ...options, warn: (m) => log(`warning: ${m}`) });
+      if (served.temporary) await dropServerLinks(page, served.origin);
+      if (options.format === 'pdf' && batches.length > 1) await dropSlideLinks(page);
       const listed = await listPages(page);
       const size = await page.locator('.print-slide-container').first().boundingBox();
       parts.push(await capture(page, listed, size, options));
@@ -95,6 +121,7 @@ async function write(target, parts, { deck, options, outBase }) {
       slides: deck.slides,
       headmatter: deck.headmatter,
       withToc: options.withToc,
+      size: parts[0].size,
     });
     await writeFile(target, bytes);
   } else if (options.format === 'png') {
@@ -132,6 +159,7 @@ export async function exportNotes({ options, served, routerMode, outBase, log = 
       timeout: options.timeout,
     });
     await page.locator('[data-slide-ng-print="ready"]').waitFor({ timeout: options.timeout });
+    if (served.temporary) await dropServerLinks(page, served.origin);
     if (options.wait) await page.waitForTimeout(options.wait);
     await writeFile(
       target,

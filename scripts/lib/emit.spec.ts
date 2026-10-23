@@ -1,9 +1,11 @@
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { LAYOUTS, layoutName } from './layouts.mjs';
 import {
   closeEntities,
   keepSpaces,
   safeLinks,
-  slideLinks,
   slideSource,
   usesCustomElements,
   warnInlineControlFlow,
@@ -11,6 +13,7 @@ import {
 import { indexSource, plainTitle } from './index-source.mjs';
 import { parseDeck } from './parse-deck.mjs';
 import { initHighlighter } from './code/highlighter.mjs';
+import { BUILTIN_ELEMENTS, COMPONENTS } from './registry.mjs';
 
 // Code fences are highlighted while generating, so the highlighter must be ready.
 beforeAll(() => initHighlighter({ langs: ['ts', 'html'] }));
@@ -35,6 +38,14 @@ describe('layoutName', () => {
     expect(layoutName({ layout: 'nope' }, 3)).toBe('default');
     expect(warn.mock.calls[0][0]).toContain('unknown layout "nope"');
     expect(warn.mock.calls[0][0]).toContain('two-cols-header'); // the message lists the real names
+    warn.mockRestore();
+  });
+  it('names the nearest layout for a typo', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(layoutName({ layout: 'image-rigth' }, 3)).toBe('default');
+    expect(warn.mock.calls[0][0]).toContain(
+      'unknown layout "image-rigth", using "default". Did you mean "image-right"?',
+    );
     warn.mockRestore();
   });
   it('knows every Slidev layout', () => {
@@ -114,6 +125,13 @@ describe('slideSource', () => {
       '{ provide: CLICKS_START, useValue: 2 }',
     );
     expect(slideSource(slide({}, 'x'), 2)).not.toContain('useValue');
+  });
+  it('turns a markdown link to a routeAlias into a slide link, and imports it', () => {
+    const deck = { slides: [slide({}, 'a'), slide({ routeAlias: 'pricing' }, 'b')] };
+    const src = slideSource(slide({}, '[p](/pricing) [q](/other)'), 1, deck);
+    expect(src).toContain('<slide-ng-link to=\\"pricing\\">p</slide-ng-link>');
+    expect(src).toContain('<a href=\\"/other\\">q</a>');
+    expect(src).toContain('SlideLink');
   });
   it('writes the template as one safe string literal', () => {
     const src = slideSource(slide({}, '```ts\nconst a = `x`; "q"\n```'), 2);
@@ -210,6 +228,16 @@ describe('indexSource', () => {
     expect(src).toContain('export const HEADMATTER');
     expect(src.match(/component: Slide00\d/g)?.length).toBe(2);
   });
+  it('writes the pictures of each slide, with the base of the build', async () => {
+    const deck = await parseDeck('/d/slides.md', {
+      '/d/slides.md': '# A\n\n![a](/a.png)\n\n---\nlayout: image\nimage: /b.jpg\n---\n',
+    });
+    const built = { ...deck, root: undefined, assetBase: '/talk/' }; // a deck in memory: no folder to copy files from
+    deck.slides.forEach((s, i) => slideSource(s, i + 1, built));
+    const src = indexSource(deck);
+    expect(src).toContain('"images":["/talk/a.png"]');
+    expect(src).toContain('"images":["/talk/b.jpg"]');
+  });
 });
 
 describe('plainTitle', () => {
@@ -221,6 +249,20 @@ describe('plainTitle', () => {
     expect(plainTitle('H<sub>2</sub>O and <ruby>振<rt>ふ</rt></ruby>り仮名')).toBe(
       'H2O and 振り仮名',
     );
+  });
+  it('keeps the TeX of $math$ without its dollars, and drops markdown escapes', () => {
+    expect(plainTitle('Karmaşıklık $O(1)$')).toBe('Karmaşıklık O(1)');
+    expect(plainTitle('**Fast** $a_1 * b_2$ and $5 or \\*not\\*')).toBe(
+      'Fast a_1 * b_2 and $5 or *not*',
+    );
+  });
+  it('undoes the simple TeX escapes of $math$, keeps other commands', () => {
+    expect(plainTitle('Zoom to $400\\%$')).toBe('Zoom to 400%');
+    expect(plainTitle('$\\$5\\,000 \\{a\\_b\\} \\& \\#1$')).toBe('$5\u2009000 {a_b} & #1');
+    expect(plainTitle('$O(n \\log n) \\\\ x$')).toBe('O(n \\log n) \\\\ x');
+  });
+  it('drops bidi overrides, which would reorder the table of contents', () => {
+    expect(plainTitle('annexe\u202Egpj.exe \u2067x\u2069')).toBe('annexegpj.exe x');
   });
 });
 
@@ -257,6 +299,53 @@ describe('slideSource: built-in components are imported when the slide uses them
   it('does not mix <slide-ng-transform> up with the longer names or other words', () => {
     expect(imports('plain text about a transformation')).toBe('DefaultLayout');
   });
+  it('does not import a component for a longer, mistyped tag', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(imports('<slide-ng-tocc />')).toBe('DefaultLayout');
+    expect(imports('<slide-ng-toc />')).toBe('DefaultLayout, SlideToc');
+    warn.mockRestore();
+  });
+});
+
+describe('slideSource: unknown slide-ng names', () => {
+  const warnings = (md: string, components?: { selector: string; test: RegExp }[]) => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    slideSource(slide({}, md), 2, components ? { components } : {});
+    const calls = warn.mock.calls.map((c) => String(c[0]));
+    warn.mockRestore();
+    return calls;
+  };
+  it('names the nearest built-in element or attribute', () => {
+    expect(warnings('<slide-ng-tocc />')).toEqual([
+      '[slides] slide 2: <slide-ng-tocc> is not a slide.ng name. Did you mean <slide-ng-toc>?',
+    ]);
+    expect(warnings('<div slide-ng-clik>a</div>')).toEqual([
+      '[slides] slide 2: slide-ng-clik is not a slide.ng name. Did you mean "slide-ng-click"?',
+    ]);
+  });
+  it('warns for any unknown slide-ng name, and says when an attribute is written as a tag', () => {
+    expect(warnings('<slide-ng-fancy-thing />')).toEqual([
+      '[slides] slide 2: <slide-ng-fancy-thing> is not a slide.ng name.',
+    ]);
+    expect(warnings('<slide-ng-click>a</slide-ng-click>')).toEqual([
+      '[slides] slide 2: <slide-ng-click> is not a slide.ng name. It is an attribute: <div slide-ng-click>.',
+    ]);
+  });
+  it("accepts the built-in names, their bindings and modifiers, and the deck's own slide-ng-* components", () => {
+    expect(
+      warnings(
+        '<slide-ng-clicks>\n\n- a\n\n</slide-ng-clicks>\n\n<span [slide-ng-click]="2" slide-ng-mark.red>b</span>',
+      ),
+    ).toEqual([]);
+    expect(
+      warnings('<slide-ng-badge />', [{ selector: 'slide-ng-badge', test: /<slide-ng-badge/ }]),
+    ).toEqual([]);
+  });
+  it('knows every element the registry imports, the progress bar too', () => {
+    expect(warnings('<slide-ng-progress-bar position="top" />')).toEqual([]);
+    const tags = COMPONENTS.flatMap((c) => /<(slide-ng-[\w-]+)/.exec(String(c.test))?.[1] ?? []);
+    expect(tags.filter((t) => !BUILTIN_ELEMENTS.includes(t))).toEqual([]);
+  });
 });
 
 describe('slideSource: drag positions and renamed names', () => {
@@ -280,7 +369,7 @@ describe('slideSource: drag positions and renamed names', () => {
   it('lists every renamed name of a slide at once', () => {
     expect(() =>
       slideSource(slide({}, '<v-clicks>\n\n- a\n\n</v-clicks>\n\n<div v-click>b</div>'), 2),
-    ).toThrow(/slide 2: "v-clicks" was renamed to .*"v-click" was renamed to/);
+    ).toThrow(/slide 2: "<v-clicks>" was renamed to .*"v-click" was renamed to/);
   });
 });
 
@@ -322,16 +411,6 @@ describe('custom elements', () => {
   });
 });
 
-describe('slideLinks', () => {
-  it('turns links to slide numbers and aliases into slide links, and leaves other addresses', () => {
-    expect(slideLinks('<a href="/4">four</a>')).toBe('<slide-ng-link to="4">four</slide-ng-link>');
-    expect(slideLinks('<a href="/pricing">p</a>', ['pricing'])).toBe(
-      '<slide-ng-link to="pricing">p</slide-ng-link>',
-    );
-    expect(slideLinks('<a href="/about">a</a>')).toBe('<a href="/about">a</a>');
-  });
-});
-
 describe('closeEntities', () => {
   it('closes the old entities without ;, outside code', () => {
     expect(closeEntities('<p>Option&ltA> &copy 2024 &lt; &ltimes;</p>')).toBe(
@@ -364,6 +443,105 @@ describe('safeLinks', () => {
     expect(warn).toHaveBeenCalledTimes(6);
     warn.mockRestore();
   });
+  it('replaces script documents in <object data> and <embed src>, not data-* attributes', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(safeLinks('<object data="data:text/html,<script>x</script>"></object>', 3)).toBe(
+      '<object data="#"></object>',
+    );
+    expect(safeLinks("<object data='javascript:x'></object>", 3)).toBe(
+      '<object data="#"></object>',
+    );
+    expect(safeLinks('<embed src="data:text/html,x">', 3)).toBe('<embed src="#">');
+    expect(safeLinks('<div data-x="javascript:x" data="a.svg"></div>', 3)).toBe(
+      '<div data-x="javascript:x" data="a.svg"></div>',
+    );
+    expect(warn).toHaveBeenCalledTimes(3);
+    warn.mockRestore();
+  });
+});
+
+describe('slideSource warnings', () => {
+  const warnings = (content: string) => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    slideSource(slide({}, content), 2);
+    const all = warn.mock.calls.map((c) => String(c[0]));
+    warn.mockRestore();
+    return all;
+  };
+  it('says a <script> element is removed, but not for "<script" inside an attribute', () => {
+    expect(warnings('<script>alert(1)</script>').join()).toContain('<script> is removed');
+    expect(warnings('<div title="a <script> b">x</div>').join()).not.toContain('is removed');
+  });
+  it('says an inline event handler is kept and runs', () => {
+    expect(warnings('<img src="a.png" onerror="x()">').join()).toContain('onerror=');
+    expect(warnings('<button (click)="x()" title="onclick=no">a</button>').join()).not.toContain(
+      'event handler',
+    );
+    expect(warnings('<div once="1" only="2">a</div>').join()).not.toContain('event handler');
+  });
+  it('names an element that is never closed instead of failing on the layout tag', () => {
+    expect(() => slideSource(slide({}, '<div class="box">\n\ntext'), 4)).toThrow(
+      /slide 4: <div class="box"> is never closed/,
+    );
+    expect(() => slideSource(slide({}, '<ul><li>a<li>b</ul>\n\n<p>text'), 4)).not.toThrow();
+    expect(() => slideSource(slide({}, '@let n = 1;\n\n<div class="box">\n\ntext'), 4)).toThrow(
+      /slide 4: <div class="box"> is never closed/,
+    );
+    expect(() => slideSource(slide({}, '@if (true) {\n\ntext'), 4)).toThrow(
+      /slide 4: @if \(true\) \{ is never closed; add \} where the @if block should end/,
+    );
+  });
+  it('names a control-flow block that is not complete (no raw NG5002 and false NG8113)', () => {
+    expect(() => slideSource(slide({}, '@if (x >= 1 {\n\ntext\n\n}'), 4)).toThrow(
+      'slide 4: "@if (x >= 1 {" is not a complete @if block: its ( is never closed (write @if (...) { ... }; an @ that is text is written &#64;)',
+    );
+    expect(() => slideSource(slide({}, '@if x > 1 {\n\ntext\n\n}'), 4)).toThrow(
+      'is not a complete @if block: its condition goes in ( )',
+    );
+  });
+  it('says that an attribute name cannot have a /, instead of "never closed"', () => {
+    expect(() => slideSource(slide({}, '<div bg-black/50>card</div>'), 4)).toThrow(
+      'slide 4: <div bg-black/50>: an attribute name cannot have a / in it; write it in the class, class="bg-black/50", or as bg="black/50"',
+    );
+    expect(() =>
+      slideSource(slide({}, '<div p-4 hover:(bg-black/10 shadow-lg)>card</div>'), 4),
+    ).toThrow('<div hover:bg-black/10>: an attribute name cannot have a / in it');
+    expect(() =>
+      slideSource(slide({}, '<div class="bg-black/50">card</div><br/>'), 4),
+    ).not.toThrow();
+  });
+  it('warns that an @let without its ; is text', () => {
+    expect(warnings('@let pct = 5\n\n{{ pct }}').join()).toContain(
+      'slide 2: "@let pct = 5" has no ; at its end, so it is shown as text and declares nothing: end it with ;',
+    );
+    expect(warnings('@let pct = 5;\n\n{{ pct }}').join()).not.toContain('@let');
+  });
+  it('stops on a value of $nav called as a signal ($nav.total())', () => {
+    expect(() => slideSource(slide({}, 'Of {{ $nav.total() }}'), 4)).toThrow(
+      'slide 4: $nav.total is a number, not a signal: write $nav.total without the ()',
+    );
+    expect(() => slideSource(slide({}, 'Of {{ $nav.total }}'), 4)).not.toThrow();
+  });
+  it('names an inline element left open, not the </p> after it (no raw NG5002)', () => {
+    expect(() =>
+      slideSource(slide({}, 'At <span class="font-bold">14:02 a migration ran.'), 4),
+    ).toThrow(/slide 4: <span class="font-bold"> is never closed; add <\/span>/);
+  });
+  it('says the names differ when a mistyped element is closed', () => {
+    expect(() =>
+      slideSource(slide({}, '<slide-ng-clicsk>\n\n- a\n- b\n\n</slide-ng-clicks>'), 4),
+    ).toThrow(
+      'slide 4: <slide-ng-clicsk> is closed by </slide-ng-clicks>, a different name. Did you mean <slide-ng-clicks>?',
+    );
+    expect(() => slideSource(slide({}, '<div class="x">a</dvi>'), 4)).toThrow(
+      'slide 4: <div class="x"> is closed by </dvi>, a different name. Write both names the same.',
+    );
+  });
+  it('names a closing tag that closes nothing', () => {
+    expect(() => slideSource(slide({}, '<div>a</div>\n\n</div>'), 4)).toThrow(
+      /slide 4: <\/div> has no <div> open to close/,
+    );
+  });
 });
 
 describe('warnInlineControlFlow', () => {
@@ -375,5 +553,64 @@ describe('warnInlineControlFlow', () => {
     expect(warn).toHaveBeenCalledTimes(1);
     expect(warn.mock.calls[0][0]).toContain('slide 2');
     warn.mockRestore();
+  });
+});
+
+describe('slideSource: pictures that public/ does not have', () => {
+  const root = mkdtempSync(join(tmpdir(), 'slide-ng-public-'));
+  mkdirSync(join(root, 'public/img'), { recursive: true });
+  writeFileSync(join(root, 'public/img/logo.png'), 'png');
+  const warnings = (frontmatter: Record<string, unknown>, md: string) => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    slideSource(slide(frontmatter, md), 2, { root, roots: [{ dir: root }] });
+    const calls = warn.mock.calls.map((c) => String(c[0]));
+    warn.mockRestore();
+    return calls;
+  };
+  it('warns about a root address that is not a file of public/', () => {
+    expect(warnings({}, '![](/img/logo.png)\n\n<img src="/missing.png">')).toEqual([
+      '[slides] slide 2: the picture "/missing.png" is not in public/ (an address that starts with / is a file of the public/ folder next to slides.md)',
+    ]);
+    expect(warnings({ layout: 'image-right', image: '/nope.jpg' }, '# A')).toEqual([
+      expect.stringContaining('the picture "/nope.jpg" is not in public/'),
+    ]);
+  });
+  it('says to leave out /public in the address', () => {
+    expect(warnings({}, '![](/public/img/logo.png)')).toEqual([
+      '[slides] slide 2: "/public/img/logo.png" names the public/ folder, which is the site\'s root: write "/img/logo.png"',
+    ]);
+  });
+  it('warns about a relative address that is neither next to the markdown nor in public/', () => {
+    writeFileSync(join(root, 'here.png'), 'png');
+    const relative = (frontmatter: Record<string, unknown>, md: string) => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      slideSource({ ...slide(frontmatter, md), file: join(root, 'slides.md') }, 2, {
+        root,
+        roots: [{ dir: root }],
+      });
+      const calls = warn.mock.calls.map((c) => String(c[0]));
+      warn.mockRestore();
+      return calls;
+    };
+    expect(
+      relative(
+        {},
+        '![](./here.png) ![](./img/logo.png) ![](./logo.png)\n\n<img src="./pics/team.jpg">\n\n`<img src="./x.png">`',
+      ),
+    ).toEqual([
+      '[slides] slide 2: the picture "./logo.png" is not found (a relative address starts at the folder of slides.md)',
+      '[slides] slide 2: the picture "./pics/team.jpg" is not found (a relative address starts at the folder of slides.md)',
+    ]);
+    expect(relative({ layout: 'image-right', image: './gone.png' }, '# A')).toEqual([
+      expect.stringContaining('the picture "./gone.png" is not found'),
+    ]);
+  });
+  it('leaves remote pictures and code samples alone', () => {
+    expect(
+      warnings(
+        {},
+        '![](https://example.com/a.png) ![](//cdn.example.com/b.png)\n\n`<img src="/x.png">`',
+      ),
+    ).toEqual([]);
   });
 });

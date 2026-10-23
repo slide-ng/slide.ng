@@ -1,4 +1,6 @@
-import { clockParts, parseDuration, passedMs } from './timer';
+import { TestBed } from '@angular/core/testing';
+import { SYNC_TRANSPORTS, SyncTransport } from '../sync/transport';
+import { Timer, clockParts, parseDuration, passedMs } from './timer';
 
 describe('parseDuration', () => {
   it('reads minutes, hours and seconds', () => {
@@ -63,5 +65,66 @@ describe('clockParts', () => {
       m: '20',
       s: '01',
     });
+  });
+});
+
+describe('Timer', () => {
+  it('keeps a timer that came from another window for the tab, so a restart of the dev server does not lose it', () => {
+    sessionStorage.clear();
+    let deliver: (channel: string, data: unknown) => void = () => {};
+    const transport: SyncTransport = { send: () => {}, listen: (h) => (deliver = h) };
+    TestBed.configureTestingModule({
+      providers: [{ provide: SYNC_TRANSPORTS, multi: true, useValue: transport }],
+    });
+    const timer = TestBed.inject(Timer);
+    TestBed.tick();
+    const startedAt = Date.now() - 60_000;
+    deliver('shared', { timer: { status: 'running', startedAt, pausedAt: 0 } });
+    TestBed.tick();
+    expect(timer.status()).toBe('running');
+    expect(JSON.parse(sessionStorage.getItem('slide-ng-timer') ?? 'null')).toEqual({
+      status: 'running',
+      startedAt,
+      pausedAt: 0,
+    });
+    // A reset from another window is kept too: a reload must not bring the old timer back.
+    deliver('shared', { timer: { status: 'stopped', startedAt: 0, pausedAt: 0 } });
+    TestBed.tick();
+    expect(JSON.parse(sessionStorage.getItem('slide-ng-timer') ?? 'null').status).toBe('stopped');
+  });
+
+  it('a tab that comes back does not bring its kept timer back over a newer reset of another window', () => {
+    sessionStorage.clear();
+    const now = Date.now();
+    const kept = {
+      status: 'running',
+      startedAt: now - 60_000,
+      pausedAt: 0,
+      changedAt: now - 60_000,
+    };
+    sessionStorage.setItem('slide-ng-timer', JSON.stringify(kept));
+    let deliver: (channel: string, data: unknown) => void = () => {};
+    const sent: [string, unknown][] = [];
+    const transport: SyncTransport = {
+      send: (channel, data) => sent.push([channel, data]),
+      listen: (h) => (deliver = h),
+    };
+    TestBed.configureTestingModule({
+      providers: [{ provide: SYNC_TRANSPORTS, multi: true, useValue: transport }],
+    });
+    const timer = TestBed.inject(Timer);
+    TestBed.tick();
+    expect(timer.status()).toBe('running'); // nothing newer known yet: the kept timer is back
+    // Another window reset it while this tab was away; it answers this tab's hello with the reset.
+    deliver('shared', {
+      timer: { status: 'stopped', startedAt: 0, pausedAt: 0, changedAt: now - 1000 },
+    });
+    TestBed.tick();
+    expect(timer.status()).toBe('stopped');
+    expect(JSON.parse(sessionStorage.getItem('slide-ng-timer') ?? 'null').status).toBe('stopped');
+    // A change made here gets its time.
+    timer.start();
+    const last = sent.at(-1)?.[1] as { timer: { changedAt: number } };
+    expect(Math.abs(last.timer.changedAt - Date.now())).toBeLessThan(1000);
   });
 });

@@ -10,9 +10,11 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
+import { PDFDocument, PDFName } from '@cantoo/pdf-lib';
 import { join, resolve } from 'node:path';
 import { launch, reporter } from '../e2e/browser.mjs';
 import { buildDeck } from '../../scripts/cli/runtime.mjs';
+import { serveDirectory } from '../../scripts/export/static-server.mjs';
 
 const t = reporter();
 const bin = resolve('bin/slide-ng.mjs');
@@ -57,6 +59,25 @@ const common = `--dist ${dist}`;
 const pdfInfo = (file) => execFileSync('pdfinfo', [file], { encoding: 'utf8' });
 const pages = (file) => Number(/Pages:\s+(\d+)/.exec(pdfInfo(file))[1]);
 const text = (file) => execFileSync('pdftotext', [file, '-'], { encoding: 'utf8' });
+// The links of a PDF, read back by qpdf: `page:dest` for a link inside the document (dest is a page number), `page:uri`
+// for a web address. Pages count from 1.
+const links = (file) => {
+  const json = JSON.parse(execFileSync('qpdf', ['--json', file], { encoding: 'utf8' }));
+  const value = (ref) => json.qpdf[1][`obj:${ref}`]?.value;
+  const pageNo = (ref) => json.pages.findIndex((p) => p.object === ref) + 1;
+  const catalog = Object.values(json.qpdf[1]).find((o) => o.value?.['/Type'] === '/Catalog');
+  const dests = value(catalog.value['/Dests']) ?? {};
+  return json.pages.flatMap((p, i) =>
+    (value(p.object)['/Annots'] ?? [])
+      .map(value)
+      .filter((a) => a['/Subtype'] === '/Link')
+      .map((a) =>
+        a['/Dest']
+          ? `${i + 1}:${dests[a['/Dest']] ? pageNo(dests[a['/Dest']][0]) : 'nowhere'}`
+          : `${i + 1}:${String(a['/A']?.['/URI']).replace(/^u:/, '')}`,
+      ),
+  );
+};
 // Width and height from a PNG's header.
 const pngSize = (file) => {
   const b = readFileSync(file);
@@ -77,6 +98,11 @@ t.ok(
   /Page size:\s+735(\.\d+)? x 41[34]/.test(pdfInfo(pdf)),
   pdfInfo(pdf).match(/Page size.*/)[0],
 );
+t.ok(
+  'the pdf page is cut back to the slide (no 735.12 pt paper with a white line on dark slides)',
+  /Page size:\s+735 x/.test(pdfInfo(pdf)),
+  pdfInfo(pdf).match(/Page size.*/)[0],
+);
 t.ok('the pdf title comes from the headmatter', /Title:\s+Print deck/.test(pdfInfo(pdf)));
 t.ok('the pdf is tagged for screen readers', /Tagged:\s+yes/.test(pdfInfo(pdf)), pdfInfo(pdf));
 t.ok(
@@ -84,12 +110,22 @@ t.ok(
   text(pdf).includes('Moving code') && text(pdf).includes('const'),
 );
 t.ok('the pdf has the click elements that are revealed late', text(pdf).includes('two'));
+t.ok(
+  'a markdown link to a slide points at its page in the pdf, a web page keeps its address, other links of the site are no links (not the temporary server)',
+  links(pdf).join() === '8:2,8:https://example.org/,8:8',
+  links(pdf).join(),
+);
 
 r = slideNg(`export ${common} --with-clicks --output clicks`);
 t.ok(
   '--with-clicks makes a page for every click step (13)',
   pages(join(r.dir, 'clicks.pdf')) === 13,
   String(pages(join(r.dir, 'clicks.pdf'))),
+);
+t.ok(
+  'with clicks a link to a slide points at the first page of that slide',
+  links(join(r.dir, 'clicks.pdf')).join() === '13:2,13:https://example.org/,13:13',
+  links(join(r.dir, 'clicks.pdf')).join(),
 );
 
 r = slideNg(`export ${common} --range 2,4-5 --output ranged`);
@@ -106,6 +142,20 @@ t.ok(
   '--per-slide gives the same 13 pages',
   pages(join(r.dir, 'per.pdf')) === 13,
   String(pages(join(r.dir, 'per.pdf'))),
+);
+t.ok(
+  '--per-slide says that links between slides and tags are lost',
+  r.out.includes('links between slides and the tags for screen readers are lost'),
+  r.out,
+);
+const perLang = (await PDFDocument.load(readFileSync(join(r.dir, 'per.pdf')))).catalog
+  .lookup(PDFName.of('Lang'))
+  ?.decodeText();
+t.ok('--per-slide keeps the language of the page', perLang === 'en', String(perLang));
+t.ok(
+  '--per-slide keeps the web link and leaves no link to a slide (it would lead nowhere)',
+  links(join(r.dir, 'per.pdf')).join() === '13:https://example.org/',
+  links(join(r.dir, 'per.pdf')).join(),
 );
 
 // ---- outline (--with-toc), read back by qpdf and by pdf-lib
@@ -215,6 +265,21 @@ const [light, dark, clear] = [
 t.ok('png: light background is white', light.join() === '255,255,255,255', light.join());
 t.ok('png --dark: dark background', dark[0] < 40 && dark[3] === 255, dark.join());
 t.ok('png --omit-background: transparent background', clear[3] === 0, clear.join());
+
+// The notes page is painted in its own colour down to the end of the paper, not in the deck's black.
+const served = await serveDirectory(dist);
+const notesPage = await browser.newPage();
+await notesPage.goto(`${served.origin}/presenter/print`);
+await notesPage.locator('[data-slide-ng-print="ready"]').waitFor();
+const behindNotes = await notesPage.evaluate(
+  () => getComputedStyle(document.documentElement).backgroundColor,
+);
+t.ok(
+  'export-notes: the page behind the notes is white, not black',
+  behindNotes === 'rgb(255, 255, 255)',
+  behindNotes,
+);
+await served.close();
 await browser.close();
 
 // ---- md and pptx
@@ -319,6 +384,42 @@ t.ok(
   'without --dist the command builds the deck itself and leaves no build folder behind',
   pages(join(r.dir, 'starter.pdf')) === 10 && !existsSync(resolve('.slide-ng/export-build')),
   String(pages(join(r.dir, 'starter.pdf'))),
+);
+execFileSync(process.execPath, ['scripts/generate.mjs'], { stdio: 'ignore' });
+
+// ---- several entries: one file each, built one after another; --output and --dist name one place, so they are refused
+const pairDir = join(scratch, 'pair');
+mkdirSync(pairDir, { recursive: true });
+for (const name of ['first', 'second'])
+  writeFileSync(join(pairDir, `${name}.md`), `# ${name} deck\n\n---\n\n# two\n`);
+const pair = `${join(pairDir, 'first.md')} ${join(pairDir, 'second.md')}`;
+r = slideNg(`export ${pair}`, { entry: null });
+t.ok(
+  'export a.md b.md writes one pdf per deck',
+  pages(join(r.dir, 'first-export.pdf')) === 2 &&
+    text(join(r.dir, 'second-export.pdf')).includes('second deck'),
+  readdirSync(r.dir).join(),
+);
+const refused = (args) => {
+  try {
+    slideNg(args, { entry: null });
+    return '';
+  } catch (e) {
+    return String(e.stderr);
+  }
+};
+t.ok(
+  'export with several entries refuses --output and --dist',
+  refused(`export ${pair} --output one`).includes('--output names one file') &&
+    refused(`export ${pair} ${common}`).includes('--dist names one deck'),
+);
+mkdirSync(join(pairDir, 'again'));
+writeFileSync(join(pairDir, 'again', 'first.md'), '# again\n');
+t.ok(
+  'two entries that would write the same file are refused before the build',
+  refused(`export-notes ${pair} ${join(pairDir, 'again', 'first.md')}`).includes(
+    'would both be exported to',
+  ),
 );
 execFileSync(process.execPath, ['scripts/generate.mjs'], { stdio: 'ignore' });
 

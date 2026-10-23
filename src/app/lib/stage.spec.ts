@@ -1,6 +1,9 @@
 import { ComponentRef, ViewContainerRef } from '@angular/core';
+import { vi } from 'vitest';
 import { SlideBase } from './slide-base';
 import { Stage } from './stage';
+
+const VT = { name: 'view-transition' };
 
 function fakeSlide(no: number) {
   const element = document.createElement('div');
@@ -39,13 +42,13 @@ describe('Stage with a view transition', () => {
 
   it('returns the new slide, not the one that is leaving', () => {
     stage.show(1, null);
-    const shown = stage.show(2, 'view-transition') as unknown as { no: number };
+    const shown = stage.show(2, VT) as unknown as { no: number };
     expect(shown.no).toBe(2);
   });
 
   it('keeps the old slide until the browser runs the swap', () => {
     stage.show(1, null);
-    stage.show(2, 'view-transition');
+    stage.show(2, VT);
     expect(made[0].destroyed).toBe(false);
     expect(made[1].location.nativeElement.style.display).toBe('none');
     swaps[0]();
@@ -55,9 +58,68 @@ describe('Stage with a view transition', () => {
 
   it('leaves one slide after two quick moves', () => {
     stage.show(1, null);
-    stage.show(2, 'view-transition');
-    stage.show(3, 'view-transition');
+    stage.show(2, VT);
+    stage.show(3, VT);
     swaps.forEach((swap) => swap());
     expect(made.map((m) => m.destroyed)).toEqual([true, true, false]);
+  });
+});
+
+describe('Stage with a custom transition name', () => {
+  let made: ReturnType<typeof fakeSlide>[];
+  let stage: Stage;
+  beforeEach(() => {
+    made = [];
+    stage = new Stage({} as ViewContainerRef, document.createElement('div'), 'slide', (_h, no) => {
+      made.push(fakeSlide(no));
+      return made[made.length - 1];
+    });
+  });
+
+  it("puts Vue's classes on both slides and keeps the old one while they run", () => {
+    stage.show(1, null);
+    stage.show(2, { name: 'my-fade' });
+    expect(made[0].destroyed).toBe(false);
+    expect([...made[0].location.nativeElement.classList]).toEqual([
+      'my-fade-leave-from',
+      'my-fade-leave-active',
+    ]);
+    expect([...made[1].location.nativeElement.classList]).toEqual([
+      'my-fade-enter-from',
+      'my-fade-enter-active',
+    ]);
+  });
+
+  it('removes the old slide and every class when the next move cuts it short', () => {
+    stage.show(1, null);
+    stage.show(2, { name: 'my-fade', enterActiveClass: 'in' });
+    expect(made[1].location.nativeElement.classList.contains('in')).toBe(true);
+    stage.show(3, null);
+    expect(made[0].destroyed).toBe(true);
+    expect(made[1].location.nativeElement.className).toBe('');
+  });
+
+  it('removes the old slide when its leave ends, while a longer enter still runs', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'requestAnimationFrame', 'cancelAnimationFrame'] });
+    stage.show(1, null);
+    stage.show(2, { name: 'my-fade', duration: { enter: 1000, leave: 200 } });
+    await vi.advanceTimersByTimeAsync(300);
+    expect(made[0].destroyed).toBe(true);
+    expect(made[1].location.nativeElement.classList.contains('my-fade-enter-active')).toBe(true);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(made[1].location.nativeElement.className).toBe('');
+    vi.useRealTimers();
+  });
+
+  it('ends a fixed duration at once for people who ask for less motion', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'requestAnimationFrame', 'cancelAnimationFrame'] });
+    vi.stubGlobal('matchMedia', (query: string) => ({ matches: query.includes('reduce') }));
+    stage.show(1, null);
+    stage.show(2, { name: 'my-fade', duration: 1500 });
+    await vi.advanceTimersByTimeAsync(100);
+    expect(made[0].destroyed).toBe(true);
+    expect(made[1].location.nativeElement.className).toBe('');
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
   });
 });

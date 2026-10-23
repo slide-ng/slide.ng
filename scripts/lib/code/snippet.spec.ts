@@ -1,4 +1,4 @@
-import { mkdtempSync, symlinkSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { SNIPPET_LINE, dedent, findRegion, resolveSnippet } from './snippet.mjs';
@@ -17,7 +17,39 @@ const lines = [
 describe('snippet lines', () => {
   it('splits file, region, language and the rest', () => {
     const m = SNIPPET_LINE.exec('<<< @/snippets/a.ts#part ts {2|3}{lines:true}')!;
-    expect(m.slice(1)).toEqual(['@/snippets/a.ts', '#part', 'ts', '{2|3}{lines:true}']);
+    expect(m.slice(1)).toEqual(['@/snippets/a.ts', '#part', 'ts', undefined, '{2|3}{lines:true}']);
+  });
+  it('reads a title after the language, with spaces and an icon', () => {
+    const parts = (line: string) => SNIPPET_LINE.exec(line)!.slice(1);
+    expect(parts('<<< ./a.py python [a.py]')).toEqual([
+      './a.py',
+      undefined,
+      'python',
+      '[a.py]',
+      undefined,
+    ]);
+    expect(parts('<<< ./a.ts ts{1}')).toEqual(['./a.ts', undefined, 'ts', undefined, '{1}']);
+    expect(parts('<<< ./a.py [a.py]')).toEqual([
+      './a.py',
+      undefined,
+      undefined,
+      '[a.py]',
+      undefined,
+    ]);
+    expect(parts('<<< ./a.py#x [title with space] {2}')).toEqual([
+      './a.py',
+      '#x',
+      undefined,
+      '[title with space]',
+      '{2}',
+    ]);
+    expect(parts('<<< @/a.ts ts [npm ~i-carbon:terminal~]{1|2}{lines:true}')).toEqual([
+      '@/a.ts',
+      undefined,
+      'ts',
+      '[npm ~i-carbon:terminal~]',
+      '{1|2}{lines:true}',
+    ]);
   });
   it('does not take the ranges for a language', () => {
     expect(SNIPPET_LINE.exec('<<< ./a.ts {*}{lines:true}')![3]).toBeUndefined();
@@ -59,6 +91,19 @@ describe('resolveSnippet', () => {
       lang: 'js',
     });
   });
+  it('keeps the title and the options after the language', () => {
+    expect(
+      resolveSnippet('<<< ./a.ts#r js [a b ~i-carbon:code~] {1}', join(root, 'slides.md'), root),
+    ).toMatchObject({
+      code: 'two',
+      lang: 'js',
+      meta: '[a b ~i-carbon:code~] {1}',
+    });
+    expect(resolveSnippet('<<< ./a.ts [a.ts]', join(root, 'slides.md'), root)).toMatchObject({
+      lang: 'ts',
+      meta: '[a.ts]',
+    });
+  });
   it('refuses a file outside the deck folder: absolute, ../ and @/../ (a clear error)', () => {
     const deck = mkdtempSync(join(tmpdir(), 'snip-deck-'));
     for (const line of [
@@ -91,6 +136,17 @@ describe('resolveSnippet', () => {
   it('throws a readable error for a missing file', () => {
     expect(() => resolveSnippet('<<< ./missing.ts', join(root, 'slides.md'), root)).toThrow(
       'Code snippet not found',
+    );
+  });
+  it('says that a path in an imported file starts at that file, and suggests @/', () => {
+    mkdirSync(join(root, 'snips'), { recursive: true });
+    writeFileSync(join(root, 'snips/here.ts'), 'const a = 1;\n');
+    const inPart = join(root, 'parts/x.md');
+    expect(() => resolveSnippet('<<< ./snips/here.ts', inPart, root)).toThrow(
+      "(a path is relative to the file the <<< is in; for the deck's snips/here.ts write <<< @/snips/here.ts)",
+    );
+    expect(() => resolveSnippet('<<< ./snips/gone.ts', inPart, root)).toThrow(
+      "@/ starts at the deck's folder",
     );
   });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseFlags } from './flags.mjs';
+import { applyLangFlag, parseFlags } from './flags.mjs';
 
 const spec = {
   port: { type: 'number', alias: 'p' },
@@ -39,7 +39,41 @@ describe('parseFlags', () => {
   it('refuses unknown flags, missing values and bad numbers', () => {
     expect(() => parseFlags(['--nope'], spec)).toThrow('Unknown flag --nope');
     expect(() => parseFlags(['-z'], spec)).toThrow('Unknown flag -z');
+    expect(() => parseFlags(['--prot', '3000'], spec)).toThrow(
+      'Unknown flag --prot. Did you mean --port?',
+    );
     expect(() => parseFlags(['--format'], spec)).toThrow('needs a value');
+  });
+  it('suggests the flag that was meant', () => {
+    expect(() => parseFlags(['--verison'], spec)).toThrow(
+      'Unknown flag --verison. Did you mean --version?',
+    );
+    expect(() => parseFlags(['-P', '3000'], spec)).toThrow('Unknown flag -P. Did you mean -p?');
+    expect(() => parseFlags(['--chekc'], {}, { command: 'format' })).toThrow(
+      'Unknown flag --chekc. slide-ng format takes no flags.',
+    );
+    expect(() =>
+      parseFlags(['--with-clicks'], spec, {
+        command: 'build',
+        elsewhere: { 'with-clicks': 'export' },
+      }),
+    ).toThrow(
+      'Unknown flag --with-clicks. It is a flag of slide-ng export: slide-ng export --with-clicks',
+    );
     expect(() => parseFlags(['--port', 'abc'], spec)).toThrow('must be a number');
+  });
+});
+
+describe('applyLangFlag', () => {
+  it('sets the language for the generator, spelled the usual way, and refuses what is not a tag', () => {
+    const before = process.env['SLIDE_NG_LANG'];
+    try {
+      applyLangFlag({ lang: 'pt_br' });
+      expect(process.env['SLIDE_NG_LANG']).toBe('pt-BR');
+      expect(() => applyLangFlag({ lang: '../tr' })).toThrow(/--lang must be a language tag/);
+    } finally {
+      if (before === undefined) delete process.env['SLIDE_NG_LANG'];
+      else process.env['SLIDE_NG_LANG'] = before;
+    }
   });
 });

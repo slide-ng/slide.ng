@@ -3,7 +3,7 @@
 // offline folder (`./`) makes it relative to the page, so the folder works from any place on disk.
 
 // Code samples show text, they are not addresses.
-const CODE = /(<pre[\s\S]*?<\/pre>|<code(?:\s[^>]*)?>[\s\S]*?<\/code>)/;
+export const CODE = /(<pre[\s\S]*?<\/pre>|<code(?:\s[^>]*)?>[\s\S]*?<\/code>)/;
 
 const ROOT = '\\/(?!\\/)'; // a slash that is not the start of `//host`
 
@@ -11,7 +11,7 @@ const ROOT = '\\/(?!\\/)'; // a slash that is not the start of `//host`
 export const rebase = (path, base) => (base === './' ? path.slice(1) : base + path.slice(1));
 
 // Attributes that hold one address, and CSS `url(...)`.
-const ATTRIBUTE = new RegExp(`(\\s(?:src|poster|data)=)(["'])${ROOT}([^"']*)\\2`, 'g');
+const ATTRIBUTE = new RegExp(`(\\s(?:src|poster|printPoster|data)=)(["'])${ROOT}([^"']*)\\2`, 'g');
 // A link to a file of `public/` (`[map](/map.pdf)`): an address with a file extension. `/4` or `/pricing` is a slide.
 const FILE_LINK = new RegExp(
   `(\\shref=)(["'])${ROOT}([^"'#?]*\\.[\\w]{1,8}(?:[#?][^"']*)?)\\2`,

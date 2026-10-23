@@ -1,5 +1,5 @@
 // Twoslash: TypeScript types worked out while generating, shown as popups by CSS only.
-export async function run({ t, open }) {
+export async function run({ t, open, until }) {
   const page = await open('/12');
   t.ok(
     'a twoslash block has hover popups with real types',
@@ -33,12 +33,17 @@ export async function run({ t, open }) {
     .first();
   const box = await target.boundingBox();
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-  await page.waitForTimeout(300);
   const popup = target.locator('.twoslash-popup-container').first();
+  // The popup fades in by CSS: wait for it to be fully shown instead of a fixed time.
+  const shown = await until(
+    page,
+    (e) => getComputedStyle(e).opacity === '1',
+    await popup.elementHandle(),
+  );
   t.ok(
     'hovering shows a popup',
-    (await popup.evaluate((e) => getComputedStyle(e).opacity)) === '1' &&
-      (await popup.innerText()).includes('Math'),
+    shown && (await popup.innerText()).includes('Math'),
+    await popup.evaluate((e) => getComputedStyle(e).opacity),
   );
   t.ok(
     'a block without twoslash is left alone',

@@ -2,7 +2,8 @@
   "name": "minimal",
   "headmatter": {
     "colorSchema": "dark",
-    "transition": "fade"
+    "transition": "fade",
+    "themeConfig": { "accent": "#f59e0b" }
   },
   "layouts": {
     "quote": { "props": [], "slots": [], "classProp": false }

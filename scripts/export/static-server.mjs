@@ -43,12 +43,33 @@ export function resolveRequest(root, base, pathname) {
   return existsSync(file) && statSync(file).isFile() ? file : null;
 }
 
-/** Streams a file as the answer. If it cannot be read (it vanished), the answer is a 500 and the server goes on. */
-export function sendFile(asset, res) {
-  const stream = createReadStream(asset);
+/**
+ * The bytes a `Range` header asks for in a file of `size` bytes: `{ start, end }` (inclusive), null to send the whole file
+ * (no header, or one we do not serve, such as several ranges), or 'unsatisfiable' (the answer is a 416).
+ */
+export function parseRange(header, size) {
+  const match = /^bytes=(\d*)-(\d*)$/.exec(header?.trim() ?? '');
+  if (!match || (!match[1] && !match[2])) return null;
+  let start;
+  let end;
+  if (!match[1]) {
+    // `bytes=-500`: the last 500 bytes
+    start = Math.max(0, size - Number(match[2]));
+    end = size - 1;
+  } else {
+    start = Number(match[1]);
+    end = match[2] ? Math.min(Number(match[2]), size - 1) : size - 1;
+  }
+  if (start >= size || start > end) return 'unsatisfiable';
+  return { start, end };
+}
+
+/** Streams a file (or `range` of it) as the answer. If it cannot be read (it vanished), the answer is a 500 and the server goes on. */
+export function sendFile(asset, res, range) {
+  const stream = createReadStream(asset, range ?? {});
   stream.on('error', () => {
     if (res.headersSent) return res.destroy();
-    res.removeHeader('content-type');
+    ['content-type', 'content-length', 'content-range'].forEach((name) => res.removeHeader(name));
     res.statusCode = 500;
     res.end('could not read the file');
   });
@@ -68,7 +89,26 @@ export function serveDirectory(root, base = '/') {
       return res.end('not found');
     }
     res.setHeader('content-type', TYPES[extname(asset)] ?? 'application/octet-stream');
-    sendFile(asset, res);
+    // Byte ranges: without them Chromium cannot seek a video, so `<slide-ng-video printTimestamp>` would show the first frame.
+    res.setHeader('accept-ranges', 'bytes');
+    let size;
+    try {
+      size = statSync(asset).size;
+    } catch {
+      return sendFile(asset, res); // it vanished: sendFile answers 500
+    }
+    const range = parseRange(req.headers.range, size);
+    if (range === 'unsatisfiable') {
+      res.statusCode = 416;
+      res.setHeader('content-range', `bytes */${size}`);
+      return res.end();
+    }
+    if (range) {
+      res.statusCode = 206;
+      res.setHeader('content-range', `bytes ${range.start}-${range.end}/${size}`);
+    }
+    res.setHeader('content-length', range ? range.end - range.start + 1 : size);
+    sendFile(asset, res, range);
   });
   return new Promise((resolvePromise) =>
     server.listen(0, '127.0.0.1', () => {

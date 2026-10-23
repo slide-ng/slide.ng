@@ -1,5 +1,5 @@
 // Highlighted code, line highlights and click steps, line numbers, max height, copy, snippets, code groups.
-export async function run({ t, open, press, hud }) {
+export async function run({ t, open, press, hud, until }) {
   let page = await open('/2');
   t.ok(
     'code is highlighted with Shiki (two themes as CSS variables)',
@@ -114,7 +114,7 @@ export async function run({ t, open, press, hud }) {
 
   await page.locator('.slidev-code-wrapper').first().hover();
   await page.locator('.slidev-code-copy').first().click();
-  await page.waitForTimeout(200);
+  await until(page, async () => (await navigator.clipboard.readText()).length > 0);
   const clip = await page.evaluate(() => navigator.clipboard.readText());
   t.ok(
     'copy button puts the code on the clipboard',
@@ -134,6 +134,27 @@ export async function run({ t, open, press, hud }) {
     tabs.map((x) => x.trim()).join('|') === 'npm|yarn',
     tabs.join('|'),
   );
+  const icon = page
+    .locator('.slidev-code-tab', { hasText: 'yarn' })
+    .locator('.i-carbon\\:terminal');
+  const iconBox = (await icon.count())
+    ? await icon.evaluate((e) => {
+        const s = getComputedStyle(e);
+        return { width: e.getBoundingClientRect().width, mask: s.maskImage || s.webkitMaskImage };
+      })
+    : null;
+  t.ok(
+    'a ~icon~ in a tab title is drawn before the title',
+    iconBox && iconBox.width > 0 && iconBox.mask.includes('svg'),
+    JSON.stringify(iconBox),
+  );
+  t.ok(
+    'no icon for npm while @iconify-json/vscode-icons is not installed',
+    (await page
+      .locator('.slidev-code-tab', { hasText: 'npm' })
+      .locator('.slidev-code-title-icon')
+      .count()) === 0,
+  );
   const visible = () =>
     page
       .locator('.slidev-code-group-blocks .slidev-code-wrapper')
@@ -152,7 +173,11 @@ export async function run({ t, open, press, hud }) {
     await visible(),
   );
   await page.locator('.slidev-code-tab', { hasText: 'yarn' }).click();
-  await page.waitForTimeout(150);
+  await until(page, () =>
+    [...document.querySelectorAll('.slidev-code-group-blocks .slidev-code-wrapper')].some(
+      (e) => getComputedStyle(e).display !== 'none' && e.textContent.includes('yarn add'),
+    ),
+  );
   t.ok(
     'clicking a tab shows its block',
     (await visible()).endsWith('yarn add @slide-ng/core'),

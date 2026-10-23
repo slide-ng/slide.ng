@@ -53,10 +53,19 @@ export async function run({ t, open, hud, windowGroup, browser }) {
       titles.filter((x) => x.startsWith('Brush color: ')).length === 7,
     titles.join('|'),
   );
+  const off = (id) => presenter.locator(id).isDisabled();
+  t.ok(
+    'with nothing drawn, undo, redo and delete are disabled buttons',
+    (await off('#draw-undo')) && (await off('#draw-redo')) && (await off('#draw-clear')),
+  );
 
   // ---- drawing with the stylus tool (the default) and the other tools
   await stroke(presenter, [0.2, 0.3], [0.5, 0.6]);
   t.ok('a stroke makes a path', (await tags(presenter)) === 'path', await tags(presenter));
+  t.ok(
+    'then undo and delete can be pressed, redo not yet',
+    !(await off('#draw-undo')) && !(await off('#draw-clear')) && (await off('#draw-redo')),
+  );
   t.ok('the viewer shows it at once', (await tags(viewer)) === 'path', await tags(viewer));
   await presenter.keyboard.press('l');
   await stroke(presenter, [0.6, 0.2], [0.8, 0.4]);
@@ -151,9 +160,19 @@ export async function run({ t, open, hud, windowGroup, browser }) {
   );
 
   // ---- overview and next-step picture
+  const expanded = await presenter.locator('#nav-drawing').getAttribute('aria-expanded');
+  await presenter.locator('#tool-line').focus();
   await presenter.keyboard.press('Escape');
   await presenter.waitForTimeout(150);
   t.ok('Escape closes the toolbar', (await presenter.locator('#drawing-toolbar').count()) === 0);
+  t.ok(
+    'the pen button says whether the toolbar is open, and Escape on a tool gives it the focus back',
+    expanded === 'true' &&
+      (await presenter.locator('#nav-drawing').getAttribute('aria-expanded')) === 'false' &&
+      (await presenter.evaluate(() => document.activeElement?.id)) === 'nav-drawing',
+    `${expanded} ${await presenter.evaluate(() => document.activeElement?.id)}`,
+  );
+  await presenter.evaluate(() => document.activeElement?.blur());
   await viewer.bringToFront();
   await viewer.keyboard.press('o');
   await viewer.waitForTimeout(500);

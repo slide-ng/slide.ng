@@ -23,7 +23,7 @@ export async function run({ t, open, press, pathOf, hud }) {
   t.ok('Enter does nothing outside the overview', at() === '/3');
 
   // Next and previous move through the clicks of a slide before changing slide (slide 28 has 3).
-  await page.goto(page.url().replace('/3?', '/28?').split('?')[0]);
+  await page.goto(page.url().split('?')[0].replace(/\/3$/, '/28'));
   await page.waitForFunction(() =>
     /slide 28/.test(document.querySelector('#hud')?.innerText ?? ''),
   );
@@ -42,6 +42,11 @@ export async function run({ t, open, press, pathOf, hud }) {
     'g opens the goto box and focuses it',
     await page.locator('#slidev-goto-input').evaluate((e) => e === document.activeElement),
   );
+  t.ok(
+    'the goto box is a labelled dialog (not loose outside the landmarks)',
+    (await page.locator('#slidev-goto-dialog[role="dialog"]').getAttribute('aria-label')) ===
+      'Go to slide',
+  );
   await page.keyboard.type('12');
   await page.waitForTimeout(100);
   t.ok(
@@ -56,6 +61,16 @@ export async function run({ t, open, press, pathOf, hud }) {
   t.ok('goto also searches titles', (await page.locator('#goto-results li').count()) === 1);
   await press(page, 'Enter');
   t.ok('goto by title opens Part B', at() === '/24', at());
+  await press(page, 'g');
+  await page.keyboard.type('٢٤'); // 24 in Arabic-Indic digits
+  await page.waitForTimeout(100);
+  const option = await page.locator('#goto-results li').first().textContent();
+  await press(page, 'Escape');
+  t.ok(
+    'goto finds a number typed in Arabic-Indic digits, and an option reads "24 Part B"',
+    /^\s*24 +Part B/.test(option),
+    option,
+  );
   await press(page, 'g');
   await page.keyboard.type('zdf'); // d and f are shortcuts, but not while typing in the box
   await page.waitForTimeout(100);

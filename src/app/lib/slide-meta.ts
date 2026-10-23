@@ -1,4 +1,5 @@
 import { Type } from '@angular/core';
+import type { TransitionSpec } from './transitions';
 import { SlideBase } from './slide-base';
 
 /** What the generator writes for each slide into src/slides/generated/index.ts. */
@@ -11,7 +12,8 @@ export interface SlideMeta {
   noteHtml: string | null; // the note as HTML, with `[click]` markers turned into spans
   routeAlias: string | null; // /alias works like /3
   hideInToc: boolean;
-  transition: string | { name: string } | null;
+  transition: TransitionSpec; // a name, `forward | backward`, or the object form (transitions.ts)
+  images?: string[]; // the pictures of the slide, as the page asks for them (`preloadImages` loads them early)
   frontmatter: Record<string, unknown>; // every frontmatter key; unknown keys are kept and ignored
   component: Type<SlideBase>;
 }

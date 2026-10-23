@@ -1,11 +1,13 @@
 // `<<< ./file.ts#region ts {2|3}` : put a file's text (or one region of it) in a code block.
 // Port of Slidev's snippet.ts. `@/` means the project root.
 import { existsSync, readFileSync, statSync } from 'node:fs';
-import { dirname, extname, resolve } from 'node:path';
+import { dirname, extname, isAbsolute, relative, resolve } from 'node:path';
 import { assertReadable } from '../outside-root.mjs';
 
-// (The language is the word after the file name; it cannot start with `{`, which begins the ranges.)
-export const SNIPPET_LINE = /^<<<[ \t]*(\S.*?)(#[\w-]+)?[ \t]*(?:[ \t]([^\s{]\S*?))?[ \t]*(\{.*)?$/;
+// `<<< path#region lang [title] {ranges}{options}`, each part after the path optional, in that order. The language is the word
+// after the file name; it cannot start with `{` (the ranges) or `[` (the title). The title may have spaces and a `~icon~`.
+export const SNIPPET_LINE =
+  /^<<<[ \t]*(\S.*?)(#[\w-]+)?(?:[ \t]+([^\s{[][^\s{[]*))?(?:[ \t]*(\[[^\]]*\]))?[ \t]*(\{.*)?$/;
 
 // Comment styles that can mark a region: [start, end] for several languages.
 const MARKERS = [
@@ -48,15 +50,26 @@ export const snippetFiles = new Set();
 export function resolveSnippet(line, file, root, options = {}) {
   const m = SNIPPET_LINE.exec(line.trim());
   if (!m) return null;
-  const [, name, region = '', lang = '', meta = ''] = m;
+  const [, name, region = '', lang = '', title = '', rest = ''] = m;
+  const meta = `${title} ${rest}`;
   const path = name.startsWith('@/') ? resolve(root, name.slice(2)) : resolve(dirname(file), name);
   assertReadable(path, 'The code snippet', {
     roots: options.roots ?? [root],
     allowOutsideRoot: options.allowOutsideRoot,
   });
   snippetFiles.add(path); // the dev server watches it (also while it is missing: creating it fixes the slide)
-  if (!existsSync(path) || !statSync(path).isFile())
-    throw new Error(`Code snippet not found: ${path}`);
+  if (!existsSync(path) || !statSync(path).isFile()) {
+    // In a file imported with `src:` a path starts at that file's folder; `@/` starts at the deck's.
+    const fromDeck = resolve(root, name);
+    const hint = /\s/.test(name)
+      ? ' (the line is read as: <<< path#region lang [title] {ranges}{options})'
+      : !name.startsWith('@/') && !isAbsolute(name) && dirname(file) !== resolve(root)
+        ? existsSync(fromDeck)
+          ? ` (a path is relative to the file the <<< is in; for the deck's ${name.replace(/^\.\//, '')} write <<< @/${relative(root, fromDeck).replace(/\\/g, '/')})`
+          : " (a path is relative to the file the <<< is in; @/ starts at the deck's folder)"
+        : '';
+    throw new Error(`Code snippet not found: ${path}${hint}`);
+  }
   let lines = readFileSync(path, 'utf8').replace(/\r/g, '').replace(/\n$/, '').split('\n');
   if (region) {
     const found = findRegion(lines, region.slice(1));

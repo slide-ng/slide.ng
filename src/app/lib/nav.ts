@@ -1,6 +1,6 @@
 // Navigation: which slide is on screen and how to move. Port of the useNav.ts parts that
 // matter for playing a deck. It is provided by the Deck component, so it can read the route.
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 import { Location } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -14,6 +14,18 @@ export function findSlide(param: string, total: number, aliases: (string | null)
   if (/^\d+$/.test(param)) return Math.min(Math.max(+param, 1), total); // /99 shows the last slide
   const i = aliases.indexOf(param);
   return i < 0 ? null : i + 1;
+}
+
+// The slide part of a link written in markdown (`4`, `/4`, `./intro`, `#/4`, as scripts/lib/links.mjs reads them), or null.
+export function slideAddress(href: string): string | null {
+  const to =
+    /^(?:(\d+)|(?:\.?\/|#\/)([^\s/?#.\\"'<>{}&`]+)(?:#.*)?)$/.exec(href)?.slice(1).find(Boolean) ??
+    null;
+  try {
+    return to && decodeURIComponent(to);
+  } catch {
+    return to;
+  }
 }
 
 @Injectable()
@@ -42,6 +54,10 @@ export class Nav {
   /** The address matches no slide: the 404 layout is shown. */
   readonly notFound = computed(() => this.found() === null);
   readonly meta = computed(() => SLIDES[this.no() - 1]);
+  /** Slidev's names, for `$nav` in slides: the slide on screen, its layout and its frontmatter. */
+  readonly currentPage = this.no;
+  readonly currentLayout = computed(() => this.meta().layout);
+  readonly currentFrontmatter = computed(() => this.meta().frontmatter);
 
   /** Clicks of the slide on screen (set by the deck when it creates the slide). */
   readonly ctx = signal<ClicksContext | null>(null);
@@ -56,6 +72,19 @@ export class Nav {
 
   /** 1 while moving forward, -1 backward (for transitions and `forward:` / `backward:` classes). */
   readonly direction = signal(0);
+
+  /** The slide shown before the one on screen (undefined at first): the `from` of the slide hooks (lib/slide-hooks.ts). */
+  readonly previousNo = signal<number | undefined>(undefined);
+  constructor() {
+    let shown: number | undefined;
+    effect(() => {
+      const no = this.no();
+      untracked(() => {
+        if (shown !== undefined && shown !== no) this.previousNo.set(shown);
+        shown = no;
+      });
+    });
+  }
 
   readonly clicks = computed(() => this.ctx()?.current() ?? 0);
   readonly clicksTotal = computed(() => this.ctx()?.total() ?? 0);
@@ -98,7 +127,7 @@ export class Nav {
   go(no: number, clicks = 0, replace = false) {
     const slide = SLIDES[no - 1];
     return this.router.navigate([this.base, slide?.routeAlias ?? no], {
-      queryParams: { clicks },
+      queryParams: { clicks: clicksQuery(clicks) },
       replaceUrl: replace,
     });
   }
@@ -113,7 +142,7 @@ export class Nav {
   private switchTo(base: string) {
     const slide = SLIDES[this.no() - 1];
     return this.router.navigate([base, slide?.routeAlias ?? this.no()], {
-      queryParams: { clicks: this.clicks() },
+      queryParams: { clicks: clicksQuery(this.clicks()) },
     });
   }
 
@@ -131,11 +160,18 @@ export class Nav {
     return new URLSearchParams(this.location.path().split('?')[1] ?? '').get('clicks');
   }
 
-  /** Keep `?clicks=` up to date without a navigation (no history entry, the router stays quiet). */
+  /** Keep `?clicks=` up to date without a navigation (no history entry, the router stays quiet); left out at click 0. */
   writeClicksParam(clicks: number) {
     const [path, query = ''] = this.location.path().split('?');
     const params = new URLSearchParams(query);
-    params.set('clicks', String(clicks));
+    const value = clicksQuery(clicks);
+    if (value === undefined) params.delete('clicks');
+    else params.set('clicks', value);
     this.location.replaceState(path, params.toString());
   }
+}
+
+/** The `?clicks=` value for a click step: none at click 0, as in Slidev (`clicks === 0 ? undefined`). */
+export function clicksQuery(clicks: number): string | undefined {
+  return clicks === 0 ? undefined : String(clicks);
 }

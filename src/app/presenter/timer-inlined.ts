@@ -1,30 +1,34 @@
 import { Component, computed, inject } from '@angular/core';
+import { T } from '../i18n/t';
 import { Timer } from './timer';
 
-// The clock at the bottom right of the presenter page. Hover it (or Tab to it) for pause / play and reset.
+// The clock at the bottom right of the presenter page. Hover it (or Tab to it) for pause / play and reset; on a touch screen,
+// which cannot hover (a phone used as the remote), they are always shown.
 @Component({
   selector: 'app-timer-inlined',
+  imports: [T],
   template: `
     <div
       id="timer"
-      class="group flex items-center justify-center pl-4 select-none"
+      class="group flex items-center justify-center ps-4 select-none"
       [class]="color()"
     >
-      <!-- The buttons are always there (so Tab reaches them) and show on hover or focus, over the clock icon. -->
-      <div class="relative w-22px h-12 flex items-center justify-center">
+      <!-- The buttons are always there (so Tab reaches them) and show on hover or focus, over the clock icon; always without hover.
+           Side by side, each 24 by 24 px with a gap, so a finger on pause does not reset. -->
+      <div class="relative w-13 h-12 flex items-center justify-center">
         <div
-          class="group-hover:op-0 group-focus-within:op-0 text-2xl"
+          class="timer-icon group-hover:op-0 group-focus-within:op-0 text-2xl"
           [class]="timer.mode === 'countdown' ? 'i-carbon:timer' : 'i-carbon:time'"
           aria-hidden="true"
         ></div>
         <div
-          class="absolute inset-0 flex flex-col items-center justify-center op-0 group-hover:op-100 group-focus-within:op-100"
+          class="timer-buttons absolute inset-0 flex items-center justify-center gap-1 op-0 group-hover:op-100 group-focus-within:op-100"
         >
           <button
             id="timer-toggle"
             type="button"
-            class="relative op-80 hover:op-100 cursor-pointer bg-transparent border-0 p-0 text-inherit"
-            [attr.aria-label]="timer.status() === 'running' ? 'Pause the timer' : 'Start the timer'"
+            class="relative w-6 h-6 flex items-center justify-center cursor-pointer bg-transparent border-0 p-0 text-inherit"
+            [attr.aria-label]="(timer.status() === 'running' ? 'timer.pause' : 'timer.start') | t"
             (click)="timer.toggle()"
           >
             <div
@@ -34,8 +38,8 @@ import { Timer } from './timer';
           <button
             id="timer-reset"
             type="button"
-            class="op-80 hover:op-100 cursor-pointer bg-transparent border-0 p-0 text-inherit"
-            aria-label="Reset the timer"
+            class="w-6 h-6 flex items-center justify-center cursor-pointer bg-transparent border-0 p-0 text-inherit"
+            [attr.aria-label]="'timer.reset' | t"
             (click)="timer.reset()"
           >
             <div class="i-carbon:renew"></div>
@@ -51,6 +55,16 @@ import { Timer } from './timer';
         ><span class="op50">:</span><span>{{ timer.parts().s }}</span>
       </div>
     </div>
+  `,
+  styles: `
+    @media (hover: none) {
+      .timer-icon {
+        opacity: 0;
+      }
+      .timer-buttons {
+        opacity: 1;
+      }
+    }
   `,
 })
 export class TimerInlined {

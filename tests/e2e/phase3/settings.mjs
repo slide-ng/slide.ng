@@ -1,5 +1,5 @@
 // The settings menu (Slidev's): filters, cursor style, scale, wake lock, idle cursor, then dark mode, camera options and the PDF stub.
-export async function run({ t, open }) {
+export async function run({ t, open, until }) {
   const page = await open('/presenter/1');
   await page.bringToFront();
   const menu = async () => {
@@ -54,6 +54,24 @@ export async function run({ t, open }) {
     'the PDF entry is disabled while the deck has no PDF next to it',
     await page.locator('#download-pdf').isDisabled(),
   );
+  // Escape inside the menu, also from a number field (which keeps the keys from the page), closes it and the focus goes
+  // back to the button.
+  const escapes = [];
+  for (const id of ['filter-invert', 'filter-brightness-number']) {
+    if (!(await page.locator('#settings-menu').count())) await menu();
+    await page.locator(`#${id}`).focus();
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(200);
+    escapes.push(
+      `${await page.locator('#settings-menu').count()}:${await page.evaluate(() => document.activeElement?.id)}`,
+    );
+  }
+  t.ok(
+    'Escape in the settings menu closes it and gives the focus back to its button',
+    escapes.join() === '0:nav-settings,0:nav-settings',
+    escapes.join(),
+  );
+  await menu();
 
   // the dock follows Slidev's order
   const dock = await page.locator('nav [id^=nav-]').evaluateAll((l) => l.map((e) => e.id));
@@ -65,24 +83,25 @@ export async function run({ t, open }) {
     'nav-drawing',
     'nav-play',
     'nav-layout',
+    'nav-sync',
     'nav-settings',
     'nav-counter',
   ];
   t.ok(
-    'dock order: schema, recording, cursor, drawing, mode, layout, settings, counter',
+    'dock order: schema, recording, cursor, drawing, mode, layout, sync, settings, counter',
     order.every((id, i) => dock.indexOf(id) > (i ? dock.indexOf(order[i - 1]) : -1)),
     dock.join(),
   );
 
   // dark mode
   await page.locator('#settings-dark').check();
-  await page.waitForTimeout(200);
+  await until(page, () => document.documentElement.classList.contains('dark'));
   t.ok(
     'Dark Mode switches the page',
     await page.evaluate(() => document.documentElement.classList.contains('dark')),
   );
   await page.locator('#settings-dark').uncheck();
-  await page.waitForTimeout(200);
+  await until(page, () => !document.documentElement.classList.contains('dark'));
   t.ok(
     'and back',
     !(await page.evaluate(() => document.documentElement.classList.contains('dark'))),
@@ -215,4 +234,49 @@ export async function run({ t, open }) {
   await play.evaluate(() => localStorage.removeItem('slidev-cursor-style'));
   await play.close();
   await page.close();
+
+  // At 400% zoom (a 1280x720 window is 320x180 CSS pixels) the menus and the info dialog stay inside the window and
+  // scroll (WCAG 1.4.10).
+  const zoomed = await open('/1');
+  await zoomed.setViewportSize({ width: 320, height: 180 });
+  await zoomed.waitForTimeout(300);
+  const inside = (sel) =>
+    zoomed.locator(sel).evaluate((e) => {
+      const r = e.getBoundingClientRect();
+      const fits = r.top >= 0 && r.left >= 0 && r.bottom <= innerHeight && r.right <= innerWidth;
+      return {
+        fits,
+        scrolls:
+          e.scrollHeight <= e.clientHeight + 1 || getComputedStyle(e).overflowY !== 'visible',
+        r: [r.top, r.bottom].map(Math.round),
+      };
+    });
+  t.ok(
+    'the settings button says whether its menu is open',
+    (await zoomed.locator('#nav-settings').getAttribute('aria-expanded')) === 'false' &&
+      (await zoomed.locator('#nav-settings').getAttribute('aria-haspopup')) === 'true',
+  );
+  for (const [button, box] of [
+    ['#nav-settings', '#settings-menu'],
+    ['#nav-sync', '#sync-menu'],
+    ['#nav-info', '#info-dialog [role="dialog"]'],
+  ]) {
+    await zoomed.locator(button).focus();
+    await zoomed.keyboard.press('Enter');
+    await zoomed.waitForTimeout(400);
+    const fit = await inside(box);
+    t.ok(
+      `at 400% zoom ${box} stays inside the window`,
+      fit.fits && fit.scrolls,
+      JSON.stringify(fit),
+    );
+    if (button === '#nav-settings')
+      t.ok(
+        'the settings button says its menu is open',
+        (await zoomed.locator('#nav-settings').getAttribute('aria-expanded')) === 'true',
+      );
+    await zoomed.keyboard.press('Escape');
+    await zoomed.waitForTimeout(300);
+  }
+  await zoomed.close();
 }

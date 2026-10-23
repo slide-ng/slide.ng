@@ -1,13 +1,21 @@
 // Roots: the folders a deck gets its look from. In this order, later ones win:
 //   the built-in theme (src/app, always there)  <  `theme:`  <  each of `addons:`  <  the deck's own folder
 // A theme or addon is a folder (or a package from node_modules) with any of these inside (see docs/THEMES.md):
-//   layouts/  components/  layers/  styles/  public/  setup/  uno.config.mjs  theme.json
+//   layouts/  components/  layers/  styles/  public/  setup/  locales/  uno.config.mjs  theme.json
 import { existsSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { installCommand } from './install-root.mjs';
 
 /** What a theme can bring, as folders. `public` is merged, the others are copied under their root. */
-export const ROOT_FOLDERS = ['layouts', 'components', 'layers', 'styles', 'public', 'setup'];
+export const ROOT_FOLDERS = [
+  'layouts',
+  'components',
+  'layers',
+  'styles',
+  'public',
+  'setup',
+  'locales',
+];
 
 const isDir = (path) => existsSync(path) && statSync(path).isDirectory();
 

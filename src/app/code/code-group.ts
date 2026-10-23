@@ -13,7 +13,10 @@ import { CodeBlockWrapper } from './code-block-wrapper';
           [class.active]="$index === selected()"
           (click)="selected.set($index)"
         >
-          {{ block.title() || 'Tab ' + ($index + 1) }}
+          @if (block.icon()) {
+            <span class="slidev-code-title-icon w-3.5 h-3.5 relative" [class]="block.icon()"></span>
+          }
+          <span>{{ block.title() || 'Tab ' + ($index + 1) }}</span>
         </button>
       }
     </div>

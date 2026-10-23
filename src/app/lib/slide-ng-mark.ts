@@ -65,7 +65,7 @@ export class SlideNgMark implements OnInit, OnDestroy {
       const place = () => {
         const info = this.ctx.calculate(at as never);
         this.info.set(info);
-        this.ctx.register(this, info); // ngOnInit runs in template order, so "+1" works like slide-ng-click
+        this.ctx.register(this, info, { el: this.el }); // ngOnInit runs in template order, so "+1" works like slide-ng-click
       };
       place();
       this.ctx.track(this, this.el, place);

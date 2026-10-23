@@ -6,10 +6,41 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { parse, prettify, stringify } from '@slidev/parser/fs';
 import { parseFlags } from './flags.mjs';
+import { frontmatterSlip } from '../lib/frontmatter-slips.mjs';
+import { describeYamlError } from '../lib/yaml-errors.mjs';
 
 /** The formatted text of a markdown deck. Throws when formatting would change the number of slides. */
 export async function formatMarkdown(text, filepath = 'slides.md') {
   const parsed = await parse(text, filepath);
+  // Frontmatter that is not valid YAML cannot be printed again: name the slide and the line instead.
+  parsed.slides.forEach((slide, i) => {
+    const error = slide.frontmatterDoc?.errors?.[0];
+    if (!error) return;
+    // `start` is the `---` line, counted from 0; the words are the ones dev and build use (yaml-errors.mjs).
+    const { line, message } = describeYamlError(
+      error,
+      slide.frontmatterRaw ?? '',
+      slide.start + 2,
+      i === 0 ? 'headmatter' : 'frontmatter',
+    );
+    throw new Error(
+      `${filepath}:${line}: the ${i === 0 ? 'headmatter' : `frontmatter of slide ${i + 1}`} is not valid YAML: ${message}; fix it and format again (the file is left as it is)`,
+    );
+  });
+  // A frontmatter that may have lost its closing `---` is valid YAML and is printed again as it is (comments are kept), so
+  // it is only a warning: the same one dev and build give. A heading in a frontmatter can also be a comment on purpose.
+  const lines = text.split(/\r?\n/);
+  parsed.slides.forEach((slide, i) => {
+    const value = slide.frontmatterDoc?.toJS?.();
+    const slip = frontmatterSlip({
+      raw: slide.frontmatterRaw ?? '',
+      keys: value != null && typeof value === 'object' && Object.keys(value).length > 0,
+      content: slide.content.replace(/^---[ \t]*\n/, ''),
+      start: slide.start,
+      lines,
+    });
+    if (slip) console.warn(`${filepath}:${slip.line}: slide ${i + 1}: ${slip.message}`);
+  });
   // A last slide written `---` then `# B` keeps the `---` in its content; printed again it would make an empty slide.
   for (const slide of parsed.slides) slide.content = slide.content.replace(/^---[ \t]*\n/, '');
   const after = stringify(prettify(parsed));
@@ -22,7 +53,7 @@ export async function formatMarkdown(text, filepath = 'slides.md') {
 }
 
 export async function formatCommand(argv) {
-  const { positionals } = parseFlags(argv, {});
+  const { positionals } = parseFlags(argv, {}, { command: 'format' });
   const files = (positionals.length ? positionals : ['slides.md']).map((f) => resolve(f));
   for (const file of files) {
     const before = await readFile(file, 'utf8');

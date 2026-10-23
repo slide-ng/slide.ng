@@ -22,16 +22,16 @@ npm start            # dev server for the repository's own slides.md, http://loc
 
 ## Commands
 
-| command               | what it does                                                            |
-| --------------------- | ----------------------------------------------------------------------- |
-| `npm run lint`        | ESLint over `src`, `scripts` and `tests`                                |
-| `npm run format`      | Prettier, writes changes (`npm run format:check` only checks)           |
-| `npm run build`       | generates the slides and builds the app                                 |
-| `npm test`            | unit tests                                                              |
-| `npm run test:e2e`    | builds several decks and checks them in a real browser                  |
-| `npm run test:dev`    | starts the dev server: live updates, write-back, drawings, remote mode  |
-| `npm run test:export` | the command line: export, build, offline, themes, create, MCP           |
-| `npm run test:skills` | builds the code samples of the agent skill (also part of `test:export`) |
+| command               | what it does                                                                                              |
+| --------------------- | --------------------------------------------------------------------------------------------------------- |
+| `npm run lint`        | ESLint over `src`, `scripts` and `tests`                                                                  |
+| `npm run format`      | Prettier, writes changes (`npm run format:check` only checks)                                             |
+| `npm run build`       | generates the slides and builds the app                                                                   |
+| `npm test`            | unit tests                                                                                                |
+| `npm run test:e2e`    | builds several decks and checks them in a real browser                                                    |
+| `npm run test:dev`    | the generator's watching and memory, then the dev server: live updates, write-back, drawings, remote mode |
+| `npm run test:export` | the command line: export, build, offline, themes, create, MCP                                             |
+| `npm run test:skills` | builds the code samples of the agent skill (also part of `test:export`)                                   |
 
 Chromium keeps its sandbox on. In a container or as root it refuses to start, so run the export tests with `SLIDE_NG_NO_SANDBOX=1`.
 | `npm run check:skills` | fails when a document changed after the agent skill was synced with it |

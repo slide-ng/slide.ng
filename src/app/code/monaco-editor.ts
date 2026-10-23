@@ -20,6 +20,7 @@ import { CodeRunner } from './code-runner';
 import { MONACO_SETUP } from '../setup/tokens';
 import { runJs } from './monaco/run-js';
 import { CODE_RUNNERS } from './runners';
+import { HEADMATTER } from '../../slides/generated';
 import { unpack } from './unpack';
 import type * as Monaco from 'monaco-editor';
 
@@ -221,7 +222,23 @@ export class MonacoEditor {
   // Runs the editor's text: TypeScript is turned into JavaScript by Monaco's own TypeScript worker.
   private runners = Object.assign({}, ...(inject(CODE_RUNNERS, { optional: true }) ?? []));
 
-  protected execute = async (code: string) => {
+  // Monaco registers its TypeScript mode lazily, after the first TypeScript model exists: until then
+  // `getTypeScriptWorker()` rejects with "TypeScript not registered!". A run that starts right away (an autorun on a
+  // print page) waits for it instead of showing that error. Undefined when the slide was left meanwhile.
+  private async typeScriptWorker(model: Monaco.editor.ITextModel, signal?: AbortSignal) {
+    const deadline = Date.now() + 10_000;
+    for (;;) {
+      try {
+        return await this.monaco!.typescript.getTypeScriptWorker();
+      } catch (e) {
+        if (!/not registered/i.test(String(e)) || Date.now() > deadline) throw e;
+      }
+      await new Promise((r) => setTimeout(r, 50));
+      if (model.isDisposed() || signal?.aborted) return undefined;
+    }
+  }
+
+  protected execute = async (code: string, signal?: AbortSignal) => {
     await this.ready;
     // A runner from a theme replaces the built-in one for its language. The code block's language picks it (as in Slidev),
     // also one Monaco does not know (the editor then shows plain text).
@@ -240,14 +257,24 @@ export class MonacoEditor {
         error: `No code runner for "${this.lang()}": add one in setup/code-runners.ts (see docs/SETUP.md)`,
       };
     let js = code;
-    if (this.model && this.model.getLanguageId() === 'typescript') {
-      const worker = await this.monaco!.typescript.getTypeScriptWorker();
-      const client = await worker(this.model.uri);
-      const out = await client.getEmitOutput(this.model.uri.toString());
-      js =
-        out.outputFiles.find((f) => f.name.endsWith('.js') || f.name.endsWith('.mjs'))?.text ??
-        code;
+    const model = this.model;
+    if (model && model.getLanguageId() === 'typescript') {
+      try {
+        const worker = await this.typeScriptWorker(model, signal);
+        if (!worker) return { lines: [], error: 'Stopped' };
+        const client = await worker(model.uri);
+        const out = await client.getEmitOutput(model.uri.toString());
+        js =
+          out.outputFiles.find((f) => f.name.endsWith('.js') || f.name.endsWith('.mjs'))?.text ??
+          code;
+      } catch (e) {
+        // Leaving the slide while TypeScript is turned into JavaScript disposes the model, and the worker then
+        // cannot find its file: nothing is shown any more, so that is not an error.
+        if (model.isDisposed() || signal?.aborted) return { lines: [], error: 'Stopped' };
+        return { lines: [], error: e instanceof Error ? e.message : String(e) };
+      }
     }
-    return runJs(js.replace('export {};', ''));
+    if (signal?.aborted || model?.isDisposed()) return { lines: [], error: 'Stopped' };
+    return runJs(js.replace('export {};', ''), HEADMATTER['monacoRunUseStrict'] !== false, signal);
   };
 }

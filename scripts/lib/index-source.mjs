@@ -2,32 +2,25 @@
 import { marked } from 'marked';
 import { layoutName } from './layouts.mjs';
 import { safeLinks, slideClass, slideName } from './emit.mjs';
-import { checkRouteAlias } from './route-alias.mjs';
+import { checkRouteAlias, checkUniqueAliases } from './route-alias.mjs';
 import { noteToHtml } from './note-html.mjs';
 import { downloadTarget } from '../export/filename.mjs';
 import { pwaEnabled } from '../build/pwa.mjs';
 import { titleHtml } from './math.mjs';
+import { BIDI_CONTROLS, plainTitle } from './plain-text.mjs';
 import { LAYOUTS } from './registry.mjs';
 
-// A heading's markdown as text for the tab title, the outline and the overview: `[a](b)` is `a`, `code` and **b** lose their marks,
-// and HTML tags go.
-export function plainTitle(title) {
-  return String(title)
-    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
-    .replace(/`([^`]*)`/g, '$1')
-    .replace(/(\*\*|\*|~~)(\S(?:.*?\S)?)\1/g, '$2')
-    .replace(/(?<!\w)(__|_)(\S(?:.*?\S)?)\1(?!\w)/g, '$2')
-    .replace(/<(rt|rp)\b[^>]*>[\s\S]*?<\/\1>/gi, '') // a ruby reading is not part of the title text
-    .replace(/<\/?[A-Za-z][^>]*>/g, '') // H<sub>2</sub>O is H2O
-    .trim();
-}
+export { plainTitle };
 
 // What the app needs to know about one slide, besides its component.
 function metaOf(slide, index, rubyMap) {
   const f = slide.frontmatter;
   return {
     title: slide.title == null ? null : plainTitle(slide.title),
-    titleHtml: slide.title == null ? null : safeLinks(titleHtml(slide.title), index + 1), // inline markdown and $math$ as HTML
+    titleHtml:
+      slide.title == null
+        ? null
+        : safeLinks(titleHtml(String(slide.title).replace(BIDI_CONTROLS, '')), index + 1), // inline markdown and $math$ as HTML
     level: slide.level ?? null,
     layout: slide.layout ?? layoutName(f, index),
     note: slide.note ?? null,
@@ -35,6 +28,7 @@ function metaOf(slide, index, rubyMap) {
     routeAlias: checkRouteAlias(f.routeAlias, index + 1),
     hideInToc: Boolean(f.hideInToc),
     transition: f.transition ?? null,
+    images: slide.images ?? [], // set by slideSource (slide-images.mjs)
     frontmatter: f,
   };
 }
@@ -45,9 +39,10 @@ export function indexSource(deck) {
   const imports = deck.slides.map(
     (_, i) => `import ${slideClass(i + 1)} from './${slideName(i + 1)}';`,
   );
-  const entries = deck.slides.map(
-    (s, i) =>
-      `  { ${JSON.stringify(metaOf(s, i, rubyMap)).slice(1, -1)}, component: ${slideClass(i + 1)} },`,
+  const metas = deck.slides.map((s, i) => metaOf(s, i, rubyMap));
+  checkUniqueAliases(metas.map((m) => m.routeAlias));
+  const entries = metas.map(
+    (meta, i) => `  { ${JSON.stringify(meta).slice(1, -1)}, component: ${slideClass(i + 1)} },`,
   );
   // `info:` in the headmatter is markdown for the info dialog; we turn it into HTML here.
   const info =

@@ -2,6 +2,7 @@
 // Port of Slidev's CodeRunner.vue. What actually runs the code is passed in as `execute`.
 import {
   Component,
+  ElementRef,
   OnDestroy,
   OnInit,
   computed,
@@ -13,9 +14,11 @@ import {
 } from '@angular/core';
 import { ClickInfo, ClicksContext, RawSingleAt } from '../lib/clicks';
 import type { RunResult } from './monaco/run-js';
+import { T } from '../i18n/t';
 
 @Component({
   selector: 'code-runner',
+  imports: [T],
   host: {
     class: 'slidev-runner relative flex flex-col rounded-b border-t border-main',
     '[class.slidev-vclick-hidden]': 'hidden()',
@@ -23,9 +26,9 @@ import type { RunResult } from './monaco/run-js';
   },
   template: `
     @if (running()) {
-      <div class="text-sm text-center opacity-50">Running...</div>
+      <div class="text-sm text-center opacity-50">{{ 'code.running' | t }}</div>
     } @else if (!result()) {
-      <div class="text-sm text-center opacity-50">Click the play button to run the code</div>
+      <div class="text-sm text-center opacity-50">{{ 'code.idle' | t }}</div>
     } @else {
       <div class="slidev-runner-output">
         @for (line of result()!.lines; track $index) {
@@ -39,7 +42,7 @@ import type { RunResult } from './monaco/run-js';
     @if (code().trim()) {
       <button
         class="slidev-runner-run absolute right-1 top-1 w-8 h-8 flex justify-center items-center"
-        title="Run code"
+        [title]="'code.run' | t"
         (click)="run()"
       >
         <div class="i-carbon:play"></div>
@@ -49,13 +52,15 @@ import type { RunResult } from './monaco/run-js';
 })
 export class CodeRunner implements OnInit, OnDestroy {
   code = input.required<string>();
-  execute = input.required<(code: string) => Promise<RunResult>>();
+  /** Runs the code. `signal` is aborted when a newer run starts or the runner goes away: stop the old run then. */
+  execute = input.required<(code: string, signal?: AbortSignal) => Promise<RunResult>>();
   autorun = input<boolean | 'once'>(true);
   showOutputAt = input<RawSingleAt>();
   protected running = signal(false);
   protected result = signal<RunResult | null>(null);
 
   private clicks = inject(ClicksContext);
+  private el = inject<ElementRef<Element>>(ElementRef).nativeElement;
   private info = signal<ClickInfo | null>(null);
   private timer?: ReturnType<typeof setTimeout>;
   protected hidden = computed(() => {
@@ -66,6 +71,7 @@ export class CodeRunner implements OnInit, OnDestroy {
   private ranOnce = false;
   // Numbers the runs, so an old run that ends late cannot replace a newer result.
   private runId = 0;
+  private abort?: AbortController;
 
   constructor() {
     // `autorun: true` runs on every change (after a pause, so typing does not run on every key),
@@ -80,24 +86,33 @@ export class CodeRunner implements OnInit, OnDestroy {
     });
   }
 
+  // The runner is inside the editor's component, so it registers after the slide's later clicks: tracking it lets the
+  // clicks be numbered in document order (a `+1` output before a `slide-ng-click` comes first, as in Slidev).
   ngOnInit() {
     const at = this.showOutputAt();
-    if (at != null) {
+    if (at == null) return;
+    const place = () => {
       const info = this.clicks.calculate(at);
       this.info.set(info);
-      this.clicks.register(this, info);
-    }
+      this.clicks.register(this, info, { el: this.el });
+    };
+    place();
+    this.clicks.track(this, this.el, place);
   }
 
   ngOnDestroy() {
     clearTimeout(this.timer);
+    this.abort?.abort();
     this.clicks.unregister(this);
   }
 
   protected async run() {
     const id = ++this.runId;
+    // A run still going (an endless loop, say) is stopped, so the new one does not wait for its cut-off.
+    this.abort?.abort();
+    const abort = (this.abort = new AbortController());
     this.running.set(true);
-    const result = await this.execute()(this.code());
+    const result = await this.execute()(this.code(), abort.signal);
     if (id !== this.runId) return;
     this.result.set(result);
     this.running.set(false);

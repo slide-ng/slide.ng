@@ -11,8 +11,11 @@ export interface RunResult {
 const TIMEOUT_MS = 5000;
 let counter = 0;
 
-export function runJs(js: string): Promise<RunResult> {
+// `signal` stops the run early: a new run, or leaving the slide, removes the old frame at once, so code stuck in an
+// endless loop does not hold up the next run (sandboxed frames of one site can share a process) until its cut-off.
+export function runJs(js: string, strict = true, signal?: AbortSignal): Promise<RunResult> {
   return new Promise((resolve) => {
+    if (signal?.aborted) return resolve({ lines: [], error: 'Stopped' });
     const id = `run-${++counter}`;
     const result: RunResult = { lines: [] };
     const frame = document.createElement('iframe');
@@ -22,9 +25,14 @@ export function runJs(js: string): Promise<RunResult> {
 
     const finish = () => {
       window.removeEventListener('message', onMessage);
+      signal?.removeEventListener('abort', onAbort);
       clearTimeout(timer);
       frame.remove();
       resolve(result);
+    };
+    const onAbort = () => {
+      result.error = 'Stopped';
+      finish();
     };
     const onMessage = (e: MessageEvent) => {
       if (e.source !== frame.contentWindow || e.data?.id !== id) return;
@@ -40,7 +48,8 @@ export function runJs(js: string): Promise<RunResult> {
     }, TIMEOUT_MS);
 
     window.addEventListener('message', onMessage);
-    frame.srcdoc = frameHtml(js, id);
+    signal?.addEventListener('abort', onAbort);
+    frame.srcdoc = frameHtml(js, id, strict);
     document.body.append(frame);
   });
 }

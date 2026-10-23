@@ -1,10 +1,13 @@
 // The companion server's answers. Every request goes through `check` (auth.mjs) first; nothing is done for a request
 // that fails it. Writes need a JSON body, so a plain HTML form from another site cannot send one.
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { API, COOKIE, check, clientAddress, readBody, safeEqual } from './auth.mjs';
 import { writeDrawing, MAX_DRAWING } from './drawings-store.mjs';
 import { HttpError } from './http-error.mjs';
+import { MCP_PATH, handleMcp } from './mcp-http.mjs';
 import { MAX_FILE, writeMonaco } from './monaco-write.mjs';
-import { readSlide, writeDrag, writeSlide } from './slides-write.mjs';
+import { readNotes, readSlide, writeDrag, writeNote, writeSlide } from './slides-write.mjs';
 import { canvasSize } from '../lib/canvas-size.mjs';
 import { parseDeck } from '../lib/parse-deck.mjs';
 
@@ -18,8 +21,23 @@ const json = (res, status, body, headers = {}) => {
 };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-/** The request handler: `http.createServer(createHandler(ctx))`. */
-export function createHandler(ctx) {
+/**
+ * The generator's error while it keeps the last good slides (`LAST_GOOD` in the generated problem.ts that the page's banner
+ * reads), or ''. The companion runs in the app's folder, next to the generator.
+ */
+export function generatorProblem(appRoot) {
+  try {
+    const text = readFileSync(join(appRoot, 'src/slides/generated/problem.ts'), 'utf8');
+    if (!/^export const LAST_GOOD = true;$/m.test(text)) return '';
+    const problem = JSON.parse(/^export const PROBLEM = (".*");$/m.exec(text)?.[1] ?? '""');
+    return typeof problem === 'string' ? problem : '';
+  } catch {
+    return '';
+  }
+}
+
+/** The request handler: `http.createServer(createHandler(ctx, { hub }))`. `hub` is the sync hub, for the MCP tools. */
+export function createHandler(ctx, { hub } = {}) {
   // Writes run one after the other, so two quick moves cannot overwrite each other's lines.
   let queue = Promise.resolve();
   const serial = (job) => (queue = queue.then(job, job));
@@ -82,6 +100,22 @@ export function createHandler(ctx) {
         return json(res, 200, { ok: true });
       }
     }
+    // The Angular build error that stands now ('' when the last build was good), for a page that opens meanwhile, and the
+    // generator's error when the last good slides are kept (the page's banner for it is in the bundle that cannot be built).
+    if (path === '/build-error' && method === 'GET')
+      return json(res, 200, {
+        error: ctx.buildError?.message ?? '',
+        file: ctx.buildError?.file ?? '',
+        problem: ctx.buildError ? generatorProblem(ctx.appRoot ?? process.cwd()) : '',
+      });
+    if (path === '/notes' && method === 'GET')
+      return json(res, 200, { notes: await readNotes(ctx) });
+    if ((m = /^\/slides\/(\d+)\/note$/.exec(path)) && method === 'PUT') {
+      const { note, base } = await body(req, MAX_FILE * 2);
+      if (typeof note !== 'string') throw new HttpError(400, 'note must be text');
+      await serial(() => writeNote(ctx, number(m[1]), note, base));
+      return json(res, 200, { ok: true });
+    }
     if ((m = /^\/drawings\/(\d+)$/.exec(path)) && method === 'PUT') {
       const { svg } = await body(req, MAX_DRAWING + 1_000);
       // Parsed inside the queue, so it sees the deck as the writes before it left it.
@@ -93,7 +127,16 @@ export function createHandler(ctx) {
     }
     if ((m = /^\/monaco\/([\w-]{1,40})$/.exec(path)) && method === 'PUT') {
       const { content } = await body(req, MAX_FILE + 1_000);
-      await serial(async () => writeMonaco(ctx, m[1], content));
+      await serial(async () => {
+        // The roots too: the index.html of a theme or addon is not writable either.
+        const { roots } = await parseDeck(ctx.entry);
+        writeMonaco(
+          ctx,
+          m[1],
+          content,
+          roots.map((r) => r.dir),
+        );
+      });
       return json(res, 200, { ok: true });
     }
     throw new HttpError(404, 'not found');
@@ -102,6 +145,7 @@ export function createHandler(ctx) {
   return async (req, res) => {
     try {
       const url = new URL(req.url, 'http://x');
+      if (url.pathname === MCP_PATH) return await handleMcp(req, res, ctx, { hub, serial });
       if (!url.pathname.startsWith(`${API}/`)) throw new HttpError(404, 'not found');
       await route(req, res, url);
     } catch (e) {

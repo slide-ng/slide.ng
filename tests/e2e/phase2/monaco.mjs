@@ -2,7 +2,7 @@
 // Monaco writes spaces as non-breaking spaces; compare with normal ones.
 const plain = (s) => s.replace(/\u00a0/g, ' ');
 
-export async function run({ t, open, press, hud }) {
+export async function run({ t, open, press, hud, until }) {
   let page = await open('/10');
   await page.waitForSelector('.monaco-editor .view-lines');
   await page.waitForFunction(() =>
@@ -36,7 +36,11 @@ export async function run({ t, open, press, hud }) {
   await page.mouse.click(box.x + box.width - 40, box.y + 8); // the end of the first line
   await page.keyboard.press('End');
   await page.keyboard.type(' // typed and d');
-  await page.waitForTimeout(200);
+  await until(page, () =>
+    (document.querySelector('.monaco-editor .view-lines')?.textContent ?? '')
+      .replace(/\u00a0/g, ' ')
+      .includes('// typed and d'),
+  );
   t.ok(
     'typing changes the text (the editor is editable)',
     plain(await page.locator('.monaco-editor .view-lines').first().textContent()).includes(
@@ -91,10 +95,11 @@ export async function run({ t, open, press, hud }) {
     first.includes('"a": 1') && first.includes('Map (1) {1 => 2}'),
     first,
   );
-  const sandboxed = (await outputs()).find((o) => o.includes('SecurityError')) ?? '';
+  // The code runs in a worker of the sandboxed frame: there is no `parent` to reach (ReferenceError), and no storage.
+  const sandboxed = (await outputs()).find((o) => /ReferenceError|SecurityError/.test(o)) ?? '';
   t.ok(
     'the code runs in a sandbox: no access to the page or its storage',
-    sandboxed.includes('SecurityError') && !sandboxed.includes('has storage'),
+    /ReferenceError|SecurityError/.test(sandboxed) && !sandboxed.includes('has storage'),
     sandboxed,
   );
   t.ok(
@@ -130,5 +135,36 @@ export async function run({ t, open, press, hud }) {
     'no waitfor marker is left on the page',
     (await page.locator('[data-slide-ng-waitfor]').count()) === 0,
   );
+  await page.close();
+
+  // A run stuck in an endless loop is stopped when the slide is left: the next slide's run does not wait for the
+  // 5 second cut-off (sandboxed frames of one site can share a process).
+  page = await open('/19');
+  await page.waitForSelector('.slidev-runner-run');
+  await page.locator('.slidev-runner-run').click();
+  await page.waitForTimeout(300);
+  await press(page, 'ArrowRight');
+  const start = Date.now();
+  await page.waitForFunction(
+    () => /after the loop|Stopped/.test(document.querySelector('code-runner')?.textContent ?? ''),
+    null,
+    { timeout: 15000 },
+  );
+  const took = Date.now() - start;
+  const after = await page.locator('code-runner').innerText();
+  t.ok(
+    "leaving a slide stops its endless loop: the next slide's run is not held up",
+    after.includes('after the loop') && took < 4000,
+    `${took} ms: ${after}`,
+  );
+  // Leaving a TypeScript run while it is turned into JavaScript logs no "Could not find source file" error
+  // (the "no console errors" check at the end of the phase).
+  for (let i = 0; i < 6; i++) {
+    await press(page, 'ArrowLeft');
+    await page.waitForTimeout(250);
+    await press(page, 'ArrowRight');
+    await page.waitForTimeout(250);
+  }
+  await page.waitForTimeout(1000);
   await page.close();
 }

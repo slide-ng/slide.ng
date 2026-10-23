@@ -3,8 +3,8 @@
 // The hard part: markdown converters mangle Angular syntax (`@if (x) {`,
 // `[prop]="v"`, `{{ x }}`). So we hide that syntax behind placeholders,
 // run the markdown converter, then put the syntax back untouched.
-import { marked } from 'marked';
-import { extractFences } from './fences.mjs';
+import { Marked } from 'marked';
+import { extractFences, slideWhere } from './fences.mjs';
 import { renderFence } from './code/render-fence.mjs';
 import { escapeCode, protect } from './protect.mjs';
 import { extractMath, renderMath } from './math.mjs';
@@ -13,6 +13,7 @@ import { markAlerts } from './alerts.mjs';
 import { extractFootnotes, finishFootnotes } from './footnotes.mjs';
 import { rewriteIcons } from './icons.mjs';
 import { applyAttrSugar } from './attr-sugar.mjs';
+import { htmlSlideLinks, linkRenderer } from './links.mjs';
 
 export { escapeCode, protect };
 
@@ -39,12 +40,28 @@ const joinLines = (md) =>
     .replace(MULTILINE_TAG, (_, ws, name, attrs, end) => `${ws}<${name} ${oneLine(attrs)}${end}`)
     .replace(MULTILINE_LET, (_, ws, body) => `${ws}@let ${oneLine(body)};`);
 
-/** @param {string} markdown @param {{ file?: string, root?: string, headmatter?: any }} [ctx] file, root: where snippet paths start; headmatter: deck-wide code settings */
+/**
+ * @param {string} markdown
+ * @param {{ file?: string, root?: string, headmatter?: any, monaco?: boolean, aliases?: string[], total?: number, hiddenAliases?: string[], slide?: { no: number }, lineOf?: (pattern: RegExp, nth?: number) => string }} [ctx]
+ *   file, root: where snippet paths start; headmatter: deck-wide code settings; monaco: false makes editor blocks plain
+ *   code; aliases: the deck's routeAlias names, which
+ *   links to slides may use; total, hiddenAliases: the slide count and the aliases of hidden slides, to warn about links
+ *   that reach no slide (with `slide`, whose number the warning names); lineOf: ` (slides.md:12)` for the nth line of the
+ *   slide's markdown that matches, or ''
+ */
 export function toTemplate(markdown, ctx = {}) {
   const kept = []; // Angular syntax we put back at the end
   const keep = (s) => `NGKEEP${kept.push(s) - 1}X`;
   // A line that is only an HTML comment is left alone by the markdown converter.
   const hide = (s) => `<!--${keep(s)}-->`;
+  const marked = new Marked({
+    renderer: linkRenderer({
+      aliases: ctx.aliases,
+      total: ctx.total,
+      hidden: ctx.hiddenAliases,
+      warn: ctx.slide && ((m) => console.warn(`[slides] slide ${ctx.slide.no}: ${m}`)),
+    }),
+  });
 
   // 1. Code fences and inline code are plain text: set them aside first.
   let { markdown: md, fences } = extractFences(markdown, ctx);
@@ -95,6 +112,22 @@ export function toTemplate(markdown, ctx = {}) {
 
   // 3. Markdown -> HTML, then make the remaining braces and @ harmless.
   let html = protect(applyAttrSugar(markAlerts(marked.parse(md, { async: false }))));
+  // An <a href="/3"> written as HTML goes to the slide as a markdown link does (code is still set aside here).
+  html = htmlSlideLinks(html, {
+    aliases: ctx.aliases,
+    total: ctx.total,
+    hidden: ctx.hiddenAliases,
+    hash: ctx.headmatter?.routerMode === 'hash',
+    warn:
+      ctx.slide &&
+      ((m, at) => {
+        // The line of that <a> in the markdown: the nth one with this href.
+        const href = at.href.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const where =
+          ctx.lineOf?.(new RegExp(`href\\s*=\\s*["']?${href}(?=["'\\s>])`), at.nth) ?? '';
+        console.warn(`[slides] slide ${ctx.slide.no}${where}: ${m}`);
+      }),
+  });
   // Angular decodes `&#123;&#123;` back to `{{` and reads an interpolation: the first brace of a pair is written as one.
   html = html.replace(/&#123;(?=&#123;)/g, "{{ '{' }}");
   html = finishFootnotes(html, footnotes.notes, (note) =>
@@ -102,8 +135,9 @@ export function toTemplate(markdown, ctx = {}) {
   );
 
   // 4. Put everything back.
-  html = html.replace(/<p>NGMATH(\d+)X<\/p>/g, (_, i) => renderMath(math.maths[+i]));
-  html = html.replace(/NGMATH(\d+)X/g, (_, i) => renderMath(math.maths[+i]));
+  const mathAt = (item) => renderMath(item, () => slideWhere(ctx, item.latex));
+  html = html.replace(/<p>NGMATH(\d+)X<\/p>/g, (_, i) => mathAt(math.maths[+i]));
+  html = html.replace(/NGMATH(\d+)X/g, (_, i) => mathAt(math.maths[+i]));
   html = html.replace(/<p>NGFENCE(\d+)X<\/p>/g, (_, i) => renderFence(fences[+i], ctx));
   html = html.replace(/NGFENCE(\d+)X/g, (_, i) => renderFence(fences[+i], ctx)); // in a tight list item
   html = html.replace(

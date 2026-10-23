@@ -35,13 +35,14 @@ export const hasTwoslash = (text) => /^`{3,}[^\n]*\btwoslash\b/m.test(text);
 
 export const hasMagicMove = (text) => /^````+[ \t]*(md|markdown) magic-move/m.test(text);
 
-export function detectFeatures(slides) {
+// `monaco` and `twoslash` are the headmatter switches for this mode: off, the fences do not count (a `<slide-ng-monaco>` tag still does).
+export function detectFeatures(slides, { monaco = true, twoslash = true } = {}) {
   const text = slides.map((s) => s.content).join('\n');
   return {
     langs: detectLangs(text),
     math: hasMath(text),
-    monaco: hasMonaco(text),
+    monaco: monaco ? hasMonaco(text) : /<slide-ng-monaco[\s>]/.test(text),
     magicMove: hasMagicMove(text),
-    twoslash: hasTwoslash(text),
+    twoslash: twoslash && hasTwoslash(text),
   };
 }

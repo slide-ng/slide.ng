@@ -1,6 +1,7 @@
 import {
   Component,
   ViewContainerRef,
+  computed,
   effect,
   input,
   signal,
@@ -11,13 +12,15 @@ import { DrawingPreview } from '../drawing/drawing-preview';
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from '../lib/canvas';
 import { CLICKS_MAX, ClicksContext } from '../lib/clicks';
 import { mountSlide } from '../lib/mount-slide';
+import { DeckProgressBar } from '../lib/deck-progress-bar';
 import { SlideLayer } from '../lib/slide-layer';
+import { printAnchor } from './print-anchor';
 
 // One page of the print output: slide `no` frozen at one click, at its real size.
 // The id is `<slide>-<click + 1>` (001-01), the same pattern as Slidev, so exporters can read the slide number from it.
 @Component({
   selector: 'app-print-frame',
-  imports: [SlideLayer, DrawingPreview],
+  imports: [SlideLayer, DrawingPreview, DeckProgressBar],
   host: {
     class: 'print-slide-container bg-main text-main',
     '[id]': 'id()',
@@ -25,22 +28,35 @@ import { SlideLayer } from '../lib/slide-layer';
     '[style.width.px]': 'width',
     '[style.height.px]': 'height',
   },
+  // The first page of a slide holds the anchor that links to this slide point at (print-anchor.ts).
   template: `
-    <app-slide-layer name="global-bottom" [no]="no()" />
+    @if (anchor()) {
+      <span [id]="anchorId()" aria-hidden="true"></span>
+    }
+    <app-slide-layer name="global-bottom" [no]="no()" [at]="step()" />
     <ng-container #host />
     <app-drawing-preview [no]="no()" />
-    <app-slide-layer name="global-top" [no]="no()" />
+    <app-slide-layer name="global-top" [no]="no()" [at]="step()" />
+    <app-deck-progress-bar [no]="no()" [at]="step()" />
   `,
 })
 export class PrintFrame {
   no = input.required<number>();
   /** The click to show; the slide clamps it, so CLICKS_MAX means "the final state". */
   at = input(CLICKS_MAX);
+  /** The first page of its slide. */
+  anchor = input(false);
+  protected anchorId = () => printAnchor(this.no());
   readonly width = CANVAS_WIDTH;
   readonly height = CANVAS_HEIGHT;
   private host = viewChild.required('host', { read: ViewContainerRef });
   /** The slide's click state, known once the slide is created. */
   readonly clicks = signal<ClicksContext | null>(null);
+
+  protected step = computed(() => {
+    const clicks = this.clicks();
+    return clicks ? { current: clicks.current(), total: clicks.total() } : null;
+  });
 
   protected id = () => {
     const click = (this.clicks()?.current() ?? 0) + 1;

@@ -18,7 +18,7 @@ $$ {1|2|all}
 $$
 ```
 
-- `{1|2|all}` after the opening `$$` steps through the lines with clicks (same range syntax as code).
+- `{1|2|all}` after the opening `$$` steps through the lines with clicks (same range syntax as code). The lines are the rows of the environment (`\begin{aligned}`, split by `\\`); a step that picks none of them gets a warning.
 - Inside math `{{` is math, never an interpolation.
 - KaTeX CSS and fonts are in the build only when a deck uses math.
 - `mhchem` is not loaded. Macros and options: `setup/katex.ts`, see `setup-katex.md`.

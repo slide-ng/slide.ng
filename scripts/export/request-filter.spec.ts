@@ -54,9 +54,24 @@ describe('requestFilter', () => {
 });
 
 describe('sandboxEnabled', () => {
+  // The browser suites run with SLIDE_NG_NO_SANDBOX=1, so each case sets the variable itself instead of inheriting it.
+  const before = process.env['SLIDE_NG_NO_SANDBOX'];
+  afterEach(() => {
+    if (before === undefined) delete process.env['SLIDE_NG_NO_SANDBOX'];
+    else process.env['SLIDE_NG_NO_SANDBOX'] = before;
+  });
+
   it('keeps the sandbox by default and drops it only on request', () => {
+    delete process.env['SLIDE_NG_NO_SANDBOX'];
     expect(sandboxEnabled({})).toBe(true);
     expect(sandboxEnabled({ noSandbox: false })).toBe(true);
     expect(sandboxEnabled({ noSandbox: true })).toBe(false);
+  });
+
+  it('drops the sandbox when SLIDE_NG_NO_SANDBOX=1', () => {
+    process.env['SLIDE_NG_NO_SANDBOX'] = '1';
+    expect(sandboxEnabled({})).toBe(false);
+    process.env['SLIDE_NG_NO_SANDBOX'] = '0';
+    expect(sandboxEnabled({})).toBe(true);
   });
 });

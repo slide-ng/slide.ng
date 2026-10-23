@@ -1,21 +1,29 @@
 // The `build` command: a static copy of the deck that any web server can host.
-//   slide-ng build [slides.md] [--base /talk/] [--out dist] [--download] [--without-notes]
-import { copyFileSync, writeFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+//   slide-ng build [slides.md..] [--base /talk/] [--out dist] [--download] [--without-notes] [--router-mode hash]
+// Several entries are built one after another into <out>/<name>/ (see entries.mjs).
+import { copyFileSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { basename, dirname, join, resolve } from 'node:path';
+import { moveInlineScripts } from '../build/csp.mjs';
 import { makeOffline } from '../build/offline.mjs';
 import { ogImagePlan, placeOgImage } from '../build/og-image.mjs';
-import { applyOffline } from '../lib/build-options.mjs';
+import {
+  addressMode,
+  applyOffline,
+  checkRouterMode,
+  offlineRouterWarning,
+} from '../lib/build-options.mjs';
 import { copyDefaultIcons, iconSource, writeIcons } from '../build/pwa-icons.mjs';
 import { pwaEnabled, writePwa } from '../build/pwa.mjs';
 import { launchBrowser } from '../export/browser.mjs';
 import { exportSlides } from '../export/index.mjs';
 import { downloadTarget } from '../export/filename.mjs';
-import { resolveExportOptions } from '../export/options.mjs';
+import { EXPORT_FLAGS, resolveExportOptions } from '../export/options.mjs';
 import { serveDirectory } from '../export/static-server.mjs';
 import { parseDeck } from '../lib/parse-deck.mjs';
-import { applyThemeFlag, parseFlags } from './flags.mjs';
-import { checkClaimable, publishDirectory } from './safe-dir.mjs';
+import { applyLangFlag, applyThemeFlag, parseFlags } from './flags.mjs';
+import { MARKER, checkClaimable, markDirectory, publishDirectory } from './safe-dir.mjs';
 import { checkToolDir, removeInside } from '../lib/tool-dir.mjs';
+import { buildTargets, checkEntriesExist, deckEntries } from './entries.mjs';
 import { buildDeck } from './runtime.mjs';
 
 export const BUILD_FLAGS = {
@@ -24,12 +32,22 @@ export const BUILD_FLAGS = {
   download: { type: 'boolean' },
   offline: { type: 'boolean' },
   'without-notes': { type: 'boolean' },
+  'router-mode': { type: 'string' },
   'executable-path': { type: 'string' },
   'no-sandbox': { type: 'boolean' },
   'allow-local': { type: 'boolean' },
   timeout: { type: 'number' },
   theme: { type: 'string', alias: 't' },
+  lang: { type: 'string' },
 };
+
+// The flags of export that build does not take (`build --with-clicks` is told to use export).
+const otherCommandsFlags = (own) =>
+  Object.fromEntries(
+    Object.keys(EXPORT_FLAGS)
+      .filter((name) => !(name in own))
+      .map((name) => [name, 'export']),
+  );
 
 /** `/talk`, `talk/` and `/talk/` all become `/talk/`. Only plain path pieces are allowed (it goes into the page). */
 export function normalizeBase(base = '/') {
@@ -41,20 +59,60 @@ export function normalizeBase(base = '/') {
 }
 
 export async function buildCommand(argv) {
-  const { flags, positionals } = parseFlags(argv, BUILD_FLAGS);
+  const { flags, positionals } = parseFlags(argv, BUILD_FLAGS, {
+    command: 'build',
+    elsewhere: otherCommandsFlags(BUILD_FLAGS),
+  });
   applyThemeFlag(flags);
-  const entry = resolve(positionals[0] ?? 'slides.md');
-  const root = dirname(entry);
-  checkToolDir(root); // before anything is written or removed under .slide-ng
+  applyLangFlag(flags);
+  const entries = deckEntries(positionals);
   const offline = Boolean(flags.offline);
+  const routerMode = checkRouterMode(flags['router-mode']);
   if (offline && flags.base)
     throw new Error('--offline builds a folder that works at any path, so it cannot take --base');
-  const base = offline ? './' : normalizeBase(flags.base);
+  if (offline && routerMode && routerMode !== 'hash')
+    throw new Error(
+      '--offline builds a folder that always uses hash routing, so it cannot take --router-mode ' +
+        routerMode,
+    );
   const out = resolve(flags.out ?? 'dist');
+  const targets = buildTargets(entries, {
+    out,
+    base: offline ? './' : normalizeBase(flags.base),
+    offline,
+  });
+  checkEntriesExist(entries);
+  for (const target of targets) checkToolDir(dirname(target.entry)); // before anything is written or removed under .slide-ng
   checkClaimable(out); // fail now, not after a long build
+  // With several decks --out is claimed as a whole: marked now, so that a later build of one deck or several may empty it,
+  // and once the decks are in, what an earlier build left there (a single deck's index.html and _redirects, another
+  // deck's folder) is removed.
+  const several = targets.length > 1;
+  if (several) {
+    mkdirSync(out, { recursive: true });
+    markDirectory(out);
+  }
+  // One deck after another, so only one Angular build runs at a time.
+  for (const target of targets) await buildOne({ ...target, flags, offline, routerMode, several });
+  if (several) keepOnly(out, [MARKER, ...targets.map((t) => basename(t.out))]);
+}
+
+// Removes everything in a folder of ours but the given names.
+function keepOnly(dir, names) {
+  for (const name of readdirSync(dir))
+    if (!names.includes(name)) rmSync(join(dir, name), { recursive: true, force: true });
+}
+
+async function buildOne({ entry, out, base, flags, offline, routerMode, several }) {
+  const root = dirname(entry);
   const deck = await parseDeck(entry);
   const head = deck.headmatter;
-  if (offline) applyOffline(head);
+  if (routerMode) head.routerMode = routerMode; // the flag wins over the headmatter, as in Slidev
+  if (offline) {
+    const warning = offlineRouterWarning(head);
+    if (warning) console.warn(`warning: ${warning}`);
+    applyOffline(head);
+  }
 
   const download = flags.download || downloadTarget(head, entry) !== null;
   const workDir = join(root, '.slide-ng', 'build');
@@ -64,13 +122,18 @@ export async function buildCommand(argv) {
     SLIDE_NG_DOWNLOAD: flags.download ? '1' : '0',
     SLIDE_NG_WITHOUT_NOTES: flags['without-notes'] ? '1' : '0',
     SLIDE_NG_OFFLINE: offline ? '1' : '0',
+    SLIDE_NG_ROUTER_MODE: routerMode ?? '',
   };
   try {
     const dist = buildDeck({ entry, workDir, base, env });
+    // A host with `script-src 'self'` runs them too (docs/HOSTING.md). A folder opened from disk has no such header.
+    if (!offline) moveInlineScripts(dist);
     await afterBuild({ dist, deck, entry, root, base, workDir, download, flags, offline });
+    // A deck's folder inside the claimed --out of several decks is ours, whatever an earlier build put there.
+    if (several) rmSync(out, { recursive: true, force: true });
     publishDirectory(dist, out);
     console.log(
-      `\nBuilt ${deck.slides.length} slides into ${out} (${offline ? `offline folder, open ${join(out, 'index.html')}` : `base ${base}`}).`,
+      `\nBuilt ${deck.slides.length} ${deck.slides.length === 1 ? 'slide' : 'slides'} into ${out} (${offline ? `offline folder, open ${join(out, 'index.html')}` : `base ${base}`}).`,
     );
   } finally {
     removeInside(workDir, root); // the folder this command made itself
@@ -80,7 +143,7 @@ export async function buildCommand(argv) {
 // Files that can only be made once the app exists: the picture, the PDF, the 404 page, the offline worker.
 async function afterBuild({ dist, deck, entry, root, base, workDir, download, flags, offline }) {
   const head = deck.headmatter;
-  const routerMode = head.routerMode === 'hash' ? 'hash' : 'history';
+  const routerMode = addressMode(head);
   const exportOptions = {
     'executable-path': flags['executable-path'],
     timeout: flags.timeout,
@@ -91,7 +154,7 @@ async function afterBuild({ dist, deck, entry, root, base, workDir, download, fl
   // The temporary server answers at its root; an offline folder has no base path (its addresses are relative).
   const serverBase = offline ? '/' : base;
   const server = needsBrowser ? await serveDirectory(dist, serverBase) : null;
-  const served = server && { origin: server.origin, base: serverBase };
+  const served = server && { origin: server.origin, base: serverBase, temporary: true };
 
   try {
     // Open Graph picture: the first slide.

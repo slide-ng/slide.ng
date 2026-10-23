@@ -2,20 +2,19 @@
 // return the CSS separately; emit.mjs puts it into the slide component, scoped to that slide.
 export function extractStyles(markdown) {
   const css = [];
-  // Splitting with a capture group puts the code (fences, also indented in a list, and inline code) and quoted attribute
-  // values (`<iframe srcdoc="<style>...">` keeps its own styles) at the odd positions.
+  // Splitting with a capture group puts the code (fences, also indented in a list, and inline code), quoted attribute
+  // values (`<iframe srcdoc="<style>...">` keeps its own styles) and the style blocks at the odd positions. A style
+  // block is matched whole, so a quoted selector in it (`[lang='de']`) is not taken for an attribute value.
   const parts = markdown.split(
-    /(^[ \t]*```.*\n[\s\S]*?^[ \t]*```[ \t]*$|`[^`\n]+`|=\s*"[^"]*"|=\s*'[^']*')/gm,
+    /(^[ \t]*```.*\n[\s\S]*?^[ \t]*```[ \t]*$|`[^`\n]+`|<style[^>]*>[\s\S]*?<\/style>|=\s*"[^"]*"|=\s*'[^']*')/gm,
   );
   const text = parts
-    .map((part, i) =>
-      i % 2
-        ? part
-        : part.replace(
-            /<style[^>]*>([\s\S]*?)<\/style>/g,
-            (_, body) => (css.push(body.trim()), ''),
-          ),
-    )
+    .map((part, i) => {
+      const style = i % 2 ? /^<style[^>]*>([\s\S]*)<\/style>$/.exec(part) : null;
+      if (!style) return part;
+      css.push(style[1].trim());
+      return '';
+    })
     .join('');
   return { markdown: text, css: css.join('\n') };
 }

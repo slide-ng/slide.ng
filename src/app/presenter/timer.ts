@@ -1,9 +1,10 @@
 // The presenter timer (Slidev's useTimer): a stopwatch that counts up, or a countdown from `duration`.
 // The state is shared, so the presenter page, the notes page and other windows show the same time.
-import { DestroyRef, Injectable, computed, effect, inject, signal } from '@angular/core';
+import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { HEADMATTER } from '../../slides/generated';
 import { TimerState } from '../sync/shared-state';
 import { SyncState } from '../sync/sync-state';
+import { scopedKey } from '../lib/deck-scope';
 
 /** `30min`, `1h30min`, `90s`, `1.5h` or a plain number of minutes -> seconds. Empty or wrong text gives 30 minutes (Slidev's default). */
 export function parseDuration(value: unknown): number {
@@ -54,10 +55,11 @@ export function clockParts(
 const SAVED = 'slide-ng-timer';
 function readSaved(): TimerState | null {
   try {
-    const t = JSON.parse(sessionStorage.getItem(SAVED) ?? 'null');
+    const t = JSON.parse(sessionStorage.getItem(scopedKey(SAVED)) ?? 'null');
     return t &&
       ['running', 'paused', 'stopped'].includes(t.status) &&
-      typeof t.startedAt === 'number'
+      typeof t.startedAt === 'number' &&
+      (t.changedAt === undefined || typeof t.changedAt === 'number')
       ? (t as TimerState)
       : null;
   } catch {
@@ -80,14 +82,29 @@ export class Timer {
   readonly parts = computed(() => clockParts(this.mode, this.duration, this.state(), this.now()));
 
   constructor() {
-    // A reload of the presenter page keeps a running or paused timer (it is kept per tab).
+    // A reload of the presenter page keeps a running or paused timer (it is kept per tab). A new tab gets it from the
+    // other windows, which answer its hello with the timer (sync-state.ts), or in dev from the server (ws-hub.mjs).
+    // Only when this window knows no newer change of the timer (a reset made while the tab was away comes back with the
+    // other windows' answers, and the newer change wins: mergeShared).
     const saved = readSaved();
-    if (saved && saved.status !== 'stopped' && this.state().status === 'stopped') this.set(saved);
-    // A window that opens later (a second presenter, the notes page) asks where we are: tell it the timer too.
-    const answer = this.sync.onHello(() => {
-      if (this.state().status !== 'stopped') this.sync.patchShared({ timer: this.state() });
+    const now = this.state();
+    if (
+      saved &&
+      saved.status !== 'stopped' &&
+      now.status === 'stopped' &&
+      (saved.changedAt ?? 0) >= (now.changedAt ?? 0)
+    )
+      this.set(saved);
+    // Every timer this window shows is kept for the tab, also one that came from another window or the dev server: a tab
+    // that got the timer back that way may be the only one that knows it after the dev server restarts (`r`).
+    effect(() => {
+      const timer = this.state();
+      try {
+        sessionStorage.setItem(scopedKey(SAVED), JSON.stringify(timer));
+      } catch {
+        // no storage (a private window): the timer just starts over after a reload
+      }
     });
-    inject(DestroyRef).onDestroy(answer);
     effect((onCleanup) => {
       if (this.status() !== 'running') return;
       this.now.set(Date.now());
@@ -96,13 +113,12 @@ export class Timer {
     });
   }
 
+  /** A change made here: it gets the time it was made, so it wins over older ones (shared-state.ts mergeShared). */
   private set(timer: TimerState) {
     this.sync.patchShared({ timer });
-    try {
-      sessionStorage.setItem(SAVED, JSON.stringify(timer));
-    } catch {
-      // no storage (a private window): the timer just starts over after a reload
-    }
+  }
+  private change(timer: Omit<TimerState, 'changedAt'>) {
+    this.set({ ...timer, changedAt: Date.now() });
   }
 
   start() {
@@ -110,12 +126,12 @@ export class Timer {
     if (t.status === 'running') return;
     // Resuming moves the start forward by the time spent paused.
     const startedAt = t.status === 'paused' ? Date.now() - (t.pausedAt - t.startedAt) : Date.now();
-    this.set({ status: 'running', startedAt, pausedAt: 0 });
+    this.change({ status: 'running', startedAt, pausedAt: 0 });
   }
 
   pause() {
     if (this.state().status === 'running')
-      this.set({ ...this.state(), status: 'paused', pausedAt: Date.now() });
+      this.change({ ...this.state(), status: 'paused', pausedAt: Date.now() });
   }
 
   toggle() {
@@ -123,6 +139,6 @@ export class Timer {
     else this.start();
   }
   reset() {
-    this.set({ status: 'stopped', startedAt: 0, pausedAt: 0 });
+    this.change({ status: 'stopped', startedAt: 0, pausedAt: 0 });
   }
 }

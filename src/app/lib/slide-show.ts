@@ -14,10 +14,12 @@ import { HEADMATTER, NOT_FOUND } from '../../slides/generated';
 import { CANVAS_HEIGHT, CANVAS_WIDTH, fitScale } from './canvas';
 import { hostSize } from './element-size';
 import { Nav } from './nav';
+import { DeckProgressBar } from './deck-progress-bar';
 import { SlideLayer } from './slide-layer';
 import { RenderContext } from './slide-context';
 import { Stage } from './stage';
-import { pickTransition } from './transitions';
+import { preloadImages } from './preload-images';
+import { TransitionSpec, pickTransition } from './transitions';
 import { Ui } from './ui-state';
 import { ViewPrefs } from './view-prefs';
 import { filterCss } from './filters';
@@ -34,7 +36,7 @@ import { documentTitle } from './page-title';
     '(pointerdown)': 'hostClick($event)',
     '(click)': 'hostTap($event)',
   },
-  imports: [NgComponentOutlet, SlideLayer],
+  imports: [NgComponentOutlet, SlideLayer, DeckProgressBar],
   template: `
     <div
       #canvas
@@ -50,6 +52,7 @@ import { documentTitle } from './page-title';
         <ng-container *ngComponentOutlet="notFound" />
       }
       <app-slide-layer name="global-top" [no]="nav.no()" />
+      <app-deck-progress-bar [no]="nav.no()" />
       <ng-content />
     </div>
   `,
@@ -85,6 +88,8 @@ export class SlideShow {
 
   constructor() {
     effect(() => this.ui.canvasScale.set(this.scale()));
+    // Headmatter `preloadImages`: the pictures of the next slides load while this one is shown.
+    preloadImages(() => this.nav.no());
     // One slide component per slide number, so each slide gets a fresh ClicksContext.
     effect(() => {
       const no = this.nav.no(),
@@ -104,7 +109,7 @@ export class SlideShow {
     const direction = Math.sign(no - this.shown);
     this.nav.direction.set(direction);
     const transition = this.shown
-      ? pickTransition(this.nav.slides, this.shown, no, HEADMATTER['transition'] as string)
+      ? pickTransition(this.nav.slides, this.shown, no, HEADMATTER['transition'] as TransitionSpec)
       : null;
     this.shown = no;
     const slide = this.stage!.show(no, transition);

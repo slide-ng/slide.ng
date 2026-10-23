@@ -15,8 +15,13 @@ import {
   effect,
   booleanAttribute,
 } from '@angular/core';
-import type { KeyedTokensInfo } from '@shikijs/magic-move/types';
+import type {
+  KeyedTokensInfo,
+  MagicMoveDifferOptions,
+  MagicMoveRenderOptions,
+} from '@shikijs/magic-move/types';
 import { CLICKS_MAX, ClickInfo, ClicksContext, RawSingleAt } from '../lib/clicks';
+import { T } from '../i18n/t';
 import { copyText } from './copy';
 import { highlightLines } from './ranges';
 import { unpack } from './unpack';
@@ -32,16 +37,22 @@ export function stepAt(ranges: string[][], clickCount: number, stepCount: number
   return { step: stepCount - 1, range: 'all' };
 }
 
+type MagicMoveOptions = MagicMoveRenderOptions & MagicMoveDifferOptions;
+
 @Component({
   selector: 'slide-ng-magic-move',
+  imports: [T],
   // While the animation code and the steps load, the host has `data-slide-ng-waitfor` (like the Mermaid block), so an exporter can wait.
   host: {
     class: 'slidev-code-wrapper slidev-code-magic-move relative group',
     '[attr.data-slide-ng-waitfor]': 'data() ? null : ".shiki-magic-move-container span"',
   },
   template: `
-    @if (title()) {
+    @if (title() || icon()) {
       <div class="slidev-code-block-title">
+        @if (icon()) {
+          <span class="slidev-code-title-icon w-3.5 h-3.5 relative" [class]="icon()"></span>
+        }
         <div class="leading-1em">{{ title() }}</div>
       </div>
     }
@@ -49,8 +60,8 @@ export function stepAt(ranges: string[][], clickCount: number, stepCount: number
     @if (!noCopy()) {
       <button
         class="slidev-code-copy absolute right-0 transition opacity-0 group-hover:opacity-20 hover:!opacity-100"
-        [class]="title() ? 'top-10' : 'top-0'"
-        [attr.title]="copied() ? 'Copied' : 'Copy'"
+        [class]="title() || icon() ? 'top-10' : 'top-0'"
+        [attr.title]="(copied() ? 'code.copied' : 'code.copy') | t"
         (click)="copy()"
       >
         <span
@@ -66,8 +77,13 @@ export class ShikiMagicMove implements OnInit, OnDestroy {
   stepRanges = input([], { transform: (v: string) => JSON.parse(v || '[]') as string[][] });
   at = input<RawSingleAt>('+1');
   title = input('');
+  icon = input(''); // the icon class in front of the title
   duration = input(800, { transform: numberAttribute });
   noCopy = input(false, { transform: booleanAttribute });
+  // The headmatter's `shiki.magicMove`, as JSON: render options and the differ's `splitTokens` / `enhanceMatching`.
+  options = input({} as MagicMoveOptions, {
+    transform: (v: string) => JSON.parse(v || '{}') as MagicMoveOptions,
+  });
 
   protected copied = signal(false);
   private clicks = inject(ClicksContext);
@@ -104,7 +120,7 @@ export class ShikiMagicMove implements OnInit, OnDestroy {
     const place = () => {
       const info = this.clicks.calculateSince(this.at(), total - 1);
       this.info.set(info);
-      this.clicks.register(this, info);
+      this.clicks.register(this, info, { el: this.host });
     };
     place();
     this.clicks.track(this, this.host, place);
@@ -131,11 +147,12 @@ export class ShikiMagicMove implements OnInit, OnDestroy {
     if (step !== this.shownStep) {
       const first = this.shownStep < 0;
       const next = steps[step];
-      const { from, to } = this.sync!(this.previous ?? steps[step], next);
+      const { from, to } = this.sync!(this.previous ?? steps[step], next, this.options());
       // The canvas is scaled with CSS; the renderer needs to know to place the tokens.
       const box = this.host.getBoundingClientRect();
+      // Slidev's order: a stagger of 1 ms, the deck's options, then the scale and the duration.
+      Object.assign(renderer.options, { stagger: 1, ...this.options() });
       renderer.options.globalScale = box.width / (this.host.offsetWidth || 1);
-      renderer.options.stagger = 1;
       renderer.options.duration = first ? 0 : this.duration();
       this.shownStep = step;
       this.previous = to;
@@ -149,12 +166,15 @@ export class ShikiMagicMove implements OnInit, OnDestroy {
   }
 
   // Group the rendered tokens into lines at the <br> elements, then highlight like a code block.
+  // The line numbers (`lines: true`) are tokens too; screen readers skip them, as they skip a code block's numbers.
   private highlight(range: string) {
     const tokens = Array.from(this.pre().nativeElement.children)
       .slice(1) // the first child is the renderer's anchor
       .filter((el) => !el.className.includes('shiki-magic-move-leave'));
     const lines: Element[][] = [[]];
     for (const el of tokens) {
+      if (el.classList.contains('shiki-magic-move-line-number'))
+        el.setAttribute('aria-hidden', 'true');
       if (el.tagName === 'BR') lines.push([]);
       else lines[lines.length - 1].push(el);
     }

@@ -1,5 +1,5 @@
 // The presenter page, the notes page, the timer and the layouts.
-export async function run({ t, open, press, hud, pathOf, windowGroup }) {
+export async function run({ t, open, press, hud, until, pathOf, windowGroup }) {
   const group = await windowGroup();
   const presenter = await open('/presenter/2', undefined, undefined, group);
   const viewer = await open('/1', undefined, undefined, group);
@@ -62,6 +62,14 @@ export async function run({ t, open, press, hud, pathOf, windowGroup }) {
       return el ? getComputedStyle(el).opacity !== '0' : null;
     }, id);
   t.ok('the next preview shows the next click of this slide', (await nextOf('#c2')) === true);
+  t.ok(
+    'screen readers skip the next preview, and the panes are named regions',
+    (await presenter.locator('#next-canvas').getAttribute('aria-hidden')) === 'true' &&
+      (await presenter
+        .locator('[role=region]')
+        .evaluateAll((l) => l.map((e) => e.getAttribute('aria-label')).join())) ===
+        'Current slide,Next step,Notes',
+  );
   await press(presenter, 'ArrowRight', 400);
   t.ok(
     'at the last click the next preview shows the next slide',
@@ -101,8 +109,11 @@ export async function run({ t, open, press, hud, pathOf, windowGroup }) {
       ),
     ),
   );
+  const hudIs = (page, text) =>
+    until(page, (x) => document.querySelector('#hud')?.innerText.trim() === x, text);
   await presenter.locator('.slidev-note-click-mark[data-clicks="2"]').dblclick();
-  await presenter.waitForTimeout(300);
+  await hudIs(presenter, 'slide 2/4 clicks 2/2');
+  await hudIs(viewer, 'slide 2/4 clicks 2/2');
   t.ok(
     'double click on a marker jumps to that click',
     (await hud(presenter)) === 'slide 2/4 clicks 2/2' &&
@@ -119,7 +130,7 @@ export async function run({ t, open, press, hud, pathOf, windowGroup }) {
 
   // ---- slider
   await presenter.locator('app-clicks-slider .clicks-cell', { hasText: '0' }).first().click();
-  await presenter.waitForTimeout(300);
+  await hudIs(presenter, 'slide 2/4 clicks 0/2');
   t.ok(
     'the clicks slider goes to a click',
     (await hud(presenter)) === 'slide 2/4 clicks 0/2',
@@ -132,6 +143,15 @@ export async function run({ t, open, press, hud, pathOf, windowGroup }) {
       .locator('app-note-display')
       .evaluate((e) => getComputedStyle(e.parentElement).fontSize);
   const before = parseFloat(await fs());
+  // WCAG 2.5.8: the small buttons under the notes are at least 24 by 24 pixels.
+  const sizes = await presenter
+    .locator('#notes-bigger, #notes-smaller')
+    .evaluateAll((l) => l.map((e) => e.getBoundingClientRect()).map((r) => [r.width, r.height]));
+  t.ok(
+    'the notes buttons are at least 24 by 24 pixels',
+    sizes.length === 2 && sizes.flat().every((n) => n >= 24),
+    JSON.stringify(sizes),
+  );
   await presenter.locator('#notes-bigger').click();
   await presenter.waitForTimeout(150);
   t.ok('the notes font grows', parseFloat(await fs()) > before);
@@ -158,6 +178,13 @@ export async function run({ t, open, press, hud, pathOf, windowGroup }) {
     'the notes page shows the same running time through the shared state',
     /\d/.test(await notesWin.locator('#notes-counter').innerText()),
   );
+  await notesWin.emulateMedia({ colorScheme: 'dark' });
+  await notesWin.waitForTimeout(150);
+  t.ok(
+    'the notes page follows dark mode',
+    await notesWin.evaluate(() => document.documentElement.classList.contains('dark')),
+  );
+  await notesWin.emulateMedia({ colorScheme: 'light' });
   await presenter.locator('#timer').hover();
   await presenter.locator('#timer-toggle').click();
   const paused = await clock();
@@ -171,6 +198,36 @@ export async function run({ t, open, press, hud, pathOf, windowGroup }) {
     (await clock()).replace(/\s/g, '') === '10:00',
     await clock(),
   );
+  const timerButtons = await presenter
+    .locator('#timer-toggle, #timer-reset')
+    .evaluateAll((l) => l.map((e) => e.getBoundingClientRect().toJSON()));
+  const [play, reset] = timerButtons;
+  t.ok(
+    'the timer buttons are at least 24 by 24 pixels, side by side with a gap',
+    timerButtons.length === 2 &&
+      timerButtons.every((r) => r.width >= 24 && r.height >= 24) &&
+      reset.left >= play.right + 2,
+    JSON.stringify(timerButtons),
+  );
+  // The buttons show only on hover or focus; a touch screen cannot hover (a phone as the remote), so there they always show.
+  const buttonsOpacity = (page) =>
+    page.locator('#timer .timer-buttons').evaluate((e) => getComputedStyle(e).opacity);
+  await presenter.mouse.move(5, 5);
+  await presenter.evaluate(() => document.activeElement?.blur());
+  const desktopOpacity = await buttonsOpacity(presenter);
+  const phone = await windowGroup({
+    hasTouch: true,
+    isMobile: true,
+    viewport: { width: 844, height: 390 },
+  });
+  const phonePresenter = await open('/presenter/2', { width: 844, height: 390 }, undefined, phone);
+  const phoneOpacity = await buttonsOpacity(phonePresenter);
+  t.ok(
+    'the timer buttons are hidden until hover with a mouse, and always shown on a touch screen',
+    desktopOpacity === '0' && phoneOpacity === '1',
+    `${desktopOpacity} / ${phoneOpacity}`,
+  );
+  await phone.close();
 
   // ---- notes page follows the presenter
   await press(presenter, 'ArrowRight', 400);

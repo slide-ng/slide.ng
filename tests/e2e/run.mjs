@@ -63,7 +63,12 @@ t.ok(
 );
 t.ok('slide 1 uses cover layout', (await page.locator('sn-cover').count()) === 1);
 await press(page, 'ArrowRight');
-t.ok('ArrowRight goes to slide 2', path_(page) === '/2' && clicksParam(page) === '0', path_(page));
+// At click 0 the address has no ?clicks= (as in Slidev).
+t.ok(
+  'ArrowRight goes to slide 2, with no ?clicks= at click 0',
+  path_(page) === '/2' && clicksParam(page) === null,
+  page.url(),
+);
 t.ok('interpolation {{ c.n() }}', (await page.locator('p').first().innerText()) === 'Count is 5.');
 t.ok('@if false at start', (await page.locator('#big').count()) === 0);
 await page.locator('#ctr').click();
@@ -122,7 +127,7 @@ for (let n = 0; n <= 4; n++) {
   const got = await visibleIds(page, ['a', 'b', 'r', 'h', 'af']);
   t.ok(
     `slide 7 click ${n} shows [${expected[n]}]`,
-    got === expected[n] && clicksParam(page) === String(n),
+    got === expected[n] && clicksParam(page) === (n ? String(n) : null),
     `got [${got}] ?clicks=${clicksParam(page)}`,
   );
 }
@@ -147,8 +152,8 @@ for (const [n, items] of [
 }
 for (let n = 0; n < 3; n++) await press(page, 'ArrowLeft');
 t.ok(
-  'ArrowLeft x3 returns to click 0',
-  (await visibleItems(page)) === '000' && clicksParam(page) === '0',
+  'ArrowLeft x3 returns to click 0, and ?clicks= is dropped',
+  (await visibleItems(page)) === '000' && clicksParam(page) === null,
 );
 await press(page, 'ArrowLeft');
 t.ok(
@@ -197,7 +202,8 @@ await square.close();
 for (const [url, p, c, ids] of [
   ['/7?clicks=2', '/7', '2', 'a,b,af'],
   ['/7?clicks=99', '/7', '4', 'a,b,af'],
-  ['/7', '/7', '0', 'h'],
+  ['/7', '/7', null, 'h'],
+  ['/7?clicks=0', '/7', null, 'h'],
 ]) {
   page = await open(url);
   t.ok(

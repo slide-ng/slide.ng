@@ -5,6 +5,7 @@ import { Component, ElementRef, OnInit, inject, input, signal, viewChild } from 
 import { Dark } from '../lib/dark';
 import { loadScript } from './load-script';
 import { Transform } from './transform';
+import { T } from '../i18n/t';
 
 const POST_URL = /^\/profile\/([^/]+)\/post\/([^/?#]+)$/;
 const API = 'https://public.api.bsky.app/xrpc';
@@ -30,7 +31,7 @@ export async function resolvePostUri(input: string): Promise<string | undefined>
 
 @Component({
   selector: 'slide-ng-blue-sky',
-  imports: [Transform],
+  imports: [Transform, T],
   template: `
     <slide-ng-transform [scale]="scale() || 1">
       <div #box class="slidev-bluesky">
@@ -46,7 +47,7 @@ export async function resolvePostUri(input: string): Promise<string | undefined>
             <div class="m-auto animate-pulse text-4xl">
               <div class="i-carbon:logo-twitter"></div>
               @if (notFound()) {
-                <span>Could not load Bluesky post</span>
+                <span>{{ 'embed.blueskyFailed' | t }}</span>
               }
             </div>
           </div>

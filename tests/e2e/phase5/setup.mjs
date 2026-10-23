@@ -1,5 +1,5 @@
 // One check per setup hook: the output of the deck is different because of the files in phase5/setup/.
-export async function run({ t, open, press }) {
+export async function run({ t, open, press, base, browser, problems }) {
   let page = await open('/1');
   const root = (name) => page.evaluate((n) => document.documentElement.dataset[n], name);
   t.ok('main: the providers of setup/main.ts are in the app', (await root('main')) === 'yes');
@@ -79,6 +79,42 @@ export async function run({ t, open, press }) {
   await swipe(600, 150, true);
   await page.waitForFunction(() => location.pathname === '/2');
   t.ok('touch: a swipe up goes to the next slide', true);
+  // A touch has no hover: the first tap on the hidden nav bar shows it instead of pressing the button under it.
+  const touchOn = (sel) =>
+    page.evaluate((s) => {
+      const el = document.querySelector(s);
+      const touch = new Touch({ identifier: 2, target: el, clientX: 10, clientY: 10 });
+      const e = new TouchEvent('touchstart', {
+        touches: [touch],
+        changedTouches: [touch],
+        bubbles: true,
+        cancelable: true,
+      });
+      el.dispatchEvent(e);
+      return e.defaultPrevented;
+    }, sel);
+  const barOpacity = () =>
+    page.evaluate(() => document.querySelector('app-nav-bar').parentElement.style.opacity);
+  t.ok(
+    'touch: the first tap on the hidden nav bar only shows it',
+    (await touchOn('#nav-next')) && (await barOpacity()) === '1',
+  );
+  t.ok('touch: the next tap presses the button', !(await touchOn('#nav-next')));
+  await touchOn('h1');
+  t.ok('touch: a touch on the slide hides the bar again', (await barOpacity()) === '');
+  // Forced colors (Windows high contrast): an icon is painted in the text colour, not in the page colour.
+  await page.emulateMedia({ forcedColors: 'active' });
+  const icon = await page
+    .locator('#nav-overview div')
+    .evaluate((e) => [
+      getComputedStyle(e).backgroundColor,
+      getComputedStyle(e.parentElement).color,
+    ]);
+  t.ok(
+    "forced colors: the icons get the button's text colour",
+    icon[0] === icon[1],
+    icon.join(' / '),
+  );
   await page.close();
 
   // Headmatter `presenter: false`: no presenter page, no button, no menu entry.
@@ -117,12 +153,40 @@ export async function run({ t, open, press }) {
   await page.close();
 
   page = await open('/2');
-  await page.waitForSelector('.mermaid > svg', { timeout: 20000 });
-  const svg = await page.locator('.mermaid > svg').innerHTML();
+  await page.waitForFunction(() => document.querySelectorAll('.mermaid > svg').length === 2, null, {
+    timeout: 20000,
+  });
+  const svg = await page.locator('.mermaid > svg').first().innerHTML();
   t.ok(
     'mermaid: the config of setup/mermaid.ts colours the diagram',
     /#ff0000|rgb\(255, 0, 0\)/i.test(svg),
   );
+  const custom = page.locator('.mermaid > svg#from-renderer');
+  t.ok(
+    'mermaid-renderer: setup/mermaid-renderer.ts drew the diagram with the merged options',
+    (await custom.locator('text').textContent()) === 'drawn by the renderer' &&
+      (await custom.locator('text').getAttribute('fill')) === '#ff0000',
+  );
+  t.ok(
+    'mermaid-renderer: the export marker is cleared once the SVG is there',
+    (await page.locator('slide-ng-mermaid[data-slide-ng-waitfor]').count()) === 0,
+  );
+  await page.close();
+
+  // setup/routes.ts appends a page; it is reached before `:no` and the catch-all, which still send other addresses to slides.
+  page = await browser.newPage();
+  page.on('pageerror', (e) => problems.push(String(e)));
+  await page.goto(`${base}/hello`);
+  await page.locator('#hello-page').waitFor({ timeout: 10000 });
+  t.ok('routes: the page of setup/routes.ts is shown', new URL(page.url()).pathname === '/hello');
+  t.ok(
+    'routes: the page has no Nav (it is outside the deck) but can inject Dark',
+    (await page.locator('#hello-services').textContent())?.trim() === 'no nav, light',
+    await page.locator('#hello-services').textContent(),
+  );
+  await page.goto(`${base}/no/where`);
+  await page.waitForFunction(() => location.pathname === '/1');
+  t.ok('routes: an unknown address still goes to slide 1', true);
   await page.close();
 
   page = await open('/3');

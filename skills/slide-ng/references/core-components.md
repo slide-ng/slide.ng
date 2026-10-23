@@ -11,6 +11,7 @@ Use them as lower-case tags. Nothing to import.
 | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `<slide-ng-toc />`                                                                                                                                                                     | table of contents from slide `title` and `level`. Options `columns="2"`, `listClass`, `start`, `listStyle`, `minDepth`, `maxDepth`, `mode="all\|onlyCurrentTree\|onlySiblings"`      |
 | `<slide-ng-current-no />`, `<slide-ng-total />`                                                                                                                                        | current slide number, number of slides                                                                                                                                               |
+| `<slide-ng-progress-bar />`                                                                                                                                                            | how far through the deck the slide is, see `layout-progress-bar.md`                                                                                                                  |
 | `<slide-ng-title-renderer />`, `<slide-ng-title-renderer no="3" />`                                                                                                                    | draws a slide's title as HTML (inline markdown and `$math$`); without `no`, the slide it is on                                                                                       |
 | `<slide-ng-link to="3">text</slide-ng-link>`                                                                                                                                           | link to slide 3 or to a `routeAlias` (Slidev's `Link`)                                                                                                                               |
 | `<slide-ng-light-or-dark>`                                                                                                                                                             | `<div dark>...</div>` in dark mode, `<div light>...</div>` in light mode                                                                                                             |
@@ -19,15 +20,19 @@ Use them as lower-case tags. Nothing to import.
 | `<slide-ng-arrow x1 y1 x2 y2 color width two-way />`                                                                                                                                   | SVG arrow, positions in slide pixels                                                                                                                                                 |
 | `<slide-ng-transform scale="0.5" origin="top left">`                                                                                                                                   | scales its content, see `layout-transform.md`                                                                                                                                        |
 | `<slide-ng-auto-fit-text min="10" max="60" class="w-60 h-20">`                                                                                                                         | biggest font size that fits the box; `multi-line="false"` for one line                                                                                                               |
-| `<slide-ng-youtube id="..." width="560" height="315" />`                                                                                                                               | YouTube embed (no start time or playlist options)                                                                                                                                    |
-| `<slide-ng-video autoplay="true" autoreset="click" controls poster="...">`                                                                                                             | video that plays with its slide or click. `autoplay="once"`, `timestamp`. Put `<source>` inside                                                                                      |
+| `<slide-ng-youtube id="...?start=1234" width="560" height="315" />`                                                                                                                    | YouTube embed; YouTube's embed options after `?` in `id` (`start`, `end`, `list`, `loop`, ...), or `start` and `list` attributes; times as `90` or `1m30s`                           |
+| `<slide-ng-video autoplay="true" autoreset="click" controls poster="...">`                                                                                                             | video that plays with its slide or click. `autoplay="once"`, `timestamp`. Put `<source>` inside; `class="h-60"` sizes the video                                                      |
 | `<slide-ng-tweet id="20" scale="0.8" conversation="none" cards="hidden" />`                                                                                                            | tweet (needs the network)                                                                                                                                                            |
 | `<slide-ng-blue-sky uri="at://..." scale="0.8" />`                                                                                                                                     | Bluesky post (needs the network); `uri` can be the post URL                                                                                                                          |
 | `slide-ng-drag`, `<slide-ng-drag>`, `<slide-ng-drag-arrow>`                                                                                                                            | draggable elements, see `layout-draggable.md`                                                                                                                                        |
 | `slide-ng-mark`, `slide-ng-motion`                                                                                                                                                     | see `animation-marks.md`, `animation-motion.md`                                                                                                                                      |
 | `<slide-ng-code-group>`, `<slide-ng-mermaid>`, `<slide-ng-plant-uml>`, `<slide-ng-monaco>`, `<slide-ng-magic-move>`, `<slide-ng-katex-block-wrapper>`, `<slide-ng-code-block-wrapper>` | written by the generator from fences and math; use the markdown forms                                                                                                                |
 
-Not there: `PoweredBySlidev`. `Youtube` is partial.
+- `<slide-ng-switch unmount transition="fade">`: `unmount` takes hidden children out of the page, `transition` animates (slide transition names; bare is a fade). `tag` and `childTag` are not used.
+- `<slide-ng-video printPoster="/still.png" printTimestamp="last">`: in print, export and the overview, the poster or the frame at that second (`last`: the end).
+- `<slide-ng-render-when context="visible">`: only while the element is on screen (in a list too, as in Slidev); in print and export every slide counts as on screen.
+
+Not there: `PoweredBySlidev`.
 
 Table of contents levels: a slide whose level is higher than the one before becomes its child (`# A`, `## A.1`, `## A.2`, `# B`). A slide without a title, or with `hideInToc`, is left out.
 
@@ -65,6 +70,10 @@ Title of slide 1: <slide-ng-title-renderer no="1" />. This slide: <slide-ng-titl
 <div light>Light mode text</div>
 </slide-ng-light-or-dark>
 
+<slide-ng-render-when context="visible">
+<p>On screen.</p>
+</slide-ng-render-when>
+
 <slide-ng-render-when context="print">
 <p>Only on paper.</p>
 <div fallback>Not on paper.</div>
@@ -76,7 +85,7 @@ Title of slide 1: <slide-ng-title-renderer no="1" />. This slide: <slide-ng-titl
 
 <slide-ng-youtube id="luoMHjh-XcQ" width="560" height="315" />
 
-<slide-ng-video controls>
+<slide-ng-video controls printTimestamp="last">
   <source src="/video.mp4" type="video/mp4">
 </slide-ng-video>
 ```

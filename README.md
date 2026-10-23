@@ -1,6 +1,6 @@
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme-banner-dark.png">
-  <img alt="slide.ng" src="docs/assets/readme-banner-light.png" width="800">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/slide-ng/slide.ng/main/docs/assets/readme-banner-dark.png">
+  <img alt="slide.ng" src="https://raw.githubusercontent.com/slide-ng/slide.ng/main/docs/assets/readme-banner-light.png" width="800">
 </picture>
 
 # slide.ng
@@ -11,7 +11,7 @@
 Presentations written in markdown, with real Angular template syntax inside. Inspired by [Slidev](https://sli.dev), built for Angular.
 
 <p align="center">
-  <img alt="Typing a slides.md file while the slides take shape next to it" src="docs/assets/how-it-works.gif" width="420">
+  <img alt="Typing a slides.md file while the slides take shape next to it" src="https://raw.githubusercontent.com/slide-ng/slide.ng/main/docs/assets/how-it-works.gif" width="420">
   <br>
   <sub>Type markdown, get slides.</sub>
 </p>
@@ -32,7 +32,7 @@ npm run export  # a PDF
 Every command and flag is in [docs/CLI.md](docs/CLI.md). Everything is documented at [slide-ng.dev](https://slide-ng.dev) and in [docs/](docs/).
 
 To work on slide.ng itself, clone this repository and run `npm install` and `npm start` (the example deck); other commands are run with
-`node bin/slide-ng.mjs <command>`. See [CONTRIBUTING.md](CONTRIBUTING.md).
+`node bin/slide-ng.mjs <command>`. See [CONTRIBUTING.md](https://github.com/slide-ng/slide.ng/blob/main/CONTRIBUTING.md).
 
 ## Features
 
@@ -41,12 +41,13 @@ To work on slide.ng itself, clone this repository and run `npm install` and `npm
 - Code with Shiki, Magic Move, Twoslash and Monaco, plus KaTeX and Mermaid.
 - Export to PDF, PNG, PPTX and Markdown; static and offline builds.
 - Themes and addons, an MCP server and an agent skill.
+- The interface in the deck's language: English by default, Turkish built in, one JSON file for any other.
 
 Status and gaps: [docs/STATUS.md](docs/STATUS.md).
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of Conduct](CODE_OF_CONDUCT.md). Report security problems through [SECURITY.md](SECURITY.md).
+See [CONTRIBUTING.md](https://github.com/slide-ng/slide.ng/blob/main/CONTRIBUTING.md) and the [Code of Conduct](https://github.com/slide-ng/slide.ng/blob/main/CODE_OF_CONDUCT.md). Report security problems through [SECURITY.md](https://github.com/slide-ng/slide.ng/blob/main/SECURITY.md).
 
 ## Maintainers
 

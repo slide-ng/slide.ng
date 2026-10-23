@@ -16,6 +16,14 @@
   --slidev-transition-duration: 0.5s;
   --slidev-slide-container-background: black;
   --slidev-controls-foreground: white;
+  /* The presenter's click preview (slide.ng's own): how parts of later clicks and of the next click look. */
+  /* About 3:1 against the default light page (0.4 is enough on the dark one, below). */
+  --slide-ng-ghost-opacity: 0.47;
+  --slide-ng-ghost-next-opacity: 0.75;
+  /* --slide-ng-ghost-next (the next click's outline and badge) is not set here: it falls back to the theme's primary colour where
+     it is used, so a primary set later on body (themeConfig) is followed. */
+  --slide-ng-ghost-badge-background: #6b7280;
+  --slide-ng-ghost-badge-foreground: white;
 }
 html.dark {
   --slidev-code-background: #1b1b1b;
@@ -23,5 +31,6 @@ html.dark {
   --slidev-code-tab-text-color: rgba(255, 255, 255, 0.5);
   --slidev-code-tab-active-text-color: #eee;
   --slidev-code-tab-divider: rgba(255, 255, 255, 0.1);
+  --slide-ng-ghost-opacity: 0.4;
   color-scheme: dark;
 }

@@ -65,8 +65,8 @@ html.dark {
   border: 1px solid var(--bp-line-strong);
 }
 .slidev-layout blockquote {
-  border-left: 2px dashed var(--bp-amber);
-  padding-left: 1rem;
+  border-inline-start: 2px dashed var(--bp-amber);
+  padding-inline-start: 1rem;
   color: var(--bp-muted);
 }
 

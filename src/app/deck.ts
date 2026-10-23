@@ -52,7 +52,7 @@ import { Overview } from './ui/overview';
     '(click)': 'anchor($event)',
   },
   template: `
-    <div
+    <main
       class="stage"
       [style.right.px]="editor.open() && editor.available() ? editor.width : 0"
       [class.slidev-nav-go-forward]="nav.direction() > 0"
@@ -67,13 +67,14 @@ import { Overview } from './ui/overview';
         ><app-drawing-layer /><app-drag-controls /><app-presenter-cursor
       /></app-slide-show>
       <div
-        class="absolute bottom-0 left-0 p-2 transition duration-300 opacity-0 hover:opacity-100 focus-within:opacity-100"
-        [style.opacity]="portrait() ? 1 : null"
+        class="nav-bar-box absolute bottom-0 start-0 p-2 transition duration-300 opacity-0 hover:opacity-100 focus-within:opacity-100"
+        [style.opacity]="portrait() || barShown() ? 1 : null"
+        (touchstart)="revealBar($event)"
       >
         <app-nav-bar />
       </div>
       <app-offline-badge />
-    </div>
+    </main>
     <app-drawing-controls />
     <app-web-camera />
     <app-side-editor />
@@ -104,7 +105,8 @@ export class Deck {
   protected announcement = computed(() => {
     const no = this.nav.no();
     const title = SLIDES[no - 1]?.title;
-    return `Slide ${no} of ${this.nav.total}${title ? `: ${title}` : ''}`;
+    const total = this.nav.total;
+    return this.ui.text(title ? 'deck.announceTitle' : 'deck.announce', { no, total, title });
   });
   protected editor = inject(SideEditorState);
   protected key = keyHandler(this.nav, this.ui);
@@ -112,11 +114,13 @@ export class Deck {
   private swipeFrom: { x: number; y: number } | null = null;
   private swipeAt = { x: 0, y: 0 };
   // On a screen taller than the slide (a phone held upright) the bar always shows below it, as in Slidev: there is no
-  // hover, and a first tap on the hidden bar would already press a button.
+  // hover there.
   protected size = signal({ w: window.innerWidth, h: window.innerHeight });
   protected portrait = computed(
     () => this.size().h - (this.size().w * CANVAS_HEIGHT) / CANVAS_WIDTH > 120,
   );
+  // A touch has no hover: the first tap on the hidden bar only shows it, a touch elsewhere hides it again.
+  protected barShown = signal(false);
 
   constructor() {
     hideIdleCursor(() => this.ui.hideIdleCursor());
@@ -126,11 +130,26 @@ export class Deck {
   // Touch swipes move through the deck (not while drawing, as in Slidev).
   // One finger. Touch events, not pointer events: the stage has `touch-action: pan-y` (styles.css), and once the browser
   // takes an up or down swipe as panning it cancels the pointer, while touchmove still comes.
+  // A finger on a slide-ng-drag element or one of its handles moves that element, not the deck.
   swipeStart(e: TouchEvent) {
     const t = e.touches[0];
+    const target = e.target as Element | null;
+    if (!target?.closest?.('.nav-bar-box')) this.barShown.set(false);
+    const onDrag = !!target?.closest?.(
+      '[slide-ng-drag], slide-ng-drag, [data-drag-ui], .drag-grab',
+    );
     this.swipeFrom =
-      e.touches.length === 1 && !this.drawings.enabled() ? { x: t.clientX, y: t.clientY } : null;
+      e.touches.length === 1 && !this.drawings.enabled() && !onDrag
+        ? { x: t.clientX, y: t.clientY }
+        : null;
     if (this.swipeFrom) this.swipeAt = { ...this.swipeFrom };
+  }
+
+  revealBar(e: TouchEvent) {
+    const box = e.currentTarget as HTMLElement;
+    if (this.portrait() || this.barShown() || box.matches(':hover, :focus-within')) return;
+    e.preventDefault(); // no click on the button under the finger
+    this.barShown.set(true);
   }
 
   swipeMove(e: TouchEvent) {

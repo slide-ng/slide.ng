@@ -54,6 +54,16 @@ export async function run({ t, base, browser, problems }) {
       (await page.locator('#only-slide').count()) === 0,
   );
   t.ok(
+    'slide-ng-render-when visible shows its content in print, on a slide far below the viewport',
+    (await page.locator('#print-visible').count()) === 1 &&
+      (await page.locator('#print-visible-fallback').count()) === 0,
+  );
+  t.ok(
+    'slide-ng-video printPoster replaces the poster in print',
+    ((await page.locator('#pv video').getAttribute('poster')) ?? '').endsWith('UwAOw=='),
+    await page.locator('#pv video').getAttribute('poster'),
+  );
+  t.ok(
     'no overview, bar or presenter UI in the page',
     (await page.locator('app-nav-bar, app-overview, app-goto, app-context-menu').count()) === 0,
   );
@@ -105,6 +115,14 @@ export async function run({ t, base, browser, problems }) {
     'the first page of the clicks slide hides its click elements',
     visible.length === 3 && visible.join() === '0,1,1',
     visible.join(),
+  );
+  const moved = await page
+    .locator('#c1')
+    .evaluateAll((l) => l.map((e) => getComputedStyle(e).translate));
+  t.ok(
+    'a click animation preset is drawn at once on paper: .up while hidden, in place when shown',
+    moved.join() === '0px 20px,none,none',
+    moved.join(),
   );
   await page.close();
 

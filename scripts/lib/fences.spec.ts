@@ -1,3 +1,6 @@
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { extractFences as extract } from './fences.mjs';
 
 // The generator is plain JS, so the fence list is loosely typed here.
@@ -42,5 +45,32 @@ describe('extractFences', () => {
     expect(() => extractFences('<<< ../../etc/hostname', ctx)).toThrow('outside the deck');
     const { fences } = extractFences('<<< /etc/hostname', { ...ctx, allowOutsideRoot: true });
     expect(fences[0].code.length).toBeGreaterThan(0);
+  });
+});
+
+describe('the missing snippet warning', () => {
+  it('names the slide and the file and line of the <<<', () => {
+    const root = mkdtempSync(join(tmpdir(), 'fences-'));
+    mkdirSync(join(root, 'parts'));
+    const file = join(root, 'parts', 'a.md');
+    writeFileSync(file, '# A\n\ntext\n\n<<< ./nope.ts\n');
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    extractFences('# A\n\ntext\n\n<<< ./nope.ts', { file, root, slide: { no: 7 } });
+    expect(warn.mock.calls[0][0]).toMatch(
+      /^\[slides\] slide 7 \(parts\/a\.md:5\): Code snippet not found/,
+    );
+    warn.mockRestore();
+    rmSync(root, { recursive: true });
+  });
+  it('names the line in its own slide when an earlier slide has the same snippet line', () => {
+    const root = mkdtempSync(join(tmpdir(), 'fences-'));
+    const file = join(root, 'slides.md');
+    writeFileSync(file, '# A\n\n<<< ./nope.ts\n\n---\n\n# B\n\n<<< ./nope.ts\n');
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const source = { filepath: file, contentStart: 5, end: 9 };
+    extractFences('# B\n\n<<< ./nope.ts', { file, root, slide: { no: 2, source } });
+    expect(warn.mock.calls[0][0]).toMatch(/^\[slides\] slide 2 \(slides\.md:9\): /);
+    warn.mockRestore();
+    rmSync(root, { recursive: true });
   });
 });

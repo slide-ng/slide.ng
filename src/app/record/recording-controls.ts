@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { T } from '../i18n/t';
 import { IconBtn } from '../ui/icon-btn';
 import { Devices } from './devices';
 import { Recorder } from './recorder';
@@ -7,13 +8,13 @@ import { clock } from './recording-file';
 // Camera, record and pause buttons for the navigation bar (only when `record` is on).
 @Component({
   selector: 'app-recording-controls',
-  imports: [IconBtn],
+  imports: [IconBtn, T],
   template: `
     @if (devices.available) {
       <button
         icon-btn
         id="nav-camera"
-        [title]="devices.cameraOn() ? 'Hide camera view' : 'Show camera view'"
+        [title]="(devices.cameraOn() ? 'nav.cameraHide' : 'nav.cameraShow') | t"
         [active]="devices.cameraOn()"
         (click)="devices.toggleCamera()"
       >
@@ -22,7 +23,7 @@ import { clock } from './recording-file';
       <button
         icon-btn
         id="nav-record"
-        [title]="recorder.active() ? 'Stop recording' : 'Start recording'"
+        [title]="(recorder.active() ? 'nav.recordStop' : 'nav.recordStart') | t"
         (click)="recorder.active() ? recorder.stop() : recorder.start()"
       >
         <div
@@ -35,7 +36,7 @@ import { clock } from './recording-file';
         <button
           icon-btn
           id="nav-record-pause"
-          [title]="recorder.state() === 'paused' ? 'Resume recording' : 'Pause recording'"
+          [title]="(recorder.state() === 'paused' ? 'nav.recordResume' : 'nav.recordPause') | t"
           (click)="recorder.togglePause()"
         >
           <div

@@ -5,6 +5,7 @@ import { Dark } from '../lib/dark';
 import { loadScript } from './load-script';
 import { resolveTweetId } from './tweet-id';
 import { Transform } from './transform';
+import { T } from '../i18n/t';
 
 interface Twitter {
   widgets: {
@@ -14,7 +15,7 @@ interface Twitter {
 
 @Component({
   selector: 'slide-ng-tweet',
-  imports: [Transform],
+  imports: [Transform, T],
   template: `
     <slide-ng-transform [scale]="scale() || 1">
       <div #box class="tweet slidev-tweet">
@@ -23,7 +24,7 @@ interface Twitter {
             <div class="m-auto animate-pulse text-4xl">
               <div class="i-carbon:logo-twitter"></div>
               @if (notFound()) {
-                <span>Could not load tweet</span>
+                <span>{{ 'embed.tweetFailed' | t }}</span>
               }
             </div>
           </div>

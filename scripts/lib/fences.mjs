@@ -1,6 +1,8 @@
 // Finds the code fences in a slide's markdown and sets them aside, so the markdown
 // converter never sees them. Also expands `<<< file` snippet lines and `::code-group` blocks,
 // which are made of fences. Each one is replaced by a line `NGFENCE<n>X`.
+import { readFileSync } from 'node:fs';
+import { relative } from 'node:path';
 import { SNIPPET_LINE, resolveSnippet } from './code/snippet.mjs';
 import { OutsideRootError } from './outside-root.mjs';
 
@@ -67,7 +69,40 @@ function resolveSafe(line, ctx) {
     });
   } catch (e) {
     if (e instanceof OutsideRootError) throw e; // a deck that reads outside its folder stops the build
-    console.warn(`[slides] ${e.message}`);
+    console.warn(`[slides] ${slideWhere(ctx, line)}${e.message}`);
     return { code: `// ${e.message}`, lang: 'text', meta: '' };
   }
+}
+
+/**
+ * `slide N (parts/a.md:12): ` for a warning about the slide being generated: its number and the line of the file that has
+ * `text` (the first line of it that is found), or less when that is not known.
+ * @param {{ file?: string, root?: string, slide?: { no: number, source?: { filepath?: string, contentStart?: number, end?: number } } }} ctx
+ */
+export function slideWhere(ctx, text) {
+  if (!ctx.slide) return '';
+  let at = '';
+  if (ctx.file) {
+    const name = relative(ctx.root ?? '.', ctx.file).replace(/\\/g, '/') || 'slides.md';
+    let line = -1;
+    try {
+      const needle = String(text ?? '')
+        .trim()
+        .split('\n')[0]
+        .trim();
+      const lines = readFileSync(ctx.file, 'utf8').replace(/\r/g, '').split('\n');
+      // Look in the slide's own lines first: the same text (a `\begin{aligned}`, a snippet line) may be in an earlier slide.
+      const own = ctx.slide.source?.filepath === ctx.file ? ctx.slide.source : null;
+      const from = own?.contentStart ?? 0;
+      const to = own?.end ?? lines.length;
+      if (needle) {
+        line = lines.findIndex((l, i) => i >= from && i < to && l.includes(needle));
+        if (line < 0) line = lines.findIndex((l) => l.includes(needle));
+      }
+    } catch {
+      // the file is not readable: the name is enough
+    }
+    at = ` (${name}${line >= 0 ? `:${line + 1}` : ''})`;
+  }
+  return `slide ${ctx.slide.no}${at}: `;
 }

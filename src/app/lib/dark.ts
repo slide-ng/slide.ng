@@ -1,7 +1,9 @@
 import { Injectable, computed, effect, signal } from '@angular/core';
 import { HEADMATTER } from '../../slides/generated';
 
-const KEY = 'slidev-color-schema'; // the same key Slidev uses
+// The same key Slidev uses. Unlike the other settings it is not scoped by deck (deck-scope.ts): a reader who chose dark
+// mode on one deck of a site wants it on the others too, as in Slidev.
+const KEY = 'slidev-color-schema';
 
 // What was stored last time: 'auto' (follow the system), 'light' or 'dark'. Storage may be blocked.
 function stored(): string {

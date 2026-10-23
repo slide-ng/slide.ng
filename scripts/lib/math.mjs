@@ -2,7 +2,7 @@
 // KaTeX is plain JavaScript, so the browser only needs its CSS.
 import katex from 'katex';
 import { Marked } from 'marked';
-import { splitRanges, parseOptions } from './code/meta.mjs';
+import { splitRanges, parseOptions, rangeOutside } from './code/meta.mjs';
 import { attrs, escapeCode, protect } from './protect.mjs';
 
 // $$ {ranges} {options} <newline> latex <newline> $$      or a single line: $$ latex $$
@@ -40,14 +40,15 @@ export const setKatexOptions = (options = {}) => {
   katexOptions = options;
 };
 
-function render(latex, displayMode) {
+// `where()`: `slide N (file:line): ` for the warnings, when known (only worked out when there is a warning).
+function render(latex, displayMode, where = () => '') {
   try {
     // `output: 'html'`: the MathML part is left out because Angular does not know MathML-only tags like <annotation>.
     return katex.renderToString(latex, {
       throwOnError: false,
       // KaTeX's own strict warnings name no formula; say which one (a deck's setup/katex.ts `strict` still wins).
       strict: (code, message) => {
-        console.warn(`[slides] math "${latex.trim().slice(0, 50)}": ${message}`);
+        console.warn(`[slides] ${where()}math "${latex.trim().slice(0, 50)}": ${message}`);
         return 'ignore';
       },
       ...katexOptions,
@@ -55,7 +56,7 @@ function render(latex, displayMode) {
       output: 'html',
     });
   } catch (e) {
-    console.warn(`[slides] math could not be drawn: ${e.message}`);
+    console.warn(`[slides] ${where()}math could not be drawn: ${e.message}`);
     return protect(latex);
   }
 }
@@ -63,12 +64,28 @@ function render(latex, displayMode) {
 // KaTeX's HTML, made safe: no braces left, and ngNonBindable so `{{` in a formula stays text.
 const safe = (html) => protect(html);
 
-/** @param {{ block: boolean, latex: string, ranges?: string, options?: string }} item */
-export function renderMath({ block, latex, ranges, options }) {
+/**
+ * How many rows the steps of a math block (`$$ {1|3}`) can pick: the rows of its environment (`\begin{aligned}`), split
+ * by `\\`. Every `\\` counts (also in a nested matrix), so this is never too few. 0 without an environment, where
+ * KaTeX draws no rows and the steps change nothing.
+ */
+export function mathRows(latex) {
+  if (!/\\begin\{/.test(latex)) return 0;
+  return (latex.match(/\\\\(?!\s*\\end\b)/g) ?? []).length + 1;
+}
+
+/**
+ * @param {{ block: boolean, latex: string, ranges?: string, options?: string }} item
+ * @param {() => string} [where] `slide N (file:line): ` for the warnings
+ */
+export function renderMath({ block, latex, ranges, options }, where = () => '') {
   // KaTeX's drawing is hidden from screen readers (no MathML), so the TeX source is read out instead.
-  const drawn = `<span class="sr-only">${escapeCode(latex)}</span>${safe(render(latex, !!block))}`;
+  const drawn = `<span class="sr-only">${escapeCode(latex)}</span>${safe(render(latex, !!block, where))}`;
   if (!block) return `<span ngNonBindable>${drawn}</span>`;
   const o = parseOptions(options);
+  const rows = mathRows(latex);
+  const outside = rows ? rangeOutside(splitRanges(ranges), rows, o.startLine, 'row') : '';
+  if (outside) console.warn(`[slides] ${where()}math: ${outside}`);
   const a = attrs({
     ranges: splitRanges(ranges).join('|'),
     at: o.at,
@@ -85,13 +102,20 @@ const titleMarked = new Marked({
   },
 });
 
+// Text for innerHTML; unlike escapeCode not protected for an Angular template, since a title's HTML is not one.
+const texSource = (latex) =>
+  latex.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
 /** A slide title as HTML: inline markdown and `$math$` drawn by KaTeX, raw HTML escaped. Null when there is no title. */
 export function titleHtml(title) {
   if (title == null) return null;
   // parseInline runs on the whole string so that emphasis, links or code around a formula still pair up;
   // NGMATHnX is plain alphanumerics, so marked leaves it alone and we swap it for the KaTeX output after.
   const { markdown, maths } = extractMath(String(title));
-  return titleMarked
-    .parseInline(markdown, { async: false })
-    .replace(/NGMATH(\d+)X/g, (_, i) => render(maths[+i].latex, false));
+  return titleMarked.parseInline(markdown, { async: false }).replace(
+    /NGMATH(\d+)X/g,
+    // As in the slide's body (renderMath): the drawing says nothing to a screen reader, so its TeX is read out instead.
+    (_, i) =>
+      `<span class="sr-only">${texSource(maths[+i].latex)}</span>${render(maths[+i].latex, false)}`,
+  );
 }

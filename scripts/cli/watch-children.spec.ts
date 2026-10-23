@@ -48,4 +48,21 @@ describe('watchChildren', () => {
     expect(codes).toEqual([3, 1]);
     expect(logs[0]).toContain('could not start the companion server');
   });
+  it('after stop, a process that ends no longer ends the command (a restart)', () => {
+    const [gen, ng] = [fake(), fake()];
+    const codes: number[] = [];
+    const watcher = watchChildren(
+      [
+        { name: 'the slide generator', child: gen },
+        { name: 'the Angular dev server', child: ng },
+      ],
+      (c) => codes.push(c),
+      () => {},
+    );
+    watcher.stop();
+    gen.emit('exit', null, 'SIGTERM');
+    ng.emit('exit', 0, null);
+    expect(codes).toEqual([]);
+    expect(gen.killed || ng.killed).toBe(false);
+  });
 });

@@ -4,6 +4,8 @@
 //   classProp  true: the frontmatter `class` goes to the content (input `contentClass`),
 //              false: it goes on the layout element itself
 //   slots      names accepted after `::name::` (the default slot always exists)
+import { didYouMean } from './did-you-mean.mjs';
+
 const entry = (name, className, extra = {}) => ({
   className,
   tag: `sn-${name}`,
@@ -55,7 +57,7 @@ export function layoutName(frontmatter, index, layouts = LAYOUTS) {
   const wanted = frontmatter.layout ?? (index === 0 ? 'cover' : 'default');
   if (layouts[wanted]) return wanted;
   console.warn(
-    `[slides] slide ${index + 1}: unknown layout "${wanted}", using "default". Available: ${Object.keys(layouts).join(', ')}`,
+    `[slides] slide ${index + 1}: unknown layout "${wanted}", using "default".${didYouMean(String(wanted), Object.keys(layouts))} Available: ${Object.keys(layouts).join(', ')}`,
   );
   return 'default';
 }

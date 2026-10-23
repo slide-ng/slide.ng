@@ -9,16 +9,39 @@ import {
   viewChild,
 } from '@angular/core';
 import { Nav } from '../lib/nav';
+import { T } from '../i18n/t';
 import { Ui } from '../lib/ui-state';
+
+/**
+ * Text folded for the search: lower case by the rules of the deck's language (Turkish `İ` is `i`, `I` is `ı`), without
+ * accents, and with the dotless `ı` as `i`, so "izmir", "IZMIR" and "İZMİR" all find "İzmir" and "isik" finds "Işık".
+ * Arabic-Indic (٣) and Persian (۳) digits are the digits 0-9, so they find slide 3 too.
+ */
+export function foldForSearch(text: string, lang?: string): string {
+  let lower: string;
+  try {
+    lower = text.toLocaleLowerCase(lang || undefined);
+  } catch {
+    lower = text.toLowerCase(); // not a language tag
+  }
+  return lower
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .replace(/ı/g, 'i')
+    .replace(/[\u0660-\u0669\u06F0-\u06F9]/g, (d) => String((d.charCodeAt(0) - 0x0660) % 0x90));
+}
 
 // "Go to slide" box (key `g`, like Slidev's Goto). Type a number or part of a title,
 // move with the up and down keys, Enter goes to the highlighted result, Escape closes.
 @Component({
   selector: 'app-goto',
+  imports: [T],
   template: `
     <div
       id="slidev-goto-dialog"
-      class="fixed right-5 transition-all w-90 max-w-90 min-w-90 z-modal text-main"
+      role="dialog"
+      [attr.aria-label]="'goto.label' | t"
+      class="fixed end-5 transition-all w-90 max-w-[calc(100vw-2.5rem)] z-modal text-main"
       [class]="ui.goto() ? 'top-5' : '-top-20 op0 pointer-events-none'"
       [attr.aria-hidden]="ui.goto() ? null : 'true'"
     >
@@ -28,8 +51,8 @@ import { Ui } from '../lib/ui-state';
           id="slidev-goto-input"
           type="text"
           class="outline-none bg-transparent w-full"
-          placeholder="Goto..."
-          aria-label="Go to slide"
+          [placeholder]="'goto.placeholder' | t"
+          [attr.aria-label]="'goto.label' | t"
           role="combobox"
           aria-autocomplete="list"
           aria-controls="goto-results"
@@ -49,7 +72,7 @@ import { Ui } from '../lib/ui-state';
         <ul
           id="goto-results"
           role="listbox"
-          aria-label="Slides"
+          [attr.aria-label]="'goto.results' | t"
           class="bg-main shadow mt-1 rounded border border-transparent dark:border-gray/20 overflow-auto max-h-80"
         >
           @for (r of results(); track r.no; let i = $index) {
@@ -61,8 +84,9 @@ import { Ui } from '../lib/ui-state';
               [class]="i === selected() ? 'bg-active op100' : 'op80'"
               (click)="open(r.no)"
             >
-              <span class="opacity-50 text-sm w-6 text-right">{{ r.no }}</span>
-              <span>{{ r.title }}</span>
+              <!-- The space keeps the number and the title apart in the option's text (the gap is only drawn). -->
+              <span class="opacity-80 text-sm w-6 text-end">{{ r.no }}</span
+              >{{ ' ' }}<span>{{ r.title }}</span>
             </li>
           }
         </ul>
@@ -77,13 +101,14 @@ export class Goto {
   protected text = signal('');
   protected selected = signal(0);
 
-  // A slide matches when its number starts with the text or its title contains it.
+  // A slide matches when its number starts with the text or its title contains it, in any case and with or without accents.
   protected results = computed(() => {
-    const q = this.text().trim().replace(/^\//, '').toLowerCase();
+    const lang = document.documentElement.lang;
+    const q = foldForSearch(this.text().trim().replace(/^\//, ''), lang);
     if (!q) return [];
     return this.nav.slides
       .map((s, i) => ({ no: i + 1, title: s.title ?? '' }))
-      .filter((s) => String(s.no).startsWith(q) || s.title.toLowerCase().includes(q));
+      .filter((s) => String(s.no).startsWith(q) || foldForSearch(s.title, lang).includes(q));
   });
 
   constructor() {

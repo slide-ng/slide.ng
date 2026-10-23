@@ -1,10 +1,10 @@
 # Themes and addons: the contract
 
 A theme or addon is a folder (or an npm package) that adds to the built-in look. This page is the reference; the step-by-step
-guide is [WRITING-A-THEME.md](WRITING-A-THEME.md). The working example is [`examples/theme-minimal`](../examples/theme-minimal).
+guide is [WRITING-A-THEME.md](WRITING-A-THEME.md). The working example is [`examples/theme-minimal`](https://github.com/slide-ng/slide.ng/tree/main/examples/theme-minimal).
 
-The repository has three more example themes to copy or use as they are: [`theme-paper`](../examples/theme-paper) (light, editorial: serif
-headlines, a vermilion accent), [`theme-moss`](../examples/theme-moss) (dark, forest green and clay) and [`theme-blueprint`](../examples/theme-blueprint)
+The repository has three more example themes to copy or use as they are: [`theme-paper`](https://github.com/slide-ng/slide.ng/tree/main/examples/theme-paper) (light, editorial: serif
+headlines, a vermilion accent), [`theme-moss`](https://github.com/slide-ng/slide.ng/tree/main/examples/theme-moss) (dark, forest green and clay) and [`theme-blueprint`](https://github.com/slide-ng/slide.ng/tree/main/examples/theme-blueprint)
 (navy drafting grid, amber marks). Each README lists its layouts, inputs and component.
 
 ## Using one
@@ -67,17 +67,19 @@ folders listed below; the rest of it (your markdown, `node_modules`, ...) is nev
 
 ## What a root can contain
 
-| Folder or file       | What it does                                                                                                                                                                       |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `layouts/<name>.ts`  | A layout. `<name>` is what a slide writes in `layout:`. The same name replaces a built-in layout.                                                                                  |
-| `components/*.ts`    | Components that slides can use as tags. Found by their `selector`.                                                                                                                 |
-| `layers/<name>.ts`   | A layer component: `global-top`, `global-bottom`, `slide-top`, `slide-bottom` (default export).                                                                                    |
-| `styles/index.css`   | CSS. Added after the app's styles, so it can override them.                                                                                                                        |
-| `public/`            | Files served from the site root (`/logo.png`). Merged; the later root wins on the same name.                                                                                       |
-| `setup/*.ts`         | Setup hooks: `shiki`, `katex`, `transformers`, `preparser`, `mermaid`, `monaco`, `code-runners`, `shortcuts`, `context-menu`, `main`, `root`. Written out in [SETUP.md](SETUP.md). |
-| `setup/providers.ts` | Angular providers (default export: an array; `setup/main.ts` is the newer way). See "Setup hooks".                                                                                 |
-| `uno.config.mjs`     | UnoCSS settings (default export). Merged into the app's: `presets`, `rules`, `safelist`, `variants` are added; `shortcuts` and `theme` are merged key by key.                      |
-| `theme.json`         | Name, default headmatter and layout inputs. See below.                                                                                                                             |
+| Folder or file        | What it does                                                                                                                                                                       |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `layouts/<name>.ts`   | A layout. `<name>` is what a slide writes in `layout:`. The same name replaces a built-in layout.                                                                                  |
+| `components/*.ts`     | Components that slides can use as tags. Found by their `selector`.                                                                                                                 |
+| `layers/<name>.ts`    | A layer component: `global-top`, `global-bottom`, `slide-top`, `slide-bottom`, `custom-nav-controls` (default export).                                                             |
+| `styles/index.css`    | CSS. Added after the app's styles, so it can override them.                                                                                                                        |
+| `public/`             | Files served from the site root (`/logo.png`). Merged; the later root wins on the same name.                                                                                       |
+| `setup/*.ts`          | Setup hooks: `shiki`, `katex`, `transformers`, `preparser`, `mermaid`, `monaco`, `code-runners`, `shortcuts`, `context-menu`, `main`, `root`. Written out in [SETUP.md](SETUP.md). |
+| `setup/providers.ts`  | Angular providers (default export: an array; `setup/main.ts` is the newer way). See "Setup hooks".                                                                                 |
+| `index.html`          | Merged into the page, as in Slidev: the inside of its `<head>` goes into the page's head, the inside of its `<body>` after the app. In root order. See below.                      |
+| `locales/<lang>.json` | Translations of the interface (the bar, menus, presenter), flat `"key": "text"` pairs. Merged key by key; the later root wins. See below.                                          |
+| `uno.config.mjs`      | UnoCSS settings (default export). Merged into the app's: `presets`, `rules`, `safelist`, `variants` are added; `shortcuts` and `theme` are merged key by key.                      |
+| `theme.json`          | Name, default headmatter and layout inputs. See below.                                                                                                                             |
 
 ### Layouts
 
@@ -92,6 +94,38 @@ use `theme.json`. Text, numbers and booleans arrive as text, as for any HTML att
 
 Every exported component with a selector in `components/` is available. A component is imported into a slide only when the slide's
 markup contains `<selector`. Giving a component the same class name as a built-in one replaces it.
+
+### `index.html`
+
+An `index.html` next to `slides.md` (or at the top of a theme or addon) is how a deck adds tags that the headmatter has no key for:
+analytics, an extra font, a `<meta>`. Only what is inside its `<head>` and `<body>` is used, so it does not need to be a whole page:
+
+```html
+<head>
+  <meta name="robots" content="noindex" />
+  <script defer data-domain="talk.example" src="https://plausible.io/js/script.js"></script>
+</head>
+<body>
+  <noscript>This deck needs JavaScript.</noscript>
+</body>
+```
+
+The parts of every root are added in root order (theme, addons, deck), after the tags made from the headmatter. As Slidev's
+head manager does, a `<title>` or a `<meta name>`/`<meta property>` replaces the one with the same name (and the same `media`)
+made from the headmatter or from an earlier root: the later one wins. A light and a dark `theme-color` (two `media`) are both kept,
+and so are tags meant to repeat, the Open Graph arrays (`og:image`, `og:video`, `og:audio`, `og:locale:alternate`,
+`article:tag`, `article:author`, `book:tag`, `book:author`, `music:*`, `video:actor`,
+`video:director`, `video:writer`, `video:tag`): every copy from every root stays. A `<meta charset>` (or `http-equiv="Content-Type"`) is dropped: the page is UTF-8 and says so first. While the deck runs, the tab's title still follows the slides' titles. The
+attributes of its `<html>` and `<body>` are added to the page's tags; the headmatter's `htmlAttrs` win over them, and
+`class` values are joined. `lang` comes from the headmatter only (`lang`, or `--lang`, else `en`), because it also picks the
+interface language, the date and number locale and the direction: the `lang` of an `index.html` is not used, and the generator
+warns when it differs from the page's. A root address (`src="/analytics.js"`, `href="/brand.css"`, files of `public/`) gets the base in front
+like `/x.svg` in a slide (`/talk/analytics.js` with `--base /talk/`, `analytics.js` in an offline folder); `//host/...` and
+`https://...` stay as they are. Its stylesheets are loaded as written: Angular's critical-CSS step is told to skip them
+(`data-beasties-skip`), as it cannot find the files of `public/` while it runs. The file is the
+deck's own code, like `components/`: it is copied as it is, not escaped, and its scripts run in `dev`, in a build, in an offline folder
+and in an export. In dev a change to the file regenerates the page. In an offline folder (`build --offline`) a
+`<script type="module" src>` is not supported (the folder runs classic scripts only); use a plain `<script>`.
 
 ### Importing from the app
 
@@ -123,6 +157,46 @@ import { SHORTCUTS_SETUP } from 'slide-ng/lib/shortcuts';
   `<ng-content select="[name]" />` (the built-in `two-cols` uses `select="[left]"` and `select="[right]"`).
 - The deck's own folder can have a `theme.json` too, to declare the inputs and slots of its own layouts.
 
+### Translating the interface: `locales/`
+
+A theme or addon can translate slide.ng's own interface for its users. `locales/tr.json` (or `pt.json` and `pt-BR.json`) holds the keys
+listed in [UI-STRINGS.md](UI-STRINGS.md), with their `{name}` placeholders kept:
+
+```json
+{ "nav.next": "Sonraki slayta git", "presenter.noNotes": "{no}. slayt için not yok." }
+```
+
+The deck's `lang` (or `uiLang`) picks the file. The built-in translations come first, then the theme, the addons and the deck, key by key,
+so a deck can change one text of its theme. A theme's own components can show the same texts with the `t` pipe:
+`import { T } from 'slide-ng/i18n/t'`, then `{{ 'nav.next' | t }}`.
+
+### `themeConfig`
+
+The settings a theme offers to decks, as in Slidev. Give the defaults in `theme.json`; the deck's `themeConfig` is merged over them
+key by key (an addon's too):
+
+```json
+{ "name": "ocean", "headmatter": { "themeConfig": { "primary": "#0e7490", "accent": "#f59e0b" } } }
+```
+
+- **In CSS**: each key with a text or number value is the variable `--slidev-theme-<key>` on `<body>` (the key as written, so
+  `accent` is `--slidev-theme-accent`). It is written into the generated `theme.css` after the roots' style sheets, so it wins
+  over a value on `:root` or `html.dark`, also the default `--slidev-theme-primary` of the app, and it is there in the
+  presenter, the PDF and offline builds. Use it in rules on the elements (`color: var(--slidev-theme-accent)`), or alias it
+  on `body` or below; an alias on `:root` is resolved before the variable exists there. `primary` already colours the
+  built-in accent (`text-primary`, the progress bar, the controls).
+- **In code**: `inject(THEME_CONFIG)` (from `slide-ng/lib/theme-config`) is the whole merged map, also lists and objects.
+  Slides read it as `themeConfig` (`{{ themeConfig['primary'] }}`; the brackets are needed because the map has no fixed keys).
+- A key must be letters, digits, `-` and `_`. A value that could leave the CSS declaration (`;`, `{`, `}`, `<`, `>`, `\`, a
+  comment, a line break, quotes or brackets that do not close) is skipped with a warning; it is still in `THEME_CONFIG`.
+  So is a `url(...)` or `image-set(...)`: the generated CSS would look for the file in the wrong folder, without the base.
+- A number gets no unit, as in Slidev: `radius: 6` is `--slidev-theme-radius: 6`, which does nothing where a length is
+  expected (`border-radius: var(--slidev-theme-radius)`). Give lengths with their unit in the defaults (`"radius": "6px"`),
+  or multiply in the CSS (`calc(var(--slidev-theme-radius) * 1px)`).
+  Name pictures in the theme's `styles/` instead.
+- There is one value for both colour modes, as in Slidev. A theme that wants another dark colour can offer a second key
+  (`primaryDark`) and use it under `html.dark`.
+
 ## Setup hooks
 
 The hooks of a theme or addon work the same as in a deck and are listed, with examples, in [SETUP.md](SETUP.md); the deck's own file always runs last.
@@ -153,7 +227,7 @@ version can change the built-in rules under your copy.
 ## How it works (for debugging)
 
 The generator copies each root's folders into `src/slides/generated/roots/<id>/` and merges the `public/` folders into
-`src/slides/generated/public/`. It writes `layers.ts`, `setup.ts` (the providers) and `theme.css` (the `@import`s of the styles).
+`src/slides/generated/public/`. It writes `layers.ts`, `setup.ts` (the providers) and `theme.css` (the `@import`s of the styles, the `fonts` and the `themeConfig` variables).
 Symbolic links are never copied. In dev mode the folders of themes and addons are watched, so an edit regenerates and reloads.
 
 ## Limits

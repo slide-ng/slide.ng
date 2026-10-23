@@ -1,5 +1,5 @@
 // Arrow, transform, slide-ng-auto-fit-text, youtube, slide-ng-video, tweet and slide-ng-blue-sky.
-export async function run({ t, open, press, hud }) {
+export async function run({ t, open, press, hud, until }) {
   let page = await open('/13');
   const attr = (sel, name) => page.locator(sel).first().getAttribute(name);
   t.ok(
@@ -38,7 +38,12 @@ export async function run({ t, open, press, hud }) {
   );
   const before = await size();
   await page.locator('#fit').evaluate((e) => (e.style.height = '40px'));
-  await page.waitForTimeout(200);
+  await until(
+    page,
+    (b) =>
+      parseFloat(document.querySelector('#fit .slidev-auto-fit-text-inner').style.fontSize) < b,
+    before,
+  );
   t.ok(
     'slide-ng-auto-fit-text fits again when the box gets smaller',
     (await size()) < before && (await inside()),
@@ -50,6 +55,16 @@ export async function run({ t, open, press, hud }) {
       'https://www.youtube.com/embed/luoMHjh-XcQ' &&
       (await attr('slide-ng-youtube iframe', 'width')) === '320' &&
       (await attr('slide-ng-youtube iframe', 'height')) === '180',
+  );
+  t.ok(
+    'youtube keeps the start time written into the id and drops unknown options',
+    (await page.locator('slide-ng-youtube iframe').nth(1).getAttribute('src')) ===
+      'https://www.youtube.com/embed/luoMHjh-XcQ?start=1234&end=1300',
+  );
+  t.ok(
+    'youtube reads a start time written the YouTube way (1m30s) as seconds',
+    (await page.locator('slide-ng-youtube iframe').nth(2).getAttribute('src')) ===
+      'https://www.youtube.com/embed/luoMHjh-XcQ?start=90',
   );
   await page.close();
 
@@ -126,12 +141,66 @@ export async function run({ t, open, press, hud }) {
     'autoplay once: the second plays when its click comes',
     (await calls()).includes('play:vid-once'),
   );
+  // Slidev's `<SlidevVideo class="h-60">` puts the class on the video: here the class sizes the element and the video fits it.
+  const box = await page.locator('#vid-once').evaluate((host) => {
+    const h = host.getBoundingClientRect();
+    const v = host.querySelector('video').getBoundingClientRect();
+    return { host: h.height, video: v.height, inside: v.bottom <= h.bottom + 0.5 };
+  });
+  t.ok(
+    'a height class on slide-ng-video sizes the video',
+    box.inside && Math.abs(box.video - box.host) < 1,
+    JSON.stringify(box),
+  );
   await press(page, 'ArrowLeft');
   await press(page, 'ArrowLeft');
   t.ok(
     'going back before the click pauses it',
     (await calls()).includes('pause:vid'),
     await calls(),
+  );
+  await page.close();
+
+  // slide-ng-switch unmount and transition, slide-ng-render-when visible
+  page = await open('/17');
+  const inPage = (id) => page.evaluate((i) => !!document.getElementById(i), id);
+  t.ok(
+    'slide-ng-switch unmount: children that are not shown are out of the page',
+    !(await inPage('swu1')) && !(await inPage('swu2')),
+  );
+  await press(page, 'ArrowRight', 50);
+  const fading = await page.evaluate(() =>
+    document
+      .getElementById('swu1')
+      ?.getAnimations()
+      .some((a) => a.playState === 'running'),
+  );
+  t.ok('slide-ng-switch transition: the shown child fades in', fading === true, String(fading));
+  await page.waitForTimeout(800);
+  await press(page, 'ArrowRight', 800);
+  t.ok(
+    'slide-ng-switch unmount swaps children on the next click',
+    !(await inPage('swu1')) && (await inPage('swu2')),
+  );
+  await press(page, 'ArrowLeft', 800);
+  t.ok(
+    'slide-ng-switch unmount: going back puts the first child back in place',
+    (await inPage('swu1')) &&
+      !(await inPage('swu2')) &&
+      (await page.evaluate(() => document.getElementById('swu1').parentElement.id)) ===
+        'sw-unmount',
+  );
+  t.ok(
+    'slide-ng-render-when visible shows the fallback while the element is off screen',
+    (await page.locator('#rw-fallback').count()) === 1 &&
+      (await page.locator('#rw-shown').count()) === 0,
+  );
+  await page.evaluate(() => (document.getElementById('rw-spacer').style.height = '0'));
+  await page.waitForSelector('#rw-shown', { timeout: 3000 }).catch(() => undefined);
+  t.ok(
+    'slide-ng-render-when visible on screen shows its content',
+    (await page.locator('#rw-shown').count()) === 1 &&
+      (await page.locator('#rw-fallback').count()) === 0,
   );
   await page.close();
 }

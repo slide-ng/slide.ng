@@ -1,6 +1,21 @@
 // Slide transitions. Slidev uses Vue's <Transition> and CSS classes; here the two slides
-// (the one leaving and the one entering) are animated with the browser's Web Animations API.
-export type TransitionSpec = string | { name?: string } | null | undefined;
+// (the one leaving and the one entering) are animated with the browser's Web Animations API for the built-in names.
+// Any other name, or an object with class names, runs Vue's class sequence (class-transition.ts) with the deck's own CSS.
+
+/** The object form, as Vue's TransitionGroupProps: a name and, if wanted, other class names and a fixed duration. */
+export interface TransitionObject {
+  name?: string;
+  enterFromClass?: string;
+  enterActiveClass?: string;
+  enterToClass?: string;
+  leaveFromClass?: string;
+  leaveActiveClass?: string;
+  leaveToClass?: string;
+  duration?: number | { enter: number; leave: number };
+}
+export type TransitionSpec = string | TransitionObject | null | undefined;
+/** A transition for one direction: the name is known. */
+export type ResolvedTransition = TransitionObject & { name: string };
 
 // Slidev's table: a one-word name stands for "forward | backward".
 const PAIRS: Record<string, string> = {
@@ -10,14 +25,21 @@ const PAIRS: Record<string, string> = {
   'slide-down': 'slide-down | slide-up',
 };
 
-/** The transition name to use for this direction, or null for none. Port of Slidev's resolveTransition. */
-export function resolveTransition(spec: TransitionSpec, backward: boolean): string | null {
-  const wanted = typeof spec === 'string' ? spec : spec?.name;
+/** The transition to use for this direction, or null for none. Port of Slidev's resolveTransition. */
+export function resolveTransition(
+  spec: TransitionSpec,
+  backward: boolean,
+): ResolvedTransition | null {
+  const options = typeof spec === 'string' ? { name: spec } : spec;
+  const wanted = options?.name?.trim();
   if (!wanted) return null;
   const pair = wanted.includes('|') ? wanted : (PAIRS[wanted] ?? wanted);
-  if (!pair.includes('|')) return pair;
-  const [forward, back] = pair.split('|').map((s) => s.trim());
-  return (backward ? back : forward) || null;
+  let name = pair;
+  if (pair.includes('|')) {
+    const [forward, back] = pair.split('|').map((s) => s.trim());
+    name = backward ? back : forward;
+  }
+  return name ? { ...options, name } : null;
 }
 
 /**
@@ -29,10 +51,47 @@ export function pickTransition(
   from: number,
   to: number,
   deckDefault: TransitionSpec,
-): string | null {
+): ResolvedTransition | null {
   if (from === to) return null;
   const earlier = slides[Math.min(from, to) - 1]?.transition ?? deckDefault;
   return resolveTransition(earlier, to < from);
+}
+
+const CLASS_KEYS = [
+  'enterFromClass',
+  'enterActiveClass',
+  'enterToClass',
+  'leaveFromClass',
+  'leaveActiveClass',
+  'leaveToClass',
+] as const;
+
+/** Whether the transition runs on CSS classes: a name with no built-in animation, or an object that names its own classes. */
+export function isClassTransition(t: ResolvedTransition): boolean {
+  if (t.name === 'view-transition') return false;
+  return !animationsFor(t.name, 0) || CLASS_KEYS.some((key) => typeof t[key] === 'string');
+}
+
+/** Vue's class names for a transition: `<name>-enter-from` and so on, unless the object names others. */
+export function transitionClasses(
+  t: ResolvedTransition,
+): Record<(typeof CLASS_KEYS)[number], string> {
+  const [enterFrom, enterActive, enterTo, leaveFrom, leaveActive, leaveTo] = [
+    'enter-from',
+    'enter-active',
+    'enter-to',
+    'leave-from',
+    'leave-active',
+    'leave-to',
+  ].map((part, i) => t[CLASS_KEYS[i]] ?? `${t.name}-${part}`);
+  return {
+    enterFromClass: enterFrom,
+    enterActiveClass: enterActive,
+    enterToClass: enterTo,
+    leaveFromClass: leaveFrom,
+    leaveActiveClass: leaveActive,
+    leaveToClass: leaveTo,
+  };
 }
 
 interface Pair {

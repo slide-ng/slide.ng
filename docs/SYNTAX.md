@@ -27,20 +27,25 @@ class: text-red-500
 
 Keys slide.ng understands:
 
-| key                                                                    | what it does                                                                                                                   |
-| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `layout`                                                               | one of the layouts below. The first slide is `cover` if you set nothing, all others `default`.                                 |
-| `class`                                                                | extra CSS (UnoCSS) classes on the layout (on the content for layouts that have a `class` prop, see Layouts)                    |
-| `title`                                                                | slide title (otherwise the first `#` heading); used in the browser tab, the table of contents and the goto box                 |
-| `level`                                                                | depth in the table of contents (otherwise the number of `#` in the first heading)                                              |
-| `hideInToc`                                                            | leave this slide out of `<slide-ng-toc>`                                                                                       |
-| `routeAlias`                                                           | an extra address: `routeAlias: intro` makes `/intro` open this slide; `print`, `notes` and `presenter` are refused (app pages) |
-| `hide`, `disabled`                                                     | the slide is left out of the deck completely                                                                                   |
-| `clicksStart`                                                          | first click number of the slide (default 0)                                                                                    |
-| `clicks`                                                               | fixes the number of clicks of the slide, whatever its elements ask for                                                         |
-| `transition`                                                           | transition to the next slide, see Transitions                                                                                  |
-| `src`                                                                  | take the slides from another markdown file, see Importing slides                                                               |
-| `image`, `url`, `scale`, `backgroundSize`, `background`, `layoutClass` | props of some layouts                                                                                                          |
+| key                                                                    | what it does                                                                                                                                                |
+| ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `layout`                                                               | one of the layouts below. The first slide is `cover` if you set nothing, all others `default`.                                                              |
+| `class`                                                                | extra CSS (UnoCSS) classes on the layout (on the content for layouts that have a `class` prop, see Layouts)                                                 |
+| `title`                                                                | slide title (otherwise the first `#` heading); used in the browser tab, the table of contents and the goto box                                              |
+| `level`                                                                | depth in the table of contents (otherwise the number of `#` in the first heading)                                                                           |
+| `hideInToc`                                                            | leave this slide out of `<slide-ng-toc>`                                                                                                                    |
+| `routeAlias`                                                           | an extra address: `routeAlias: intro` makes `/intro` open this slide; one slide per alias, and the names that are refused are listed right under this table |
+| `hide`, `disabled`                                                     | the slide is left out of the deck completely                                                                                                                |
+| `clicksStart`                                                          | first click number of the slide (default 0); a value that is not a number is ignored and a negative one counts as 0, with a warning                         |
+| `clicks`                                                               | fixes the number of clicks of the slide, whatever its elements ask for; a value that is not a number, or a negative one, is ignored with a warning          |
+| `clickAnimation`                                                       | click animation presets of the slide's click elements (`up`, `fade right`), see Click animation presets                                                     |
+| `transition`                                                           | transition to the next slide, see Transitions                                                                                                               |
+| `src`                                                                  | take the slides from another markdown file, see Importing slides                                                                                            |
+| `image`, `url`, `scale`, `backgroundSize`, `background`, `layoutClass` | props of some layouts                                                                                                                                       |
+
+A `routeAlias` stops the build when it is `print`, `notes`, `presenter`, `overview`, `entry` or `notes-edit` (pages of the app), a number (`/2` is slide 2), empty, has `/`, `.`,
+`?`, `#` or `\` (an address does not keep them in one name), or is on two slides; one set on a `src:` import of several slides lands on each of
+them, so it is refused too. A page a deck adds itself is not seen by the build: give it a name no slide uses as an alias.
 
 In the headmatter (the frontmatter of the first slide) you can also set:
 
@@ -53,12 +58,46 @@ In the headmatter (the frontmatter of the first slide) you can also set:
 | `defaults`                                                                       | frontmatter that every slide starts from, e.g. `defaults: { layout: center }`; a slide's own keys win |
 | `theme`, `addons`                                                                | the look of the deck: a folder, a package name, or `default`; see "Themes and addons" below           |
 | `titleTemplate`, `author`, `keywords`, `favicon`, `lang`, `htmlAttrs`, `seoMeta` | the page's `<head>`, see "The page, export and build" below                                           |
+| `lang`, `uiLang`                                                                 | the language of the slides and of the interface, see "Translating the interface" below                |
 | `download`, `exportFilename`, `export`, `remoteAssets`, `pwa`                    | export and build settings, see below                                                                  |
 | `codeCopy`, `magicMoveCopy`                                                      | `false` hides the copy button on every code block, or only on Magic Move blocks                       |
 | `contextMenu`, `presenter`                                                       | `true` (default), `false`, `dev` or `build`: the right-click menu, and the presenter page and button  |
 | `editor`                                                                         | `false` hides the side editor (dev server only)                                                       |
+| `monaco`, `twoslash`                                                             | `true` (default), `false`, `dev` or `build`: off, `{monaco}` blocks are plain code; Twoslash not run  |
+| `wakeLock`                                                                       | `true` (default), `false`, `dev`, `build`: the settings wake lock; a choice the browser stored wins   |
+| `monacoRunUseStrict`                                                             | `false` runs `{monaco-run}` code without `"use strict"` (on by default, as in Slidev)                 |
+| `themeConfig`                                                                    | settings for the theme, e.g. `themeConfig: { primary: '#5d8392' }`; see "Themes and addons" below     |
 
 Other keys are kept in the slide's metadata and ignored, unless a theme or a component reads them.
+
+### Reading errors and warnings
+
+Messages start with the file and line they are about (`slides.md:12: ...`), or with the slide (`[slides] slide 4: ...`); a
+warning keeps the deck running, an error stops the build (in the dev server a red banner or Angular's error overlay shows the
+message, the same after a reload as in the terminal, and the last good slides stay on screen until the file is fixed; an error
+of the generator that comes while an Angular error stands replaces it in the overlay; when the very first build fails, the page shows the error
+and opens the slides by itself once it is fixed). The usual YAML slips in a frontmatter, and what the message says:
+
+- a value with `: ` in it, `title: Part 2: the plan`, reads as a second key: quote it, `title: "Part 2: the plan"`;
+- a line indented with a tab: YAML needs spaces;
+- a quote that is never closed, `title: 'Feature flags`: the message names the line that opens it;
+- a missing closing `---`: the slide's text is read as YAML, and the message names the first line that is not `key: value`.
+  A heading alone is a YAML comment there, not an error, so `layout: section`, an empty line and `# Part 1` get a warning that
+  names the heading (the slide after it would otherwise take the section's layout); `format` gives the same warning and keeps the
+  line. A note to self (`# TODO`, `# FIXME`) is not warned about. A last
+  slide written `---` and `layout: end` with no closing `---` shows "layout: end" as its text, also with a warning.
+
+A mistyped name gets the nearest real one: `layout: image-rigth` ("Did you mean "image-right"?"), `<slide-ng-tocc />` or
+`slide-ng-clik` (any unknown `slide-ng-*` element or attribute is a warning), a command or a flag of the CLI. Angular's own
+errors name the slide and the line of `slides.md` that the error is on (the slide's `---` line when the text at fault is not in the markdown as written); for an unknown element (`'my-countr' is not a known element`) the message
+names a component or built-in element that is one or two letters away, or else asks whether its file is in `components/`,
+says how to import it in a layout or component, or how to list a web component in `customElements` (Angular's "Can't bind to"
+errors for that element are left out). An element left open (`<div>`, or `<span>` in a line of text, without its closing tag), a closing tag
+with another name (`<slide-ng-clicsk>` ... `</slide-ng-clicks>`, with a did-you-mean) or a closing tag that closes nothing
+stops the build with a message that names the slide and the tag. A control-flow block that is not complete, `@if (x >= 1 {`
+(its `(` is never closed), stops the build with a message that names the block and its line. `@let x = 5` without its `;` is
+shown as text, with a warning; Angular's "Property 'x' does not exist" for it says so, and for a name one or two letters away
+from an `@let` name or a global (`$clikcs`) it names the one meant.
 
 ## Importing slides
 
@@ -72,7 +111,9 @@ class: from-here
 The slide is replaced by the slides of that file. A range after `#` picks some of them:
 `src: ./pages/intro.md#2,4-6`. Keys set on the importing slide win over the imported ones.
 The text of the importing slide is ignored. A missing file or a circular import is reported when
-the slides are generated, and the slide is skipped. A leading `/` means the deck's folder (as in Slidev), not the file system.
+the slides are generated (a warning, so a build goes on), and the slide is skipped; the dev server also names it in a red banner on the page until the file is back. A leading `/` means the deck's folder (as in Slidev), not the file system.
+Inside an imported file, a `<<<` snippet path starts at that file's folder (`parts/x.md` with `<<< ./snippets/a.ts`
+reads `parts/snippets/a.ts`); write `<<< @/snippets/a.ts` for the deck's own `snippets/` folder. The "not found" message says so.
 The imported file must be inside the deck's folder or a theme or addon folder, by real path (a symlink that leads out does not count); otherwise the build stops
 with an error. A deck that really wants to import from elsewhere says so in its own headmatter: `allowOutsideRoot: true` (a theme or addon cannot set it for the deck).
 
@@ -88,7 +129,7 @@ The last HTML comment of a slide is its note:
 
 ## Layouts
 
-All layouts of Slidev, with the same names and props (see `docs/screenshots/` for pictures).
+All layouts of Slidev, with the same names and props (pictures of each are in [`docs/screenshots/`](https://github.com/slide-ng/slide.ng/tree/main/docs/screenshots) of the repository; the npm package leaves them out).
 
 | layout                        | use                                                                                                                           | props (frontmatter)                                      |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
@@ -109,10 +150,13 @@ All layouts of Slidev, with the same names and props (see `docs/screenshots/` fo
 | `iframe-left`, `iframe-right` | web page on one side                                                                                                          | `url`, `scale`, `class` (goes to the content)            |
 | `two-cols`                    | two columns, slots `::left::` (also the default text) and `::right::`                                                         | `class` (both columns), `layoutClass` (the whole layout) |
 | `two-cols-header`             | a header, two columns and a bottom row: `::left::`, `::right::`, `::bottom::`; the text before the first marker is the header | `class`, `layoutClass`                                   |
-| `404`, `error`                | shown when an address matches no slide, or a slide fails                                                                      |                                                          |
+| `404`, `error`                | `404` is shown when an address matches no slide; `error` only by a slide with `layout: error` (the app never shows it itself) |                                                          |
 
-`image` is an address (`/photo.png` is served from the `public/` folder) or a colour for the
-background. An unknown layout name prints a warning that lists the names and uses `default`.
+`image` is an address or a colour for the background. `image: /photo.png` is the file `public/photo.png`: the `public/`
+folder is the site's root, so the address has no `/public` in it (the generator warns about `/public/photo.png` and about a
+picture that `public/` does not have, and about a relative one, `./logo.png`, that is neither next to the markdown file nor in
+`public/`). An unknown layout name prints a warning that names the nearest layout, lists the names
+and uses `default`.
 
 ### Slots: `::name::`
 
@@ -147,7 +191,11 @@ h1 { color: red; }
 
 The CSS is placed inside the slide's own element with native CSS nesting (`slide-003 { ... }`), so every
 selector only matches inside that slide, layout elements included (`.two-cols-header { column-gap: 20px }` works).
-Nested rules and `&` work. UnoCSS directives (`--uno: ...`) do not; use utility classes in the HTML instead.
+Nested rules and `&` work. UnoCSS's directives work as in Slidev: `@apply p-4 text-red-500;`, `--uno: p-4 text-red-500;`,
+`@screen md { ... }` and `theme('colors.red.500')` are written out as CSS while generating (also in `styles/` of the deck, a theme or
+an addon). A utility UnoCSS does not know gives a `[slides]` warning. In a slide's `<style>`, variants for something outside the
+slide work too: `h1 { @apply dark:text-white; }` becomes `.dark <slide> h1`, and `forward:`, `backward:`, `light:` and `rtl:` the
+same way; `group-hover:` and `peer-checked:` look for the `.group` or `.peer` inside the slide.
 
 ## Transitions
 
@@ -165,6 +213,38 @@ Set `transition` in the headmatter for the whole deck. The default is no transit
 The duration is the CSS variable `--slidev-transition-duration` (0.5s). After a move the class
 `slidev-nav-go-forward` or `slidev-nav-go-backward` is on the stage (until the next move), so `forward:text-red` and `backward:text-red` classes work.
 
+Any other name is a custom transition written in CSS, as in Slidev: during the move the entering slide gets Vue's classes
+`<name>-enter-from` and `<name>-enter-active`, a frame later `<name>-enter-to` instead of `-enter-from`, and the leaving slide the same with
+`leave`. Each slide's classes are removed when its CSS transition or animation ends (at once when the name has no CSS); the leaving
+slide goes when its own side ends, so a short leave does not stay drawn over a longer enter.
+
+```css
+/* styles/index.css */
+.my-fade-enter-active,
+.my-fade-leave-active {
+  transition: opacity 0.6s ease;
+}
+.my-fade-enter-from,
+.my-fade-leave-to {
+  opacity: 0;
+}
+```
+
+The object form takes other class names (`enterFromClass`, `enterActiveClass`, `enterToClass`, `leaveFromClass`, `leaveActiveClass`,
+`leaveToClass`) and a fixed `duration` in milliseconds (a number, or `{ enter, leave }`), like Vue's `TransitionGroupProps`:
+
+```md
+---
+transition:
+  name: grow
+  enterFromClass: scale-50
+  enterActiveClass: transition-transform duration-500
+---
+```
+
+The built-in names keep their own animation unless the object names a class. With `prefers-reduced-motion` the CSS runs in
+0.01ms and a fixed `duration` ends at once, so the slide changes straight away.
+
 ## Clicks
 
 Clicks reveal things step by step. Add these to any HTML element:
@@ -176,15 +256,33 @@ Clicks reveal things step by step. Add these to any HTML element:
 <div [slide-ng-click]="[2, 4]">Shows from click 2 until click 4, then hides</div>
 <div slide-ng-after>Same click as the element before it (a relative +0)</div>
 <div slide-ng-click="2" slide-ng-click-hide>Visible first, hides at click 2</div>
+<div slide-ng-click-hide="3">Visible first, hides at click 3 (as v-click-hide="3")</div>
+<div slide-ng-click.hide="2">Visible first, hides at click 2 (as v-click.hide="2")</div>
+<div slide-ng-click="2" slide-ng-click-hide="3">Shows at click 2, hides at click 3 (as v-click="2" v-click-hide="3")</div>
 ```
+
+With a value on both, `slide-ng-click` is the click that shows the element and `slide-ng-click-hide` the click that hides it
+again: the same as `[slide-ng-click]="[2, 3]"`. A relative hide value (`+1`) counts on from the clicks before it, as in Slidev: after a relative show (`slide-ng-click="+1"`) that is the show click. With the bare
+`slide-ng-click-hide` flag, the `slide-ng-click` value is the click that hides it.
 
 Two forms exist because of how Angular reads attributes:
 
 - `slide-ng-click="3"` or `slide-ng-click="+2"` is plain text; slide.ng turns it into a number or a relative step.
 - `[slide-ng-click]="[2, 4]"` is an Angular binding; use it for ranges and for any value you compute.
+  A range written as plain text, `slide-ng-click="[2, 4]"` or with presets `slide-ng-click.up="[2, 4]"` (as `v-click.up="[2, 4]"`),
+  is bound for you; so is `[slide-ng-click.up]="[2, 4]"`, whose presets move to `click-anim`.
 
 `slide-ng-after` and `+n` count from the relative counter, as in Slidev: the last plain or `+n` click before them, not an absolute
 `slide-ng-click="3"`. After only absolute clicks, `slide-ng-after` shows from the start; give it a number too (`slide-ng-click="3"`).
+
+The generator warns, with the slide and its line, about values written as text that cannot work: `slide-ng-click="abc"`, `"0"`
+(clicks count from 1), a `-1` with no click before it, a
+range (bound, or written as text: `slide-ng-click="[2]"`) with one value or none (`[slide-ng-click]="[2]"`, which Angular rejects with TS2322) or whose end is not after its
+start (`[3, 1]`, `[0, 0]`), and an `at` of a `<slide-ng-switch>` child that is not a click or a range (`at="x"`, `at="5-3"`).
+Values computed in a binding are checked by the app only.
+
+A `{monaco-run}` output with `showOutputAt` takes its click in document order, like any other element: an output at `'+1'`
+followed by a `slide-ng-click` shows first.
 
 List items one by one:
 
@@ -199,33 +297,77 @@ List items one by one:
 
 Leave an empty line after `<slide-ng-clicks>` and before `</slide-ng-clicks>`, otherwise markdown does not
 turn the list into HTML. Options: `depth="2"` (include nested lists), `every="2"` (items per click),
-`at="3"` (first click), `hide` (items hide instead of show). As in Slidev, a single list gives each item a click, a single table each
+`at="3"` (first click), `hide` (items hide instead of show), `animation="fade up"` (click animation presets for every item, see below).
+As in Slidev, a single list gives each item a click, a single table each
 body row, and anything else (paragraphs, pictures, several lists) each child of `<slide-ng-clicks>`. `every="0.5"` gives each item two clicks.
+
+### Click animation presets
+
+How a hidden element looks, and so how it comes in, as Slidev's presets: `clickAnimation` in the headmatter (all slides, also through `defaults`)
+or in a slide's frontmatter (that slide wins), or modifiers on the attribute, which win over both and can be combined.
+
+```md
+---
+clickAnimation: up
+---
+
+<div slide-ng-click>Uses the slide's preset</div>
+<div slide-ng-click.scale>Scales up from 0.9</div>
+<div slide-ng-click.fade.right="3">Dimmed (opacity 0.5) and 20px to the left until click 3</div>
+<div slide-ng-click.none>No animation</div>
+```
+
+Presets: `fade` (hidden is 0.5 opacity instead of invisible; until its click it is inert like any hidden element: screen readers skip it and its links and buttons take no focus or clicks), `fade-in` (a slower fade), `up`, `down`, `left`, `right` (20px away), `scale` (0.9),
+`none` (no transition). They work on `slide-ng-click`, `slide-ng-after` and `slide-ng-click-hide`. The element gets the class
+`slidev-vclick-anim-<name>`, so a preset of your own is CSS in `styles/index.css` (a name one or two letters away from a
+built-in one, `fadee`, or from the `hide` modifier, `hidee`, gets a warning unless the styles define it):
+
+```css
+.slidev-vclick-anim-pop.slidev-vclick-hidden {
+  transform: scale(0.96) translateY(8px);
+}
+```
+
+In a PDF or PNG export nothing moves: each page shows the state of its click at once.
 
 ## Built-in components
 
 Available in every slide without importing anything.
 
-| tag                                                                                                                                                                                    | what it does                                                                                                                                                                                                              |
-| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `<slide-ng-toc />`                                                                                                                                                                     | table of contents from the slides' `title` and `level`. Options: `columns="2"`, `listClass="..."`, `start="1"`, `listStyle="..."`, `minDepth`, `maxDepth`, `mode="all\|onlyCurrentTree\|onlySiblings"`                    |
-| `<slide-ng-current-no />`                                                                                                                                                              | the number of the slide it is on                                                                                                                                                                                          |
-| `<slide-ng-total />`                                                                                                                                                                   | the number of slides                                                                                                                                                                                                      |
-| `<slide-ng-title-renderer />`, `no="3"`                                                                                                                                                | a slide's title as HTML (inline markdown and `$math$`); without `no`, the slide it is on                                                                                                                                  |
-| `<slide-ng-link to="3">text</slide-ng-link>`                                                                                                                                           | a link to slide 3, or to a `routeAlias`. (Called `slide-ng-link` because `link` is a built-in HTML tag.)                                                                                                                  |
-| `<slide-ng-light-or-dark>`                                                                                                                                                             | shows `<div dark>...</div>` in dark mode and `<div light>...</div>` in light mode                                                                                                                                         |
-| `<slide-ng-render-when context="slide">`                                                                                                                                               | content only where the slide is drawn: `slide`, `presenter`, `print`, `overview`, or `main` (slide or presenter). `[context]="['slide','overview']"` takes several. Content marked `<div fallback>` shows everywhere else |
-| `<slide-ng-switch>`                                                                                                                                                                    | one child per click: `<slide-ng-switch><div at="1">a</div><div at="2">b</div><div at="3-5">c</div></slide-ng-switch>` (a number lasts until the next one starts; `3-5` is clicks 3 and 4, the end is not included)        |
-| `<slide-ng-click-gap size="2" />`                                                                                                                                                      | leaves two clicks empty                                                                                                                                                                                                   |
-| `<slide-ng-clicks>`, `slide-ng-click`, `slide-ng-after`                                                                                                                                | see Clicks                                                                                                                                                                                                                |
-| `<slide-ng-arrow x1="10" y1="20" x2="100" y2="200" color="red" width="2" two-way />`                                                                                                   | an arrow on the slide (SVG, positions in slide pixels). `two-way` adds a head at the start                                                                                                                                |
-| `<slide-ng-transform scale="0.5" origin="top left">`                                                                                                                                   | scales what is inside                                                                                                                                                                                                     |
-| `<slide-ng-auto-fit-text min="10" max="60" class="w-60 h-20">text</slide-ng-auto-fit-text>`                                                                                            | the biggest font size (between `min` and `max`) that fits the box. `multi-line="false"` keeps it on one line                                                                                                              |
-| `<slide-ng-youtube id="luoMHjh-XcQ" width="560" height="315" />`                                                                                                                       | an embedded YouTube video (`id` is the video id; no start time or playlist options)                                                                                                                                       |
-| `<slide-ng-video autoplay="true" autoreset="click" controls poster="...">`                                                                                                             | a video that plays when its slide (or its `slide-ng-click`) comes. `autoplay="once"` plays once; `timestamp` starts at a second. Put `<source>` tags inside                                                               |
-| `<slide-ng-tweet id="20" scale="0.8" conversation="none" cards="hidden" />`                                                                                                            | an embedded tweet (loads Twitter's script, needs the network)                                                                                                                                                             |
-| `<slide-ng-blue-sky uri="at://did:.../app.bsky.feed.post/..." scale="0.8" />`                                                                                                          | an embedded Bluesky post (needs the network). `uri` can also be the post's web address                                                                                                                                    |
-| `<slide-ng-code-group>`, `<slide-ng-code-block-wrapper>`, `<slide-ng-magic-move>`, `<slide-ng-katex-block-wrapper>`, `<slide-ng-mermaid>`, `<slide-ng-plant-uml>`, `<slide-ng-monaco>` | written by the generator for code fences and math; you normally use the markdown forms below                                                                                                                              |
+| tag                                                                                                                                                                                    | what it does                                                                                                                                                                                                                                                                                                                                                                       |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `<slide-ng-toc />`                                                                                                                                                                     | table of contents from the slides' `title` and `level`. Options: `columns="2"`, `listClass="..."`, `start="1"`, `listStyle="..."`, `minDepth`, `maxDepth`, `mode="all\|onlyCurrentTree\|onlySiblings"`                                                                                                                                                                             |
+| `<slide-ng-current-no />`                                                                                                                                                              | the number of the slide it is on                                                                                                                                                                                                                                                                                                                                                   |
+| `<slide-ng-total />`                                                                                                                                                                   | the number of slides                                                                                                                                                                                                                                                                                                                                                               |
+| `<slide-ng-progress-bar position="top" height="6" color="red" />`                                                                                                                      | a bar that shows how far through the deck the slide is, see Progress bar                                                                                                                                                                                                                                                                                                           |
+| `<slide-ng-title-renderer />`, `no="3"`                                                                                                                                                | a slide's title as HTML (inline markdown and `$math$`); without `no`, the slide it is on                                                                                                                                                                                                                                                                                           |
+| `<slide-ng-link to="3">text</slide-ng-link>`                                                                                                                                           | a link to slide 3, or to a `routeAlias`. (Called `slide-ng-link` because `link` is a built-in HTML tag.)                                                                                                                                                                                                                                                                           |
+| `<slide-ng-light-or-dark>`                                                                                                                                                             | shows `<div dark>...</div>` in dark mode and `<div light>...</div>` in light mode                                                                                                                                                                                                                                                                                                  |
+| `<slide-ng-render-when context="slide">`                                                                                                                                               | content only where the slide is drawn: `slide`, `presenter`, `print`, `overview`, or `main` (slide or presenter). `[context]="['slide','overview']"` takes several. Content marked `<div fallback>` shows everywhere else                                                                                                                                                          |
+| `<slide-ng-switch>`                                                                                                                                                                    | one child per click: `<slide-ng-switch><div at="1">a</div><div at="2">b</div><div at="3-5">c</div></slide-ng-switch>` (a number lasts until the next one starts; `3-5` is clicks 3 and 4, the end is not included)                                                                                                                                                                 |
+| `<slide-ng-click-gap size="2" />`                                                                                                                                                      | leaves two clicks empty                                                                                                                                                                                                                                                                                                                                                            |
+| `<slide-ng-clicks>`, `slide-ng-click`, `slide-ng-after`                                                                                                                                | see Clicks                                                                                                                                                                                                                                                                                                                                                                         |
+| `<slide-ng-arrow x1="10" y1="20" x2="100" y2="200" color="red" width="2" two-way />`                                                                                                   | an arrow on the slide (SVG, positions in slide pixels). `two-way` adds a head at the start                                                                                                                                                                                                                                                                                         |
+| `<slide-ng-transform scale="0.5" origin="top left">`                                                                                                                                   | scales what is inside                                                                                                                                                                                                                                                                                                                                                              |
+| `<slide-ng-auto-fit-text min="10" max="60" class="w-60 h-20">text</slide-ng-auto-fit-text>`                                                                                            | the biggest font size (between `min` and `max`) that fits the box. `multi-line="false"` keeps it on one line                                                                                                                                                                                                                                                                       |
+| `<slide-ng-youtube id="luoMHjh-XcQ?start=1234" width="560" height="315" />`                                                                                                            | an embedded YouTube video. `id` is the video id, optionally followed by YouTube's embed options (`?start=1234&end=1300`, `list`, `loop`, ...; others are dropped). `start` (seconds) and `list` (a playlist id) can also be attributes. A start time (`start`, or `t` of a shared link) may be written YouTube's way, `1m30s` or `1h2m3s`; anything else is dropped with a warning |
+| `<slide-ng-video autoplay="true" autoreset="click" controls poster="...">`                                                                                                             | a video that plays when its slide (or its `slide-ng-click`) comes. `autoplay="once"` plays once; `timestamp` starts at a second. Put `<source>` tags inside. A class or size on it (`class="h-60"`) sizes the video, which keeps its shape                                                                                                                                         |
+| `<slide-ng-tweet id="20" scale="0.8" conversation="none" cards="hidden" />`                                                                                                            | an embedded tweet (loads Twitter's script, needs the network)                                                                                                                                                                                                                                                                                                                      |
+| `<slide-ng-blue-sky uri="at://did:.../app.bsky.feed.post/..." scale="0.8" />`                                                                                                          | an embedded Bluesky post (needs the network). `uri` can also be the post's web address                                                                                                                                                                                                                                                                                             |
+| `<slide-ng-code-group>`, `<slide-ng-code-block-wrapper>`, `<slide-ng-magic-move>`, `<slide-ng-katex-block-wrapper>`, `<slide-ng-mermaid>`, `<slide-ng-plant-uml>`, `<slide-ng-monaco>` | written by the generator for code fences and math; you normally use the markdown forms below                                                                                                                                                                                                                                                                                       |
+
+More props, as in Slidev:
+
+- `<slide-ng-switch unmount>` takes the children that are not shown out of the page (their Angular components stay alive);
+  `transition="fade"` (or `slide-left`, `slide-up`, `fade-out`, a `forward | backward` pair) animates the change, a bare `transition` is a fade.
+  Any other name runs its CSS classes, as a custom slide transition does: `transition="swing"` uses `.swing-enter-active`, `.swing-enter-from`, `.swing-leave-to`, ... from the deck's styles.
+  Slidev's `tag` and `childTag` have no use: the children are the elements written inside, not slots to wrap.
+- `<slide-ng-video printPoster="/still.png" printTimestamp="12">`: where the video does not play (print, export, overview) `printPoster`
+  replaces `poster`, and the frame at `printTimestamp` (seconds, or `last`) is shown; without `printPoster` the frame at `printTimestamp` or `timestamp` is shown.
+  `export` (also with `--dist`) serves the deck with byte ranges, so the browser can seek the video to that frame.
+- `<slide-ng-render-when context="visible">` shows its content while the element is on the screen (the element is a block then).
+  In a list, `visible` must hold too and, as in Slidev, counts as a match by itself. In print and export (PDF, PNG, PPTX) every slide
+  counts as on screen, wherever it is on the print page.
 
 The table of contents lists every slide that has a title and is not `hideInToc`. A slide whose level is higher than the one
 before it becomes its child: `# A`, `## A.1`, `## A.2`, `# B` gives A (with A.1, A.2) and B. In `mode="onlyCurrentTree"` only the path to
@@ -242,15 +384,15 @@ const a = 1;
 ```
 ````
 
-| part                        | meaning                                                                                                                                                   |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `[title.ts]`                | a title bar above the block                                                                                                                               |
-| `{2,3}`                     | lines 2 and 3 are highlighted, the others are dimmed. `{*}` highlights nothing and keeps every line normal                                                |
-| `{1\|3-4\|all}`             | one range **per click**: line 1, then lines 3 and 4, then everything (`hide` shows nothing; `all` shows all lines). Each `\|` adds one click to the slide |
-| `{at:'+1', finally:'last'}` | in the options: the first click of the ranges (default `+1`) and what is shown after the last click (`last`, `all`, `hide` or a range)                    |
-| `lines:true`                | line numbers (set `lineNumbers: true` in the headmatter for every block)                                                                                  |
-| `startLine:5`               | the first line number. Ranges use the numbers shown, as in Slidev: with `startLine:5` the first line is 5, so `{6,7}` is its second and third line        |
-| `maxHeight:'100px'`         | scroll inside the block                                                                                                                                   |
+| part                        | meaning                                                                                                                                                                                                        |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `[title.ts]`                | a title bar above the block                                                                                                                                                                                    |
+| `{2,3}`                     | lines 2 and 3 are highlighted, the others are dimmed. `{*}` highlights nothing and keeps every line normal                                                                                                     |
+| `{1\|3-4\|all}`             | one range **per click**: line 1, then lines 3 and 4, then everything (`hide` shows nothing; `all` shows all lines). Each `\|` adds one click to the slide                                                      |
+| `{at:'+1', finally:'last'}` | in the options: the first click of the ranges (default `+1`) and what is shown after the last click (`last`, `all`, `hide` or a range)                                                                         |
+| `lines:true`                | line numbers (set `lineNumbers: true` in the headmatter for every block)                                                                                                                                       |
+| `startLine:5`               | the first line number. Ranges use the numbers shown, as in Slidev: with `startLine:5` the first line is 5, so `{6,7}` is its second and third line; a step that picks none of the numbers shown gets a warning |
+| `maxHeight:'100px'`         | scroll inside the block                                                                                                                                                                                        |
 
 The ranges and the options are two separate braces, as in Slidev. Options only take simple values (numbers, `true`/`false`, text).
 Hover a block to get the copy button. Colours: `shiki: { themes: { light: 'vitesse-light', dark: 'vitesse-dark' } }` in the headmatter,
@@ -265,7 +407,12 @@ and `codeAliases: { mylang: 'ts' }` for extra language names. A language Shiki d
 <<< ./snippets/example.ts#greet
 <<< ./snippets/example.ts#greet ts {1|2}
 <<< @/snippets/example.ts {*}{lines:true}
+<<< ./snippets/example.ts#greet ts [example.ts ~i-carbon:code~] {1|2}
 ```
+
+The parts come in this order, each after the path optional: `<<< path#region lang [title] {ranges}{options}`, as in
+`<<< ./snippets/greet.py python [greet.py ~i-carbon:code~] {2}{lines:true}`. The title may have spaces and an icon; the path cannot
+have spaces (a word after it is read as the language).
 
 The path is relative to the markdown file; `@/` is the folder of the entry `slides.md`. `#greet` is a region written in the file as
 `// #region greet` ... `// #endregion greet` (also `<!-- #region -->`, `/* #region */`, `# region`). A missing file is a warning and a comment in the block.
@@ -289,7 +436,12 @@ yarn add @slide-ng/core
 ::
 ````
 
-The `~icon~` title syntax and the automatic file icons of Slidev are not drawn.
+An icon goes in front of a code block, code group tab or Magic Move title: write it in the title as `~i-set:name~` (`[npm ~i-carbon:terminal~]`; its `@iconify-json` set must be installed, and a name the installed set does not have gets a warning),
+or install `@iconify-json/vscode-icons` and Slidev's built-in icons are matched from the title (`npm`, `pnpm`, `vue`, `package.json`, `.ts`, `.svg`, ...; the longest name wins).
+A built-in name has to be a whole word of the title, a file's extension (`main.ts`, `App.vue`) or the start of a file name (`eslint.config.js`);
+unlike Slidev, which looks anywhere in the title, `results.tsv` gets no TypeScript icon.
+As in Slidev, every `~...~` in a title is taken out of the text shown, and the first one is the icon: `[a~b~c]` shows `ac` with the icon class `b`.
+A single `~` stays in the text; to show text between two `~`, there is no escape.
 
 ### Magic Move
 
@@ -314,6 +466,8 @@ const add = () => (count += 1);
 
 Each inner fence is one step; ranges inside a step add clicks of their own (`{*|1|2-3}` is three steps). Options after `magic-move`:
 `lines`, `at` (first click) and `duration` (ms; the headmatter `magicMoveDuration` sets it for the deck). A `[title]` before the options gives a title bar.
+The headmatter's `shiki.magicMove` takes the animation options of Slidev and `@shikijs/magic-move`: `duration`, `stagger` (ms, default 1), `delayMove`, `delayLeave`,
+`delayEnter`, `delayContainer`, `easing`, `animateContainer`, `containerStyle`, `splitTokens` and `enhanceMatching`. A block's `{duration}` wins, then `magicMoveDuration`, then `shiki.magicMove.duration`.
 
 ## Math
 
@@ -330,7 +484,8 @@ $$ {1|2|all}
 $$
 ```
 
-`{1|2|all}` after the opening `$$` steps through the formula's lines with clicks (the same range syntax as code). Inside math, `{{` is math, never
+`{1|2|all}` after the opening `$$` steps through the formula's lines with clicks (the same range syntax as code; the lines are the rows of its
+environment, split by `\\`, and a step that picks none of them gets a warning, as for code). Inside math, `{{` is math, never
 an interpolation. KaTeX's CSS and fonts are only part of the build when a deck uses math. `mhchem` is not loaded.
 
 ## Diagrams
@@ -346,7 +501,9 @@ A[Text] --> B{Decision}
 
 `theme` defaults to `dark` or `default` following the colour mode. Any other key is passed to Mermaid's own `initialize`. While a diagram is being drawn its
 element has `data-slide-ng-waitfor`; the attribute goes away when the picture is there (an exporter can wait for that).
-`<slide-ng-mermaid code="..." />` works as a tag too.
+`<slide-ng-mermaid code="..." />` works as a tag too. Mermaid is downloaded with the first diagram. Mermaid 12 lays flowcharts out with
+ELK by default, another 350 kB compressed for the first `graph`/`flowchart`; `{layout:'dagre'}` on the fence (or `layout: 'dagre'` in
+`setup/mermaid.ts`) uses the smaller dagre layout.
 
 PlantUML is a picture from a PlantUML server (the browser needs the network):
 
@@ -382,11 +539,18 @@ console.log('runs on a click and the result appears');
 - `{monaco}`: an editor with the code. Options (flat, after the braces): `lines`, `readonly`, `height` (`initial`, `auto` or a CSS size).
 - `{monaco-diff}`: two texts side by side, split by a line that holds only `~~~`.
 - `{monaco-run}`: an editor and a **Run** result below it. `autorun` is `true`, `false` or `'once'`; `showOutputAt:'+1'` shows the output after a click.
-  The code runs in a sandboxed frame with no access to the slides, and stops after 5 seconds. TypeScript is turned into JavaScript for you. `import` is not supported.
-- `{monaco-write}`: use it on a snippet line, `<<< ./snippets/demo.ts {monaco-write}` (a whole file inside the deck's folder). While you run `npm start`, edits are saved into that file about half a second after you stop typing. A region, a plain code block or a static build gets a normal editor (the generator warns for the first two).
-  Only text-like files inside the deck's folder can be written: an extension from a fixed list (`.ts .js .json .css .html .md .txt .yaml .py` and similar, see `scripts/lib/monaco-targets.mjs`), never `setup/`, `layouts/`, `components/`, `theme/`, `.git/`, `node_modules/`, `package.json`, lock files, config files, hidden files or `.slide-ng/`. The generator warns and shows a normal editor for any other file, and the dev server checks the target again at every write.
+  The code runs in a worker of a sandboxed frame, with no access to the slides, and stops after 5 seconds. A run stuck in an endless loop holds up nothing else: other runs and the slides go on, and pressing run again or leaving the slide stops it at once. `console` works; the worker has no `document`, `parent` or `alert`. TypeScript is turned into JavaScript for you. `import` is not supported.
+  The values of one `console.log` are shown on one line split by `, ` (`console.log(1, 'a')` shows `1, a`), as in Slidev's output.
+- `{monaco-write}`: use it on a snippet line, `<<< ./snippets/demo.ts {monaco-write}` (a whole file inside the deck's folder). While the dev server runs (`slide-ng dev`, `npm run dev` in a deck made with `slide-ng create`), edits are saved into that file about half a second after you stop typing. A region, a plain code block or a static build gets a normal editor (the generator warns for the first two).
+  Only text-like files inside the deck's folder can be written: an extension from a fixed list (`.ts .js .json .css .html .md .txt .yaml .py` and similar, see `scripts/lib/monaco-targets.mjs`), never `setup/`, `layouts/`, `components/`, `theme/` or `index.html` at the top of the deck's folder or of a theme or addon folder in it, `.git/`, `node_modules/`, `package.json`, lock files, config files, hidden files or `.slide-ng/`. The generator warns and shows a normal editor for any other file, and the dev server checks the target again at every write.
 
 Keys typed in an editor do not trigger slide shortcuts.
+
+`monaco: false` in the headmatter turns every `{monaco}`, `{monaco-diff}`, `{monaco-run}` and `{monaco-write}` block into a plain highlighted block;
+`monaco: dev` keeps the editors for `slide-ng dev` only, `monaco: build` for builds and exports only.
+Where the editors are off, a `{monaco-run}` with `showOutputAt` is plain code and has no click: with `monaco: build` its slide has one
+click less in `slide-ng dev` than in the build, so the click numbers after it and the `[click]` markers in its notes differ between the two.
+The editor costs nothing on the first slide: Monaco with its stylesheet (about 940 kB compressed, and the TypeScript worker another 1.1 MB) is downloaded the first time a slide with an editor is shown.
 
 ## Twoslash
 
@@ -400,6 +564,8 @@ const count = Math.max(1, 2);
 ````
 
 `//    ^?` shows the type of the word above the `^`, on a line of its own. A TypeScript error in the block is shown under its line (add `// @errors: <code>` to expect it), and the types still work.
+A code that `// @errors` lists but TypeScript does not report gets a warning naming the slide; the block is still drawn (an error the list leaves out is shown too, it is not checked).
+`twoslash: false` in the headmatter shows the blocks without types; `dev` or `build` runs Twoslash in that mode only (a build and an export count as `build`).
 
 ## Marks and motion
 
@@ -455,7 +621,42 @@ Footnote numbers are not links. A note is one paragraph of inline markdown.
 
 `{#id .class}` at the end of a heading puts an id and classes on it (`## Results {#results .text-red}`), and `{width=120}` or
 `{height=80}` right after a picture sets its size (`![logo](/logo.png){width=120}`). `:emoji:` shortcodes are not converted: type the emoji.
-A link to a `javascript:` address is replaced by `#` with a warning, because it would run code when clicked.
+
+### Links
+
+As in Slidev, a markdown link to a slide moves inside the deck, and a link to a web page opens a new tab:
+
+```md
+[go to slide 5](5), or [5](/5), [5](./5), [5](#/5)
+[pricing](/pricing) to the slide with `routeAlias: pricing`
+[results](#results) to a heading of this slide
+[the docs](https://example.org) in a new tab
+```
+
+- An address of only digits, or `/`, `./` or `#/` followed by a slide number or a `routeAlias`, becomes a `<slide-ng-link>`: a click moves to that
+  slide without loading the page again, with history or hash routing, a base or an offline folder, and Ctrl+click opens it in a new tab. A number
+  past the last slide goes to the last slide. An alias may be any name (`./café`, `./🚀`, `./My%20Alias`). Other addresses that start with `/` or `./`
+  (`/file.pdf`, a name that is no `routeAlias`) stay plain links; Slidev turns those into slide links too.
+- The generator warns, naming the slide, about a number past the last slide (`[far](99)`), a `./name` or `#/name` that is no `routeAlias`
+  (`/name` may be a page of the site, so it is not warned about) and a link to the alias of a slide with `hide:` or `disabled:`.
+- `#id` and `./#id` scroll to that element of the slide. `#5` is such an anchor too: write `5` or `#/5` for slide 5.
+- An `http:` or `https:` address gets `target="_blank" rel="noopener"`. Slidev opens every other link in a new tab; here `mailto:` and the like stay as they are.
+  To open a web page in the same tab, write the link as HTML: `<a href="https://example.com">x</a>` is left as written.
+- An `<a>` written as HTML whose `href` is `/`, `./` or `#/` and a slide number or `routeAlias` (`<a href="/3">`) becomes a `<slide-ng-link>`
+  in the same way, keeping its `class`, `id` and `style` (a bare `<a href="3">` is a relative address in HTML and stays). With other
+  attributes (`target`, a binding) it is left as written, with a warning that names its line: it does not reach the slide with hash
+  routing, a base or offline. A `#/3` is the slide's own address in a deck with `routerMode: hash` (also in a new tab), so there it
+  gets no warning.
+  Any other `<a>` is left as written.
+- On the print page and in an exported PDF a link to a slide points at the first page of that slide, if that slide is in the same file.
+  In a PDF made by `export` or `build --download`, a link to another address of the deck's own site (`/file.pdf`, `<a href="/3">`,
+  `[x](tokens)`) is kept as text without a link: it would point at the temporary server the export reads the deck from.
+- In speaker notes a web page opens a new tab too; a link to a slide stays a plain address. Clicked in the presenter, it moves the
+  presenter to that slide; in the notes window and elsewhere it opens the address.
+
+A link to a `javascript:` address is replaced by `#` with a warning, because it would run code when clicked (so is a `javascript:` or
+`data:text/html` address in an `<iframe>`'s `src` or an `<object>`'s `data`). An inline handler such as `onclick="..."` is kept and runs, with a
+warning; `(click)="..."` is the Angular way. An element left open in raw HTML (`<div>` without `</div>`) stops the build with a message that names it.
 
 ## Icons
 
@@ -554,6 +755,39 @@ Rules, so the markdown converter does not break your Angular code:
 - Slides have no component class of their own. To share state between parts of a slide use template
   references (`<app-counter #c />` then `{{ c.n() }}`) or `@let`.
 
+### The global context: `$clicks`, `$page`, `$nav`, `$frontmatter`, `$slidev`
+
+Every slide has Slidev's global context, under the same names. The values that change are Angular signals, so they are called:
+
+| name                   | what it is                                                                                                                         |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `$clicks()`            | the current click of this slide                                                                                                    |
+| `$page()`              | this slide's number (1-based)                                                                                                      |
+| `$renderContext()`     | where the slide is drawn: `slide`, `presenter`, `previewNext`, `print` or `overview`                                               |
+| `$frontmatter`         | this slide's frontmatter: `{{ $frontmatter.title }}`                                                                               |
+| `$nav`                 | the navigation: `currentPage()`, `currentLayout()`, `currentFrontmatter()`, `total`, `clicks()`, `next()`, `prev()`, `go(no)`, ... |
+| `$slidev.nav`          | the same as `$nav`                                                                                                                 |
+| `$slidev.configs`      | the headmatter: `{{ $slidev.configs.title }}`                                                                                      |
+| `$slidev.themeConfigs` | the headmatter's `themeConfig` (merged with the theme's)                                                                           |
+
+```md
+Slide {{ $page() }} of {{ $nav.total }}
+
+@if ($clicks() > 1) {
+Shown from the second click.
+}
+
+<button (click)="$nav.go(1)">Back to the start</button>
+```
+
+Vue reads `$clicks` without the call; here `{{ $clicks }}` would print the signal's function, so the generator warns about the
+uncalled forms (`$clicks`, `$page`, `$renderContext`, `$nav.currentPage`, ...) in interpolations, bindings (either quotes), `@let` and
+control flow. In a comparison an uncalled signal is more than a warning: `$page === 2` or `@if ($clicks > 1)` stops the build with
+Angular's type error (TS2367 for `===`, TS2365 for `>`), as a signal is not a number. The other way round, `$nav.total` (a
+number), `$nav.slides` and `$nav.tocSlides` (lists) and `$nav.isPresenter` are plain values: the generator stops on
+`{{ $nav.total() }}` and says to drop the `()`. `{{ clicks.current() }}` is the older spelling of `{{ $clicks() }}`.
+`$page()` is the number of the slide that is drawn, `$nav.currentPage()` the one on screen; they differ in thumbnails and the PDF.
+
 ## Showing code that contains braces
 
 Code fences and inline code are always plain text. Nothing inside them is read as Angular:
@@ -610,6 +844,36 @@ error. Attributes are set as written; bind a property with `[prop]="value"`.
 In the PDF and in the overview every slide is drawn at once, so `Nav.no()` is the slide being presented, not the slide being drawn:
 inject `SLIDE_NO` to know which slide a component is in.
 
+Slidev's slide hooks are in `slide-ng/lib/slide-hooks`. Call them in an injection context (a field or the constructor of a component):
+
+- `onSlideEnter((to, from) => ...)` runs once the component is drawn when its slide is the one on screen, and each time the deck comes back to it.
+- `onSlideLeave((to, from) => ...)` runs when another slide is shown after this one.
+- `isSlideActive()` is a signal, true while the slide is the one on screen (Slidev's `useIsSlideActive`).
+
+`to` and `from` are slide numbers (1-based), `from` is `undefined` when no other slide was shown before. The hooks run on the slide and presenter pages and in print
+(`export` and the PDF), not in thumbnails or the presenter's next slide preview. In print every page is its slide on screen, as in Slidev:
+`onSlideEnter` runs once per page when it is drawn (`from` is `undefined`), `onSlideLeave` never runs, and `isSlideActive()` is true for
+every slide; elsewhere it is false. Something that a hook animates (a count-up) is captured as it is when the page is taken: give `export` a `--wait`. The deck
+removes a slide it leaves, so a component that should remember something across visits keeps it outside the component. A hook that
+throws is reported in the browser console; the other hooks of the slide still run.
+
+```ts
+import { Component, signal } from '@angular/core';
+import { isSlideActive, onSlideEnter } from 'slide-ng/lib/slide-hooks';
+
+@Component({
+  selector: 'enter-count',
+  template: '{{ active() ? "here" : "away" }}, entered {{ n() }} times',
+})
+export class EnterCount {
+  active = isSlideActive();
+  n = signal(0);
+  constructor() {
+    onSlideEnter(() => this.n.update((v) => v + 1));
+  }
+}
+```
+
 A slide is drawn in every window that shows it: the presenter page and each audience page (they keep the same slide and click). A
 component that only shows things needs nothing more. One that acts (a timer that calls `nav.next()`, a sound, a request) does so in
 every window, so the deck would move twice: act in one window only, for example when `inject(RENDER_CONTEXT)` (from
@@ -619,16 +883,58 @@ or `'overview'` in previews.
 ## Styling
 
 Use [UnoCSS](https://unocss.dev) utility classes (Tailwind-like names) in HTML and in `class:`
-frontmatter. The CSS for the classes you use is built automatically.
-Responsive prefixes (`md:`, `lg:`) follow the browser window, not the slide, which keeps its own size and is scaled: the same slide
-can show another column count on a phone, in the presenter preview or in the PDF. Use plain classes for the slide's layout.
+frontmatter. The CSS for the classes you use is built automatically. As in Slidev:
+
+- **Variant groups**: `class="hover:(bg-blue-500 text-white)"` is written as `hover:bg-blue-500 hover:text-white` while generating,
+  in attributify values (`text="hover:(red-500 xl)"`) and as a bare attribute too (`<div p-4 hover:(bg-teal-50 border-teal-400)>`
+  becomes `<div p-4 hover:bg-teal-50 hover:border-teal-400>`). Only a slide's markup is expanded: not code blocks or inline code,
+  which are shown as written, and not the `.ts` files of `components/`, layouts, `setup/`, themes or addons, which write the classes out.
+- **Attributify**: utilities as attributes, `<div flex="~ col" text="sm red-500" p="4">`, also with a variant in the name
+  (`hover:bg="blue-500"`) and valueless (`<div flex items-center>`). Angular keeps such attributes as they are. Only the deck's own files
+  (slides, `components/`, layouts and other files of the deck, themes and addons) are read this way, not slide.ng's own source.
+  Some attributes are never read as utilities, because they are inputs or draw an SVG: those of slide.ng's components
+  (`<slide-ng-toc columns="2">`, a diagram's `scale`), the frontmatter keys a layout takes (`scale: 0.8` of `iframe-right`), the inputs of the deck's own components (a `grid = input(false)` in
+  `components/stat-row.ts`: `<stat-row grid />` sets the input, it does not make every `[grid]` element a CSS grid), and those of
+  SVG elements (`<text font-size="14">`, `<path stroke-width="2">`, inside an `<svg>` or written alone in a `.ts` string, as a
+  `setup/mermaid-renderer.ts` does). Use `class` there. An attribute of your component that is not one of its inputs (`<stat-row p="4">`)
+  still styles the component's element. Plain HTML attributes are read too: `<table border="1">` gets a border, `<span font="bold">`
+  is bold, `<div m="4">` gets a margin. `unocss: { attributify: false }` in the headmatter turns attributify off for the deck
+  (a deck written for 1.x that uses such attributes as HTML); classes and variant groups still work. An attribute name cannot have a
+  `/` in it: a bare `<div bg-black/50>` or `<div hover:(bg-black/10)>` stops the generator with a message that says to write it in the
+  class (`class="bg-black/50"`) or with a value (`bg="black/50"`).
+- **Shortcuts**: `text-primary`, `bg-primary` and `border-primary` are shortcuts for the theme's colour (`--slidev-theme-primary`), as
+  in Slidev, so they take no opacity: `bg-primary/10` and `border-primary/40` do nothing. Write the colour out (`bg-teal-600/10`), or
+  use `color-mix(in srgb, var(--slidev-theme-primary) 10%, transparent)` in a `<style>`.
+- **What is scanned**: the deck's files are read as text, as in Slidev, so a word in backticks in a slide or a note (`` `grid` ``)
+  still makes its utility and attributify CSS (`[grid=""]`). That rule also styles an element whose `grid` attribute is a
+  component's input; name the input otherwise, or leave the word out of backticks.
+- **Typography**: `class="prose"` styles long text (headings, lists, links, quotes), `dark:prose-invert` for dark mode, `not-prose` to opt out.
+- **Directives** in `<style>` and `styles/`: see Per-slide styles.
+  Responsive prefixes (`md:`, `lg:`) follow the browser window, not the slide, which keeps its own size and is scaled: the same slide
+  can show another column count on a phone, in the presenter preview or in the PDF. Use plain classes for the slide's layout.
 
 ## Presenter, notes and timer
 
 Open `/presenter` (or press the presenter button) for the presenter page: current slide, next step, notes with click markers, a clicks slider and the timer.
 The audience page (`/3`) in another window or on another device follows it; `/notes` shows only the notes and follows too.
+An audience page opened (or reloaded) while a presenter page is open goes to the presenter's slide and click, whatever its address says (`/3` shows the presenter's slide 7), as in Slidev, once that presenter has moved: a presenter page that only opened takes along an audience page at slide 1, not one at another slide. Disable in its sync menu lets it look around on its own.
+`/overview` lists every slide with its notes beside it and a clicks slider under it (the button at the top of the quick overview, `o`,
+goes there); `/entry` links to the slides, presenter, notes and overview pages.
 In notes, `[click]` marks where the next click starts and `[click:3]` moves three clicks on (counted from the marker before it, as in Slidev); double click a marker to jump there. The layout button cycles three arrangements.
+Drag the borders of the notes pane to change its width and height; each layout keeps its own sizes in the browser (240 to 720 px wide, at most 70% of the page; at least 160 px high, at most 75%). Layout 1 on a tall, narrow screen has no handles.
+In dev, **Edit Notes** (the pencil next to the font size buttons) turns the notes into a text box: what you type is saved as the slide's note in the markdown (only the note, half a second after you stop; Ctrl/Cmd+S at once). Escape, a click outside or the pencil ends editing, and the click markers work again. The bar's editor button shows the side editor in the notes pane. Neither is in a build.
 Windows of one browser follow each other with no server; other devices need the dev server (see Remote below).
+The sync button in the bar (up and down arrows, before the settings; there whenever the deck has a presenter) opens Slidev's sync mode menu: Bidirectional Sync, Receive Only, Send Only or Disable.
+It sets how this window takes part in navigation sync. The choice is kept per role (viewer or presenter) in the browser's storage (`slidev-sync-directions`) and applies to every window of that role in the browser.
+A viewer on another device (not `localhost`, not a folder) only follows, so there Bidirectional Sync and Send Only are disabled, with a note that says why.
+Opening the menu, with the mouse or with Enter on the button, puts the focus on the ticked mode; there the arrow keys move between the modes (not through the slides; on a right-to-left page ArrowLeft is the next mode, as seen), and Escape closes it and puts the focus back on the sync button.
+Use one presenter page. Two presenter pages do not follow each other: each keeps its own slide, and the audience follows the one that moved last
+(a window that opens later or a presenter page that opens or reloads does not change that, also when the devices' clocks are not set alike).
+A presenter page that opens shows where it is but does not move the audience: an audience page that opens at the start of the deck joins it,
+and one that opens or reloads at another slide (its address) keeps that slide until a presenter moves, also when the presenter that moved
+last was closed.
+To use a phone as the remote, open the presenter page on the phone and only the audience page on the laptop that drives the projector; an
+audience page on another device only follows.
 
 ```md
 ---
@@ -637,7 +943,80 @@ timer: countdown # or stopwatch (default)
 ---
 ```
 
+The timer is shared: every window and device shows the same time passed, also when their clocks are not set alike (each message carries the
+sender's clock). A reload of the presenter tab keeps it. A presenter tab opened again gets it from any other open window of the deck, and while
+the dev server runs from the server too; in a built deck with no other window left open it starts again. Every tab keeps the timer it shows,
+so a restart of the dev server (`r`) keeps it too. As with moves, the newest change wins: a start, pause or reset carries its time, so a
+tab that comes back with the timer it kept (a reload, a phone tab the browser had put away) does not undo a later reset or pause from
+another window. Hover the clock (or Tab to it) for the pause, play and reset buttons; on a touch screen they
+are always shown.
+
 The presenter's mouse is shown on the audience page as a pointer or a red laser dot (settings menu, or the bar button).
+
+**Click preview** (slide.ng's own, Slidev has none): the eye button in the presenter's bar, or `u`, draws the whole current slide on the presenter page.
+Parts already shown look as usual, the part of the next click is brighter with a dashed outline, the parts of later clicks are greyed out, and each part
+a later click changes has a badge with that click's number. Click a badge or a greyed-out part to go to that click in every window (a link or button inside a greyed-out part is not run; while drawing, the pen gets the click). Only the presenter's
+current slide changes: the audience, `/notes` and the next-step pane do not. The choice is remembered in the browser (`slide-ng-presenter-click-preview`).
+
+- `slide-ng-click`, `slide-ng-after`, ranges, `<slide-ng-clicks>` items and `{monaco-run}` output (`showOutputAt`) are drawn greyed out until their click; a range on screen is marked again where it ends.
+- `slide-ng-click-hide` (and the end of `slide-ng-click="2" slide-ng-click-hide="3"`) stays as it is until it goes, with its badge. That badge's
+  number is struck through and it is named "Go to click N, where this part goes away"; as the next click the part's outline is dotted, not
+  dashed (class `slide-ng-click-hides`), so it does not look like a part that appears there.
+- Code line steps, magic-move, `slide-ng-mark` and `slide-ng-motion` click variants are drawn as they are at the current click, with a badge for their next change.
+- `<slide-ng-switch>` shows only its current child; the badge on the switch says when it changes.
+- A part with a click animation preset (`.up`, `.left`, `.scale`, ...) or a deck's own hidden style (Slidev's
+  `.slidev-vclick-hidden { transform: scale(0) }`) is drawn at its place and size: while a part is a greyed-out ghost its
+  `transform`, `translate`, `scale` and `rotate` are reset, so a part's own transform is not shown until its click.
+  A ghost always has the ghost opacity, also with a preset that dims or hides it (`fade`, `fade-in`) or a deck's own
+  `.slidev-vclick-hidden.x { opacity: 0 !important }`.
+- A fractional click (`slide-ng-click="1.5"`) has the badge of the whole click it shows at (2), as the nav steps one whole click
+  at a time, also when it is the slide's last click (the nav stops at 1.5, and the counter reads 1.5); a range that no click
+  is in (`[3, 1]`, `[0, 0]`) gets no badge.
+- Content in `@if (clicks.current() > 2) { ... }` (Slidev's `v-if="$clicks > 2"`) is not previewed: it is not on the page until its click, so it has no greyed-out part and no badge.
+  Use `slide-ng-click` (or `slide-ng-click="3"`) for content the preview should show.
+- In a right-to-left deck or part (`dir: rtl`) the badge sits at the part's inline start, its right edge.
+
+Themes change the look with `--slide-ng-ghost-opacity` (0.47, 0.4 in dark mode: about 3:1 for the default text colours), `--slide-ng-ghost-next-opacity` (0.75), `--slide-ng-ghost-next` (unset: the theme's primary colour, also one set with `themeConfig`),
+`--slide-ng-ghost-badge-background` and `--slide-ng-ghost-badge-foreground`. The classes on the parts are `slide-ng-click-ahead` and `slide-ng-click-next`,
+with the click in `data-slide-ng-click-at`. Screen readers skip the greyed-out parts (the next slide pane already has the next click),
+and what a greyed-out part holds is inert: its links, buttons and fields are no Tab stops until the part shows. The keyboard way is the
+badges: each badge is a button named "Go to click N", 24 by 24 screen pixels to hit. The notes PDF (`export-notes`, `/presenter/print`) has no click preview.
+
+## Progress bar
+
+`progressBar` in the headmatter draws a thin bar along the edge of every slide that fills as the deck goes on: empty on the first slide,
+full on the last, and the clicks of a slide fill part of the way to the next one (the clicks of the last slide do not count, as in
+the presenter's bar). It is drawn on the audience page, the presenter's slide and next step, and in print and export.
+`progressBar: true` uses the defaults, `progressBar: top` (or `bottom`) is short for `position: top`, and an object sets the options.
+Any other value draws no bar, and the build warns about it. The minutes are in the interface language (`uiLang`; keys `progress.minutes*` in docs/UI-STRINGS.md).
+
+```md
+---
+progressBar:
+  position: top # or bottom (default)
+  height: 6 # slide pixels, default 4
+  color: '#e11d48' # default: the theme's primary colour
+  track: '#0001' # colour of the empty part, default transparent
+  clicks: false # count whole slides only (default true)
+  minutes: true # show the presenter timer's minutes (left of a countdown, passed on a stopwatch) while it runs
+---
+```
+
+`<slide-ng-progress-bar />` places the same bar yourself, in a slide or a layer, with the same options as attributes;
+`position="inline"` keeps it where it is written instead of on an edge. Not in Slidev, which has the bar on its presenter page only.
+In a layer (a plain Angular component, see Layers below) add it to the component's `imports`:
+
+```ts
+import { Component } from '@angular/core';
+import { SlideProgressBar } from 'slide-ng/builtin/progress-bar';
+
+@Component({
+  selector: 'my-global-bottom',
+  imports: [SlideProgressBar],
+  template: '<slide-ng-progress-bar position="bottom" height="6" />',
+})
+export default class MyGlobalBottom {}
+```
 
 ## Drawing
 
@@ -663,7 +1042,7 @@ The presenter page has a **Screen Mirror** switch that shows a shared window ins
 
 ## Settings menu
 
-The same controls as Slidev, in the same order: Invert, Brightness, Contrast, Saturation, Sepia and Hue Rotate (slider and number box, Slidev's ranges and defaults; remembered under `slidev-viewer-css-filter`), Cursor Style (Cursor or Laser, `slidev-cursor-style`), Slide Scale (Fit or 1:1, not on the presenter page), Wake Lock (headmatter `wakeLock: true` starts it on; only where the browser supports it) and Hide Idle Cursor (not on the presenter page). The laser dot follows the pointer on the main page too. Below a divider: Show Presenter Cursor (presenter page), Dark Mode (only when `colorSchema` is `auto`), camera options and "Download as PDF".
+The same controls as Slidev, in the same order: Invert, Brightness, Contrast, Saturation, Sepia and Hue Rotate (slider and number box, Slidev's ranges and defaults; remembered under `slidev-viewer-css-filter`), Cursor Style (Cursor or Laser, `slidev-cursor-style`), Slide Scale (Fit or 1:1, not on the presenter page), Wake Lock (on by default, `wakeLock: false` turns it off and removes the entry; a choice the browser stored wins; only where the browser supports it) and Hide Idle Cursor (not on the presenter page). The laser dot follows the pointer on the main page too. Below a divider: Show Presenter Cursor (presenter page), Dark Mode (only when `colorSchema` is `auto`), camera options and "Download as PDF".
 "Download as PDF" appears with `download: true` and is enabled only when the build made the PDF (`slide-ng build` with `download: true` or `--download`, see HOSTING.md).
 
 ## Moving things: `slide-ng-drag`
@@ -684,7 +1063,7 @@ dragPos:
 ```
 
 Click an element to select it: corner handles resize (Shift keeps the shape), the round handle above rotates (Shift snaps to 15 degrees), arrow keys move it 1 px (Shift: 10 px).
-While the dev server runs (`slide-ng dev`, or `npm start` in this repository), the new place is written back into slides.md (a name is written to `dragPos`). A built deck keeps a move only until the page closes.
+While the dev server runs (`slide-ng dev`, or `npm run dev` in a deck made with `slide-ng create`), the new place is written back into slides.md (a name is written to `dragPos`). A built deck keeps a move only until the page closes.
 Put the element directly in the slide (not inside a positioned wrapper), as in Slidev.
 
 ## Size, zoom, layers and routing
@@ -694,26 +1073,53 @@ Put the element directly in the slide (not inside a positioned wrapper), as in S
 canvasWidth: 980 # default 980, like Slidev
 aspectRatio: 16/9 # or 4/3, 1.6 ...
 zoom: 0.8 # all slides; a slide's own `zoom:` wins
-routerMode: hash # addresses look like /#/3 (default: history)
+routerMode: hash # addresses look like /#/3 (default: history; memory never changes the address, see HOSTING.md)
+preloadImages: { ahead: 3 } # default true (3 slides ahead); false turns it off
 ---
 ```
 
-Layers: add any of `layers/global-top.ts`, `global-bottom.ts`, `slide-top.ts`, `slide-bottom.ts` next to `slides.md` (or in a theme or addon), each `export default` of a standalone component.
+Pictures are loaded before their slide is shown, as in Slidev: after each move the pictures of the slide on screen, the one before and the next
+`ahead` slides (`0`: none ahead) load in idle time, and 3 seconds after the page has loaded every slide's. At most two pictures load at a
+time, the ones of the slides around the current one first, so on a slow network the whole deck does not hold up the next slide. When the browser
+asks to save data (`navigator.connection.saveData`) or the connection is 2g or 3g, only the slides around the current one are loaded ahead: the
+whole-deck pass costs a download of every picture of the deck, which a phone on mobile data may not want. The generator lists each slide's pictures: `<img src>`
+(and markdown pictures), `url()` in inline styles, and the frontmatter's `image`, `backgroundImage` and `background`. A slide with
+`preload: false` in its frontmatter is left out. A component can read the progress from `slide-ng/lib/preload-images`
+(`preloadProgress`, 0 to 1, and `preloadComplete`, both signals). A picture that still fails after two retries (a missing file)
+counts as done, so the progress reaches 1; with `preloadImages: false` it is 1 (complete) from the start. When the whole-deck pass is skipped
+(save data, 2g, 3g), `preloadComplete` becomes true only once every slide's pictures were loaded by visiting them. All slides are in the first bundle, so `preload` has no other effect here.
+
+Layers: add any of `layers/global-top.ts`, `global-bottom.ts`, `slide-top.ts`, `slide-bottom.ts`, `custom-nav-controls.ts` next to `slides.md` (or in a theme or addon), each `export default` of a standalone component.
 `global-*` appear once over or under all slides, `slide-*` inside every slide (inject `SLIDE_NO` to know which). They let clicks through; give your own elements `pointer-events: auto` if they need the mouse.
+`custom-nav-controls` adds its content to the end of the navigation bar, after the slide counter, on the deck and on the presenter page (as in Slidev).
+For the other layers the deck's file replaces a theme's or addon's; `custom-nav-controls` of every root is drawn instead: the theme's first, then each addon's, then the deck's.
+Give a button `class="slidev-icon-btn"` and a `title` to look like the built-in ones, and inject `Nav` (`slide-ng/lib/nav`) to move: `(click)="nav.next()"`.
+A layer's template is not a slide: the built-in tags are not there by themselves, so import each one it uses (`SlideProgressBar` from `slide-ng/builtin/progress-bar`, for example).
 
 ## Dev-only extras and remote use
 
-While the dev server runs (`slide-ng dev`, or `npm start` in this repository): the **edit** button in the bar opens a side editor with the current slide's markdown (saved as you type), slide-ng-drag and drawings are written to files, and `{monaco-write}` saves.
+While the dev server runs (`slide-ng dev`, or `npm run dev` in a deck made with `slide-ng create`): the **edit** button in the bar opens a side editor with the current slide's markdown (saved as you type; on the presenter page it takes the notes pane), the presenter's notes can be edited in place, slide-ng-drag and drawings are written to files, and `{monaco-write}` saves.
+A double click on a note in `/overview`, or Enter on it (Tab reaches it), edits it (leaving the text saves it, Escape cancels). On a narrow screen the notes are below each slide. `/notes-edit` has every note in one text,
+each after a `--- #N` line; the notes that changed are saved after a short pause, and a text whose `--- #N` lines were changed is not saved.
+Saving a note rebuilds the deck and reloads the page; `/notes-edit` keeps the caret and what was typed meanwhile, also while the
+page starts again (`src/index.html` keeps those keys until the text is back, only on a load of `/notes-edit` itself; a static build leaves that script out) and while the notes are read again; only a key pressed
+in the instant the browser swaps the page is lost. Both note editors take each line's direction from its first letter
+(`unicode-bidi: plaintext`), so a line mixing Arabic and Latin keeps its order in either kind of deck.
+A `-->` in a note would end the comment early, so it is written `-- >`, as the presenter's note editor does.
 A static build has none of this and makes no requests.
 
 ```sh
-npm start -- --remote=secret     # (or `slide-ng --remote=secret`) others on your network can open the deck and follow the presenter
-npm start -- --remote            # makes a random password and prints it (there is no remote mode without a password)
-SLIDE_NG_PASSWORD=secret npm start -- --remote   # keeps the password out of the process list; a terminal also gets a prompt
+slide-ng dev --remote=secret     # (or `npm run dev -- --remote=secret`) others on your network can open the deck and follow the presenter
+slide-ng dev --remote            # makes a random password and prints it (there is no remote mode without a password)
+SLIDE_NG_PASSWORD=secret slide-ng dev --remote   # keeps the password out of the process list; a terminal also gets a prompt
 ```
 
 It prints the public and private deck addresses and the presenter address (`/presenter/1?password=secret`). Use that address on the presenter's device; a viewer opens `http://<your address>:4230/1?password=secret`.
-The password lets a device sync and write (slides, drawings and the `{monaco-write}` files), and opens the presenter and notes pages: without it they go to the slides. It is sent without encryption, so use it on a network you trust. See [SECURITY-MODEL.md](SECURITY-MODEL.md).
+The public address only shows the slides: a device that opens it and dismisses the password prompt does not follow the presenter. The password lets a device sync and write (slides, drawings and the `{monaco-write}` files), and opens the presenter, notes, overview and notes editor pages: without it they go to the slides. It is sent without encryption, so use it on a network you trust. See [SECURITY-MODEL.md](SECURITY-MODEL.md).
+
+The dev server also serves MCP over HTTP at `http://localhost:4230/__mcp` (streamable HTTP, as Slidev's): the slide tools of `slide-ng mcp`,
+plus `get_info` (with `--remote` it also lists the addresses other machines open, `remoteUrls`, without the password) and `goto_slide`, which moves every open window. With `--remote` a client sends the password as `Authorization: Bearer <password>` (spaces inside it included; spaces at its start or end are ignored; a password that is not ASCII may be sent as UTF-8 or Latin-1; `fetch` cannot send a character above U+00FF, so a client built on it sends the UTF-8 bytes itself, see CLI.md).
+`mcp: false` in the headmatter turns it off.
 
 ## The page, export and build
 
@@ -728,7 +1134,7 @@ info:
   ## About this talk
 author: Ada
 keywords: [angular, slides] # a list or a comma separated text
-lang: en # <html lang>
+lang: en # <html lang> (written pt-BR for pt_br), the interface language and the locale of dates and numbers (see Translating the interface)
 favicon: /favicon.ico # a file of public/, or a web address
 htmlAttrs: { data-theme: x } # more attributes on <html>
 seoMeta: # Open Graph and Twitter tags (ogTitle, ogDescription, ogImage, ogUrl, twitterCard, ...)
@@ -757,7 +1163,8 @@ A build (`slide-ng build`) writes files of `public/` that slides name with a lea
 
 A relative address that `public/` does not have, but that names a file in the deck's folder (`![](./images/chart.png)`, `<img src="../shared/logo.svg">`
 from a slide in `pages/`), is copied into the build and served from `/_local/` (as Vite bundles such pictures for Slidev). A file outside the
-deck's folder is not; `url()` in a `<style>` is not rewritten this way, so put those pictures in `public/`.
+deck's folder is not; `url()` in a `<style>` is not rewritten this way, so put those pictures in `public/`. `public/` must be a real folder: a
+symbolic link there (or for `layouts/`, `components/` and the other folders) is not followed, and the generator warns.
 
 `export:` takes `format`, `range`, `withClicks`, `dark`, `timeout`, `wait`, `waitUntil`, `withToc`, `perSlide`, `scale` and `omitBackground`. It cannot name an output folder or
 a browser program: a deck may come from someone else, so those only come from the command line or the environment.
@@ -776,19 +1183,44 @@ A theme or addon can bring layouts, components, layers, CSS, public files, UnoCS
 (`layouts/`, `components/`, `layers/`, `styles/`, `public/`, `setup/`) work the same way and win over the theme. `slide-ng theme eject` copies the theme you use into `./theme`.
 A package name that is not installed stops the run with the command that installs it (in a terminal it asks first, like Slidev). The full contract is in THEMES.md, a walk-through in WRITING-A-THEME.md.
 
+`themeConfig` sets values the theme reads, as in Slidev. Each key with a text or number value becomes a CSS variable
+`--slidev-theme-<key>` on `<body>` (the key as written: `primary` is `--slidev-theme-primary`, `accentDark` is
+`--slidev-theme-accentDark`), in the page, the presenter, the PDF and offline builds. `primary` recolours the built-in
+accent (`text-primary`, `bg-primary`, `border-primary`, the progress bar and the controls):
+
+<!-- prettier-ignore -->
+```md
+---
+themeConfig:
+  primary: '#5d8392'
+---
+```
+
+The theme's `theme.json` can give defaults; the deck's keys win, key by key. A key must be letters, digits, `-` and `_`, and a
+value that could leave the CSS declaration (`;`, `{`, `}`, `<`, `>`, `\`, a comment, a line break, unclosed quotes or brackets) is
+skipped with a warning, and so is a `url(...)` or `image-set(...)` (the generated CSS cannot find the file; name pictures in
+the theme's or the deck's CSS). The value is the same in light and dark mode. A number is written as it is, without a unit, as
+in Slidev: `radius: 6` is `--slidev-theme-radius: 6`, which CSS does not take as a length; write `radius: 6px` for one (or
+`calc(var(--slidev-theme-radius) * 1px)` in the CSS). A slide reads the whole map as `themeConfig`
+(`{{ themeConfig['primary'] }}`, Slidev's `$slidev.themeConfigs`); lists and objects are kept there but are not CSS variables.
+
 ## Keys, mouse and the interface
 
-| key                          | action                                                   |
-| ---------------------------- | -------------------------------------------------------- |
-| right, space, page down      | next click, or next slide                                |
-| left, shift + space, page up | previous click, or previous slide                        |
-| down, shift + right          | next slide (skips the clicks)                            |
-| up, shift + left             | previous slide                                           |
-| `f`                          | fullscreen                                               |
-| `o` or backtick              | slide overview (arrows move, Enter opens, Escape closes) |
-| `d`                          | dark / light                                             |
-| `g`                          | go to a slide: type a number or part of a title, Enter   |
-| Escape                       | close the overview, dialogs and menus                    |
+| key                          | action                                                                              |
+| ---------------------------- | ----------------------------------------------------------------------------------- |
+| right, space, page down      | next click, or next slide                                                           |
+| left, shift + space, page up | previous click, or previous slide                                                   |
+| down, shift + right          | next slide (skips the clicks)                                                       |
+| up, shift + left             | previous slide                                                                      |
+| `f`                          | fullscreen                                                                          |
+| `o` or backtick              | slide overview (arrows move, Enter opens, Escape closes)                            |
+| `d`                          | dark / light                                                                        |
+| `g`                          | go to a slide: type a number or part of a title, Enter (any case, accents optional) |
+| Escape                       | close the overview, dialogs and menus                                               |
+| `u`                          | presenter page: show or hide the upcoming clicks                                    |
+
+In a right-to-left deck the keys stay physical (right is next), the overview arrows follow its mirrored grid, and transitions are
+not mirrored (see [UI-STRINGS.md](UI-STRINGS.md)).
 
 The bar at the bottom left (fullscreen, previous, next, overview, dark mode, drawing, presenter mode, info, settings, counter)
 shows when the mouse is there. Drawing, presenter mode, camera and recording (when `record` is on) and the dev-only editor button are live. Right click opens a menu with the same actions;
@@ -809,3 +1241,99 @@ export default (actions: ShortcutActions, list: Shortcut[]): Shortcut[] => [
 Dark mode follows the system until the user presses `d` or the sun/moon button; the choice is kept in the browser
 (`localStorage`, key `slidev-color-schema`). `colorSchema: light` or `dark` in the headmatter fixes it and hides the button.
 Dark styles for your own markup: UnoCSS `dark:` classes work (`dark:text-white`).
+
+Touch: on the audience page (`/3`) a swipe left or right moves through the clicks, up or down through the slides (not while
+drawing, and not when the finger starts on a `slide-ng-drag` element or one of its handles: that moves the element). The presenter
+page and `/notes` have no swipes. The bar has no hover on a touch screen: the first tap on the hidden bar only shows it, the next tap
+presses a button, and a touch on the slide hides it again. On a screen taller than the slide (a phone held upright) the bar is always shown.
+
+## Accessibility
+
+- **Screen readers** hear the number and title of each new slide (a polite live region). A title is read as plain text: its markdown marks
+  go and `$math$` is its TeX, with TeX's one-character escapes undone (`$400\%$` is "400%": `\%`, `\$`, `\{`, `\}`, `\_`, `\&`, `\#`,
+  and `\,` as a thin space), so no "backslash" is read (the same text is the tab title, the "go to" list and the PDF outline). Elements that wait for a click are
+  hidden from them until they show. The presenter page has three named regions (Current slide, Next step, Notes); the next-step picture
+  is skipped, so headings are not read twice. Line numbers of code and of Magic Move are skipped too.
+- **Landmarks and headings**: the slide (with the bar) is the page's main landmark; the presenter, `/overview` and `/notes` each have a
+  main landmark (`/notes-edit` too) and a level-one heading (visually hidden on the presenter and `/notes`); `/entry` and the notes print page have a main
+  landmark. The quick overview, the right-click menu and the "go to" box are named dialogs, with all their controls inside.
+- **Keyboard**: in the quick overview (`o`) the arrow keys move the focus from card to card, and each card is named "Go to slide N: title".
+  In the presenter's click preview the badges are the keyboard way to a later click (see Click preview); after Enter on one the focus
+  moves to the badge of the click after it (to the Current slide region at the last click). After Edit Notes, Escape gives
+  the focus back to the Edit Notes button. On `/overview` (while developing) each note is a named group that says it can be edited:
+  Enter or a double click edits it, and how the save ended ("Saved.", "Not saved.") is said in a polite live region.
+  Escape in the settings menu (also in its number fields) closes it and gives the focus back to its button, as in the sync menu.
+  The bar's pen button says whether the drawing toolbar is open (`aria-expanded`), and Escape on the toolbar gives it the focus back.
+- **Right-click menu by keyboard**: Shift+F10 or the menu key opens it, with the focus on its first item. The arrow keys, Home, End and
+  Tab move between the items, Enter or Space runs one, and Escape closes the menu and gives the focus back to where it was. While the
+  menu is open the deck's keys (arrows, `o`, `g`, ...) do nothing, also when it was opened with the mouse.
+- **"Go to" box**: a slide number may be typed with Arabic-Indic or Persian digits (`٣`, `۳`); each option reads "N title".
+- **Progress bar**: `progressBar` is a `progressbar` named "Progress through the slides" (translatable: `progress.label`).
+- **Presenter panes**: the borders of the notes pane (separators named "Resize notes panel" and "Resize notes panel height") are Tab stops
+  with their size in `aria-valuenow`: the arrow keys move a border 16 pixels (64 with Shift), Home and End give the notes their smallest
+  and biggest size.
+- **Contrast and size**: the interface's text is at least 4.5:1 (3:1 for large text) in light and dark mode, also the notes of later
+  clicks, which are faded to 0.75 once (a part inside a faded paragraph is not faded again), and the "No notes." placeholder; its
+  icon buttons are at least 24 by 24 pixels, also the click preview's badges (however small the presenter draws the slide) and the
+  timer's pause and reset buttons, which sit side by side with a gap. A theme that changes the colours or `.slidev-note-fade`
+  has to keep that. The settings and sync menus and the info dialog stay inside the window down to 320 by 180 pixels (400% zoom) and
+  scroll.
+- **Reduced motion**: when the system asks for less motion (`prefers-reduced-motion: reduce`), slide transitions, click fades,
+  `slide-ng-motion` and Magic Move change at once (every CSS transition and animation is cut to almost zero). JavaScript timers in your own
+  components are not changed; check `matchMedia('(prefers-reduced-motion: reduce)')` there.
+- **Forced colors** (Windows high contrast): the browser's colours replace the deck's. The interface's icons are drawn in the text colour,
+  so the buttons stay visible, and the progress bars are filled with the system's highlight colour; colours you set on your own icons are
+  not kept in that mode.
+- **Pictures**: write the text alternative with markdown (`![A red bridge at night](/bridge.jpg)`) or `<img alt="...">`. A picture given as
+  `image:` or `background:` in the frontmatter is a CSS background and cannot have one: when it carries meaning, put an `<img alt>` in the
+  slide or say it in the text.
+- **Mermaid**: `accTitle: ...` and `accDescr: ...` lines in the diagram become the title and description of the SVG, which screen readers read.
+- **Math** is read as its TeX source (`\frac{a}{b}`, not "a over b"): KaTeX is drawn without MathML, and the TeX is in visually hidden text,
+  in the slide and in a title drawn by `<slide-ng-title-renderer>` or the table of contents alike.
+  Say a formula in words in the text or the notes when the audience needs it.
+
+## Translating the interface
+
+The interface (the bar and its tooltips, the settings menu, the overview, the goto box, the presenter, the info dialog, the menus) is in
+English. The headmatter's `lang` picks its language too, and slide.ng comes with Turkish:
+
+```md
+---
+lang: tr # <html lang="tr">, the interface in Turkish, dates and numbers written the Turkish way
+uiLang: en # optional: the interface in another language than the slides
+---
+```
+
+For another language, put `locales/<lang>.json` next to `slides.md` (or in a theme or addon) with the keys you translate. The keys and
+their English text are listed in [UI-STRINGS.md](UI-STRINGS.md); keep the `{name}` placeholders.
+
+```json
+{ "nav.next": "Nächste Folie", "presenter.noNotes": "Keine Notizen für Folie {no}." }
+```
+
+A key that no file translates stays English, and so does a language without a file. The files of the built-in translations, the theme,
+the addons and the deck are put over each other key by key, the deck last; `de.json` is read before `de-AT.json`. The generator warns about
+a key that does not exist and about a lost placeholder.
+
+`lang` also sets Angular's `LOCALE_ID`, so `{{ price | currency: 'EUR' }}`, `{{ day | date }}` and `{{ n | number }}` in slides are
+written for that language (only that locale's data goes into the build). A right-to-left language (`ar`, `he`, `fa`, `ur`) sets `dir="rtl"`
+on the page, unless `htmlAttrs.dir` says otherwise, and the bar, the menus and the presenter are mirrored, as are a blockquote's line
+and the progress bar's minutes. Mermaid drawings stay left to right, as Mermaid lays them out (their Arabic or Hebrew labels still read
+right to left). An interface language written the other way (`uiLang: en` in an Arabic deck) keeps the direction of its text.
+
+### One deck in several languages
+
+Write one entry file per language, and import the slides that are the same in every language with `src:`:
+
+```text
+slides.md        lang: en
+slides.tr.md     lang: tr; its own translated slides, and `src: ./pages/demo.md` for a shared one
+pages/demo.md
+```
+
+Build each into its own folder: `slide-ng build slides.md --out dist/en` and `slide-ng build slides.tr.md --out dist/tr`. `--lang tr`
+(for `dev`, `build` and `export`) sets `lang` for one run without changing the file; it also replaces `uiLang`, so the interface follows it.
+`--lang` is meant for slides written in that language: it also sets `<html lang>` and the PDF's `/Lang`, so `--lang en` on a Turkish deck tells
+screen readers and PDF readers that the Turkish text is English. To change only the interface's language, set `uiLang: en` in the
+headmatter instead; the slides keep `lang: tr`.
+An existing build keeps its language: `export --dist` and `export --url` refuse `--lang`.

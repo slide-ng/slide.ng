@@ -40,7 +40,7 @@ export abstract class RangedBlock implements OnInit, OnDestroy {
     const place = () => {
       const info = this.clicks.calculateSince(this.at(), this.ranges().length - 1);
       this.info.set(info);
-      this.clicks.register(this, info);
+      this.clicks.register(this, info, { el: this.blockHost });
     };
     place();
     this.clicks.track(this, this.blockHost, place);

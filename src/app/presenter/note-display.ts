@@ -10,6 +10,8 @@ import {
   viewChild,
 } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
+import { UI_TEXT, uiText } from '../i18n/ui-text';
+import { Nav, findSlide, slideAddress } from '../lib/nav';
 import { MARK, prepareNote } from './note-marks';
 
 // The speaker notes of one slide. `html` was made while generating (markdown, with click markers).
@@ -23,10 +25,11 @@ import { MARK, prepareNote } from './note-marks';
         class="slidev-note prose dark:prose-invert overflow-auto outline-none"
         [class.slidev-note-with-clicks]="withClicks()"
         [innerHTML]="trusted()"
+        (click)="follow($event)"
       ></div>
     } @else {
       <div
-        class="slidev-note prose dark:prose-invert overflow-auto outline-none opacity-50 italic select-none"
+        class="slidev-note prose dark:prose-invert overflow-auto outline-none opacity-75 italic select-none"
       >
         <p>{{ placeholder() }}</p>
       </div>
@@ -35,7 +38,7 @@ import { MARK, prepareNote } from './note-marks';
 })
 export class NoteDisplay {
   html = input<string | null>(null);
-  placeholder = input('No notes.');
+  placeholder = input(uiText(inject(UI_TEXT), 'presenter.noNotesAtAll'));
   /** The current click; leave out to show the notes without highlighting. */
   clicks = input<number | null>(null);
   autoScroll = input(false);
@@ -44,6 +47,7 @@ export class NoteDisplay {
 
   private note = viewChild<ElementRef<HTMLElement>>('note');
   private sanitizer = inject(DomSanitizer);
+  private nav = inject(Nav, { optional: true });
   // The notes are written by the deck's author and turned into HTML while generating, like the slides themselves.
   protected trusted = computed(() => this.sanitizer.bypassSecurityTrustHtml(this.html() ?? ''));
   protected withClicks = computed(() => this.clicks() != null && !!this.html()?.includes(MARK));
@@ -68,6 +72,24 @@ export class NoteDisplay {
       this.clicks();
       this.highlight();
     });
+  }
+
+  /** In the presenter, a link to a slide in the notes moves the presenter to it, instead of opening the audience page. */
+  protected follow(e: MouseEvent) {
+    const nav = this.nav;
+    if (!nav?.isPresenter || e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+    const href = (e.target as Element).closest('a[href]')?.getAttribute('href');
+    const to = href ? slideAddress(href) : null;
+    const no =
+      to &&
+      findSlide(
+        to,
+        nav.total,
+        nav.slides.map((s) => s.routeAlias),
+      );
+    if (!no) return;
+    e.preventDefault();
+    nav.go(no);
   }
 
   private highlight() {

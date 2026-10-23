@@ -35,7 +35,7 @@ Things to know:
 - **Size and start-up.** All lazy code is in one file, so a deck with Monaco and Mermaid is a large script (the phase 2 test deck: 27 MB folder, 16 MB script; it opened in about 2.5 s on the test machine). A deck without them is about 450 kB.
 - **The PDF button** opens `<exportFilename>.pdf` in a new tab (a page opened from disk cannot make the browser save a file); save it from the PDF viewer.
 - **Two decks in one browser.** All `file://` pages share one storage and one broadcast channel. Drawings and window sync are therefore kept per folder (the folder's path is part of the key), so an old deck that is still open does not follow the new one.
-- **Several windows** (presenter and audience) sync with a `BroadcastChannel`. They must be windows of the same browser profile, opened from the same folder. Open the presenter page with the button in the bar or at `index.html#/presenter/1`, and the audience page in a second window at `index.html#/1`. From a folder, the audience window may also drive the presenter (it is on this machine by definition).
+- **Several windows** (presenter and audience) sync with a `BroadcastChannel`. They must be windows of the same browser profile, opened from the same folder. Open the presenter page with the button in the bar or at `index.html#/presenter/1`, and the audience page in a second window at `index.html#/1`. From a folder, the audience window may also drive the presenter (it is on this machine by definition). Drawings, sync and the settings kept in the browser belong to the folder, so two decks opened from disk do not mix (dark mode is shared).
 - **Not offline by nature:** PlantUML (a picture from a PlantUML server), `<slide-ng-youtube>`, `<slide-ng-tweet>`, `<slide-ng-blue-sky>`, and any picture or font you reference by address and that could not be downloaded at build time (the build warns). Check the build output for `could not download` lines.
 - Camera, screen share and recording on `file://` were not tried (see the end).
 
@@ -84,7 +84,7 @@ In the room:
 
 ## What was tested
 
-Run by `npm run test:export` (`tests/export/offline.mjs`, `tests/export/offline-net.mjs`), in Chromium with `playwright-core`:
+Run by `npm run test:export` ([`tests/export/offline.mjs`](https://github.com/slide-ng/slide.ng/blob/main/tests/export/offline.mjs), [`tests/export/offline-net.mjs`](https://github.com/slide-ng/slide.ng/blob/main/tests/export/offline-net.mjs)), in Chromium with `playwright-core`:
 
 - An offline folder opened with `file://`, no server: first slide, right arrow (click, then next slide), the next button with the mouse, hash addresses, reload, overview, KaTeX with its font file, Mermaid, Monaco (styled, syntax colours, worker started from a blob), the image layout, a `/public` picture, a picture from a stopped "remote" server, a web font from a stopped fake font provider, the PDF button, no console error or failed request.
 - The presenter page, a second window opened with `window.open`, sync in both directions between `file://` pages, and no sync between two folders.

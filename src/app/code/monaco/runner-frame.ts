@@ -2,12 +2,15 @@
 // slides, their storage or the network origin, and sends what the code logs back with postMessage.
 // This is plain JavaScript in a string on purpose: it is a separate page, not part of the app.
 
-export function frameHtml(js: string, id: string): string {
+// `strict` puts "use strict" first in the code's function (headmatter `monacoRunUseStrict`, on unless it is false, as in Slidev).
+export function frameHtml(js: string, id: string, strict = true): string {
   // `<` is escaped so the code cannot close the <script> tag early.
   const safe = (v: string) => JSON.stringify(v).replace(/</g, '\\u003c');
-  return `<!doctype html><script>
-const ID = ${safe(id)};
-const send = (message) => parent.postMessage({ id: ID, ...message }, '*');
+  // The code runs in a worker started by the frame, so an endless loop blocks only the worker: the frame stays free to
+  // be removed (a new run, leaving the slide, the 5 second cut-off) even in a browser that keeps a sandboxed frame in
+  // the page's own process. Where no worker can start (a Content-Security-Policy without blob:), it runs in the frame.
+  return `<!doctype html><script type="text/x-slide-ng-run" id="run">
+// \`send\` is given by whoever runs this: the worker or the frame.
 
 // How a value is shown in the output: strings as they are, other things like console.log in a browser.
 function show(arg) {
@@ -47,11 +50,41 @@ const sandboxConsole = {
 
 (async () => {
   try {
-    await new Function('console', 'return (async () => {' + ${safe(js)} + '\\n})()')(sandboxConsole);
+    await new Function('console', 'return (async () => {' + ${strict ? `'"use strict";' + ` : ''}${safe(js)} + '\\n})()')(sandboxConsole);
   } catch (e) {
-    send({ error: String(e) });
+    // Strict mode refuses \`total = 1\` without a declaration, which ran before 2.0 (headmatter monacoRunUseStrict).
+    const hint = ${strict ? 'true' : 'false'} && e instanceof ReferenceError && / is not defined$/.test(e.message)
+      ? ' (the code runs in strict mode: declare it with let or const, or set monacoRunUseStrict: false in the headmatter)'
+      : '';
+    send({ error: String(e) + hint });
   }
   send({ done: true });
 })();
+</script><script>
+const ID = ${safe(id)};
+const relay = (message) => parent.postMessage({ id: ID, ...message }, '*');
+const code = document.getElementById('run').textContent;
+const inFrame = () => new Function('send', code)(relay);
+let started = false;
+try {
+  // The worker says \`ready\` before anything else, so an error before that means it could not start.
+  const url = URL.createObjectURL(
+    new Blob(['postMessage({ ready: true }); const send = (m) => postMessage(m); var window = self;' + code], { type: 'text/javascript' }),
+  );
+  const worker = new Worker(url);
+  worker.onmessage = (e) => {
+    if (e.data.ready) started = true;
+    else relay(e.data);
+  };
+  worker.onerror = (e) => {
+    e.preventDefault();
+    // The worker could not start: run the code here instead.
+    if (!started) return inFrame();
+    // An error thrown later, in a callback of the code, is shown; the run goes on until the code is done.
+    relay({ error: String(e.message) });
+  };
+} catch {
+  inFrame();
+}
 </script>`;
 }

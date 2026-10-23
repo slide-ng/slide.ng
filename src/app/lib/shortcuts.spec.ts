@@ -33,7 +33,13 @@ describe('matches', () => {
   });
 });
 
-function actions(log: string[], overview = false, drawing = false, drag = false): ShortcutActions {
+function actions(
+  log: string[],
+  overview = false,
+  drawing = false,
+  drag = false,
+  presenter = false,
+): ShortcutActions {
   const names = [
     'next',
     'prev',
@@ -45,6 +51,7 @@ function actions(log: string[], overview = false, drawing = false, drag = false)
     'toggleFullscreen',
     'closeAll',
     'overviewGo',
+    'toggleClickPreview',
   ];
   const base: any = Object.fromEntries(names.map((n) => [n, () => log.push(n)]));
   return {
@@ -52,6 +59,7 @@ function actions(log: string[], overview = false, drawing = false, drag = false)
     overviewOpen: () => overview,
     drawingEnabled: () => drawing,
     dragActive: () => drag,
+    isPresenter: () => presenter,
     overviewMove: (by: string) => log.push(`move ${by}`),
   };
 }
@@ -106,6 +114,17 @@ describe('default shortcuts (the same keys as Slidev)', () => {
       '',
     ]);
     expect(run(' ')).toBe('next');
+  });
+  it('toggles the click preview with u, only on the presenter page and not while drawing', () => {
+    const run = (presenter: boolean, drawing = false) => {
+      const log: string[] = [];
+      findShortcut(
+        key('u'),
+        defaultShortcuts(actions(log, false, drawing, false, presenter)),
+      )?.run();
+      return log.join();
+    };
+    expect([run(true), run(false), run(true, true)]).toEqual(['toggleClickPreview', '', '']);
   });
   it('uses the arrows to move inside the overview, and Enter to go', () => {
     expect(run('ArrowRight', {}, true)).toBe('move right');

@@ -40,7 +40,7 @@ export class SlideNgMotion implements OnInit, OnDestroy {
       const info = this.clicks.calculate(m[2] ? [+m[1], +m[2]] : +m[1]);
       const owner = {};
       this.keys.push(owner);
-      this.clicks.register(owner, info);
+      this.clicks.register(owner, info, { el: this.el });
     }
   }
 

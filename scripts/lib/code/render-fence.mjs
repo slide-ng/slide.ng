@@ -27,11 +27,21 @@ function transformed(fence, ctx) {
   return null;
 }
 
+// The fence without its `{monaco...}` word, so its options (`{lines:true}`) are read like a code block's.
+export function withoutMonaco(fence) {
+  const info = fence.info
+    .trim()
+    .replace(/^([\w'-]+)?\s*\{monaco[\w-]*\}\s*/, (_, lang = '') => `${lang} `);
+  return { ...fence, info: info.trim() };
+}
+
 export function renderFence(fence, ctx) {
   if (fence.group) return renderGroup(fence.group, ctx);
   const custom = ctx.codeblocks?.length ? transformed(fence, ctx) : null;
   if (custom != null) return custom;
-  if (isMonaco(fence)) return renderMonaco(fence, ctx);
+  // `monaco: false` (or the other mode): the editor blocks are plain highlighted code, as in Slidev.
+  if (isMonaco(fence))
+    return ctx.monaco === false ? renderCode(withoutMonaco(fence), ctx) : renderMonaco(fence, ctx);
   if (isMermaid(fence)) return renderMermaid(fence);
   if (isPlantUml(fence)) return renderPlantUml(fence, ctx);
   if (isMagicMove(fence)) return renderMagicMove(fence, ctx);

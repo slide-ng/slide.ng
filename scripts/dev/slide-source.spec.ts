@@ -1,5 +1,5 @@
 import { parse } from '@slidev/parser/core';
-import { dragEdit, replaceSource, sourceOf } from './slide-source.mjs';
+import { dragEdit, noteOf, replaceNote, replaceSource, sourceOf } from './slide-source.mjs';
 
 const md = `---
 title: T
@@ -137,5 +137,33 @@ describe('sourceOf and replaceSource', () => {
     const r = replaceSource(md, slides[0], '# One');
     expect(r.text.startsWith('# One\n')).toBe(true);
     expect(r.text).toContain('# Two');
+  });
+});
+
+describe('noteOf and replaceNote', () => {
+  it('reads the last comment as the note only when it ends the slide', () => {
+    expect(noteOf('# A\n\n<!-- one -->\n\ntext\n\n<!--\n two \n-->\n')).toBe('two');
+    expect(noteOf('# A\n\n<!-- not a note -->\n\ntext\n')).toBe('');
+  });
+  it('replaces, adds and removes the note, keeping the rest', () => {
+    expect(replaceNote('# A\n\ntext\n\n<!-- old -->\n', 'new')).toBe(
+      '# A\n\ntext\n\n<!--\nnew\n-->\n',
+    );
+    expect(replaceNote('# A\n\ntext\n', ' added ')).toBe('# A\n\ntext\n\n<!--\nadded\n-->\n');
+    expect(replaceNote('# A\n\n<!-- keep -->\n\ntext\n\n<!-- old -->', '')).toBe(
+      '# A\n\n<!-- keep -->\n\ntext',
+    );
+  });
+  it('writes --> in a note as -- >, as the presenter does, so the comment does not end early', () => {
+    const raw = replaceNote('# A\n', 'a --> b ---> c');
+    expect(raw).toBe('# A\n\n<!--\na -- > b --- > c\n-->\n');
+    expect(noteOf(raw)).toBe('a -- > b --- > c');
+  });
+  it("matches the parser's note", async () => {
+    const data = await parse(md, '/x/slides.md');
+    const raw = sourceOf(md, data.slides[1]);
+    expect(noteOf(raw)).toBe(data.slides[1].note);
+    const changed = await parse(md.replace(raw, replaceNote(raw, 'changed')), '/x/slides.md');
+    expect(changed.slides.map((s) => s.note)).toEqual([undefined, 'changed', undefined]);
   });
 });

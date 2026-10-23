@@ -34,6 +34,7 @@ export async function run({ t, open, press, pathOf, style, base, browser, proble
         'Show drawing toolbar',
         'Presenter Mode',
         'Show info',
+        'Change sync settings',
         'More Options',
       ].join('|'),
     titles.join('|'),
@@ -81,6 +82,24 @@ export async function run({ t, open, press, pathOf, style, base, browser, proble
   await page.waitForTimeout(400);
   t.ok('fullscreen button toggles it back', (await flag()) === 'false');
 
+  // An iframe without allow="fullscreen" (or an iPhone): document.fullscreenEnabled is false, so the button is left out.
+  const noFull = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+  await noFull.addInitScript(() =>
+    Object.defineProperty(Document.prototype, 'fullscreenEnabled', { get: () => false }),
+  );
+  const framed = await noFull.newPage();
+  await framed.goto(`${base}/1`);
+  await framed.locator('#nav-next').waitFor({ state: 'attached' });
+  await framed.keyboard.press('f');
+  await framed.waitForTimeout(300);
+  t.ok(
+    'without document.fullscreenEnabled there is no fullscreen button, and f does nothing',
+    (await framed.locator('#nav-fullscreen').count()) === 0 &&
+      (await framed.locator('nav').getAttribute('data-fullscreen')) === 'false' &&
+      (await framed.evaluate(() => !document.fullscreenElement)),
+  );
+  await noFull.close();
+
   // ---- overview ---------------------------------------------------------------------
   await page.locator('#nav-overview').click();
   await page.waitForTimeout(300);
@@ -92,6 +111,11 @@ export async function run({ t, open, press, pathOf, style, base, browser, proble
   t.ok(
     'overview cards draw the real slides',
     (await page.locator('.overview-card[data-no="1"] sn-cover h1').innerText()) === 'Showcase',
+  );
+  t.ok(
+    'the overview page link and close button are inside the aria-modal dialog',
+    (await page.locator('#overview #overview-page-link').count()) === 1 &&
+      (await page.locator('#overview #overview-close').count()) === 1,
   );
   const thumb = await page.locator('.overview-card[data-no="1"]').boundingBox();
   t.ok('a thumbnail is 300px wide', Math.abs(thumb.width - 302) < 4, String(thumb.width));
@@ -172,6 +196,10 @@ export async function run({ t, open, press, pathOf, style, base, browser, proble
   await page.mouse.click(400, 300, { button: 'right' });
   await page.waitForTimeout(200);
   t.ok('right click opens the context menu', (await page.locator('#context-menu').count()) === 1);
+  t.ok(
+    'the context menu sits in a labelled dialog (not loose outside the landmarks)',
+    (await page.locator('[role="dialog"][aria-label="Slide menu"] > #context-menu').count()) === 1,
+  );
   const arrows = await page
     .locator('#context-menu .menu-small')
     .evaluateAll((l) => l.map((e) => e.title));
@@ -197,6 +225,43 @@ export async function run({ t, open, press, pathOf, style, base, browser, proble
       'Hold Shift and right click to open the native context menu',
     ),
   );
+  // By keyboard: the focus is in the menu, the arrows move between its items (not the slides), Escape gives it back.
+  const focusName = () =>
+    page.evaluate(
+      () =>
+        document.activeElement?.getAttribute('title') ||
+        document.activeElement?.id ||
+        document.activeElement?.textContent.trim(),
+    );
+  const menuAt = pathOf(page);
+  const walk = [await focusName()];
+  for (const key of ['ArrowRight', 'ArrowDown', 'End', 'Home', 'ArrowUp']) {
+    await press(page, key, 100);
+    walk.push(await focusName());
+  }
+  await press(page, 'Escape');
+  t.ok(
+    'the open context menu has the focus and the arrow keys move in it, not through the slides',
+    walk.join('|') ===
+      'Previous Click|Next Click|Previous Slide|Enter fullscreen|Previous Click|Enter fullscreen' &&
+      pathOf(page) === menuAt &&
+      (await page.locator('#context-menu').count()) === 0,
+    `${walk.join('|')} ${pathOf(page)}`,
+  );
+  await page.locator('#nav-next').focus();
+  await press(page, 'Shift+F10');
+  const fromKeys = await focusName();
+  await press(page, 'Escape');
+  t.ok(
+    'Shift+F10 opens the context menu on its first item, and Escape gives the focus back',
+    fromKeys === 'Previous Click' &&
+      (await page.locator('#context-menu').count()) === 0 &&
+      (await page.evaluate(() => document.activeElement?.id)) === 'nav-next',
+    `${fromKeys} ${await focusName()}`,
+  );
+  await page.evaluate(() => document.activeElement?.blur());
+  await page.mouse.click(400, 300, { button: 'right' });
+  await page.waitForTimeout(200);
   await page.locator('#context-menu [title="Next Slide"]').click();
   await page.waitForTimeout(200);
   t.ok(

@@ -1,11 +1,12 @@
 // What `slide-ng --remote` prints, as lines of text (pure, so a test can read them). Like Slidev's start-up message:
 // the public show, the private one (with the password in the address), the presenter and the addresses on the network.
 // Remote mode always has a password (made at random when none was given) and the text says what that password allows.
+import { renderUnicodeCompact } from 'uqr';
 
 /** @param {{ port: number, password: string, addresses: string[], routerMode?: string, generated?: boolean, fromArgv?: boolean }} info */
 export function remoteLines({ port, password, addresses, routerMode, generated, fromArgv }) {
-  const slash = routerMode === 'hash' ? '/#/' : '/';
-  const query = `?password=${encodeURIComponent(password)}`;
+  const slash = rootPath(routerMode);
+  const query = passwordQuery(password);
   const lines = [''];
   lines.push('[slide.ng] remote access is ON');
   if (generated)
@@ -28,4 +29,23 @@ export function remoteLines({ port, password, addresses, routerMode, generated, 
     );
   lines.push('');
   return lines;
+}
+
+const passwordQuery = (password) => `?password=${encodeURIComponent(password)}`;
+
+// With headmatter `routerMode: hash` the route and its query come after a `#`: `/#/?password=...`, `/#/presenter/1?password=...`.
+/** @param {string | undefined} routerMode */
+const rootPath = (routerMode) => (routerMode === 'hash' ? '/#/' : '/');
+
+/**
+ * The `c` key of `slide-ng dev --remote`: a QR code of the private slide show for each address, password included, so a
+ * phone can open it with its camera (Slidev's `c`). Drawn with half blocks, two rows of the code per line of text.
+ * @param {{ port: number, password: string, addresses: string[], routerMode?: string }} info
+ */
+export function remoteQrLines({ port, password, addresses, routerMode }) {
+  if (!addresses.length) return ['[slide.ng] no network address found for a QR code'];
+  return addresses.flatMap((host) => {
+    const url = `http://${host}:${port}${rootPath(routerMode)}${passwordQuery(password)}`;
+    return ['', `[slide.ng] ${url}`, renderUnicodeCompact(url, { border: 2 }), ''];
+  });
 }

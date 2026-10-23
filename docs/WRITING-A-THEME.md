@@ -1,6 +1,6 @@
 # Writing a theme
 
-A theme in five steps. The rules are in [THEMES.md](THEMES.md); `examples/theme-minimal` is a finished small theme.
+A theme in five steps. The rules are in [THEMES.md](THEMES.md); [`examples/theme-minimal`](https://github.com/slide-ng/slide.ng/tree/main/examples/theme-minimal) is a finished small theme.
 
 ## 1. Make the folder
 
@@ -10,7 +10,7 @@ my-theme/
   layouts/
   components/
   styles/index.css
-  layers/          (optional: global-top.ts, global-bottom.ts, slide-top.ts, slide-bottom.ts)
+  layers/          (optional: global-top.ts, global-bottom.ts, slide-top.ts, slide-bottom.ts, custom-nav-controls.ts)
   setup/           (optional: setup hooks, see below)
   public/          (optional: pictures and fonts, served from /)
   uno.config.mjs   (optional: UnoCSS shortcuts and rules)
@@ -43,7 +43,7 @@ If your layout reads frontmatter (`author: Ada`), give the component an input of
 
 The list replaces the built-in layout's inputs, so keep the ones you still want: a `cover` that adds `event` lists
 `["background", "event"]`, or a `background:` picture is dropped. The `slide-ng/layouts/background` helper turns that input into the
-style the built-in cover uses (see `examples/theme-paper/layouts/cover.ts`).
+style the built-in cover uses (see [`examples/theme-paper/layouts/cover.ts`](https://github.com/slide-ng/slide.ng/blob/main/examples/theme-paper/layouts/cover.ts)).
 
 ## 3. Add a component
 
@@ -59,12 +59,33 @@ imports it into every slide that uses the tag.
 export default { shortcuts: { 'my-muted': 'op60 text-sm' } };
 ```
 
+Write sides with logical properties (`border-inline-start`, `padding-inline-start`, `ms-4`, `ps-4`) rather than `left` and `right`,
+so the theme mirrors in a right-to-left deck (`lang: ar`, `he`, `fa`, `ur`). The app's own blockquote line is a
+`border-inline-start`: a theme that sets `border-left` on a blockquote shows both lines in such a deck.
+
 ## 5. Default settings
 
 `theme.json` can set headmatter defaults under `"headmatter"`, such as `"colorSchema": "dark"` or the fonts
 (`{ "headmatter": { "colorSchema": "dark", "fonts": { "sans": "Titillium Web", "mono": "Fira Code" } } }`; the fonts are loaded from the
 provider and merged with the deck's own `fonts`). A `colorSchema` of `light` or `dark` says the theme has colours for that mode only:
 decks that use it keep that mode. Leave it out when the theme styles both. Keys outside `"name"`, `"headmatter"` and `"layouts"` are not read. Pictures go in `public/`.
+
+Settings a deck may change, such as the accent colour, go in `themeConfig`, as in Slidev. Each one is the CSS variable
+`--slidev-theme-<key>` on `<body>`, and the deck's `themeConfig: { accent: '#22c55e' }` replaces your default. A number
+is written without a unit (`radius: 6` is `6`, not a length), so give lengths as text with their unit (`"radius": "6px"`):
+
+```json
+{ "headmatter": { "themeConfig": { "accent": "#f59e0b" } } }
+```
+
+```css
+.my-quote {
+  border-left: 4px solid var(--slidev-theme-accent);
+}
+```
+
+`primary` is the colour of the built-in accent (`text-primary`, the progress bar). In a component, `inject(THEME_CONFIG)` (from
+`slide-ng/lib/theme-config`) gives the whole map. Details and the rules for values are in [THEMES.md](THEMES.md#themeconfig).
 
 Dark mode is the class `dark` on `<html>`: write `html.dark .my-quote { ... }` for the dark palette. The core styles dim the paragraph
 right after a heading (`h1 + p`, a subtitle); set its `opacity` in your CSS if your theme should not.
@@ -126,4 +147,4 @@ instead of from nothing with `slide-ng theme eject`.
 ## Checking your theme
 
 Run the deck with `slide-ng` and edit the theme: the folders are watched. Run `slide-ng build` to see the real build (it fails on
-a template error in a layout). The repository's own test for the example theme, also installed as a fake `@slide-ng/theme-demo` package to prove the lookup in `node_modules`, is `tests/export/theme.mjs`.
+a template error in a layout). The repository's own test for the example theme, also installed as a fake `@slide-ng/theme-demo` package to prove the lookup in `node_modules`, is [`tests/export/theme.mjs`](https://github.com/slide-ng/slide.ng/blob/main/tests/export/theme.mjs).

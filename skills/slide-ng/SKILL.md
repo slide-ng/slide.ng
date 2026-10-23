@@ -86,7 +86,7 @@ Angular control flow works.
 ## Rules for agents
 
 1. Do not invent Slidev or Vue features. Look in the tables below; if a feature is not there, read `references/not-supported.md`.
-2. `slide-ng-click` is an attribute (`<div slide-ng-click>`), never the tag `<slide-ng-click>`. Use `slide-ng-click-hide`, not `slide-ng-click.hide`.
+2. `slide-ng-click` is an attribute (`<div slide-ng-click>`), never the tag `<slide-ng-click>`. `slide-ng-click.hide` is the same as `slide-ng-click slide-ng-click-hide`.
 3. Put `@if`, `@for`, `@let` and their closing `}` on their own lines. Leave blank lines around markdown lists inside component tags.
 4. Add a component by creating `components/<name>.ts` next to `slides.md` (selector string literal, then `export class`); never edit `scripts/lib/registry.mjs` for a deck.
 5. Keep the dev server's output clean of `[slides]` warnings, then run `slide-ng build`.
@@ -126,6 +126,7 @@ Angular control flow works.
 | Transform        | `<slide-ng-transform>`            | [layout-transform](references/layout-transform.md)         |
 | Draggable        | `slide-ng-drag`                   | [layout-draggable](references/layout-draggable.md)         |
 | Layers           | `global-top`, `slide-bottom`, ... | [layout-global-layers](references/layout-global-layers.md) |
+| Progress bar     | `progressBar`                     | [layout-progress-bar](references/layout-progress-bar.md)   |
 
 ## Animation
 
@@ -194,32 +195,33 @@ Angular control flow works.
 
 ## Themes and Setup
 
-| Feature         | Description                                 | Reference                                              |
-| --------------- | ------------------------------------------- | ------------------------------------------------------ |
-| Use a theme     | `theme`, `addons`                           | [theme-use](references/theme-use.md)                   |
-| Official themes | seriph, shibainu, bricks, apple-basic, adev | [theme-official](references/theme-official.md)         |
-| Write a theme   | folder, `theme.json`                        | [theme-write](references/theme-write.md)               |
-| Roots           | what a root holds, who wins                 | [theme-structure](references/theme-structure.md)       |
-| Eject           | `theme eject`                               | [theme-eject](references/theme-eject.md)               |
-| Setup overview  | `setup/*.ts` hooks                          | [setup-overview](references/setup-overview.md)         |
-| Shiki           | `setup/shiki.ts`                            | [setup-shiki](references/setup-shiki.md)               |
-| KaTeX           | `setup/katex.ts`                            | [setup-katex](references/setup-katex.md)               |
-| Transformers    | `setup/transformers.ts`                     | [setup-transformers](references/setup-transformers.md) |
-| Preparser       | `setup/preparser.ts`                        | [setup-preparser](references/setup-preparser.md)       |
-| Mermaid         | `setup/mermaid.ts`                          | [setup-mermaid](references/setup-mermaid.md)           |
-| Monaco          | `setup/monaco.ts`                           | [setup-monaco](references/setup-monaco.md)             |
-| Code runners    | `setup/code-runners.ts`                     | [setup-code-runners](references/setup-code-runners.md) |
-| Shortcuts       | `setup/shortcuts.ts`                        | [setup-shortcuts](references/setup-shortcuts.md)       |
-| Context menu    | `setup/context-menu.ts`                     | [setup-context-menu](references/setup-context-menu.md) |
-| Main and root   | `setup/main.ts`, `setup/root.ts`            | [setup-main-root](references/setup-main-root.md)       |
+| Feature         | Description                                     | Reference                                              |
+| --------------- | ----------------------------------------------- | ------------------------------------------------------ |
+| Use a theme     | `theme`, `addons`                               | [theme-use](references/theme-use.md)                   |
+| Official themes | seriph, shibainu, bricks, apple-basic, adev     | [theme-official](references/theme-official.md)         |
+| Write a theme   | folder, `theme.json`                            | [theme-write](references/theme-write.md)               |
+| Roots           | what a root holds, who wins                     | [theme-structure](references/theme-structure.md)       |
+| Eject           | `theme eject`                                   | [theme-eject](references/theme-eject.md)               |
+| Setup overview  | `setup/*.ts` hooks                              | [setup-overview](references/setup-overview.md)         |
+| Shiki           | `setup/shiki.ts`                                | [setup-shiki](references/setup-shiki.md)               |
+| KaTeX           | `setup/katex.ts`                                | [setup-katex](references/setup-katex.md)               |
+| Transformers    | `setup/transformers.ts`                         | [setup-transformers](references/setup-transformers.md) |
+| Preparser       | `setup/preparser.ts`                            | [setup-preparser](references/setup-preparser.md)       |
+| Mermaid         | `setup/mermaid.ts`, `setup/mermaid-renderer.ts` | [setup-mermaid](references/setup-mermaid.md)           |
+| Monaco          | `setup/monaco.ts`                               | [setup-monaco](references/setup-monaco.md)             |
+| Code runners    | `setup/code-runners.ts`                         | [setup-code-runners](references/setup-code-runners.md) |
+| Shortcuts       | `setup/shortcuts.ts`                            | [setup-shortcuts](references/setup-shortcuts.md)       |
+| Context menu    | `setup/context-menu.ts`                         | [setup-context-menu](references/setup-context-menu.md) |
+| Main and root   | `setup/main.ts`, `setup/root.ts`                | [setup-main-root](references/setup-main-root.md)       |
+| Routes          | `setup/routes.ts`                               | [setup-routes](references/setup-routes.md)             |
 
 ## Tools
 
-| Feature       | Description         | Reference                                    |
-| ------------- | ------------------- | -------------------------------------------- |
-| MCP server    | `slide-ng mcp`      | [mcp-server](references/mcp-server.md)       |
-| MCP tools     | the seven tools     | [mcp-tools](references/mcp-tools.md)         |
-| Not supported | what does not exist | [not-supported](references/not-supported.md) |
+| Feature       | Description                                 | Reference                                    |
+| ------------- | ------------------------------------------- | -------------------------------------------- |
+| MCP server    | `slide-ng mcp`                              | [mcp-server](references/mcp-server.md)       |
+| MCP tools     | the seven tools, two more on the dev server | [mcp-tools](references/mcp-tools.md)         |
+| Not supported | what does not exist                         | [not-supported](references/not-supported.md) |
 
 ## Common Patterns
 

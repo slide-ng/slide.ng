@@ -84,7 +84,7 @@
   color: var(--slidev-code-foreground);
   font-size: 0.875rem;
   padding: 0.25rem 0.5rem;
-  border-left: 1px solid var(--slidev-theme-primary);
+  border-inline-start: 1px solid var(--slidev-theme-primary);
   border-radius: 0.25rem;
 }
 .slidev-layout blockquote > * {
@@ -160,6 +160,12 @@
   padding-right: 0.2em;
 }
 
+/* Mermaid places its labels for left-to-right text: its legend text would run over its colour boxes in a right-to-left deck.
+   Arabic or Hebrew labels still read right to left inside the drawing. */
+[dir='rtl'] .mermaid svg {
+  direction: ltr;
+}
+
 /* Default theme: cover, intro, fact, statement, quote, section */
 .slidev-layout.cover,
 .slidev-layout.intro {
@@ -222,6 +228,12 @@
   display: grid;
   place-content: center;
   user-select: none;
+}
+/* Its inline code is a light box on black in either mode, with the layout's white text (the code background of a light deck
+   would put that text on #f5f5f5). */
+.slidev-layout.end :not(pre) > code:not(.twoslash-popup-code) {
+  background: rgba(255, 255, 255, 0.14);
+  color: inherit;
 }
 
 /* two-cols-header: header on top, two columns, bottom row */

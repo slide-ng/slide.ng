@@ -48,6 +48,17 @@ for (const page of pages) {
 if (problems.length) fail('Problems in the samples:', problems);
 if (!samples.length) fail('No <!-- verify --> samples found.', []);
 
+// The pictures a sample names with a leading slash (`/photo.png`) are the reader's own: an empty stand-in in public/, so the
+// generator's "not in public/" warning is left for real mistakes.
+function addStandIns(text, dir) {
+  for (const [, path] of text.matchAll(
+    /(?:\]\(|src="|poster="|image:\s*|url\()\/(?!\/)([\w./-]+\.\w+)/g,
+  )) {
+    mkdirSync(dirname(join(dir, 'public', path)), { recursive: true });
+    writeFileSync(join(dir, 'public', path), '');
+  }
+}
+
 work = mkdtempSync(join(tmpdir(), 'slide-ng-skill-samples-'));
 const dirOf = (n) => join(work, 'samples', String(n + 1).padStart(3, '0'));
 samples.forEach((s, n) => {
@@ -59,6 +70,7 @@ samples.forEach((s, n) => {
     mkdirSync(dirname(join(s.dir, path)), { recursive: true });
     writeFileSync(join(s.dir, path), text);
   }
+  addStandIns(s.text, s.dir);
 });
 
 // ---- 1. the generator, one deck per sample
@@ -90,6 +102,7 @@ console.log(`generated ${samples.length} samples without errors or warnings`);
 // ---- 2. one build of everything
 if (!has('--no-build')) {
   const ranges = await combine();
+  for (const sample of samples) addStandIns(sample.text, join(work, 'combined'));
   const built = await run(
     process.execPath,
     [join(repo, 'bin/slide-ng.mjs'), 'build', 'slides.md', '--out', 'dist'],
@@ -97,7 +110,7 @@ if (!has('--no-build')) {
   );
   const noise = `${built.stdout}\n${built.stderr}`
     .split('\n')
-    .filter((l) => /^\[slides\]/.test(l) && !/generated \d+ slides/.test(l));
+    .filter((l) => /^\[slides\]/.test(l) && !/generated \d+ slides?/.test(l));
   if (built.code !== 0 || noise.length) {
     // The escape character is the point of the pattern (colours in the output).
     // eslint-disable-next-line no-control-regex
@@ -105,7 +118,7 @@ if (!has('--no-build')) {
     const lines = text.trim().split('\n');
     // The error blocks of Angular (and our own warnings) first, then the end of the output.
     const errors = lines.filter(
-      (l) => /ERROR|^\[slides\]|slide-\d+\.ts|roots\//.test(l) && !/generated \d+ slides/.test(l),
+      (l) => /ERROR|^\[slides\]|slide-\d+\.ts|roots\//.test(l) && !/generated \d+ slides?/.test(l),
     );
     const tail = [...errors.slice(0, 40), '...', ...lines.slice(-15)].join('\n');
     fail('The combined deck does not build:', [
@@ -114,7 +127,7 @@ if (!has('--no-build')) {
     ]);
   }
   console.log(
-    `built all samples together (${built.stdout.match(/Built (\d+) slides/)?.[1] ?? '?'} slides)`,
+    `built all samples together (${built.stdout.match(/Built (\d+) slides?/)?.[1] ?? '?'} slides)`,
   );
 }
 

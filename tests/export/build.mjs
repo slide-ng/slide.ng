@@ -88,6 +88,15 @@ pwa: true
 <!-- a note that must be gone from the build -->
 `,
 );
+// The deck's own index.html: its head and body are merged into the page (like Slidev). Its root addresses get the base,
+// its <meta name> replaces the headmatter's, and the attributes of <html> and <body> are kept.
+writeFileSync(
+  join(deckDir, 'index.html'),
+  `<html lang="fr" class="from-index">\n<head>\n  <meta name="deck-index" content="from the deck">\n  <meta name="keywords" content="from index.html">\n  <link rel="stylesheet" href="/brand.css">\n</head>\n<body data-index="yes">\n  <script>window.__deckIndex = 'ran';</script>\n  <script src="/brand.js"></script>\n  <script data-cfasync="false">window.__deckData = 'ran';</script>\n  <script type="module">window.__deckModule = 'ran';</script>\n</body>\n</html>\n`,
+);
+mkdirSync(join(deckDir, 'public'), { recursive: true });
+writeFileSync(join(deckDir, 'public', 'brand.css'), 'body { --brand: on; }\n');
+writeFileSync(join(deckDir, 'public', 'brand.js'), "window.__brandJs = 'ran';\n");
 const site = join(scratch, 'site-a');
 await cli(
   [
@@ -126,7 +135,21 @@ has('<html lang="de" data-test="yes"', 'lang and htmlAttrs');
 has('<title>Build deck | Talk</title>', 'title with titleTemplate');
 has('<meta name="description" content="A deck for the build test">', 'description from info');
 has('<meta name="author" content="Test Author">', 'author');
-has('<meta name="keywords" content="angular, slides">', 'keywords');
+has('<meta name="keywords" content="from index.html">', "keywords from the deck's index.html");
+t.ok(
+  'index.html: one keywords tag (the index.html one replaces it)',
+  html.match(/name="keywords"/g).length === 1,
+);
+has(
+  '<html lang="de" data-test="yes" class="from-index"',
+  "<html>: the headmatter's lang, the index.html class",
+);
+has('<body data-index="yes">', '<body>: the index.html attributes');
+has(
+  '<link data-beasties-skip rel="stylesheet" href="/talk/brand.css">',
+  'index.html stylesheet under the base',
+);
+has('<script src="/talk/brand.js"></script>', 'index.html script under the base');
 has('<meta property="og:title" content="Build deck | Talk">', 'og:title defaults to the title');
 has(
   '<meta property="og:image" content="https://example.test/talk/og-image.png">',
@@ -135,6 +158,26 @@ has(
 has('<meta name="twitter:card" content="summary_large_image">', 'twitter:card');
 has('<link rel="icon" href="favicon.ico" type="image/x-icon">', 'favicon');
 has('<link rel="manifest" href="manifest.webmanifest">', 'manifest link');
+// The deck's inline script is moved to a file like the others (a host may send script-src 'self'), right where it was.
+const deckScript = /<\/app-root>\s*<script src="(inline-\w+\.js)"><\/script>/.exec(html)?.[1];
+t.ok(
+  "index.html: the deck's index.html head goes into the head, its body after the app",
+  /<meta name="deck-index" content="from the deck">[\s\S]*<\/head>/.test(html) &&
+    !!deckScript &&
+    readFileSync(join(site, deckScript), 'utf8').includes("window.__deckIndex = 'ran';"),
+);
+t.ok(
+  "index.html has no inline script (a host may send script-src 'self')",
+  !/<script(?![^>]*\bsrc=)[^>]*>/.test(html) &&
+    /<script src="inline-\w+\.js"><\/script>/.test(html),
+  html.match(/<script[^>]*>/g)?.join(' '),
+);
+t.ok(
+  "index.html: the deck's module and its script with other attributes are moved, keeping their attributes",
+  /<script data-cfasync="false" src="inline-\w+\.js"><\/script>/.test(html) &&
+    /<script type="module" src="inline-\w+\.js"><\/script>/.test(html),
+  html.match(/<script[^>]*>/g)?.join(' '),
+);
 const ogSize = readFileSync(join(site, 'og-image.png'));
 t.ok(
   'og-image.png is a screenshot of slide 1 (1470x828)',
@@ -155,6 +198,15 @@ const allJs = readdirSync(site)
   .join('\n');
 t.ok('no remote address is left in the app', !allJs.includes(remoteUrl));
 t.ok('notes are removed with --without-notes', !allJs.includes('a note that must be gone'));
+t.ok(
+  'a static build has no /notes-edit page (it only opens with the dev server)',
+  !allJs.includes('notes-edit-text'),
+);
+t.ok(
+  "nor the dev server's early-keys script of that page",
+  !allJs.includes('slideNgEarlyKeys') &&
+    !readFileSync(join(site, 'index.html'), 'utf8').includes('slideNgEarlyKeys'),
+);
 
 // ---- download, and the PDF itself
 const pdf = join(site, 'talk.pdf');
@@ -217,6 +269,48 @@ page.on('pageerror', (e) => problems.push(String(e)));
 page.on('response', (r) => {
   if (r.status() >= 400) problems.push(`HTTP ${r.status()} ${r.url()}`);
 });
+// A host with a strict Content-Security-Policy (docs/HOSTING.md): no inline script runs, the deck still gets its styles.
+const strict = await browser.newContext({ serviceWorkers: 'block' });
+await strict.route('**/*', async (route) => {
+  const response = await route.fetch();
+  const csp =
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:";
+  await route.fulfill({
+    response,
+    headers: { ...response.headers(), 'content-security-policy': csp },
+  });
+});
+const strictPage = await strict.newPage();
+const refused = [];
+strictPage.on('console', (m) => {
+  if (/Content Security Policy/i.test(m.text())) refused.push(m.text());
+});
+await strictPage.goto(`${served.origin}/talk/2`);
+await strictPage.locator('#hud').waitFor();
+t.ok(
+  "under script-src 'self' the full stylesheet is switched on and nothing is refused",
+  (await strictPage.evaluate(() =>
+    // The deck's own index.html adds a plain <link rel="stylesheet"> (no media); the app's is switched from print to all.
+    [...document.querySelectorAll('link[rel=stylesheet]')].every(
+      (l) => !l.media || l.media === 'all',
+    ),
+  )) && refused.length === 0,
+  refused.join(' | '),
+);
+await strictPage
+  .waitForFunction(() => window.__deckModule === 'ran', null, { timeout: 5000 })
+  .catch(() => {});
+t.ok(
+  "under script-src 'self' the deck's inline scripts ran from their files (a module and data-cfasync too)",
+  await strictPage.evaluate(
+    () =>
+      window.__deckIndex === 'ran' && window.__deckData === 'ran' && window.__deckModule === 'ran',
+  ),
+);
+// Requests still in flight (a lazy chunk) would be fulfilled after the close.
+await strict.unrouteAll({ behavior: 'ignoreErrors' });
+await strict.close();
+
 await page.goto(`${served.origin}/talk/2`);
 await page.waitForFunction(() =>
   /clicks \d+\/\d+/.test(document.querySelector('#hud')?.innerText ?? ''),
@@ -247,6 +341,18 @@ t.ok(
   'a /public picture written as /favicon.ico gets the base in front (/talk/favicon.ico) and loads',
   pub.src === '/talk/favicon.ico' && pub.ok,
   JSON.stringify(pub),
+);
+t.ok(
+  "the script of the deck's index.html body ran",
+  (await page.evaluate(() => window.__deckIndex)) === 'ran',
+);
+t.ok(
+  "the deck's index.html loads /brand.js and /brand.css from under the base",
+  await page.evaluate(
+    () =>
+      window.__brandJs === 'ran' &&
+      getComputedStyle(document.body).getPropertyValue('--brand').trim() === 'on',
+  ),
 );
 t.ok(
   'the lang and attributes are on <html>',
@@ -374,7 +480,7 @@ const dirB = join(scratch, 'deck-b');
 mkdirSync(dirB, { recursive: true });
 writeFileSync(
   join(dirB, 'slides.md'),
-  '---\ntitle: Deck B\nrouterMode: hash\n---\n\n# First\n\n---\n\n# Second\n',
+  '---\ntitle: Deck B\nrouterMode: hash\n---\n\n# First\n\n[To the second](2)\n\n---\n\n# Second\n',
 );
 const siteB = join(scratch, 'site-b');
 await cli(['build', join(dirB, 'slides.md'), '--base', 'sub/dir', '--out', siteB], dirB);
@@ -401,6 +507,142 @@ t.ok('without pwa there is no badge', (await pageB.locator('#offline-badge').cou
 await pageB.close();
 await servedB.close();
 
+// ---- deck B again with --router-mode memory: the flag wins over `routerMode: hash`, the address never changes
+const siteM = join(scratch, 'site-m');
+await cli(
+  [
+    'build',
+    join(dirB, 'slides.md'),
+    '--router-mode',
+    'memory',
+    '--base',
+    '/m/',
+    '--download',
+    '--out',
+    siteM,
+  ],
+  dirB,
+);
+const pdfM = join(siteM, 'slides-export.pdf');
+t.ok(
+  'memory routing: the PDF of --download still has one page per slide (the print page is read from the address)',
+  existsSync(pdfM) && /Pages:\s+2/.test(execFileSync('pdfinfo', [pdfM], { encoding: 'utf8' })),
+  readdirSync(siteM).join(),
+);
+// The headmatter says hash, the build says memory: `export --dist` goes by the build.
+const pdfMDist = join(scratch, 'm-dist.pdf');
+await cli(
+  [
+    'export',
+    join(dirB, 'slides.md'),
+    '--dist',
+    siteM,
+    '--base',
+    '/m/',
+    '--output',
+    pdfMDist.replace(/\.pdf$/, ''),
+  ],
+  dirB,
+);
+t.ok(
+  'export --dist of a --router-mode memory build has one page per slide (the build, not the headmatter, picks the addresses)',
+  existsSync(pdfMDist) &&
+    /Pages:\s+2/.test(execFileSync('pdfinfo', [pdfMDist], { encoding: 'utf8' })),
+);
+const servedM = await serveDirectory(siteM, '/m/');
+const pageM = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+await pageM.goto(`${servedM.origin}/m/2`);
+const hudM = () => pageM.locator('#hud').innerText();
+await pageM.waitForFunction(() =>
+  /clicks \d+\/\d+/.test(document.querySelector('#hud')?.innerText ?? ''),
+);
+t.ok('memory routing: a deep link opens slide 1', (await hudM()).startsWith('slide 1/2'));
+await pageM.keyboard.press('ArrowRight');
+await pageM.waitForFunction(() =>
+  (document.querySelector('#hud')?.innerText ?? '').startsWith('slide 2/2'),
+);
+t.ok(
+  'memory routing: moving to slide 2 leaves the address as it was',
+  pageM.url() === `${servedM.origin}/m/2`,
+  pageM.url(),
+);
+// A slide link's href opens its slide in a new tab: memory mode reads `#/<number>` once, then drops it from the address.
+await pageM.keyboard.press('ArrowLeft');
+const linkM = await pageM.locator('slide-ng-link a').getAttribute('href');
+t.ok(
+  "memory routing: a slide link's href is the deck's address with #/2",
+  linkM === '/m/#/2',
+  linkM,
+);
+await pageM.goto(`${servedM.origin}${linkM}`);
+await pageM.waitForFunction(() =>
+  /clicks \d+\/\d+/.test(document.querySelector('#hud')?.innerText ?? ''),
+);
+t.ok(
+  "memory routing: the link's href opened in a new tab shows slide 2, and the address drops the #/2",
+  (await hudM()).startsWith('slide 2/2') && pageM.url() === `${servedM.origin}/m/`,
+  `${await hudM()} ${pageM.url()}`,
+);
+await pageM.close();
+await servedM.close();
+// ---- several decks in one run: one folder each under --out, with the base adjusted per deck (like Slidev)
+const multiDir = join(scratch, 'multi');
+mkdirSync(multiDir, { recursive: true });
+for (const name of ['alpha', 'beta'])
+  writeFileSync(join(multiDir, `${name}.md`), `---\ntitle: ${name}\n---\n\n# ${name}\n`);
+// Into the folder that holds deck B's single build: its index.html and _redirects must go.
+const siteMulti = siteB;
+const multiOut = await cli(
+  [
+    'build',
+    join(multiDir, 'alpha.md'),
+    join(multiDir, 'beta.md'),
+    '--base',
+    '/decks/',
+    '--out',
+    siteMulti,
+  ],
+  multiDir,
+);
+t.ok(
+  'build a.md b.md writes <out>/a and <out>/b, each with the base /decks/<name>/',
+  ['alpha', 'beta'].every(
+    (name) =>
+      readFileSync(join(siteMulti, name, 'index.html'), 'utf8').includes(
+        `<base href="/decks/${name}/">`,
+      ) && multiOut.includes(`into ${join(siteMulti, name)} (base /decks/${name}/)`),
+  ),
+  multiOut,
+);
+t.ok(
+  'the earlier single build in --out is replaced: only the deck folders and the marker are left',
+  readdirSync(siteMulti).sort().join() === '.slide-ng-build,alpha,beta',
+  readdirSync(siteMulti).join(),
+);
+const servedMulti = await serveDirectory(join(siteMulti, 'beta'), '/decks/beta/');
+const pageMulti = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+await pageMulti.goto(`${servedMulti.origin}/decks/beta/1`);
+await pageMulti.waitForFunction(() =>
+  /clicks \d+\/\d+/.test(document.querySelector('#hud')?.innerText ?? ''),
+);
+t.ok(
+  'the second deck opens under its own base',
+  (await pageMulti.title()).includes('beta'),
+  await pageMulti.title(),
+);
+await pageMulti.close();
+await servedMulti.close();
+// Exporting one deck of that build: --dist alone serves it under the base it was built with, and a --base that differs is refused.
+const alphaPdf = join(multiDir, 'alpha-from-dist.pdf');
+await cli(
+  ['export', join(multiDir, 'alpha.md'), '--dist', join(siteMulti, 'alpha'), '--output', alphaPdf],
+  multiDir,
+);
+t.ok(
+  'export --dist of one deck of a multi build, without --base, uses the base in its index.html',
+  existsSync(alphaPdf) && readFileSync(alphaPdf).subarray(0, 5).toString() === '%PDF-',
+);
+
 // ---- refusals: a folder with other files, and a base that is not a plain path
 const precious = join(scratch, 'precious');
 mkdirSync(precious);
@@ -426,10 +668,63 @@ t.ok(
   ),
 );
 t.ok(
+  'export --dist with a --base other than the one the build was made with is refused',
+  (
+    await refuse([
+      'export',
+      join(multiDir, 'alpha.md'),
+      '--dist',
+      join(siteMulti, 'alpha'),
+      '--base',
+      '/',
+    ])
+  ).includes('which was made with the base /decks/alpha/'),
+);
+t.ok(
   '--base with .. is refused',
   (await refuse(['build', join(dirB, 'slides.md'), '--base', '/a/../b/'])).includes(
     '--base must be a path',
   ),
+);
+mkdirSync(join(multiDir, 'other'));
+writeFileSync(join(multiDir, 'other', 'alpha.md'), '# other alpha\n');
+t.ok(
+  'two decks with the same file name are refused before anything is built',
+  (
+    await refuse(['build', join(multiDir, 'alpha.md'), join(multiDir, 'other', 'alpha.md')])
+  ).includes('would both be built into'),
+);
+t.ok(
+  '--router-mode takes history, hash or memory only',
+  (await refuse(['build', join(dirB, 'slides.md'), '--router-mode', 'abstract'])).includes(
+    '--router-mode must be one of history, hash, memory',
+  ),
+);
+t.ok(
+  '--offline with --router-mode memory is refused',
+  (
+    await refuse(['build', join(dirB, 'slides.md'), '--offline', '--router-mode', 'memory'])
+  ).includes('cannot take --router-mode memory'),
+);
+t.ok(
+  'a missing entry is refused before the first deck is built',
+  (
+    await refuse([
+      'build',
+      join(multiDir, 'alpha.md'),
+      join(multiDir, 'missing.md'),
+      '--out',
+      join(scratch, 'never'),
+    ])
+  ).includes(`${join(multiDir, 'missing.md')} not found`) && !existsSync(join(scratch, 'never')),
+);
+await cli(['build', join(multiDir, 'alpha.md'), '--out', siteMulti], multiDir);
+t.ok(
+  'one deck can be built into the --out of several (it is marked as ours) and replaces it',
+  existsSync(join(siteMulti, 'index.html')) &&
+    !existsSync(join(siteMulti, 'alpha')) &&
+    !existsSync(join(siteMulti, 'beta')),
+  readdirSync(siteMulti).join(),
 );
 t.ok(
   'an unknown flag is refused',

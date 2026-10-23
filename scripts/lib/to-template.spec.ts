@@ -1,3 +1,6 @@
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { toTemplate } from './to-template.mjs';
 import { initHighlighter } from './code/highlighter.mjs';
 
@@ -55,6 +58,61 @@ describe('toTemplate: plain text is made safe', () => {
   it('treats plain HTML attributes like slide-ng-click as normal markup', () => {
     expect(toTemplate('<div slide-ng-click="2">hi</div>')).toContain(
       '<div slide-ng-click="2">hi</div>',
+    );
+  });
+});
+
+describe('toTemplate: links', () => {
+  const link = (md: string, aliases?: string[]) => toTemplate(md, { aliases }).trim();
+  it('turns a link to a slide number into a slide link, as Slidev does', () => {
+    expect(link('[to five](5)')).toBe('<p><slide-ng-link to="5">to five</slide-ng-link></p>');
+    expect(link('[a](/5) [b](./5) [c](#/5)')).toBe(
+      '<p><slide-ng-link to="5">a</slide-ng-link> <slide-ng-link to="5">b</slide-ng-link> <slide-ng-link to="5">c</slide-ng-link></p>',
+    );
+    expect(link('[**five**](5)')).toBe(
+      '<p><slide-ng-link to="5"><strong>five</strong></slide-ng-link></p>',
+    );
+  });
+  it('turns a link to a routeAlias into a slide link, and leaves other addresses', () => {
+    expect(link('[p](/pricing) [q](./pricing) [r](#/pricing)', ['pricing'])).toBe(
+      '<p><slide-ng-link to="pricing">p</slide-ng-link> <slide-ng-link to="pricing">q</slide-ng-link> <slide-ng-link to="pricing">r</slide-ng-link></p>',
+    );
+    expect(link('[a](/about) [f](/file.pdf) [n](./notes.html)', ['pricing'])).toBe(
+      '<p><a href="/about">a</a> <a href="/file.pdf">f</a> <a href="./notes.html">n</a></p>',
+    );
+  });
+  it('turns a link to a unicode or emoji routeAlias into a slide link', () => {
+    expect(link('[a](./café) [b](/🚀) [c](./My%20Alias)', ['café', '🚀', 'My Alias'])).toBe(
+      '<p><slide-ng-link to="café">a</slide-ng-link> <slide-ng-link to="🚀">b</slide-ng-link> <slide-ng-link to="My Alias">c</slide-ng-link></p>',
+    );
+  });
+  it('warns about a link to a slide that is not there, naming the slide', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const ctx = { aliases: ['intro'], total: 3, hiddenAliases: ['ghost'], slide: { no: 2 } };
+    toTemplate(
+      '[a](99) [b](./nope) [c](./ghost) [d](/about) [e](3) [f](./intro) [g](./overview) [h](#/presenter)',
+      ctx as any,
+    );
+    expect(warn.mock.calls.map((c) => c[0])).toEqual([
+      '[slides] slide 2: the link "99" goes to slide 99, but the deck has 3 slides (it opens slide 3)',
+      '[slides] slide 2: the link "./nope" names no slide (no slide has routeAlias "nope"), so it is a plain link',
+      '[slides] slide 2: the link "./ghost" names the routeAlias of a slide with hide: or disabled:, which is not in the deck',
+    ]);
+    warn.mockRestore();
+  });
+  it('keeps a link to a heading of the slide an anchor', () => {
+    expect(link('[r](#results) [s](./#results) [n](#5)')).toBe(
+      '<p><a href="#results">r</a> <a href="#results">s</a> <a href="#5">n</a></p>',
+    );
+  });
+  it('opens a web page in a new tab', () => {
+    expect(link('[ext](https://x.org "Home") <http://y.org> mail [m](mailto:a@b.com)')).toBe(
+      '<p><a href="https://x.org" title="Home" target="_blank" rel="noopener">ext</a> <a href="http://y.org" target="_blank" rel="noopener">http://y.org</a> mail <a href="mailto:a&#64;b.com">m</a></p>',
+    );
+  });
+  it('turns an <a href="/4"> written as HTML into a slide link, and leaves other <a> as they are', () => {
+    expect(link('<a href="https://x.org">x</a> <a href="5">five</a> <a href="/4">four</a>')).toBe(
+      '<p><a href="https://x.org">x</a> <a href="5">five</a> <slide-ng-link to="4">four</slide-ng-link></p>',
     );
   });
 });
@@ -156,12 +214,37 @@ describe('toTemplate: highlighted code', () => {
     expect(warn.mock.calls[0][0]).toContain('"zzz"');
     warn.mockRestore();
   });
+  it('passes a ~icon~ of the title as the icon, without it in the title', () => {
+    const html = toTemplate('```sh [yarn ~i-carbon:terminal~]\nyarn\n```');
+    expect(html).toContain('title="yarn" icon="i-carbon:terminal"');
+    expect(toTemplate('```sh [~i-carbon:terminal~]\nyarn\n```')).toContain(
+      '<slide-ng-code-block-wrapper icon="i-carbon:terminal">',
+    );
+  });
   it('wraps a ::code-group in <slide-ng-code-group>', () => {
     const html = toTemplate(
       '::code-group\n\n```ts [a]\nlet a;\n```\n\n```ts [b]\nlet b;\n```\n\n::',
     );
     expect(html.startsWith('<slide-ng-code-group><slide-ng-code-block-wrapper')).toBe(true);
     expect(html.match(/<slide-ng-code-block-wrapper/g)).toHaveLength(2);
+  });
+});
+
+describe('toTemplate: monaco: false', () => {
+  it('makes {monaco}, {monaco-diff} and {monaco-run} blocks plain highlighted code', () => {
+    for (const kind of ['monaco', 'monaco-diff', 'monaco-run']) {
+      const html = toTemplate(`\`\`\`ts {${kind}} {lines:true}\nlet a = 1;\n\`\`\``, {
+        monaco: false,
+      });
+      expect(html).not.toContain('<slide-ng-monaco');
+      expect(html).toContain('<slide-ng-code-block-wrapper lines="true">');
+      expect(text(html)).toContain('let a = 1;');
+    }
+  });
+  it('keeps the editor when the switch is on', () => {
+    expect(toTemplate('```ts {monaco}\nlet a;\n```', { monaco: true })).toContain(
+      '<slide-ng-monaco',
+    );
   });
 });
 
@@ -178,4 +261,38 @@ describe('toTemplate: twoslash', () => {
     await initHighlighter({ langs: ['ts', 'html', 'md'] }); // back to the plain setup for the other tests
     // The first twoslash run loads the TypeScript libraries, which is slow on a busy machine.
   }, 30_000);
+});
+
+describe('math warnings', () => {
+  it('name the slide and the file and line of the formula', () => {
+    const root = mkdtempSync(join(tmpdir(), 'math-'));
+    const file = join(root, 'slides.md');
+    const md = '# Sums\n\n$$\na = 1 \\\\\nb = 2\n$$\n';
+    writeFileSync(file, `---\ntitle: x\n---\n\n${md}`);
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    toTemplate(md, { file, root, slide: { no: 3 } });
+    const messages = warn.mock.calls.map((c) => String(c[0]));
+    warn.mockRestore();
+    rmSync(root, { recursive: true });
+    expect(messages.some((m) => /^\[slides\] slide 3 \(slides\.md:8\): math "a = 1/.test(m))).toBe(
+      true,
+    );
+  });
+});
+
+describe('toTemplate: the line of an HTML link warning', () => {
+  it('names the line of each <a> that is left as it is', () => {
+    const md = '<a href="/3" target="_blank">a</a>\n\nText\n\n<a href=\'/3\' target="_blank">b</a>';
+    const lines = md.split('\n');
+    const lineOf = (pattern: RegExp, nth = 0) =>
+      ` (slides.md:${lines.map((l, i) => (pattern.test(l) ? i + 1 : 0)).filter(Boolean)[nth]})`;
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    toTemplate(md, { slide: { no: 2 }, lineOf });
+    const calls = warn.mock.calls.map((c) => String(c[0]));
+    warn.mockRestore();
+    expect(calls.map((c) => c.slice(0, 32))).toEqual([
+      '[slides] slide 2 (slides.md:1): ',
+      '[slides] slide 2 (slides.md:5): ',
+    ]);
+  });
 });

@@ -16,6 +16,7 @@ Rules:
 - Use `input()` signals for inputs; plain attributes (`title="Note"`) pass text, `[x]="expr"` passes values, `(done)="..."` listens to outputs.
 - Content goes in with `<ng-content />`.
 - Give the host classes with `host: { class: '...' }`; UnoCSS classes in templates work.
+- In a theme's or component's CSS, write sides with logical properties (`border-inline-start`, `padding-inline-start`, `ms-4`) so they mirror in a right-to-left deck; the app's blockquote line is a `border-inline-start`, so a `border-left` on a blockquote shows two lines there.
 - A component with the same class name as a built-in one replaces it. Layouts go in `layouts/` (see `layout-custom.md`).
 - Do not add components to `src/app` or `scripts/lib/registry.mjs`; that is how the built-ins are registered inside the slide.ng repository. For a deck, use `components/`.
 - Import slide.ng services with the alias `slide-ng/` (it means `src/app/`), for example `import { Nav } from 'slide-ng/lib/nav'`. Do not reach `src/app` with `../`; between a theme's or deck's own folders (a layout importing `../components/footer`) `../` is fine, since they are copied side by side.

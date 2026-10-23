@@ -1,4 +1,5 @@
 import { Component, ElementRef, inject, input, signal } from '@angular/core';
+import { scopedKey } from '../lib/deck-scope';
 
 // A box the user can move around by its background (Slidev's Draggable). Its place is remembered in the browser.
 @Component({
@@ -16,7 +17,7 @@ import { Component, ElementRef, inject, input, signal } from '@angular/core';
 export class Draggable {
   initialX = input(10);
   initialY = input(10);
-  /** localStorage key that remembers where the box was left. */
+  /** localStorage key that remembers where the box was left (of this deck only, deck-scope.ts). */
   storageKey = input('slidev-drawing-pos');
   protected pos = signal({ x: 10, y: 10 });
   private el = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
@@ -29,7 +30,7 @@ export class Draggable {
 
   private load(): { x: number; y: number } | null {
     try {
-      const p = JSON.parse(localStorage.getItem(this.storageKey()) ?? 'null');
+      const p = JSON.parse(localStorage.getItem(scopedKey(this.storageKey())) ?? 'null');
       return p && Number.isFinite(p.x) && Number.isFinite(p.y) ? p : null;
     } catch {
       return null;
@@ -55,7 +56,7 @@ export class Draggable {
     if (!this.grab) return;
     this.grab = null;
     try {
-      localStorage.setItem(this.storageKey(), JSON.stringify(this.pos()));
+      localStorage.setItem(scopedKey(this.storageKey()), JSON.stringify(this.pos()));
     } catch {
       /* not remembered */
     }

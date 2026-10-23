@@ -4,15 +4,19 @@ import {
   ElementRef,
   Injector,
   afterNextRender,
+  booleanAttribute,
   computed,
   effect,
   inject,
+  input,
   signal,
   untracked,
   viewChild,
 } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Nav } from '../lib/nav';
+import { T } from '../i18n/t';
+import { UI_TEXT, uiText } from '../i18n/ui-text';
 import { DevApi } from './dev-api';
 import type { Highlight } from './editor-highlight';
 import { loadHighlighter } from './load-highlighter';
@@ -28,15 +32,19 @@ const WATCH_EVERY = 2000;
 // into slides.md through the dev server (Ctrl/Cmd+S at once); the generator rebuilds and the slide on the left updates.
 @Component({
   selector: 'app-side-editor',
+  imports: [T],
   template: `
-    @if (state.open() && state.available()) {
+    @if (state.isOpen(docked()) && state.available()) {
       <aside
         id="side-editor"
-        class="fixed right-0 top-0 bottom-0 z-nav flex flex-col bg-main text-main border-l border-main"
-        [style.width.px]="state.width"
+        class="flex flex-col bg-main text-main"
+        [class]="
+          docked() ? 'h-full w-full' : 'fixed right-0 top-0 bottom-0 z-nav border-l border-main'
+        "
+        [style.width.px]="docked() ? null : state.width"
       >
         <div class="flex items-center gap-2 px-3 py-1 border-b border-main text-sm">
-          <span class="font-bold">Slide {{ nav.no() }}</span>
+          <span class="font-bold">{{ 'editor.slide' | t: { no: nav.no() } }}</span>
           <span
             id="editor-status"
             class="op60 ml-auto"
@@ -47,8 +55,8 @@ const WATCH_EVERY = 2000;
             type="button"
             id="editor-close"
             class="px-1"
-            title="Close editor"
-            (click)="state.toggle()"
+            [title]="'editor.close' | t"
+            (click)="state.toggle(docked())"
           >
             <div class="i-carbon:close"></div>
           </button>
@@ -74,7 +82,7 @@ const WATCH_EVERY = 2000;
             <textarea
               #area
               id="editor-text"
-              aria-label="Markdown of this slide"
+              [attr.aria-label]="'editor.markdown' | t"
               spellcheck="false"
               class="editor-text absolute inset-0 w-full h-full bg-transparent outline-none resize-none overflow-hidden"
               [class.highlighted]="!!html()"
@@ -92,6 +100,8 @@ const WATCH_EVERY = 2000;
   `,
 })
 export class SideEditor {
+  /** In a pane of the presenter page instead of fixed on the right of the deck page. */
+  docked = input(false, { transform: booleanAttribute });
   protected nav = inject(Nav);
   protected state = inject(SideEditorState);
   private api = inject(DevApi);
@@ -110,26 +120,32 @@ export class SideEditor {
   private area = viewChild<ElementRef<HTMLTextAreaElement>>('area');
   private injector = inject(Injector);
 
+  private dictionary = inject(UI_TEXT);
+  // `conflict`: the slide changed in the file (another editor, git): the text here is kept, not written over the other change.
   protected label = () =>
-    ({
-      loading: 'Loading...',
-      saved: 'Saved',
-      saving: 'Saving...',
-      error: 'Could not save',
-      // The slide changed in the file (another editor, git): the text here is kept, not written over the other change.
-      conflict: 'Changed in the file, not saved: copy your text and reopen the slide',
-    })[this.status()];
+    uiText(
+      this.dictionary,
+      (
+        {
+          loading: 'editor.loading',
+          saved: 'editor.saved',
+          saving: 'editor.saving',
+          error: 'editor.error',
+          conflict: 'editor.conflict',
+        } as const
+      )[this.status()],
+    );
 
   constructor() {
     // Show the text of whichever slide is on screen. A change not saved yet goes out first.
     effect(() => {
       const no = this.nav.no(),
-        open = this.state.open() && this.state.available();
+        open = this.state.isOpen(this.docked()) && this.state.available();
       if (open && no !== this.loadedNo) untracked(() => void this.load(no));
     });
     // Shiki is fetched when the editor is first opened; until it arrives the text is plain. A production build has no editor and no chunk.
     effect(() => {
-      if (this.state.open() && this.state.available() && !untracked(this.highlight))
+      if (this.state.isOpen(this.docked()) && this.state.available() && !untracked(this.highlight))
         untracked(() => void this.loadColours());
     });
     const watch = setInterval(() => void this.refresh(), WATCH_EVERY);
@@ -154,7 +170,7 @@ export class SideEditor {
   // Takes over a change made outside, but only when nothing typed here is waiting to be saved.
   private async refresh() {
     if (
-      !this.state.open() ||
+      !this.state.isOpen(this.docked()) ||
       !this.loadedNo ||
       this.timer !== undefined ||
       this.status() !== 'saved'

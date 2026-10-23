@@ -1,6 +1,7 @@
 // `slide-ng skills install [--dir <folder>] [--force]`: copies the agent skill of this package into a project.
 // The skill lands in `<dir>/slide-ng`; `--dir` defaults to `.agents/skills`. The project is the current folder:
 // nothing is ever written outside it, and an existing copy is only replaced with --force.
+import { didYouMean } from '../lib/did-you-mean.mjs';
 import {
   cpSync,
   existsSync,
@@ -53,7 +54,9 @@ function isOurSkill(dir) {
 export async function skillsCommand(argv, { packageRoot = ownRoot, project = process.cwd() } = {}) {
   const [action, ...rest] = argv;
   if (action !== 'install')
-    throw new Error('Usage: slide-ng skills install [--dir <folder>] [--force]');
+    throw new Error(
+      `${action === undefined ? '' : `Unknown skills command "${action}".${didYouMean(action, ['install'])} `}Usage: slide-ng skills install [--dir <folder>] [--force]`,
+    );
   const { flags, positionals } = parseFlags(rest, {
     dir: { type: 'string' },
     force: { type: 'boolean', alias: 'f' },

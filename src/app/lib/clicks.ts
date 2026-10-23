@@ -22,6 +22,16 @@ export interface ClickInfo {
   isCurrent: (current: number) => boolean;
 }
 
+/** An element whose look changes on clicks, with its click info. `steps` lists the clicks where it changes when they are
+ *  not simply `start` (and `end`) or every click from `start` to `max`. The presenter's click preview reads these. */
+export interface ClickPart {
+  el: Element;
+  info: ClickInfo;
+  steps?: number[];
+  /** The click where the element goes away (`slide-ng-click-hide`, or the end of `slide-ng-click="2" slide-ng-click-hide="3"`). */
+  hidesAt?: number;
+}
+
 // "As many clicks as the slide has": asking for this many shows the final state (the slide clamps it).
 export const CLICKS_MAX = 999999;
 
@@ -64,6 +74,9 @@ export class ClicksContext {
   private raw = signal(this.clicksStart);
   readonly mounted = signal(false);
   private maxes = signal<number[]>([]); // signals cannot watch a Map, so we publish a copy
+  private partMap = new Map<unknown, ClickPart>();
+  /** The elements that take part in clicks (published with the maxes). */
+  readonly parts = signal<ClickPart[]>([]);
   // Elements that can work out their clicks again, to put them in document order when the slide mounts.
   private placers = new Map<unknown, { el: Element; place: () => void }>();
 
@@ -84,6 +97,7 @@ export class ClicksContext {
 
   private publish() {
     this.maxes.set([...this.maxMap.values()]);
+    this.parts.set([...this.partMap.values()]);
   }
 
   // Before mount the total is unknown, so the value is stored unclamped (like Slidev's setter).
@@ -161,10 +175,39 @@ export class ClicksContext {
     return Array.isArray(at) ? this.calculateRange(at) : this.calculateSince(at);
   }
 
-  register(key: unknown, info: Pick<ClickInfo, 'delta' | 'max'> | null) {
+  /**
+   * Shown from `at` and hidden again from the `hide` click: `slide-ng-click="2" slide-ng-click-hide="3"`. In Slidev
+   * the two directives each register a click, the hide one after the show one, so a relative hide counts on from the
+   * clicks before it plus the show's own relative step (the show click when the show is relative too).
+   */
+  calculateUntil(at: RawAt, hide: RawSingleAt): ClickInfo | null {
+    const info = this.calculate(at);
+    const h = normalizeSingle(hide);
+    if (!info || h == null) return info;
+    const relative = typeof h === 'string';
+    const hideStart = relative ? this.currentOffset + info.delta + +h : h;
+    const start = info.start,
+      end = Math.min(info.end, hideStart);
+    return {
+      start,
+      end,
+      max: Math.max(info.max, hideStart),
+      delta: info.delta + (relative ? +h : 0),
+      isActive: (c) => start <= c && c < end,
+      isCurrent: (c) => c === start,
+    };
+  }
+
+  /** `part` names the element that shows the click (a gap has none). */
+  register(
+    key: unknown,
+    info: Pick<ClickInfo, 'delta' | 'max'> | ClickInfo | null,
+    part?: { el: Element; steps?: number[]; hidesAt?: number },
+  ) {
     if (!info) return;
     this.relativeSizeMap.set(key, info.delta);
     this.maxMap.set(key, info.max);
+    if (part && 'start' in info) this.partMap.set(key, { ...part, info });
     if (this.mounted()) this.publish(); // an element added later (inside @if) still counts
   }
 
@@ -203,6 +246,7 @@ export class ClicksContext {
     this.placers.delete(key);
     this.relativeSizeMap.delete(key);
     this.maxMap.delete(key);
+    this.partMap.delete(key);
     if (this.mounted()) this.publish();
   }
 }

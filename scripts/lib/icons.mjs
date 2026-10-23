@@ -1,7 +1,7 @@
 // Icon tags: <carbon-apps />, <mdi-account-circle class="text-red" /> become
 // <span class="i-carbon:apps"></span>, which UnoCSS draws from the installed @iconify-json set.
 // To add a set: `npm i -D @iconify-json/<set>` (see docs/SYNTAX.md). Nothing else to configure.
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 
 /**
@@ -15,6 +15,29 @@ export function installedSets(dir) {
   for (let at = resolve('.'); ; at = dirname(at)) {
     for (const set of installedSets(join(at, 'node_modules', '@iconify-json'))) sets.add(set);
     if (dirname(at) === at) return [...sets];
+  }
+}
+
+// The icon names of an installed set, or null when the set is not found. Read once per file version.
+const namesCache = new Map();
+export function iconNames(set) {
+  for (let at = resolve('.'); ; at = dirname(at)) {
+    const file = join(at, 'node_modules', '@iconify-json', set, 'icons.json');
+    if (existsSync(file)) {
+      const stamp = statSync(file).mtimeMs;
+      const known = namesCache.get(file);
+      if (known?.stamp === stamp) return known.names;
+      let names = null;
+      try {
+        const json = JSON.parse(readFileSync(file, 'utf8'));
+        names = new Set([...Object.keys(json.icons ?? {}), ...Object.keys(json.aliases ?? {})]);
+      } catch {
+        // an unreadable set is not checked
+      }
+      namesCache.set(file, { stamp, names });
+      return names;
+    }
+    if (dirname(at) === at) return null;
   }
 }
 

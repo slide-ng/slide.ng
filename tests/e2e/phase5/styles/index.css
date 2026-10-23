@@ -1,0 +1,15 @@
+/* Custom slide transitions (transitions.mjs): Vue's class names, and an object with its own. */
+.my-fade-enter-active,
+.my-fade-leave-active {
+  transition: opacity 0.6s ease;
+}
+.my-fade-enter-from,
+.my-fade-leave-to {
+  opacity: 0;
+}
+.grow-run {
+  transition: scale 0.6s ease;
+}
+.grow-start {
+  scale: 0.5;
+}

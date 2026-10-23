@@ -18,6 +18,10 @@
   padding: 0;
   border: 0;
   letter-spacing: normal;
+  /* Each line takes the direction of its first letter (Arabic or Latin), in an LTR or RTL deck alike, so a line that
+     mixes both is not reordered. The coloured copy does the same, so the caret stays on its letter. */
+  unicode-bidi: plaintext;
+  text-align: start;
 }
 .editor-text pre.shiki {
   background: transparent !important;

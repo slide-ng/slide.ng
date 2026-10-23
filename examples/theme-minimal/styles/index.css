@@ -1,6 +1,7 @@
 /* The look of the minimal theme. Plain CSS: it comes after the app's styles, so it can override them. */
-:root {
-  --minimal-accent: #f59e0b;
+/* `themeConfig.accent` (theme.json gives the default, a deck can change it) is --slidev-theme-accent, set on body. */
+body {
+  --minimal-accent: var(--slidev-theme-accent, #f59e0b);
 }
 
 .minimal-cover {

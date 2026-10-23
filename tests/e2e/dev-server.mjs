@@ -1,8 +1,11 @@
 // `npm run test:dev` (second part): starts the real dev server on a copy of a small deck and checks what the
 // companion server does: slide-ng-drag moves are written into the markdown (also for names and bare slide-ng-drag), drawings
-// and {monaco-write} edits are saved to files, bad requests are refused, and `--remote` needs its password.
+// and {monaco-write} edits are saved to files, bad requests are refused, `--remote` needs its password, and a second dev
+// server on the same deck stops before it touches anything.
 import { spawn } from 'node:child_process';
 import { copyFileSync, existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { WebSocket } from 'ws';
 import { launch, reporter } from './browser.mjs';
 
@@ -119,6 +122,24 @@ try {
   await page.evaluate(() => {
     window.__marker = 'alive';
   });
+
+  // ---- one deck runs one dev server: a second one stops before it touches anything
+  const second = spawn(process.execPath, ['scripts/dev.mjs', '--port', '4229'], {
+    stdio: ['ignore', 'ignore', 'pipe'],
+    env: { ...process.env, SLIDES_FILE: WORK },
+  });
+  let secondErr = '';
+  second.stderr.on('data', (d) => (secondErr += d));
+  const secondCode = await new Promise((done) => {
+    const timer = setTimeout(() => (second.kill(), done('still running')), 30000);
+    second.on('exit', (code) => (clearTimeout(timer), done(code)));
+  });
+  t.ok(
+    'a second dev server on the same deck stops with a clear message',
+    secondCode === 1 && /already runs for this deck/.test(secondErr),
+    `${secondCode} ${secondErr.trim()}`,
+  );
+  t.ok('the first dev server still serves the deck', (await fetch(`${base}/2`)).ok);
 
   const session = await (await fetch(`${base}/__slide-ng/session`)).json();
   t.ok(
@@ -359,6 +380,78 @@ try {
       (await page.locator('.stage').evaluate((e) => getComputedStyle(e).right)) === '0px',
   );
 
+  // ---- presenter: edit the notes in place, and the side editor in the notes pane
+  await page.goto(`${base}/presenter/1`);
+  await page.waitForFunction(
+    () => /clicks \d+\/\d+/.test(document.querySelector('#hud')?.innerText ?? ''),
+    null,
+    { timeout: 60000 },
+  );
+  await page.waitForSelector('#notes-edit', { timeout: 15000 });
+  await page.locator('#notes-edit').click();
+  await page.waitForFunction(() => !document.querySelector('#note-editor')?.disabled, null, {
+    timeout: 15000,
+  });
+  t.ok(
+    'Edit Notes turns the notes into an empty text box for a slide without notes',
+    (await page.locator('#note-editor').inputValue()) === '',
+  );
+  await page.locator('#note-editor').click();
+  await page.keyboard.type('Edited in the presenter.\n[click] After the click.');
+  t.ok(
+    'typing a note saves it as the slide note in the markdown file',
+    await waitForFile((s) =>
+      s.includes('First slide.\n\n<!--\nEdited in the presenter.\n[click] After the click.\n-->'),
+    ),
+  );
+  t.ok(
+    'only the note is written: the slide and the other slides are untouched',
+    read().includes('# One\n\nFirst slide.') &&
+      read().includes('# Two') &&
+      read().includes('# Three'),
+  );
+  // The note is part of the generated deck: wait for the rebuild, then leave editing.
+  await page.waitForFunction(
+    () => document.querySelector('#note-editor')?.value.includes('After the click.'),
+    null,
+    { timeout: 30000 },
+  );
+  await sleep(2500);
+  await page.waitForSelector('#note-editor', { timeout: 30000 });
+  await page.locator('#note-editor').press('Escape');
+  await page.waitForSelector('.slidev-note-click-mark', { timeout: 30000 });
+  t.ok(
+    'Escape ends editing and gives the focus back to the Edit Notes button',
+    await page.evaluate(() => document.activeElement?.id === 'notes-edit'),
+    await page.evaluate(() => document.activeElement?.outerHTML.slice(0, 80)),
+  );
+  t.ok(
+    'after editing the notes show the new text with a working click marker',
+    (await page.locator('.grid-section.note .slidev-note').innerText()).includes(
+      'Edited in the presenter.',
+    ) && (await page.locator('.slidev-note-click-mark').count()) === 1,
+  );
+  await page.locator('#nav-editor').click();
+  await page.waitForFunction(
+    () => document.querySelector('.grid-section.note #editor-text')?.value.includes('# One'),
+    null,
+    { timeout: 15000 },
+  );
+  t.ok('the presenter bar opens the side editor in the notes pane', true);
+  const deckFlag = await page.evaluate(() => localStorage.getItem('slide-ng-editor-open'));
+  t.ok(
+    "opening it on the presenter page does not open the audience page's editor",
+    deckFlag !== 'true',
+    String(deckFlag),
+  );
+  await page.locator('#editor-close').click();
+  await page.waitForTimeout(300);
+  t.ok(
+    'closing it brings the notes back',
+    (await page.locator('#side-editor').count()) === 0 &&
+      (await page.locator('.grid-section.note .slidev-note').count()) === 1,
+  );
+
   // ---- {monaco-write}
   await page.locator('#nav-drawing').click({ force: true }); // toolbar off, so the drawing layer lets clicks through
   await page.goto(`${base}/3`);
@@ -378,6 +471,261 @@ try {
       Object.values(JSON.parse(readFileSync(`${DIR}/monaco-files.json`, 'utf8'))).join() ===
         'work-snippet.ts',
   );
+
+  // ---- notes: /overview edits one note, /notes-edit all of them in one text
+  await page.goto(`${base}/overview`);
+  const firstNote = page.locator('.overview-row[data-no="1"] .overview-note');
+  await firstNote.waitFor({ timeout: 60000 });
+  await sleep(1000); // the page has asked the server for its token
+  const beforeKeys = read();
+  await firstNote.focus();
+  await page.keyboard.press('Enter');
+  await page.locator('.overview-note-edit').waitFor({ timeout: 10000 });
+  t.ok(
+    '/overview: the note and its text box are named, and the note says it can be edited',
+    (await firstNote.getAttribute('role')) === 'group' &&
+      (await firstNote.getAttribute('aria-label')) === 'Notes of slide 1' &&
+      (
+        await page.locator(`#${await firstNote.getAttribute('aria-describedby')}`).textContent()
+      ).includes('Editable') &&
+      (await page.locator('.overview-note-edit').getAttribute('aria-label')) === 'Notes of slide 1',
+  );
+  await page.keyboard.type('Not kept.');
+  await page.keyboard.press('Escape');
+  await sleep(500);
+  t.ok(
+    '/overview: Enter on a note edits it, Escape cancels and gives the focus back to the note',
+    (await page.locator('.overview-note-edit').count()) === 0 &&
+      (await firstNote.evaluate((e) => e === document.activeElement)) &&
+      read() === beforeKeys,
+  );
+  await firstNote.dblclick();
+  await page.locator('.overview-note-edit').waitFor({ timeout: 10000 });
+  await page.locator('.overview-note-edit').fill('Said in the overview.');
+  await page.locator('header h1').click(); // leaving the text saves it
+  t.ok(
+    'a note edited in /overview is saved into the markdown file',
+    await waitForFile((s) =>
+      /# One\n\nFirst slide\.\n\n<!--\nSaid in the overview\.\n-->\n/.test(s),
+    ),
+    read().slice(0, 200),
+  );
+  t.ok(
+    '/overview: how the save ended is said in a live region',
+    await page
+      .waitForFunction(
+        () =>
+          document.querySelector('#overview-note-announce[role="status"]')?.textContent.trim() ===
+          'Notes of slide 1: Saved.',
+        null,
+        { timeout: 3000 },
+      )
+      .then(
+        () => true,
+        () => false,
+      ),
+  );
+  await sleep(4000); // the deck is rebuilt and the page reloads
+  await page.goto(`${base}/notes-edit`);
+  const area = page.locator('#notes-edit-text');
+  await page.waitForFunction(
+    () => document.querySelector('#notes-edit-text')?.value.includes('Said in the overview.'),
+    null,
+    { timeout: 60000 },
+  );
+  const notesText = await area.inputValue();
+  t.ok(
+    '/notes-edit has a main landmark',
+    (await page.locator('main #notes-edit-text').count()) === 1,
+  );
+  t.ok(
+    '/notes-edit shows every note after its --- #N line',
+    /^--- #1\n\nSaid in the overview\.\n\n--- #2\n[\s\S]*--- #3\n$/.test(notesText),
+    notesText,
+  );
+  const beforeNotes = read();
+  await area.fill(notesText.replace(/--- #3\n$/, '--- #3\n\nTyped for three.\n'));
+  t.ok(
+    'typing in /notes-edit saves the changed note into its slide',
+    await waitForFile((s) => s.includes('<!--\nTyped for three.\n-->')),
+  );
+  t.ok(
+    'and leaves the other slides as they were',
+    read().trimEnd() === `${beforeNotes.trimEnd()}\n\n<!--\nTyped for three.\n-->`,
+  );
+  await sleep(4000);
+  await page.waitForFunction(
+    () => document.querySelector('#notes-edit-status')?.dataset.status === 'saved',
+    null,
+    { timeout: 60000 },
+  );
+  const afterThree = read();
+  await area.fill((await area.inputValue()).replace('--- #2', 'two'));
+  await sleep(1500);
+  t.ok(
+    '/notes-edit refuses a text whose --- #N lines changed, and writes nothing',
+    (await page.locator('#notes-edit-status').getAttribute('data-status')) === 'invalid' &&
+      read() === afterThree,
+  );
+  // A --> in a note is written -- >, as the presenter's note editor does, instead of being refused.
+  await page.evaluate(() => sessionStorage.clear()); // no draft of the broken text
+  await page.goto(`${base}/notes-edit`);
+  await page.waitForFunction(
+    () => document.querySelector('#notes-edit-status')?.dataset.status === 'saved',
+    null,
+    { timeout: 60000 },
+  );
+  await area.fill((await area.inputValue()).replace('Typed for three.', 'Arrow --> here.'));
+  t.ok(
+    '/notes-edit writes --> in a note as -- >',
+    await waitForFile((s) => s.includes('<!--\nArrow -- > here.\n-->')),
+    read().slice(-80),
+  );
+  await sleep(4000); // the deck is rebuilt and the page reloads
+  // Keys typed while the page reads the notes again after a reload are kept (the notes answer late here).
+  await page.waitForFunction(
+    () => document.querySelector('#notes-edit-status')?.dataset.status === 'saved',
+    null,
+    { timeout: 60000 },
+  );
+  await page.evaluate(() => {
+    const text = document.querySelector('#notes-edit-text').value.replace('here.', 'here. draft');
+    const at = text.indexOf('draft') + 'draft'.length;
+    sessionStorage.setItem(
+      'slide-ng-notes-draft',
+      JSON.stringify({ text, start: at, end: at, at: Date.now() }),
+    );
+  });
+  await page.route('**/__slide-ng/notes', async (route) => {
+    await sleep(2500);
+    await route.continue().catch(() => {}); // unrouted meanwhile: Playwright has let it through
+  });
+  await page.reload();
+  await page.locator('#notes-edit-text:not([disabled])').waitFor({ timeout: 60000 });
+  const whileLoading = await page.locator('#notes-edit-status').getAttribute('data-status');
+  await page.keyboard.type(' typed', { delay: 50 });
+  t.ok(
+    '/notes-edit keeps the keys typed while the notes load after a reload',
+    whileLoading === 'loading' &&
+      (await waitForFile((s) => s.includes('<!--\nArrow -- > here. draft typed\n-->'))),
+    `${whileLoading} ${read().slice(-80)}`,
+  );
+  await page.unroute('**/__slide-ng/notes');
+  await sleep(4000);
+  // Keys typed before the app has started again (its script answers late here) are kept by index.html and typed in then.
+  await page.waitForFunction(
+    () => document.querySelector('#notes-edit-status')?.dataset.status === 'saved',
+    null,
+    { timeout: 60000 },
+  );
+  await page.route('**/main.js', async (route) => {
+    await sleep(2500);
+    await route.continue().catch(() => {});
+  });
+  await page.reload({ waitUntil: 'commit' });
+  await page.waitForFunction(() => typeof window.slideNgEarlyKeys === 'function', null, {
+    timeout: 60000,
+  });
+  const early = await page.locator('#notes-edit-text').count();
+  await page.keyboard.type(' early', { delay: 50 });
+  t.ok(
+    '/notes-edit keeps the keys typed before the app is back after a reload',
+    early === 0 &&
+      (await waitForFile((s) => s.includes('<!--\nArrow -- > here. draft typed early\n-->'))),
+    `${early} ${read().slice(-80)}`,
+  );
+  await page.unroute('**/main.js');
+  await sleep(4000);
+  // Keys pressed on another page while the draft is still fresh are not typed into the notes when /notes-edit opens by a link.
+  await page.goto(`${base}/entry`);
+  await page.locator('a[href$="/notes-edit"]').waitFor({ timeout: 60000 });
+  const keptOnEntry = await page.evaluate(() => typeof window.slideNgEarlyKeys);
+  await page.keyboard.type('foreign', { delay: 30 });
+  await page.locator('a[href$="/notes-edit"]').click();
+  await page.waitForFunction(
+    () => document.querySelector('#notes-edit-status')?.dataset.status === 'saved',
+    null,
+    { timeout: 60000 },
+  );
+  await sleep(2000);
+  t.ok(
+    '/notes-edit does not type in keys pressed on another page',
+    keptOnEntry === 'undefined' &&
+      !(await page.locator('#notes-edit-text').inputValue()).includes('foreign') &&
+      !read().includes('foreign'),
+    `${keptOnEntry} ${read().slice(-80)}`,
+  );
+
+  // ---- the error overlay: the same text live and after a reload (with the did-you-mean and the markdown line of the
+  // error), and a generator error that comes after an Angular one replaces it
+  {
+    const good = read();
+    const shown = (p) =>
+      p
+        .evaluate(() => {
+          const r = document.querySelector('vite-error-overlay')?.shadowRoot;
+          return r
+            ? {
+                message: r.querySelector('.message-body')?.textContent ?? '',
+                file: r.querySelector('.file')?.textContent ?? '',
+              }
+            : null;
+        })
+        .catch(() => null);
+    const waitShown = async (p, test) => {
+      for (let i = 0; i < 120; i++) {
+        const s = await shown(p);
+        if (s && test(s)) return s;
+        await sleep(500);
+      }
+      return shown(p);
+    };
+    const errPage = await open(browser, `${base}/2`);
+    const withTag = good.replace('\n\n---\n\n# Three', '\n\n<slide-ng-tocc />\n\n---\n\n# Three');
+    const tagLine = withTag.split('\n').indexOf('<slide-ng-tocc />') + 1;
+    writeFileSync(WORK, withTag);
+    const unknown = (s) => s.message.includes('(did you mean <slide-ng-toc>?)');
+    const live = await waitShown(errPage, unknown);
+    t.ok(
+      'error overlay: an Angular error names the markdown line of the error, once, with the did-you-mean',
+      live &&
+        unknown(live) &&
+        live.file.endsWith(`(slide 2, work.md:${tagLine})`) &&
+        live.file.split('(slide').length === 2,
+      JSON.stringify(live),
+    );
+    await errPage.reload();
+    const reloaded = await waitShown(errPage, unknown);
+    t.ok(
+      'error overlay: after a reload it reads as it did live',
+      JSON.stringify(reloaded) === JSON.stringify(live),
+      `${JSON.stringify(reloaded)} vs ${JSON.stringify(live)}`,
+    );
+    writeFileSync(
+      WORK,
+      good.replace('\n\n---\n\n# Three', '\n\n<div class="mt-2">\n\nOpen\n\n---\n\n# Three'),
+    );
+    const unclosed = (s) => /slide 2: <div class="mt-2"> is never closed/.test(s.message);
+    const generator = await waitShown(errPage, unclosed);
+    t.ok(
+      'error overlay: a generator error after an Angular one replaces it',
+      generator && unclosed(generator) && !generator.message.includes('slide-ng-tocc'),
+      JSON.stringify(generator),
+    );
+    await errPage.reload();
+    const generatorReloaded = await waitShown(errPage, unclosed);
+    t.ok(
+      'error overlay: the generator error also shows after a reload',
+      generatorReloaded && unclosed(generatorReloaded),
+      JSON.stringify(generatorReloaded),
+    );
+    writeFileSync(WORK, good);
+    await errPage.waitForFunction(() => !document.querySelector('vite-error-overlay'), null, {
+      timeout: 60000,
+    });
+    await errPage.close();
+    await sleep(3000);
+  }
 
   // ---- bad requests, through the proxy
   const drag = (headers, extra = {}) =>
@@ -422,6 +770,69 @@ try {
     (await ws(`?token=${session.token}`, { origin: 'http://evil.example' })) === '403',
   );
   t.ok('WebSocket with the token is accepted', (await ws(`?token=${session.token}`)) === 'open');
+
+  // ---- MCP over HTTP at /__mcp, through the proxy
+  // The page is still on slide 3 from the {monaco-write} check; open slide 1 so goto_slide really has to move it.
+  await page.goto(`${base}/1`);
+  await page.waitForFunction(() =>
+    /^slide 1\//.test(document.querySelector('#hud')?.innerText ?? ''),
+  );
+  const mcp = await new Client({ name: 'dev-test', version: '1.0.0' });
+  await mcp.connect(new StreamableHTTPClientTransport(new URL(`${base}/__mcp`)));
+  const mcpTools = (await mcp.listTools()).tools.map((x) => x.name);
+  t.ok(
+    'mcp: /__mcp answers through the proxy with the slide tools, get_info and goto_slide',
+    ['list_slides', 'update_slide', 'get_info', 'goto_slide'].every((n) => mcpTools.includes(n)),
+    mcpTools.join(),
+  );
+  const mcpJson = async (name, args = {}) =>
+    JSON.parse((await mcp.callTool({ name, arguments: args })).content[0].text);
+  const info = await mcpJson('get_info');
+  t.ok(
+    'mcp: get_info names the entry, the slide count and the address',
+    info.entry.endsWith('work.md') && info.slides > 2 && info.url === `${base}/`,
+    JSON.stringify(info),
+  );
+  await page.bringToFront();
+  await mcpJson('goto_slide', { no: 3 });
+  t.ok(
+    'mcp: goto_slide moves the open window',
+    await page
+      .waitForFunction(
+        () => /^slide 3\//.test(document.querySelector('#hud')?.innerText ?? ''),
+        null,
+        {
+          timeout: 10000,
+        },
+      )
+      .then(
+        () => true,
+        () => false,
+      ),
+    await page.locator('#hud').innerText(),
+  );
+  // Slide 3 has no clicks and the window is at its last step (0) already: the step asked for is not taken, and the answer says so.
+  const clamped = await mcpJson('goto_slide', { no: 3, clicks: 50 });
+  t.ok(
+    'mcp: goto_slide past the last click answers the step the window took',
+    clamped.clicks === 0 && (await mcpJson('get_info')).current?.clicks === 0,
+    JSON.stringify(clamped),
+  );
+  await mcp.close();
+  t.ok(
+    'mcp: a foreign Origin is refused',
+    (
+      await fetch(`${base}/__mcp`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          accept: 'application/json, text/event-stream',
+          origin: 'http://evil.example',
+        },
+        body: '{"jsonrpc":"2.0","id":1,"method":"tools/list"}',
+      })
+    ).status === 403,
+  );
   await page.close();
   stop();
   await sleep(2000);
@@ -433,6 +844,21 @@ try {
   stop = startDev(RPORT, ['--remote=secret']);
   await waitFor(rbase);
   t.ok('--remote: no password, no session', (await api(RPORT, '/session')).status === 401);
+  const mcpPost = (headers) =>
+    fetch(`${rbase}/__mcp`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        accept: 'application/json, text/event-stream',
+        ...headers,
+      },
+      body: '{"jsonrpc":"2.0","id":1,"method":"tools/list"}',
+    });
+  t.ok(
+    '--remote: /__mcp needs the password, given as a bearer token',
+    (await mcpPost({})).status === 401 &&
+      (await mcpPost({ authorization: 'Bearer secret' })).status === 200,
+  );
   t.ok(
     '--remote: a wrong password is refused',
     (await api(RPORT, '/login', { method: 'POST', body: { password: 'wrong' } })).status === 401,
@@ -476,7 +902,8 @@ try {
   const presenter = await a.newPage(),
     viewer = await b.newPage();
   await presenter.goto(`${rbase}/presenter/1?password=secret`);
-  await viewer.goto(`${rbase}/1?password=secret`);
+  // The viewer opens the root: the router's redirect to /1 drops the query, the password must be read before it.
+  await viewer.goto(`${rbase}/?password=secret`);
   for (const p of [presenter, viewer])
     await p.waitForFunction(
       () => /clicks \d+\/\d+/.test(document.querySelector('#hud')?.innerText ?? ''),
@@ -522,11 +949,48 @@ try {
   await outsider.close();
   await a.close();
   await b.close();
+  // A viewer on another machine (127.0.0.2 is not a local host name to the app) only follows; goto_slide still learns the
+  // step it took. Slide 2 has no clicks: once after a move to it, once while the window is there already.
+  const far = await browser.newContext({ viewport: { width: 1000, height: 600 } });
+  const farViewer = await far.newPage();
+  await farViewer.goto(`http://127.0.0.2:${RPORT}/3?password=secret`);
+  await farViewer.waitForFunction(
+    () => /^slide 3\/[\s\S]*clicks \d+\/\d+/.test(document.querySelector('#hud')?.innerText ?? ''),
+    null,
+    { timeout: 60000 },
+  );
+  await farViewer.waitForTimeout(1500);
+  const rmcp = new Client({ name: 'dev-test', version: '1.0.0' });
+  await rmcp.connect(
+    new StreamableHTTPClientTransport(new URL(`${rbase}/__mcp`), {
+      requestInit: { headers: { authorization: 'Bearer secret' } },
+    }),
+  );
+  const rgoto = async (args) =>
+    JSON.parse((await rmcp.callTool({ name: 'goto_slide', arguments: args })).content[0].text);
+  // A slow window (10x CPU slowdown, so its report comes late): goto_slide waits for the report. It used to wait a fixed
+  // half second and then answer the asked step, so this check failed now and then on a busy machine.
+  const cdp = await far.newCDPSession(farViewer);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 10 });
+  const moved = await rgoto({ no: 2, clicks: 50 });
+  const stayed = await rgoto({ no: 2, clicks: 50 });
+  t.ok(
+    '--remote: goto_slide past the last click answers the step a viewer on another machine took',
+    moved.windows === 1 && moved.clicks === 0 && stayed.clicks === 0,
+    JSON.stringify([moved, stayed]),
+  );
+  await rmcp.close();
+  await far.close();
   stop();
   await sleep(2000);
 
   // ===================================================================== --remote without a password: a random one is made
+  // (on a deck with `routerMode: hash`, whose addresses have the route and the password after `#/`)
   fresh();
+  writeFileSync(
+    WORK,
+    read().replace('title: Dev write test', 'title: Dev write test\nrouterMode: hash'),
+  );
   const OPORT = 4232,
     obase = `http://127.0.0.1:${OPORT}`;
   stop = startDev(OPORT, ['--remote'], true);
@@ -548,9 +1012,33 @@ try {
     made,
   );
   t.ok(
-    '--remote without a password: the presenter address carries it',
-    stop.output().includes(`/presenter/1?password=${encodeURIComponent(made)}`),
+    '--remote without a password: the presenter address carries it, after #/ for a hash deck',
+    stop.output().includes(`/#/presenter/1?password=${encodeURIComponent(made)}`) &&
+      stop.output().includes(`:${OPORT}/#/?password=${encodeURIComponent(made)}`),
   );
+  // The printed hash address logs in: no password prompt, the WebSocket of the deck is accepted, the password leaves the address.
+  const hashContext = await browser.newContext({ viewport: { width: 1000, height: 600 } });
+  const hashPage = await hashContext.newPage();
+  const prompts = [];
+  hashPage.on('dialog', (d) => (prompts.push(d.message()), d.dismiss()));
+  await hashPage.goto(`${obase}/#/?password=${encodeURIComponent(made)}`);
+  await hashPage.waitForFunction(
+    () => /clicks \d+\/\d+/.test(document.querySelector('#hud')?.innerText ?? ''),
+    null,
+    { timeout: 60000 },
+  );
+  await hashPage
+    .waitForFunction(() => !location.href.includes('password'), null, { timeout: 15000 })
+    .catch(() => {});
+  t.ok(
+    '--remote with routerMode hash: the printed /#/?password= address logs in without a prompt',
+    prompts.length === 0 &&
+      !hashPage.url().includes('password') &&
+      new URL(hashPage.url()).hash.startsWith('#/') &&
+      (await hashContext.cookies()).length > 0,
+    `${hashPage.url()} ${prompts.join()}`,
+  );
+  await hashContext.close();
   t.ok(
     '--remote without a password: there is no passwordless mode, the session needs the login',
     (await api(OPORT, '/session')).status === 401,
@@ -597,6 +1085,41 @@ try {
   );
   const locked = await api(OPORT, '/login', { method: 'POST', body: { password: made } });
   t.ok('--remote: the lock also stops the right password', locked.status === 429);
+
+  // ===================================================================== a first build that fails
+  // The port shows the error page until the build works. Angular checks its port before it builds anything: that check
+  // must not make the page step aside, or the browser gets "connection refused" (and a second dev server the port).
+  stop();
+  await sleep(2000);
+  fresh();
+  writeFileSync(WORK, read() + '\n\n<foo-barr></foo-barr>\n');
+  const FPORT = 4233;
+  stop = startDev(FPORT);
+  const waitingPage = async () => {
+    try {
+      const res = await fetch(`http://127.0.0.1:${FPORT}/`);
+      return res.headers.has('x-slide-ng-waiting')
+        ? `${res.status} ${await res.text()}`
+        : `${res.status}`;
+    } catch {
+      return 'refused';
+    }
+  };
+  let errorPage = '';
+  for (let i = 0; i < 180 && !/foo-barr/.test(errorPage); i++) {
+    await sleep(1000);
+    errorPage = await waitingPage();
+  }
+  t.ok(
+    'a first build that fails: the port shows the error page',
+    errorPage.startsWith('503 ') &&
+      errorPage.includes('The slides do not build yet') &&
+      errorPage.includes('foo-barr'),
+    errorPage.slice(0, 120),
+  );
+  await sleep(3000);
+  const later = await waitingPage();
+  t.ok('the error page stays on the port', later.startsWith('503 '), later.slice(0, 40));
 } finally {
   await browser?.close();
   stop?.();

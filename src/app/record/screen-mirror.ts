@@ -1,9 +1,11 @@
 import { Component, ElementRef, effect, signal, viewChild } from '@angular/core';
+import { T } from '../i18n/t';
 
 // Shows a shared screen or window in the presenter's main pane (Slidev's ScreenCaptureMirror),
 // for example the demo you are running next to the slides.
 @Component({
   selector: 'app-screen-mirror',
+  imports: [T],
   template: `
     <div class="h-full w-full flex items-center justify-center bg-black/80 rounded">
       @if (stream()) {
@@ -13,7 +15,7 @@ import { Component, ElementRef, effect, signal, viewChild } from '@angular/core'
           class="absolute top-2 right-2 px-2 py-1 rounded bg-main border border-main text-sm"
           (click)="stop()"
         >
-          Stop sharing
+          {{ 'presenter.mirrorStop' | t }}
         </button>
       } @else {
         <button
@@ -21,7 +23,7 @@ import { Component, ElementRef, effect, signal, viewChild } from '@angular/core'
           class="px-3 py-1.5 rounded bg-main border border-main text-sm"
           (click)="start()"
         >
-          Choose a screen or window to show
+          {{ 'presenter.mirrorStart' | t }}
         </button>
         @if (error()) {
           <div id="mirror-error" class="absolute bottom-2 text-xs color-red-400">{{ error() }}</div>

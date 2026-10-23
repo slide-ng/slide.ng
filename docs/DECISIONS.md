@@ -65,20 +65,22 @@ Short notes on choices made, and why. Newest at the bottom.
    stays visible in the normal flow (Slidev would drop it silently).
 7. **Per-slide `<style>`: Angular `styles` with `ViewEncapsulation.None`, wrapped in `slide-003 { ... }` (CSS nesting).** The slide's tag name is the
    scope, no extra attribute. Unlike Vue's scoped CSS it also reaches inside the layout's own elements, which is what the Slidev docs example needs.
-   `--uno:` directives are not supported.
+   `--uno:` and `@apply` are written out while generating (see Made while testing for 1.0.0, 17).
 8. **`center` no longer centres the text** (phase 0 did). Slidev's `center` only places the content in the middle; use `class: text-center`.
 9. **`full` has no padding.** Slidev's base style would give it the normal padding; the docs say "use all the space of the screen", so we follow the docs.
    This is the one layout where the two disagree; to be checked against a real Slidev (see STATUS).
 10. **`<link>` is `<slide-ng-link>`**: `link` is a void HTML element and cannot hold content in an Angular template. Other built-ins keep their Slidev
     names in kebab case, with the `slide-ng-` prefix since the last section (`slide-ng-toc`, `slide-ng-current-no`, `slide-ng-total`, `slide-ng-light-or-dark`, `slide-ng-render-when`). Where Slidev uses Vue slots, we use
     attributes on children: `<div dark>` / `<div light>`, `<div fallback>`, `<div at="2">` inside `<slide-ng-switch>`.
-11. **`slide-ng-render-when` has no `visible` context** (needs an element visibility observer); `slide`, `presenter`, `print`, `overview`, `main` work.
+11. **`slide-ng-render-when` had no `visible` context at first**; it has now, with an `IntersectionObserver` on the element (no new dependency). `slide`, `presenter`, `print`, `overview`, `main` work.
 12. **`Nav` and `Ui` are provided by the Deck component**, not the root, so they can read the route and the slides created inside the deck inherit them.
     Overview thumbnails are created inside the overview component, which is inside the deck, so they see the same services.
 13. **Shortcuts are a plain list**, with Slidev's names and keys (`next_space`, `prev_left`, ...), and a `SHORTCUTS_SETUP` injection token
     that gets the default list. We skipped Slidev's key auto-repeat timer (the browser's own key repeat is used) and typing digits in the overview.
 14. **Transitions use the Web Animations API**, not CSS classes: no `*-enter-active` classes, so themes written for Vue's classes would not apply.
     The result is easy to test (`getAnimations()`) and needs no CSS. The setting of the earlier slide of the pair is used, like Slidev. Default: none.
+    Later, for Slidev's custom transitions, any name that is not built in (or an object that names classes) runs Vue's class sequence (`lib/class-transition.ts`, a port of
+    Vue's `<Transition>` timing: two frames, then the end of the longest CSS transition or animation); the built-in names keep their keyframes.
 15. **The bar at the bottom left shows on hover or focus** (CSS only, as in Slidev's play page). There is no idle timer: Slidev has none either.
     The user's wish for "auto-hide when idle" is met by the bar being hidden until the mouse goes to that corner.
 16. **Dark mode** uses Slidev's storage key (`slidev-color-schema`) and values (`auto`, `light`, `dark`), the `dark` class on `<html>`, and hides the
@@ -117,7 +119,7 @@ Nothing else was added: footnotes, alerts, the PlantUML encoding and the code ru
 5. **`@/` in `<<<` is the folder of the entry markdown file**, like Slidev's `userRoot`. A missing snippet file is a warning plus a visible
    comment inside the block, so one typo does not stop the build.
 6. **`::code-group` takes the fences inside it and ignores the text between them.** Tab names are the `[titles]`; the title bar of the single
-   blocks is hidden inside a group. Slidev's automatic file icons (vscode-icons) and the `~icon~` title syntax are not drawn.
+   blocks is hidden inside a group. Slidev's automatic file icons (vscode-icons) and the `~icon~` title syntax were not drawn at first; they are now (`code/title-icon.mjs`, the built-in table only when `@iconify-json/vscode-icons` is installed, no new dependency).
 7. **Fences are found by a small line scanner** (`fences.mjs`) instead of a regular expression, so four backtick fences can hold three backtick
    ones (needed for Magic Move) and `<<<` / `::code-group` are handled in the same pass.
 8. **The deck for the phase 2 tests is `tests/e2e/phase2/slides.md`**, next to the phase 1 showcase, with its own runner (`npm run test:e2e`
@@ -150,15 +152,19 @@ Nothing else was added: footnotes, alerts, the PlantUML encoding and the code ru
     it starts Monaco's two workers with `new Worker(new URL(...))` (editor worker and TypeScript worker, small files in `src/app/code/monaco/`),
     which Angular's esbuild builder compiles into separate `worker-*.js` files (`webWorkerTsConfig` in `angular.json`). No AMD loader, no CDN.
     JSON, CSS and HTML get colours but no language server (no workers for them, to keep the output smaller). Setup needed in `angular.json`:
-    `"loader": { ".ttf": "file" }` (the icon font) and `webWorkerTsConfig`.
+    `"loader": { ".ttf": "file" }` (the icon font) and `webWorkerTsConfig`. Its stylesheet comes with the chunk too ("Made while measuring the
+    first load", 1).
 18. **`tsconfig.app.json` lists only `src/main.ts`** (no `include`), so only files the deck imports are compiled. Without this the builder
     found the `new Worker(...)` calls in every file and put 7 MB of workers into every build, also decks without an editor.
-19. **Monaco's CSS goes through `features.css` (by path, with its icon font inside) when the deck has an editor.** The CSS that Monaco's JavaScript
-    imports is written next to the output as unused `.css` files (about 190 kB each, not linked). Mapping `.css` to `empty` in `angular.json`
-    removed them but broke the unit tests, so they stay. Editors use Monaco's own `vs` / `vs-dark` themes following the colour mode, not the Shiki
-    themes (that would need `@shikijs/monaco`, one more dependency).
+19. **Monaco's CSS comes with the lazy Monaco chunk** ("Made while measuring the first load", 1); it no longer goes through `features.css`.
+    The production configuration maps `.css` to `empty` in `angular.json`, so the unused `.css` files that Monaco's JavaScript imports are no
+    longer written next to the output. The loader is set only for production, as setting it for every build broke the unit tests. Editors use
+    Monaco's own `vs` / `vs-dark` themes following the colour mode, not the Shiki themes (that would need `@shikijs/monaco`, one more
+    dependency).
 20. **`{monaco-run}` runs code in a sandboxed `<iframe srcdoc sandbox="allow-scripts">`** (no `allow-same-origin`): it cannot reach the slides,
-    their storage or cookies; it posts back what `console.log` printed. A run is cut off after 5 seconds. TypeScript is turned into JavaScript by
+    their storage or cookies; it posts back what `console.log` printed. Inside the frame the code runs in a worker, so an endless loop blocks only
+    that worker: a browser that keeps a sandboxed frame in the page's own process (Safari, Chromium's headless shell) would otherwise freeze the
+    whole deck, 5 second cut-off included. Where no worker can start, the code runs in the frame itself. A run is cut off after 5 seconds. TypeScript is turned into JavaScript by
     Monaco's own TypeScript worker, so the 9 MB `typescript` package is not added a second time. Not supported: `import` in the code (Slidev maps a few
     modules), highlighting of the output (Slidev uses Shiki in the browser), custom runners for other languages.
 21. **Keys typed inside a Monaco editor are not shortcuts.** The editor's input is a plain `div`, so the check for text fields in `deck.ts` also looks
@@ -198,23 +204,24 @@ Nothing else: recording uses the browser's MediaRecorder, the wake lock uses the
 1. **Sync is one signal service and a transport interface.** `SyncState` holds `shared` (page, clicks, timer, cursor) and `drawings`. It only knows
    `SyncTransport { send, listen }`; BroadcastChannel and the dev WebSocket are two providers of the multi token `SYNC_TRANSPORTS`. Both can run at once; messages are idempotent, so a double delivery is harmless.
 2. **Presenter drives, viewers follow.** The presenter page sends page and clicks; a viewer applies them. A viewer that moves by itself on a local address (localhost, same browser) moves the presenter back,
-   so two windows of one person never fight; a viewer on another device only follows. A page that opens late asks with `hello` and the presenter answers. Everything received is cleaned (`cleanShared`): counts must be integers from 0 to under 1e6, drawings at most 500 000 characters.
+   so two windows of one person never fight; a viewer on another device only follows. A page that opens late asks with `hello` and the presenter answers with its last move, keeping that move's time; a viewer ignores a move older than the one it follows, so with two presenter windows the audience stays with the newest move. A presenter page's first position after it opens is not a move: it goes out with time 0, or after a reload with the time of that tab's last move (`sessionStorage`); a viewer follows a time-0 position only from the start of the deck (slide 1, no click: a window that opens later joins the presenter), and elsewhere keeps its own address. The timer is ordered the same way: a start, pause or reset carries `changedAt`, and an older timer does not replace a newer one (also in the dev server's kept copy). A move carries the sender's clock (`sentAt`) like the timer, and its time is moved onto the receiver's clock before it is compared. Everything received is cleaned (`cleanShared`): counts must be integers from 0 to under 1e6, drawings at most 500 000 characters.
 3. **`/presenter/:no`, `/notes` and `/:no` are separate routes** and `route.data.mode` tells `Nav` which navigation it serves. The three presenter layouts are Slidev's CSS ported; the choice, the notes font size and the cursor options are remembered in `localStorage` under Slidev's keys.
-4. **The timer is shared state**, not a local clock: `{ status, startedAt, pausedAt }`, so every window shows the same time. `duration` (`30min`, `1h30min`, `90s`, a number of minutes) and `timer: countdown | stopwatch` are headmatter.
+4. **The timer is shared state**, not a local clock: `{ status, startedAt, pausedAt }`, so every window shows the same time. A message carries the sender's clock (`sentAt`) and the times are moved onto the receiver's, so devices with clocks that differ agree; every window answers a `hello` with a running timer, and the dev hub keeps the last one. `duration` (`30min`, `1h30min`, `90s`, a number of minutes) and `timer: countdown | stopwatch` are headmatter.
 5. **Cursor and laser are drawn on the viewer's page** from the presenter's position in slide coordinates, throttled to one send per animation frame, newest position wins.
 6. **Drawings:** one `drauu` instance per page, markup kept in `SyncState.drawings` per slide. Persisted in `localStorage` (`slide-ng-drawings`); with `drawings.persist` the dev server also writes `.slide-ng/drawings/<n>.svg`, and the generator bakes those files into the build.
    `enabled` may be `dev` or `build`; `presenterOnly` hides drawing from viewers; `syncAll: false` keeps viewer drawings on the viewer's screen. Everything read from another window or a file is sanitised (`cleanSvg`, a tag whitelist) before it is shown. The saved SVG file has a fixed viewBox of 960x540 (not the headmatter canvas size).
 7. **Recording uses MediaRecorder** (webm, vp9 then vp8 then the browser's choice). `screen` records this tab through `getDisplayMedia`, `camera` records the camera; the microphone is added to both. One file per recording, downloaded when you stop. `fix-webm-duration` was **not** added: the file has no duration field, so some players show it only after a seek. (Replaced by owner decision 5: the duration is written, as Slidev does.)
    `record: true | false | dev | build` (default `dev`, like Slidev) decides whether the camera, record buttons and device options exist at all.
 8. **The camera bubble and the screen mirror are small components** (`WebCamera`, `ScreenMirror`); the mirror hides the slide with `display: none`, never removes it, so the click state survives. Device choices are remembered under `slidev-camera`, `slidev-mic`.
-9. **Settings menu:** dark mode, slide scale, idle cursor, wake lock, presenter cursor and style, five colour filters (applied to the main slide only, not to thumbnails), camera options, and a **disabled** "Download as PDF" entry (export is not done). The wake lock follows headmatter `wakeLock: true` until the user chooses; the choice wins.
+9. **Settings menu:** dark mode, slide scale, idle cursor, wake lock, presenter cursor and style, five colour filters (applied to the main slide only, not to thumbnails), camera options, and a **disabled** "Download as PDF" entry (export is not done). The wake lock follows headmatter `wakeLock` (later: `true` by default, `false`, `dev` or `build`, as in Slidev; it was off unless `wakeLock: true` at first) until the user chooses; the choice wins.
 10. **`slide-ng-drag` numbers each site in the generator.** `scripts/lib/drag-sites.mjs` finds `slide-ng-drag` tags outside code and the generator adds `drag-site="N"`; the dev server uses the same function on the same text, so "site 3" means the same thing on both sides.
     Forms: `slide-ng-drag="[x,y,w,h]"`, `slide-ng-drag="name"` (numbers in frontmatter `dragPos`), bare `slide-ng-drag` (starts where the layout put it, becomes absolute on the first move), `<slide-ng-drag pos="x,y,w,h">`, `<slide-ng-drag-arrow pos="x1,y1,x2,y2">`.
     Written back as `[x,y,w,NaN]` in the attribute form and `x,y,w,_` in `pos` and frontmatter (`NaN` / `_` = height follows the content), whole numbers only. Resizing ignores the rotation (it works in the unrotated frame). Arrow keys nudge 1 px, with Shift 10 px, and the arrows stop moving slides while an element is selected.
     A static build keeps a move only while the page stays open; it never writes.
 11. **`zoom`** scales the layout from the top left corner (width and height divided by the zoom, then `transform: scale`), frontmatter over headmatter. **The default canvas stays 960x540** (phase 1 choice; Slidev's is 980x552; replaced by owner decision 1); `canvasWidth` and `aspectRatio` change it.
-12. **Layers are files:** `src/app/layers/{global-top,global-bottom,slide-top,slide-bottom}.ts`, each with `export default` of a standalone component. The generator imports those that exist into `generated/layers.ts`. Global layers sit once over or under the slides; slide layers are inside every slide. They let clicks through (`pointer-events: none`) and are not drawn in overview thumbnails or the next-step preview.
+12. **Layers are files:** `src/app/layers/{global-top,global-bottom,slide-top,slide-bottom,custom-nav-controls}.ts`, each with `export default` of a standalone component. The generator imports those that exist into `generated/layers.ts`. Global layers sit once over or under the slides; slide layers are inside every slide; `custom-nav-controls` is drawn at the end of the navigation bar, as in Slidev, and is the one layer where every root's file is drawn (theme, addons, deck in that order) instead of only the strongest one. They let clicks through (`pointer-events: none`) and are not drawn in overview thumbnails or the next-step preview.
 13. **`routerMode: hash`** uses Angular's hash location; `history` (default) needs a host that sends every path to `index.html`.
+    `memory` (added later, as Slidev's `createMemoryHistory`) is a small `LocationStrategy` (`lib/memory-location.ts`) that never touches the address. Unlike Slidev it reads `/print` and `/presenter/print` from the address at start, so `build --download`, the Open Graph picture and `export --dist` keep working; `export` builds such a deck with history routing, as Slidev's export mode does. In the dev server it also keeps the address in sessionStorage, because every save reloads the page and would otherwise go back to slide 1.
 14. **The dev companion server is a separate process** (`scripts/dev/server.mjs`), started by `npm start`, bound to **127.0.0.1 only**. The Angular dev server proxies `/__slide-ng/*` to it (`proxy.conf.mjs`), WebSockets included, so the page uses one origin. Even with `--remote` it is only reachable through that proxy, with the same checks.
 15. **Security rules of the companion server** (all in `scripts/dev/auth.mjs`, each tested): (a) `Host` must be localhost, or with `--remote` an IP address or the machine's name (stops DNS rebinding); (b) a present `Origin` must equal `Host`; (c) every write and WebSocket needs the session token (random per start, given by `/session`); (d) with a password, also a cookie that is only given for the right password (`HttpOnly`, `SameSite=Strict`, compared in constant time, 400 ms delay on a wrong one);
     (e) writes need `Content-Type: application/json`; (f) a request never supplies a path: slides are found by number through the parser, drawing files are `<integer>.svg`, `{monaco-write}` files come from a list the generator wrote, and every path goes through `confine` (no `..`, no absolute path, no symlink out, inside the deck's folder);
@@ -283,7 +290,7 @@ plain Node.
     watcher channel to the page; the cost is one small request per two seconds while the editor is open.
 24. **Two phase 3 limits were smaller than written:** `slide-ng-drag` boxes are drawn in the right place in overview thumbnails (they are only not editable there), and the presenter's next-step preview now draws the global layers. Slidev does not draw global
     layers in overview thumbnails either, so they were left out there.
-25. **The four layer files of the layout test deck live in its own folder** (`tests/e2e/phase3/layout/layers/`) instead of being copied into `src/app/layers` during the build; that is the deck-folder feature doing the job.
+25. **The layer files of the layout test deck live in its own folder** (`tests/e2e/phase3/layout/layers/`) instead of being copied into `src/app/layers` during the build; that is the deck-folder feature doing the job.
 26. **Left out on purpose:** editable PPTX, the prettier plugin, the Vue-syntax converter, community themes, the browser exporter page and `overviewSnapshots` (as asked; the VS Code extension was left out of the core and became the separate slide-ng/vscode-extension repository). Also left out because they would not fit: `--tunnel`,
     Monaco type loading, `fonts`, MDC/Comark.
 
@@ -343,7 +350,7 @@ The owner decided "do it like Slidev" for every open choice. For each one, Slide
 9. **Cheap leftovers of PARITY.md finished the Slidev way.** `fonts` (`lib/fonts.mjs`, a port of `resolveFonts`: sans, serif, mono, local, weights, italic, fallbacks, provider google, coollabs or none; the fonts are an @import
    from the provider, as Slidev, not copied into the build; since then `fonts.selfHost` copies them, see Offline use 8); the `contextMenu`, `presenter` and `editor` headmatter switches (`true`, `false`, `dev`, `build`; `lib/switches.ts`); touch swipes with Slidev's thresholds
    (`composables/useSwipeControls.ts`: 30% of the width or 75px for clicks, 40% of the height or 200px for slides, off while drawing). Left listed in PARITY.md: `selectable`, `themeConfig`,
-   MDC, slide hooks, custom transition objects, `clickAnimation`, `preloadImages`; `--tunnel` stays refused.
+   MDC, slide hooks; `--tunnel` stays refused.
 10. **The official themes live in a separate repository, as npm packages `@slide-ng/theme-<name>`.** Owner decision, like Slidev's `slidevjs/themes` (a monorepo of `packages/theme-*`, each published as
     `@slidev/theme-<name>`). It supersedes the first version of this decision, which put the themes in a `themes/` folder of this package and searched it before `node_modules`. That folder is gone,
     and `themes` is no longer in `package.json#files`. `theme: <name>` now resolves from `node_modules` only, with Slidev's rule and slide.ng's prefixes: `@slide-ng/theme-<name>`, `slide-ng-theme-<name>`, `<name>`
@@ -381,7 +388,7 @@ Verified by running the built decks in Chromium; the tests are `tests/export/off
 4. **A viewer opened from a folder may drive the presenter.** The sync code only let `localhost` viewers send, so from `file://` (host name empty) only the presenter drove. A folder is on this machine by definition, so `file:` counts as local (`isLocalPage`).
    BroadcastChannel works between `file://` pages in Chromium; this was measured, not assumed.
 5. **Two offline decks in one browser must not mix.** All `file://` pages share one `localStorage` and every BroadcastChannel name, so drawings and the slide position of one deck showed up in another. Drawings and the sync channel now carry the
-   folder's path (`lib/disk-scope.ts`); web addresses keep the old names. Dark mode and presenter preferences stay shared on purpose.
+   folder's path (`lib/disk-scope.ts`); web addresses keep the old names. Dark mode and presenter preferences stay shared on purpose. (Changed in 2.0.0: several decks on one web origin mixed in the same way, so the scope is now the deck's base path for web addresses too, `lib/deck-scope.ts`, and covers every stored setting; only dark mode stays shared. A deck at `/` keeps the old names.)
 6. **`/public` addresses in slides were never base-aware.** `![](/photo.png)` stayed `/photo.png`, so it broke under `--base /talk/` as well, not only from disk. A build now writes `/talk/photo.png` (`<img src>`, `<video src poster>`, inline `url()`,
    slide `<style>`), the offline build writes `photo.png`. The `<style>` case is left alone for `./` because the Angular build would try to bundle a relative `url()` of a component's style. The dev server is unchanged.
 7. **The PDF button opens a new tab from `file://`** (the `download` attribute is ignored there, and the same tab would show the PDF in place of the deck). It is enabled without asking the server (a `HEAD` request cannot be made from disk).
@@ -421,7 +428,7 @@ Verified by running the built decks in Chromium; the tests are `tests/export/off
 Source: an independent review of the repository (nine findings). Each fix has a regression test.
 
 1. **`--remote` has no passwordless mode. This overrides decision 3 of the phase 4 list ("`--remote` works like Slidev's: the password is optional").** Reason: with no password any host on the network got the session token and could write slides.md; a slide can list `{monaco-write}` files, and a saved setup file is loaded as code by the next generator run, so a passwordless remote server was remote code execution for the whole LAN, while its warning only said "follow or move the presenter". Now `--remote=secret`, else `SLIDE_NG_PASSWORD`, else a prompt on a terminal, else a random password (24 characters from 18 random bytes) printed with the presenter address; the companion server refuses to start in remote mode without a password. Slidev parity for this flag is gone on purpose (PARITY.md). The warning now lists what the password allows.
-   `{monaco-write}` targets are restricted too (`scripts/lib/monaco-targets.mjs`): an extension list, inside the deck's folder, never `setup/`, `layouts/`, `components/`, `layers/`, `styles/`, `public/`, `theme/`, `addons/`, `node_modules/`, `.git/`, package, lock or config files, hidden files or `.slide-ng/`. The same check runs when the generator lists a file and again at every write, so rewriting the list (or a slide that adds a `{monaco-write}` line) can name only files the check allows; no signed list or extra opt-in was added, because the second check on the same rule is smaller and readable.
+   `{monaco-write}` targets are restricted too (`scripts/lib/monaco-targets.mjs`): an extension list, inside the deck's folder, never `setup/`, `layouts/`, `components/`, `layers/`, `styles/`, `public/`, `theme/`, `addons/`, the deck's `index.html` (it goes into the page), `node_modules/`, `.git/`, package, lock or config files, hidden files or `.slide-ng/`. The same check runs when the generator lists a file and again at every write, so rewriting the list (or a slide that adds a `{monaco-write}` line) can name only files the check allows; no signed list or extra opt-in was added, because the second check on the same rule is smaller and readable.
    Tests: `dev.spec.ts`, `remote-info.spec.ts`, `monaco-targets.spec.ts`, `monaco-write.spec.ts`, `server.spec.ts`, `server-remote.spec.ts`, `tests/e2e/dev-server.mjs`.
 2. **`confine` looks at the file itself** (real path of the file when it exists, a dangling link counts as existing), and write targets must not be symlinks at all (`lstat`, then `O_NOFOLLOW` in `safeWrite`). Slide files, `{monaco-write}` files and the MCP edits go through it.
 3. **Reads are confined to the deck too: `<<<` snippets, `src:` imports and the MCP `get_slide` read** (`scripts/lib/outside-root.mjs`). The real path of the file must be inside the deck's folder or a theme or addon folder; otherwise the build stops with an `OutsideRootError` that names the opt-in `allowOutsideRoot: true`. The opt-in is read from the deck's own headmatter (not from the merged one), so a theme cannot switch it on. Checked in the parser: `@slidev/parser` turns a leading `/` in `src:` into a path under the deck's folder (so an absolute path cannot name a system file), but `../` and symlinks escaped, and its own `allowedRoots` option only compares text and only warns, so slide.ng checks the real paths of every loaded file after the load. A missing snippet file is still a warning, an outside one is an error.
@@ -484,3 +491,75 @@ Source: an independent review of the repository (nine findings). Each fix has a 
 16. **A relative picture next to `slides.md` is copied into the build** (`/_local/...`) when `public/` does not have it. Slidev decks
     write `./images/x.png` because Vite bundles it; failing silently with a 404 made those decks look broken. Files outside the deck's
     folder are never copied.
+17. **UnoCSS as Slidev sets it up: attributify, typography, variant groups and directives.** Three dependencies were added for it, all at the
+    UnoCSS version already installed: `@unocss/preset-attributify`, `@unocss/preset-typography` and `@unocss/transformer-directives`.
+    The generator does the work of Slidev's two transformers (`lib/uno-directives.mjs`): `hover:(a b)` in a slide's attributes is expanded
+    with `expandVariantGroup` from `@unocss/core`, and the directives in a slide's `<style>` and in the roots' `styles/` are written out
+    before Angular sees the CSS (the copies in `generated/roots` hold the result). Angular's template parser accepts attributify forms,
+    `hover:bg="..."` included (a namespace it does not know is set as a plain attribute), so no attribute is rewritten into a class.
+    Attributify reads only the deck's files: in slide.ng's own source, attributes such as `size="2"` or `visible` would become utilities.
+
+## The interface in other languages (issue #1)
+
+1. **A pipe, an injection token and `LOCALE_ID`, no library.** English lives in `src/app/i18n/en.ts` as a typed object, so a mistyped key
+   does not compile. The generator writes the translations of the deck's language into `generated/ui-text.ts` as plain data and the app
+   puts them over English (`UI_TEXT`); templates use the pure `t` pipe. Plain data works offline and in an export, and needs no request
+   when the page opens. Angular's own i18n (`i18n` attributes, `$localize`, one build per locale) is not used: it would change how every
+   slide is compiled, and slides are not the app's text.
+2. **`lang` decides the interface language too, and `uiLang` overrides it.** Most decks are in one language; a separate key would make
+   them write it twice. Unknown languages and missing keys fall back to English; only an explicit `uiLang` with no file warns.
+3. **Translations are a root folder, `locales/<lang>.json`, merged key by key** like the other root folders (built-in, theme, addons, deck).
+   Flat keys with `{name}` placeholders, so a translator needs no code. The generator checks each file against `en.ts`; a bad key stays
+   English instead of stopping the build, a file that is not JSON stops it like a broken `theme.json`.
+4. **Turkish ships with 2.0.0** (`src/app/i18n/locales/tr.json`), complete, to prove the mechanism on a real language. A built-in
+   translation must have every key; a deck's or a theme's may have only some.
+5. **`lang` is also `LOCALE_ID`**, and only that locale's data is imported (`registerLocaleData` in the generated file), so a German deck
+   does not carry the data of every language. Angular has no data for a tag such as `xx`: the pipes stay English and the generator says so.
+6. **`ar`, `he`, `fa` and `ur` set `dir="rtl"`** unless `htmlAttrs.dir` is given. The bar, menus and presenter use logical CSS (`start`,
+   `end`, `ms-*`) so they mirror, and the previous and next arrows are flipped. The keys stay as they are (right is next).
+7. **One deck in several languages is one entry file per language** sharing slides with `src:`, plus `--lang` to set `lang` for a run.
+   Switching the language while presenting was not built: it needs both languages in every slide, and short decks can use `@if` on their own.
+8. **The date on the notes PDF follows `LOCALE_ID`** instead of the browser's language, so a Turkish deck prints a Turkish date everywhere.
+
+## Made after 1.0.0
+
+1. **`uqr` draws the QR code of `dev --remote`** (the `c` key in the terminal). It is the library Slidev uses for the same key: MIT,
+   no dependencies of its own, about 20 kB, and only loaded by the command line, never by the app. Writing a QR encoder (Reed-Solomon,
+   masks, version tables) by hand would be a few hundred lines to maintain for one key.
+2. **The terminal keys restart all three dev processes** (`r`): the generator, the companion server and the Angular server stop, then
+   start again with the same port, token and password, so open pages reconnect and logins stay valid. The children get no stdin, so the
+   keys are read only by the command. `e` runs `$VISUAL`, `$EDITOR` or `code` in the same terminal and gives it the keys until it ends,
+   so a terminal editor works too.
+3. **MCP over HTTP is stateless and lives in the companion server** (`/__mcp`, proxied like `/__slide-ng`). Each POST gets a new
+   server and transport, so nothing is kept between requests and a restart loses nothing; GET (a server stream) and DELETE (end a
+   session) answer 405. It does not need the session token: a program cannot fetch it, and the token is there against other web pages,
+   which the Origin check already stops (a browser sends Origin on every POST). With `--remote` a program sends the password as a bearer
+   token, counted by the same limit on wrong passwords as the login; spaces at the password's start or end are left out of the compare, as HTTP cannot carry them in a header. `goto_slide` sends two `shared` messages, one as a viewer (presenters
+   follow) and one as a presenter (viewers follow), because a window ignores moves made by its own kind. It answers the click step
+   a window reports back; a viewer on another machine may not drive, so it reports on a `position` channel that only the hub reads
+   (no window follows it). Every window that follows the move reports once its slide is there, also when it took the step as asked
+   (on `position`, as nothing needs to follow it), so goto_slide waits for the first report rather than a fixed time: a fixed half
+   second gave the asked step when the slide loaded slowly. A window that does not follow (its sync is off) is waited for 5 s.
+
+## Made while measuring the first load
+
+1. **Monaco's stylesheet comes with the Monaco chunk, not with the deck's styles.** It is about 390 kB (125 kB compressed, the icon font
+   is inside) and a stylesheet in the page holds up the first paint, so one `{monaco}` block anywhere made every slide wait for it (first
+   paint of a 10-slide deck on slow 3G: 10.6 s before, 4.9 s after). `src/app/code/monaco/setup.ts` imports the file as text
+   (`with { loader: 'text' }`) and adds it as a `<style>` after the app's stylesheet, so the cascade order against the reset stays the
+   same. Monaco's own modules import their stylesheets one by one; Angular wrote those as three CSS files that nothing loaded (about
+   560 kB in `dist/`), so a production build loads every `.css` that JavaScript imports as empty (`loader` in `angular.json`).
+2. **Dev-only code is not in a production build, and the other pages stay in the first bundle.** The side editor and the dev server's
+   providers (WebSocket sync, drag saving) are replaced by empty files in a production build (`side-editor.prod.ts`,
+   `dev-providers.prod.ts`), as the editor's highlighter already was. Making presenter, notes, notes print and print lazy routes
+   (`loadComponent`) was tried and measured: the first load got 2 kB smaller (compressed), but the bundler split the code those pages
+   share with the slides into six more files that the page needs at once, and on slow 3G the first paint of the same deck went from
+   4.9 s to 7.1 s (one more round trip). So they stay eager.
+3. **Slides are still all in the first bundle** (phase 1, decision 16). Loading each slide lazily would make the first slide smaller for
+   long decks, but every navigation, the overview, print and export would then wait for chunks; not done.
+4. **A root folder that is a symbolic link (`public -> ../pictures`) is still not followed**, like every other link in a root (phase 4,
+   decision 14: a theme could point a link anywhere on the disk). The generator now warns instead of leaving the files out silently; the
+   fix is a real folder.
+5. **Mermaid 12 lays out flowcharts with ELK by default**, so a plain `graph LR` downloads the ELK chunk (about 350 kB compressed). This
+   is Mermaid's own default (`layout: elk` in its config), not a slide.ng setting; `{layout:'dagre'}` on the fence (or in
+   `setup/mermaid.ts`) uses the smaller dagre layout.

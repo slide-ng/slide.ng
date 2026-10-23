@@ -1,0 +1,16 @@
+{
+  "nav.next": "xx-next",
+  "nav.overview": "xx-overview (deck)",
+  "nav.settings": "xx-settings",
+  "settings.cursorStyle": "xx-cursor-style",
+  "goto.placeholder": "xx-goto",
+  "overview.label": "xx-overview-dialog",
+  "overview.goTo": "xx-go {no}",
+  "overview.goToTitle": "xx-go {no}: {title}",
+  "info.credit": "xx {name} xx-credit",
+  "presenter.next": "xx-next-step",
+  "presenter.noNotes": "xx-no-notes {no}",
+  "presenter.pageTitle": "xx-presenter {title}",
+  "notes.pageTitle": "xx-notes {title}",
+  "timer.reset": "xx-reset"
+}

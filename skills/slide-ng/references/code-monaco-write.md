@@ -9,7 +9,7 @@ Use it on a snippet line: `<<< ./snippets/demo.ts {monaco-write}`.
 
 - The whole file inside the deck's folder is the editor text. While `slide-ng dev` runs, edits are saved into that file about half a second after you stop typing.
 - A region, a plain code block or a static build gets a normal editor (the generator warns for the first two).
-- Only text-like files inside the deck are writable (a list of extensions; never `setup/`, `layouts/`, `components/`, `.git/`, `node_modules/`, `package.json`, lock files or hidden files); the generator warns for the others.
+- Only text-like files inside the deck are writable (a list of extensions; never `setup/`, `layouts/`, `components/` or `index.html` at the top of the deck's folder or of a theme or addon folder in it, `.git/`, `node_modules/`, `package.json`, lock files or hidden files); the generator warns for the others.
 - Dev server only; the file name never comes from a request, only from the generated list of targets.
 
 <!-- verify-file: snippets/demo.ts -->
