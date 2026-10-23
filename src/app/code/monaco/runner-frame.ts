@@ -67,18 +67,21 @@ const code = document.getElementById('run').textContent;
 const inFrame = () => new Function('send', code)(relay);
 let started = false;
 try {
-  const url = URL.createObjectURL(new Blob(['const send = (m) => postMessage(m); var window = self;' + code], { type: 'text/javascript' }));
+  // The worker says \`ready\` before anything else, so an error before that means it could not start.
+  const url = URL.createObjectURL(
+    new Blob(['postMessage({ ready: true }); const send = (m) => postMessage(m); var window = self;' + code], { type: 'text/javascript' }),
+  );
   const worker = new Worker(url);
   worker.onmessage = (e) => {
-    started = true;
-    relay(e.data);
+    if (e.data.ready) started = true;
+    else relay(e.data);
   };
   worker.onerror = (e) => {
     e.preventDefault();
-    // Before the code has said anything, an error means the worker could not start: run it here instead.
+    // The worker could not start: run the code here instead.
     if (!started) return inFrame();
+    // An error thrown later, in a callback of the code, is shown; the run goes on until the code is done.
     relay({ error: String(e.message) });
-    relay({ done: true });
   };
 } catch {
   inFrame();
