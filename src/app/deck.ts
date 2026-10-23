@@ -73,8 +73,9 @@ import { Overview } from './ui/overview';
         [class.bottom-0]="bar.edge === 'bottom'"
         [class.start-0]="bar.side === 'start'"
         [class.end-0]="bar.side === 'end'"
-        [style.left]="bar.side === 'center' ? '50%' : null"
-        [style.translate]="bar.side === 'center' ? '-50% 0' : null"
+        [class.inset-x-0]="bar.side === 'center'"
+        [class.mx-auto]="bar.side === 'center'"
+        [class.w-fit]="bar.side === 'center'"
         [style.opacity]="portrait() || barShown() ? 1 : null"
         (touchstart)="revealBar($event)"
       >
