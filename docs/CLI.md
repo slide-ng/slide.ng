@@ -8,16 +8,16 @@ Flags take `--name value` or `--name=value`; a boolean flag also takes `--no-nam
 
 Starts the dev server: the deck at `http://localhost:4230`, the presenter at `/presenter`, live reload on every save.
 
-| flag                  | what it does                                                                                                                                            |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--port`, `-p`        | port (default 4230; a `PORT` environment variable is ignored)                                                                                           |
-| `--open`, `-o`        | open the browser                                                                                                                                        |
-| `--remote[=password]` | listen on every address, for a phone or a second computer. Always with a password: the given one, `SLIDE_NG_PASSWORD`, or a random one that is printed. |
-| `--bind`              | the address to listen on with `--remote` (default `0.0.0.0`)                                                                                            |
-| `--log`               | `error`, `warn`, `info` (default) or `silent`                                                                                                           |
-| `--force`, `-f`       | clear the Angular build cache first                                                                                                                     |
-| `--theme`, `-t`       | use this theme (a name or a folder) instead of the headmatter's                                                                                         |
-| `--lang`              | use this language (`tr`, `pt-BR`) instead of the headmatter's `lang`: the interface, the locale of dates and numbers, `<html lang>`                     |
+| flag                  | what it does                                                                                                                                                         |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--port`, `-p`        | port (default 4230, or the next free one when 4230 is taken; a port given here that is taken stops with a free one to try; a `PORT` environment variable is ignored) |
+| `--open`, `-o`        | open the browser                                                                                                                                                     |
+| `--remote[=password]` | listen on every address, for a phone or a second computer. Always with a password: the given one, `SLIDE_NG_PASSWORD`, or a random one that is printed.              |
+| `--bind`              | the address to listen on with `--remote` (default `0.0.0.0`)                                                                                                         |
+| `--log`               | `error`, `warn`, `info` (default) or `silent`                                                                                                                        |
+| `--force`, `-f`       | clear the Angular build cache first                                                                                                                                  |
+| `--theme`, `-t`       | use this theme (a name or a folder) instead of the headmatter's                                                                                                      |
+| `--lang`              | use this language (`tr`, `pt-BR`) instead of the headmatter's `lang`: the interface, the locale of dates and numbers, `<html lang>`                                  |
 
 With `--remote` the dev server prints the public slide show, the private one and the presenter for each network address; the
 private addresses carry the password (`http://192.168.1.5:4230/?password=...`, `.../presenter/1?password=...`). The page logs in
@@ -49,7 +49,9 @@ On Windows `e` and `o` run through `cmd` with every argument quoted, so a deck p
 argument and runs nothing else; a path with a `"` or a line break (Windows paths have neither) is refused with a message.
 One deck runs one dev server: the server keeps its working copy of the app in the deck's `.slide-ng/app`, and a second one would
 replace it under the first. So a second `slide-ng dev` on the same deck stops before it changes anything (whatever its `--port`) and
-names the running one; a port that is already in use stops it too. Run two decks side by side from their own folders, each with its own `--port`.
+names the running one. When the default port 4230 is taken by something else, the server takes the next free one and says so
+(`port 4230 is in use, so the dev server uses 4231`); a `--port` that is taken stops it, with a free port to try. Run two decks side
+by side from their own folders: the second one moves to the next port by itself.
 A server that was killed leaves `.slide-ng/dev.lock` behind; the next start sees that its process is gone and takes over.
 The dev server keeps watching after an editor saves by renaming a new file over the old one (vim, JetBrains, `git checkout`), and a
 `src:` or theme folder that is deleted and made again is watched again.

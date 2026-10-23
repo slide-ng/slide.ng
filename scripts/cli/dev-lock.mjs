@@ -50,17 +50,36 @@ export function takeDevLock(toolDir, port) {
   throw new Error(`could not take ${file}`);
 }
 
-/** Throws when something already listens on `port` (on `host`, or on any address). */
-export function checkPortFree(port, host) {
+/** Whether nothing listens on `port` (on `host`, or on any address). Errors other than "in use" (no permission) are thrown. */
+function portFree(port, host) {
   return new Promise((done, fail) => {
     const s = createServer();
-    s.once('error', (e) =>
-      fail(
-        e.code === 'EADDRINUSE'
-          ? new Error(`port ${port} is in use (another dev server?); pick another one with --port`)
-          : e,
-      ),
-    );
-    s.listen(port, host, () => s.close(() => done()));
+    s.once('error', (e) => (e.code === 'EADDRINUSE' ? done(false) : fail(e)));
+    s.listen(port, host, () => s.close(() => done(true)));
   });
+}
+
+/** The first free port after `port`, trying at most `tries` of them; undefined when none is. */
+export async function nextFreePort(port, host, tries = 20) {
+  for (let p = port + 1; p <= Math.min(port + tries, 65535); p++)
+    if (await portFree(p, host)) return p;
+  return undefined;
+}
+
+/**
+ * The port the dev server listens on: `port` when it is free. When it is taken, the next free one if the port was not asked
+ * for with --port (as Slidev does); with --port it throws, naming a free one to try.
+ */
+export async function choosePort(port, host, given) {
+  if (await portFree(port, host)) return port;
+  const next = await nextFreePort(port, host);
+  if (next && !given) return next;
+  throw new Error(
+    `port ${port} is in use (another dev server?); ${next ? `try --port ${next}` : 'pick another one with --port'}`,
+  );
+}
+
+/** Writes the port the dev server ended up on into its lock, so a second dev server on the deck names the right one. */
+export function updateLockPort(file, port) {
+  writeFileSync(file, JSON.stringify({ pid: process.pid, port }) + '\n');
 }

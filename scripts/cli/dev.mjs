@@ -17,7 +17,7 @@ import { checkToolDir, removeInside } from '../lib/tool-dir.mjs';
 import { randomPassword, randomSecret } from '../dev/config.mjs';
 import { startWaitingPage } from '../dev/waiting-page.mjs';
 import { ngBinary, prepareApp } from './app-root.mjs';
-import { checkPortFree, takeDevLock } from './dev-lock.mjs';
+import { choosePort, takeDevLock, updateLockPort } from './dev-lock.mjs';
 import { applyLangFlag, applyThemeFlag, parseFlags } from './flags.mjs';
 import { packageRoot } from './package-root.mjs';
 import { askPassword } from './prompt.mjs';
@@ -81,6 +81,8 @@ export function devPlan(argv, env = process.env) {
   return {
     entry,
     port: flags.port ?? 4230,
+    // Only a port asked for with --port is kept when it is taken; the default moves to the next free one.
+    portGiven: flags.port !== undefined,
     open: Boolean(flags.open),
     remote,
     password,
@@ -120,8 +122,16 @@ const freePort = () =>
 export async function devCommand(argv) {
   const plan = devPlan(argv);
   // One deck runs one dev server: both are checked before anything is asked or written (see dev-lock.mjs).
-  takeDevLock(checkToolDir(dirname(plan.entry)), plan.port);
-  await checkPortFree(plan.port, plan.host);
+  const lock = takeDevLock(checkToolDir(dirname(plan.entry)), plan.port);
+  const port = await choosePort(plan.port, plan.host, plan.portGiven);
+  if (port !== plan.port) {
+    if (plan.log !== 'silent')
+      console.log(
+        `[slide.ng] port ${plan.port} is in use, so the dev server uses ${port} (pick one with --port)`,
+      );
+    plan.port = port;
+    updateLockPort(lock, port);
+  }
   // On a terminal, ask for the password (Enter keeps the random one), so it never has to be in the command line.
   if (plan.remote && plan.passwordGenerated && process.stdin.isTTY) {
     const typed = await askPassword('[slide.ng] remote password (Enter for a random one): ');

@@ -9,6 +9,7 @@ describe('devPlan', () => {
     const plan = devPlan([], {});
     expect(plan).toMatchObject({
       port: 4230,
+      portGiven: false,
       open: false,
       remote: false,
       password: '',
@@ -17,6 +18,10 @@ describe('devPlan', () => {
     });
     expect(plan.entry.endsWith('slides.md')).toBe(true);
     expect(plan.host).toBeUndefined();
+  });
+  it('remembers whether the port was asked for', () => {
+    expect(devPlan(['--port', '4230']).portGiven).toBe(true);
+    expect(devPlan(['-p', '5000']).port).toBe(5000);
   });
   it('reads --lang', () => {
     expect(devPlan(['--lang', 'tr']).lang).toBe('tr');
