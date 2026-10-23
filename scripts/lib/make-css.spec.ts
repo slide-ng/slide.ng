@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { createGenerator } from '@unocss/core';
 import config from '../../uno.config.mjs';
+import { spawnSync } from 'node:child_process';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import {
   attributifyOn,
   boundClasses,
@@ -14,6 +16,25 @@ import {
 
 const css = async (classes: string) =>
   (await (await createGenerator(config)).generate(classes)).css;
+
+describe('uno.config icons', () => {
+  // preset-icons skips its own Node loader when VSCODE_CWD is set (a VS Code terminal), and looks only from the current
+  // folder: run in a folder with no node_modules above it, as a VS Code terminal would.
+  it('draws the installed sets from any folder, also in a VS Code terminal', () => {
+    const config = pathToFileURL(resolve('uno.config.mjs')).href;
+    const script = `const { createGenerator } = await import(${JSON.stringify(pathToFileURL(resolve('node_modules/@unocss/core/dist/index.mjs')).href)});
+const { default: config } = await import(${JSON.stringify(config)});
+const { css } = await (await createGenerator(config)).generate('i-carbon:apps i-mdi:account i-ph:house');
+console.log(['carbon', 'mdi', 'ph'].filter((set) => css.includes('.i-' + set + String.fromCharCode(92) + ':') && css.includes('--un-icon:url(')).join());`;
+    const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
+      cwd: mkdtempSync(join(tmpdir(), 'icons-')),
+      env: { ...process.env, VSCODE_CWD: '/' },
+      encoding: 'utf8',
+    });
+    expect(result.stderr).toBe('');
+    expect(result.stdout.trim()).toBe('carbon,mdi,ph');
+  });
+});
 
 describe('uno.config shortcuts', () => {
   it('has the corner shortcuts of Slidev', async () => {
