@@ -241,6 +241,42 @@ describe('writes to slides.md', () => {
   });
 });
 
+describe('a deck with languages', () => {
+  const TR = '---\ntitle: Bir\n---\n\n# Bir\n\n---\n\n# İki\n';
+  beforeAll(() => {
+    writeFileSync(
+      join(root, 'slides.md'),
+      SLIDES.replace('title: T\n', 'title: T\nlanguages:\n  en: slides.md\n  tr: slides.tr.md\n'),
+    );
+    writeFileSync(join(root, 'slides.tr.md'), TR);
+  });
+  afterAll(() => writeFileSync(join(root, 'slides.md'), SLIDES));
+
+  it('reads and writes the file of the language the page shows (?lang=tr)', async () => {
+    expect((await call('GET', '/__slide-ng/slides/2/source?lang=tr')).json.raw).toContain('# İki');
+    expect((await call('GET', '/__slide-ng/slides/2/source')).json.raw).toContain('# Two');
+    expect((await call('GET', '/__slide-ng/slides/2/source?lang=en')).json.raw).toContain('# Two');
+    const put = await call('PUT', '/__slide-ng/slides/2/source?lang=tr', {
+      raw: '\n# İki\n\nyeni',
+    });
+    expect(put.status).toBe(200);
+    expect(readFileSync(join(root, 'slides.tr.md'), 'utf8')).toContain('yeni');
+    expect(readFileSync(join(root, 'slides.md'), 'utf8')).not.toContain('yeni');
+    expect(
+      (await call('PUT', '/__slide-ng/slides/1/note?lang=tr', { note: 'Not', base: '' })).status,
+    ).toBe(200);
+    expect((await call('GET', '/__slide-ng/notes?lang=tr')).json.notes).toEqual(['Not', '']);
+    writeFileSync(join(root, 'slides.tr.md'), TR);
+  });
+  it('takes only a language of the headmatter, never a path', async () => {
+    expect((await call('GET', '/__slide-ng/slides/1/source?lang=de')).status).toBe(404);
+    expect((await call('GET', '/__slide-ng/slides/1/source?lang=../slides.tr.md')).status).toBe(
+      404,
+    );
+    expect((await call('GET', '/__slide-ng/slides/3/source?lang=tr')).status).toBe(404);
+  });
+});
+
 describe('{monaco-write}', () => {
   it('writes a listed file', async () => {
     expect((await call('PUT', '/__slide-ng/monaco/abc123', { content: 'new' })).status).toBe(200);

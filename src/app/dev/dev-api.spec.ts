@@ -1,6 +1,16 @@
 import { TestBed } from '@angular/core/testing';
 import { UI_TEXT, mergeUiText } from '../i18n/ui-text';
-import { DevApi, passwordInAddress, withoutPassword } from './dev-api';
+import { DevApi, passwordInAddress, withLanguage, withoutPassword } from './dev-api';
+
+describe('withLanguage', () => {
+  it('names the language of the page for the slides and notes of another file than the entry', () => {
+    expect(withLanguage('/slides/3/source', 'tr', 'en')).toBe('/slides/3/source?lang=tr');
+    expect(withLanguage('/notes', 'pt-BR', 'en')).toBe('/notes?lang=pt-BR');
+    expect(withLanguage('/slides/3/source', 'en', 'en')).toBe('/slides/3/source');
+    expect(withLanguage('/slides/3/source', '', undefined)).toBe('/slides/3/source');
+    expect(withLanguage('/drawings/3', 'tr', 'en')).toBe('/drawings/3');
+  });
+});
 
 describe('the password in the address', () => {
   it('is read from the query, and from the query after the # of a hash deck', () => {
