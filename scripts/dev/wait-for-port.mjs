@@ -14,6 +14,20 @@ if (port && secret) {
     const options = typeof first === 'object' && first !== null ? first : null;
     const wanted = Number(options ? options.port : first);
     if (wanted !== port) return listen.apply(this, args);
+    // Angular's own port check (`checkPort` in @angular/build) listens on the port with a plain net server and closes it at
+    // once, before the first build. Asking the page to step aside for it would leave the port free for the whole build:
+    // the check listens on a spare port instead and is told it got the one it asked for. Only the real server (an HTTP,
+    // HTTPS or HTTP/2 server, never a plain net.Server) takes the port over.
+    if (Object.getPrototypeOf(this) === net.Server.prototype) {
+      const address = this.address.bind(this);
+      this.address = () => {
+        const real = address();
+        return real && typeof real === 'object' ? { ...real, port } : real;
+      };
+      return options
+        ? listen.call(this, { ...options, port: 0 })
+        : listen.call(this, 0, ...args.slice(1));
+    }
     const host = options ? options.host : typeof second === 'string' ? second : undefined;
     const started = Date.now();
     let asked = false;

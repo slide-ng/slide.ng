@@ -4,7 +4,7 @@
 //   3. the Angular dev server, which sends `/__slide-ng/*` to the companion (proxy.conf.mjs)
 //   slide-ng [dev] [slides.md] [--port 4230] [--open] [--remote[=password]] [--bind 0.0.0.0] [--log info] [--force]
 // On a terminal it also reads keys: r restart, o open, e edit, q quit, c QR code (dev-keys.mjs).
-import { spawn, spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { hostname, networkInterfaces } from 'node:os';
@@ -178,7 +178,12 @@ export async function devCommand(argv) {
     SLIDE_NG_REMOTE_URLS: addresses.map((a) => `http://${a}:${plan.port}/`).join(','),
   };
   const generate = join(packageRoot, 'scripts/generate.mjs');
-  const first = spawnSync(process.execPath, [generate], { cwd: appRoot, env, stdio: 'inherit' });
+  // Not spawnSync: the page that holds the port has to answer while the slides are generated.
+  const first = await new Promise((done) =>
+    spawn(process.execPath, [generate], { cwd: appRoot, env, stdio: 'inherit' })
+      .once('error', () => done({ status: null }))
+      .once('exit', (status) => done({ status })),
+  );
   // The generator has printed why (bin/slide-ng.mjs adds no second line for a `reported` error).
   if (first.status !== 0)
     throw Object.assign(new Error('generating the slides failed'), {

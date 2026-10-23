@@ -1085,6 +1085,41 @@ try {
   );
   const locked = await api(OPORT, '/login', { method: 'POST', body: { password: made } });
   t.ok('--remote: the lock also stops the right password', locked.status === 429);
+
+  // ===================================================================== a first build that fails
+  // The port shows the error page until the build works. Angular checks its port before it builds anything: that check
+  // must not make the page step aside, or the browser gets "connection refused" (and a second dev server the port).
+  stop();
+  await sleep(2000);
+  fresh();
+  writeFileSync(WORK, read() + '\n\n<foo-barr></foo-barr>\n');
+  const FPORT = 4233;
+  stop = startDev(FPORT);
+  const waitingPage = async () => {
+    try {
+      const res = await fetch(`http://127.0.0.1:${FPORT}/`);
+      return res.headers.has('x-slide-ng-waiting')
+        ? `${res.status} ${await res.text()}`
+        : `${res.status}`;
+    } catch {
+      return 'refused';
+    }
+  };
+  let errorPage = '';
+  for (let i = 0; i < 180 && !/foo-barr/.test(errorPage); i++) {
+    await sleep(1000);
+    errorPage = await waitingPage();
+  }
+  t.ok(
+    'a first build that fails: the port shows the error page',
+    errorPage.startsWith('503 ') &&
+      errorPage.includes('The slides do not build yet') &&
+      errorPage.includes('foo-barr'),
+    errorPage.slice(0, 120),
+  );
+  await sleep(3000);
+  const later = await waitingPage();
+  t.ok('the error page stays on the port', later.startsWith('503 '), later.slice(0, 40));
 } finally {
   await browser?.close();
   stop?.();
