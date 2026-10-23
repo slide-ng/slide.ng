@@ -134,7 +134,7 @@ Node (22.22.3 or newer) and Angular (22.2) are the same as in 1.x. These changes
 - A mistyped tag that starts like a built-in one (`<slide-ng-tocc>`) no longer imports it (the false "SlideToc is not used" warning).
 - `slide-ng create --force` fills in the name only in the files it adds and keeps an existing `.gitignore` (without leaving the template's `_gitignore` beside it); the new `.gitignore` leaves out the files `export` writes by default.
 - A failed generation prints its reason once, without a second "generating the slides failed" line.
-- A `{monaco-run}` stuck in an endless loop no longer holds up every other run in the page until its 5 second cut-off: running it again, or leaving the slide, stops it at once.
+- A `{monaco-run}` stuck in an endless loop no longer holds up every other run in the page until its 5 second cut-off: running it again, or leaving the slide, stops it at once. The code runs in a worker inside the sandboxed frame, so a browser that keeps that frame in the page's own process no longer freezes the whole deck (there the 5 second cut-off never came). Code that used the frame's `document`, `parent` or `alert` gets a ReferenceError.
 - Leaving a slide while its TypeScript `{monaco-run}` is being turned into JavaScript no longer logs "Could not find source file".
 - A TypeScript `{monaco-run}` that runs before Monaco's TypeScript support is ready (often on the print page and in an export) waits for it; the output read "TypeScript not registered!".
 - A Twoslash `// @errors: 2322` whose error never happens gets a warning naming the slide; the list was accepted silently. The block is still drawn, and an error the list leaves out is still shown without a warning, as before.

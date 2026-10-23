@@ -95,10 +95,11 @@ export async function run({ t, open, press, hud, until }) {
     first.includes('"a": 1') && first.includes('Map (1) {1 => 2}'),
     first,
   );
-  const sandboxed = (await outputs()).find((o) => o.includes('SecurityError')) ?? '';
+  // The code runs in a worker of the sandboxed frame: there is no `parent` to reach (ReferenceError), and no storage.
+  const sandboxed = (await outputs()).find((o) => /ReferenceError|SecurityError/.test(o)) ?? '';
   t.ok(
     'the code runs in a sandbox: no access to the page or its storage',
-    sandboxed.includes('SecurityError') && !sandboxed.includes('has storage'),
+    /ReferenceError|SecurityError/.test(sandboxed) && !sandboxed.includes('has storage'),
     sandboxed,
   );
   t.ok(

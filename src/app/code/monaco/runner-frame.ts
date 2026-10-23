@@ -6,9 +6,11 @@
 export function frameHtml(js: string, id: string, strict = true): string {
   // `<` is escaped so the code cannot close the <script> tag early.
   const safe = (v: string) => JSON.stringify(v).replace(/</g, '\\u003c');
-  return `<!doctype html><script>
-const ID = ${safe(id)};
-const send = (message) => parent.postMessage({ id: ID, ...message }, '*');
+  // The code runs in a worker started by the frame, so an endless loop blocks only the worker: the frame stays free to
+  // be removed (a new run, leaving the slide, the 5 second cut-off) even in a browser that keeps a sandboxed frame in
+  // the page's own process. Where no worker can start (a Content-Security-Policy without blob:), it runs in the frame.
+  return `<!doctype html><script type="text/x-slide-ng-run" id="run">
+// \`send\` is given by whoever runs this: the worker or the frame.
 
 // How a value is shown in the output: strings as they are, other things like console.log in a browser.
 function show(arg) {
@@ -58,5 +60,28 @@ const sandboxConsole = {
   }
   send({ done: true });
 })();
+</script><script>
+const ID = ${safe(id)};
+const relay = (message) => parent.postMessage({ id: ID, ...message }, '*');
+const code = document.getElementById('run').textContent;
+const inFrame = () => new Function('send', code)(relay);
+let started = false;
+try {
+  const url = URL.createObjectURL(new Blob(['const send = (m) => postMessage(m); var window = self;' + code], { type: 'text/javascript' }));
+  const worker = new Worker(url);
+  worker.onmessage = (e) => {
+    started = true;
+    relay(e.data);
+  };
+  worker.onerror = (e) => {
+    e.preventDefault();
+    // Before the code has said anything, an error means the worker could not start: run it here instead.
+    if (!started) return inFrame();
+    relay({ error: String(e.message) });
+    relay({ done: true });
+  };
+} catch {
+  inFrame();
+}
 </script>`;
 }

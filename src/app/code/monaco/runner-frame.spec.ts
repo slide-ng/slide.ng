@@ -15,10 +15,10 @@ describe('frameHtml', () => {
   it('names monacoRunUseStrict when strict mode refuses an undeclared name', async () => {
     const run = async (strict: boolean) => {
       const html = frameHtml('total = 1;', 'run-1', strict);
-      const script = html.slice(html.indexOf('<script>') + 8, html.lastIndexOf('</script>'));
+      const start = html.indexOf('id="run">') + 9;
+      const code = html.slice(start, html.indexOf('</script>', start));
       const sent: { error?: string; done?: boolean }[] = [];
-      const parent = { postMessage: (m: { error?: string }) => sent.push(m) };
-      new Function('parent', script)(parent);
+      new Function('send', code)((m: { error?: string }) => sent.push(m));
       await new Promise((r) => setTimeout(r, 0));
       return sent.find((m) => 'error' in m)?.error;
     };
@@ -27,5 +27,11 @@ describe('frameHtml', () => {
     );
     expect(await run(false)).toBeUndefined();
     delete (globalThis as { total?: number }).total;
+  });
+  it('runs the code in a worker, and in the frame where no worker can start', () => {
+    const html = frameHtml('console.log(1)', 'run-1');
+    expect(html).toContain('<script type="text/x-slide-ng-run" id="run">');
+    expect(html).toContain('new Worker(url)');
+    expect(html).toContain('if (!started) return inFrame();');
   });
 });

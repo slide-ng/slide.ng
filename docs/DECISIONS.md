@@ -162,7 +162,9 @@ Nothing else was added: footnotes, alerts, the PlantUML encoding and the code ru
     Monaco's own `vs` / `vs-dark` themes following the colour mode, not the Shiki themes (that would need `@shikijs/monaco`, one more
     dependency).
 20. **`{monaco-run}` runs code in a sandboxed `<iframe srcdoc sandbox="allow-scripts">`** (no `allow-same-origin`): it cannot reach the slides,
-    their storage or cookies; it posts back what `console.log` printed. A run is cut off after 5 seconds. TypeScript is turned into JavaScript by
+    their storage or cookies; it posts back what `console.log` printed. Inside the frame the code runs in a worker, so an endless loop blocks only
+    that worker: a browser that keeps a sandboxed frame in the page's own process (Safari, Chromium's headless shell) would otherwise freeze the
+    whole deck, 5 second cut-off included. Where no worker can start, the code runs in the frame itself. A run is cut off after 5 seconds. TypeScript is turned into JavaScript by
     Monaco's own TypeScript worker, so the 9 MB `typescript` package is not added a second time. Not supported: `import` in the code (Slidev maps a few
     modules), highlighting of the output (Slidev uses Shiki in the browser), custom runners for other languages.
 21. **Keys typed inside a Monaco editor are not shortcuts.** The editor's input is a plain `div`, so the check for text fields in `deck.ts` also looks
