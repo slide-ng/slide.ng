@@ -3,7 +3,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { relative } from 'node:path';
 import { parseDeck } from '../lib/parse-deck.mjs';
-import { languageDeck } from '../lib/languages.mjs';
+import { deckInLanguage, languageDeck } from '../lib/languages.mjs';
 import { confine, safeWrite } from './auth.mjs';
 import { assertNoWidening } from './escalation.mjs';
 import { HttpError } from './http-error.mjs';
@@ -18,14 +18,14 @@ import {
 
 /**
  * The deck as the page shows it: the entry file, or with `lang` (a deck with `languages`, the page is in another language)
- * the file of that language. Only a tag of the entry file's own `languages` names a file; a path never comes from a request.
+ * the slides of that language paired with the entry file's, so a slide the translation lacks is the entry file's slide
+ * there too, as on the page. Only a tag of the entry file's own `languages` names a file; a path never comes from a request.
  */
 export async function deckFor(ctx, lang) {
   const deck = await parseDeck(ctx.entry);
   if (!lang) return deck;
-  const found = await languageDeck(deck, lang);
-  if (!found) throw new HttpError(404, 'no such language');
-  return found;
+  if (!(await languageDeck(deck, lang))) throw new HttpError(404, 'no such language');
+  return deckInLanguage(deck, lang);
 }
 
 /** The slide, the markdown file it is in, and that file's text, read now. */

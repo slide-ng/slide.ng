@@ -268,6 +268,21 @@ describe('a deck with languages', () => {
     expect((await call('GET', '/__slide-ng/notes?lang=tr')).json.notes).toEqual(['Not', '']);
     writeFileSync(join(root, 'slides.tr.md'), TR);
   });
+  it('edits the entry file for a slide the translation lacks, as the page shows it', async () => {
+    writeFileSync(join(root, 'slides.tr.md'), '---\ntitle: Bir\n---\n\n# Bir\n');
+    expect((await call('GET', '/__slide-ng/slides/2/source?lang=tr')).json.raw).toContain('# Two');
+    expect(
+      (await call('PUT', '/__slide-ng/slides/2/source?lang=tr', { raw: '\n# Two\n\nnew' })).status,
+    ).toBe(200);
+    expect(readFileSync(join(root, 'slides.md'), 'utf8')).toContain('new');
+    expect(readFileSync(join(root, 'slides.tr.md'), 'utf8')).not.toContain('new');
+    expect((await call('GET', '/__slide-ng/notes?lang=tr')).json.notes).toHaveLength(2);
+    writeFileSync(join(root, 'slides.tr.md'), TR);
+    writeFileSync(
+      join(root, 'slides.md'),
+      SLIDES.replace('title: T\n', 'title: T\nlanguages:\n  en: slides.md\n  tr: slides.tr.md\n'),
+    );
+  });
   it('takes only a language of the headmatter, never a path', async () => {
     expect((await call('GET', '/__slide-ng/slides/1/source?lang=de')).status).toBe(404);
     expect((await call('GET', '/__slide-ng/slides/1/source?lang=../slides.tr.md')).status).toBe(
