@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { readNavPosition } from './nav-position';
+import {
+  NAV_POSITIONS,
+  deckNavPosition,
+  isNavPosition,
+  navPosition,
+  navPositionStep,
+  readNavPosition,
+} from './nav-position';
 
 describe('readNavPosition', () => {
   it('is the bottom left when not set, as in Slidev', () => {
@@ -13,5 +20,37 @@ describe('readNavPosition', () => {
   it('keeps the bottom left for a value not in the list', () => {
     for (const v of ['top', 'right', 'Top-Right', 'top-middle', 1, true, { edge: 'top' }])
       expect(readNavPosition(v)).toEqual({ edge: 'bottom', side: 'start' });
+  });
+});
+
+describe('navPosition', () => {
+  it("follows the viewer's choice over the deck's own place", () => {
+    expect(navPosition('top-center')).toEqual({ edge: 'top', side: 'center' });
+  });
+  it("is the deck's own place without a choice, or with one that is not a place", () => {
+    const own = readNavPosition(deckNavPosition());
+    for (const v of [null, undefined, 'middle', 3]) expect(navPosition(v)).toEqual(own);
+  });
+  it('knows the six places', () => {
+    expect(NAV_POSITIONS.filter(isNavPosition)).toHaveLength(6);
+    expect(isNavPosition('top')).toBe(false);
+  });
+});
+
+describe('navPositionStep', () => {
+  it('moves through the 2 x 3 grid and stops at its edges', () => {
+    expect(navPositionStep('bottom-left', 'ArrowRight', false)).toBe('bottom-center');
+    expect(navPositionStep('bottom-center', 'ArrowUp', false)).toBe('top-center');
+    expect(navPositionStep('top-right', 'ArrowDown', false)).toBe('bottom-right');
+    expect(navPositionStep('top-right', 'ArrowRight', false)).toBe('top-right');
+    expect(navPositionStep('top-left', 'ArrowUp', false)).toBe('top-left');
+  });
+  it('mirrors left and right in a right-to-left page', () => {
+    // There `left` is the start, drawn on the right: ArrowLeft goes towards `right`.
+    expect(navPositionStep('bottom-left', 'ArrowLeft', true)).toBe('bottom-center');
+    expect(navPositionStep('bottom-center', 'ArrowRight', true)).toBe('bottom-left');
+  });
+  it('is null for another key', () => {
+    expect(navPositionStep('top-left', 'Enter', false)).toBeNull();
   });
 });

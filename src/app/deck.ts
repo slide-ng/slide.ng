@@ -15,6 +15,7 @@ import { CANVAS_HEIGHT, CANVAS_WIDTH } from './lib/canvas';
 import { contextMenuEnabled } from './lib/switches';
 import { navPosition } from './lib/nav-position';
 import { SlideShow } from './lib/slide-show';
+import { ViewPrefs } from './lib/view-prefs';
 import { keyHandler } from './lib/key-handler';
 import { Ui } from './lib/ui-state';
 import { PresenterCursor } from './presenter/presenter-cursor';
@@ -69,17 +70,17 @@ import { Overview } from './ui/overview';
       /></app-slide-show>
       <div
         class="nav-bar-box absolute p-2 transition duration-300 opacity-0 hover:opacity-100 focus-within:opacity-100"
-        [class.top-0]="bar.edge === 'top'"
-        [class.bottom-0]="bar.edge === 'bottom'"
-        [class.start-0]="bar.side === 'start'"
-        [class.end-0]="bar.side === 'end'"
-        [class.inset-x-0]="bar.side === 'center'"
-        [class.mx-auto]="bar.side === 'center'"
-        [class.w-fit]="bar.side === 'center'"
+        [class.top-0]="bar().edge === 'top'"
+        [class.bottom-0]="bar().edge === 'bottom'"
+        [class.start-0]="bar().side === 'start'"
+        [class.end-0]="bar().side === 'end'"
+        [class.inset-x-0]="bar().side === 'center'"
+        [class.mx-auto]="bar().side === 'center'"
+        [class.w-fit]="bar().side === 'center'"
         [style.opacity]="portrait() || barShown() ? 1 : null"
         (touchstart)="revealBar($event)"
       >
-        <app-nav-bar [menusBelow]="bar.edge === 'top'" />
+        <app-nav-bar [menusBelow]="bar().edge === 'top'" />
       </div>
       <app-offline-badge />
     </main>
@@ -129,8 +130,10 @@ export class Deck {
   );
   // A touch has no hover: the first tap on the hidden bar only shows it, a touch elsewhere hides it again.
   protected barShown = signal(false);
-  // Where the bar sits (headmatter `navPosition`).
-  protected bar = navPosition();
+  // Where the bar sits: the place chosen in the settings menu, else the headmatter's `navPosition`. It moves as soon as
+  // the choice changes.
+  private view = inject(ViewPrefs);
+  protected bar = computed(() => navPosition(this.view.navPosition()));
 
   constructor() {
     hideIdleCursor(() => this.ui.hideIdleCursor());

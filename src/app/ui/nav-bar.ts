@@ -321,7 +321,10 @@ export class NavBar {
 
   constructor() {
     void LANGUAGE_MENU?.().then((menu) => this.languageMenu.set(menu));
+    // Also when the bar moves (a place chosen in the menu): the menu is fitted again where it now is.
     afterRenderEffect(() => {
+      this.view.navPosition();
+      this.menusBelow();
       if (this.settingsMenu()) this.fitSettings();
     });
   }

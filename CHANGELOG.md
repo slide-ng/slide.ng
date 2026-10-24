@@ -4,6 +4,10 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+### Added
+
+- A Nav Bar Position control in the settings menu: a small picture of the page with the six places of `navPosition` (#84). A choice moves the bar and its menus at once and is kept in the browser per deck, over the headmatter; Deck Default goes back to the headmatter's place, also after the author changes it. Left and right follow the writing direction, and the arrow keys move through the places. Not on the presenter page, which keeps its bar.
+
 ## [2.1.0] - 2026-10-24
 
 ### Added
