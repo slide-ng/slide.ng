@@ -6,6 +6,7 @@ import { coalesce } from './lib/coalesce.mjs';
 import { watchFolder } from './lib/watch-folder.mjs';
 import { offerInstall } from './lib/install-root.mjs';
 import { parseDeck } from './lib/parse-deck.mjs';
+import { configFiles } from './lib/deck-config.mjs';
 import { RootNotFoundError } from './lib/roots.mjs';
 import { copyLocalAssets } from './lib/local-assets.mjs';
 import { checkToolDir } from './lib/tool-dir.mjs';
@@ -154,6 +155,7 @@ async function generate() {
   const warn = (m) => console.warn(`[slides] ${m}`);
   const languages = readLanguages(deck.ownHeadmatter, deck.entry, warn, {
     allowOutsideRoot: deck.allowOutsideRoot,
+    config: deck.config,
   });
   const translations = languages ? await readTranslations(deck, languages) : [];
   // Options of `slide-ng build` (see lib/build-options.mjs), for every language.
@@ -350,11 +352,13 @@ async function generate() {
   // take the focus from the editor while the speaker types.
   const written = new Set(Object.values(monacoWriteTargets()).map((p) => resolve(deck.root, p)));
   const snippets = [...snippetFiles].filter((f) => !written.has(f));
-  // The deck's index.html is watched even before it exists, so that adding one shows up (themes are watched whole).
+  // The deck's index.html and config file are watched even before they exist, so that adding one shows up (themes are
+  // watched whole).
   const indexFile = join(deck.root, 'index.html');
   return {
     files: [
       ...deck.files,
+      ...configFiles(deck.root),
       ...deck.missing,
       ...translations.flatMap((t) => [...t.files, ...t.missing]),
       ...snippets,

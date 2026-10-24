@@ -3,7 +3,7 @@
 
 /**
  * `error` is a YAML error (`code`, `message`, `linePos`), `raw` the YAML text, `firstLine` the line of the file its first
- * line is on and `part` "headmatter" or "frontmatter". Returns `{ line, message }`.
+ * line is on and `part` "headmatter", "frontmatter" or "config file". Returns `{ line, message }`.
  */
 export function describeYamlError(error, raw, firstLine, part) {
   const lines = raw.replace(/\n$/, '').split('\n');
@@ -56,6 +56,8 @@ function plainWords(error, text, part) {
       break;
     case 'MISSING_CHAR':
       if (/closing ['"]?quote/i.test(own)) return 'a quote is not closed';
+      if (/Implicit map keys/.test(own) && part === 'config file')
+        return `"${text.trim()}" is not a "key: value" line`;
       if (/Implicit map keys/.test(own))
         return `"${text.trim()}" is not a "key: value" line; if it is the slide's text, the --- that ends the ${part} is missing above it`;
       break;

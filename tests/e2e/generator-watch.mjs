@@ -1,6 +1,7 @@
 // `npm run test:dev`: runs the generator in watch mode on a small deck and checks that it keeps seeing changes
 // after an editor's atomic save (a new file renamed over the old one), after a `src:` folder is deleted and made again, and
-// that a missing `src:` file is named in the dev server's banner (src/slides/generated/problem.ts).
+// that a missing `src:` file is named in the dev server's banner (src/slides/generated/problem.ts). The deck's config file
+// (slide-ng.config.yaml) is watched too, also before it exists.
 import { spawn, execFileSync } from 'node:child_process';
 import {
   appendFileSync,
@@ -35,6 +36,8 @@ const atomicSave = (file, text) => {
   renameSync(`${file}.swp`, file);
 };
 const problem = () => readFileSync('src/slides/generated/problem.ts', 'utf8');
+const index = () => readFileSync('src/slides/generated/index.ts', 'utf8');
+const config = join(deck, 'slide-ng.config.yaml');
 
 const gen = spawn(process.execPath, ['scripts/generate.mjs', '--watch'], {
   env: { ...process.env, SLIDES_FILE: join(deck, 'slides.md') },
@@ -93,6 +96,25 @@ try {
   await step('an edit in the folder made again regenerates', () =>
     writeFileSync(part, '# Part edited\n'),
   );
+  await step('a new config file regenerates', () =>
+    writeFileSync(config, 'title: From the config file\n'),
+  );
+  t.ok('the config file sets the headmatter', index().includes('From the config file'));
+  await step('an atomic save of the config file regenerates', () =>
+    atomicSave(config, 'title: Edited config\n'),
+  );
+  t.ok('the edited config file is read', index().includes('Edited config'));
+  writeFileSync(config, 'title: [unclosed\n');
+  let broken = false;
+  for (let i = 0; i < 300 && !broken; i++) {
+    broken = problem().includes('slide-ng.config.yaml:1: the config file is not valid YAML');
+    if (!broken) await sleep(100);
+  }
+  t.ok('a broken config file is named in the banner', broken, problem());
+  await step('the config file fixed regenerates', () =>
+    writeFileSync(config, 'title: Fixed config\n'),
+  );
+  t.ok('the fixed config file is read', index().includes('Fixed config'));
 } finally {
   if (t.fail) console.log(output.slice(-2000));
   gen.kill();
