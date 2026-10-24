@@ -40,6 +40,23 @@ async function openPrint(base, url) {
   await page.waitForSelector('[data-slide-ng-print="ready"]', { timeout: 20000 });
   return page;
 }
+// Waits until the bar's box is at that edge (`top` or `bottom`) and on that side of the screen (`left`, `center`, `right`).
+const barMoved = (ctx, page, v, h) =>
+  ctx.until(
+    page,
+    ([v, h]) => {
+      const r = document.querySelector('.nav-bar-box').getBoundingClientRect();
+      const atEdge = v === 'top' ? r.top < 2 : Math.abs(r.bottom - innerHeight) < 2;
+      const atSide =
+        h === 'left'
+          ? r.left < 2
+          : h === 'right'
+            ? Math.abs(r.right - innerWidth) < 2
+            : Math.abs(r.left + r.width / 2 - innerWidth / 2) < 2;
+      return atEdge && atSide;
+    },
+    [v, h],
+  );
 const title = (page, selector) => page.locator(selector).first().getAttribute('title');
 
 // ---- lang: xx, translated by the deck and its theme
@@ -108,6 +125,8 @@ const title = (page, selector) => page.locator(selector).first().getAttribute('t
 
   // The settings menu places the bar too: the choice wins over the headmatter, is kept in this browser and can go back.
   const barBox = () => page.locator('.nav-bar-box').boundingBox();
+  // A choice is drawn on the next frame, slower on CI: wait for the bar (and an open menu) to get there before measuring.
+  const barAt = (v, h) => barMoved(ctx, page, v, h);
   const checked = () =>
     page
       .locator('#nav-position [aria-checked=true]')
@@ -121,6 +140,12 @@ const title = (page, selector) => page.locator(selector).first().getAttribute('t
     JSON.stringify(await checked()),
   );
   await page.locator('#nav-position [data-nav-position=bottom-center]').click();
+  await barAt('bottom', 'center');
+  await ctx.until(page, () => {
+    const menu = document.querySelector('#settings-menu')?.getBoundingClientRect();
+    const button = document.querySelector('#nav-settings')?.getBoundingClientRect();
+    return menu && button && menu.bottom < button.top + button.height / 2;
+  });
   let moved = await barBox();
   t.ok(
     'nav position: choosing the bottom center moves the bar there at once',
@@ -140,6 +165,7 @@ const title = (page, selector) => page.locator(selector).first().getAttribute('t
   // The keyboard: the ticked place has the focus, the arrows move through the grid (not the slides).
   await page.locator('#nav-position [data-nav-position=bottom-center]').focus();
   await press(page, 'ArrowLeft');
+  await barAt('bottom', 'left');
   moved = await barBox();
   t.ok(
     'nav position: ArrowLeft moves to the bottom left, and the slide stays',
@@ -161,6 +187,7 @@ const title = (page, selector) => page.locator(selector).first().getAttribute('t
   );
   await page.locator('#nav-settings').click();
   await page.locator('#nav-position-default').click();
+  await barAt('top', 'right');
   moved = await barBox();
   t.ok(
     "nav position: Deck Default puts the bar back in the deck's own place and stores no choice",
@@ -289,6 +316,7 @@ const title = (page, selector) => page.locator(selector).first().getAttribute('t
     await title(page, '#nav-position [data-nav-position=bottom-left]'),
   );
   await page.locator('#nav-position [data-nav-position=top-right]').click();
+  await barMoved(ctx, page, 'top', 'left');
   const placed = await page.locator('.nav-bar-box').boundingBox();
   t.ok(
     'nav position: top-right (the end) puts the bar in the top left of a right-to-left page',
