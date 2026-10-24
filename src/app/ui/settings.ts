@@ -9,12 +9,13 @@ import { DevicesSelectors } from '../record/devices-selectors';
 import { Devices } from '../record/devices';
 import { T } from '../i18n/t';
 import { FilterSettings } from './filter-settings';
+import { NavPositionSettings } from './nav-position-settings';
 import { SegmentControl } from './segment-control';
 
 // The content of the settings menu ("More Options").
 @Component({
   selector: 'app-settings',
-  imports: [DevicesSelectors, FilterSettings, SegmentControl, T],
+  imports: [DevicesSelectors, FilterSettings, NavPositionSettings, SegmentControl, T],
   template: `
     <div class="text-sm select-none flex flex-col gap-1 min-w-30 px-4 max-h-[70vh] overflow-auto">
       <app-filter-settings />
@@ -36,6 +37,8 @@ import { SegmentControl } from './segment-control';
             (changed)="ui.slideScale.set($any($event))"
           />
         </div>
+        <!-- The presenter page keeps its own bar -->
+        <app-nav-position-settings />
       }
       @if (wake.supported) {
         <label class="slidev-form-item">

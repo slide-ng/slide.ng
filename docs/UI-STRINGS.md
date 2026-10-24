@@ -72,32 +72,40 @@ default; `src/app/i18n/en.ts` holds it and is the source of truth for the keys. 
 
 ### The settings menu
 
-| key                        | English                                        |
-| -------------------------- | ---------------------------------------------- |
-| `settings.invert`          | Invert                                         |
-| `settings.brightness`      | Brightness                                     |
-| `settings.contrast`        | Contrast                                       |
-| `settings.saturation`      | Saturation                                     |
-| `settings.sepia`           | Sepia                                          |
-| `settings.hueRotate`       | Hue Rotate                                     |
-| `settings.filterValue`     | {name} value                                   |
-| `settings.cursorStyle`     | Cursor Style                                   |
-| `settings.cursor`          | Cursor                                         |
-| `settings.laser`           | Laser                                          |
-| `settings.slideScale`      | Slide Scale                                    |
-| `settings.fit`             | Fit                                            |
-| `settings.wakeLock`        | Wake Lock                                      |
-| `settings.hideIdleCursor`  | Hide Idle Cursor                               |
-| `settings.presenterCursor` | Show Presenter Cursor                          |
-| `settings.darkMode`        | Dark Mode                                      |
-| `settings.downloadHint`    | The PDF is added by: slide-ng build --download |
-| `settings.camera`          | Camera                                         |
-| `settings.microphone`      | Microphone                                     |
-| `settings.defaultDevice`   | Default                                        |
-| `settings.mirrorCamera`    | Mirror camera                                  |
-| `settings.record`          | Record                                         |
-| `settings.recordScreen`    | Screen                                         |
-| `settings.recordCamera`    | Camera                                         |
+| key                           | English                                        |
+| ----------------------------- | ---------------------------------------------- |
+| `settings.invert`             | Invert                                         |
+| `settings.brightness`         | Brightness                                     |
+| `settings.contrast`           | Contrast                                       |
+| `settings.saturation`         | Saturation                                     |
+| `settings.sepia`              | Sepia                                          |
+| `settings.hueRotate`          | Hue Rotate                                     |
+| `settings.filterValue`        | {name} value                                   |
+| `settings.cursorStyle`        | Cursor Style                                   |
+| `settings.cursor`             | Cursor                                         |
+| `settings.laser`              | Laser                                          |
+| `settings.slideScale`         | Slide Scale                                    |
+| `settings.fit`                | Fit                                            |
+| `settings.navPosition`        | Nav Bar Position                               |
+| `settings.navPositionDefault` | Deck Default                                   |
+| `settings.navTopLeft`         | Top left                                       |
+| `settings.navTopCenter`       | Top center                                     |
+| `settings.navTopRight`        | Top right                                      |
+| `settings.navBottomLeft`      | Bottom left                                    |
+| `settings.navBottomCenter`    | Bottom center                                  |
+| `settings.navBottomRight`     | Bottom right                                   |
+| `settings.wakeLock`           | Wake Lock                                      |
+| `settings.hideIdleCursor`     | Hide Idle Cursor                               |
+| `settings.presenterCursor`    | Show Presenter Cursor                          |
+| `settings.darkMode`           | Dark Mode                                      |
+| `settings.downloadHint`       | The PDF is added by: slide-ng build --download |
+| `settings.camera`             | Camera                                         |
+| `settings.microphone`         | Microphone                                     |
+| `settings.defaultDevice`      | Default                                        |
+| `settings.mirrorCamera`       | Mirror camera                                  |
+| `settings.record`             | Record                                         |
+| `settings.recordScreen`       | Screen                                         |
+| `settings.recordCamera`       | Camera                                         |
 
 ### The overview and the goto dialog
 
