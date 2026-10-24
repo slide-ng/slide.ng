@@ -15,6 +15,8 @@ src/slides/generated/        <- not committed
    layers.ts, setup.ts             layer components and setup providers found in the roots
    roots/<id>/...  public/         copies of the theme, addon and deck folders, and their merged public files
    remote-assets/                  pictures downloaded for `remoteAssets` (production builds only)
+   languages.ts, ui-text.ts        the deck's languages (none without `languages`), the interface text and locale
+   deck.<lang>.ts                  with `languages`: each language's slide list (its slides are slide-NNN.<lang>.ts)
    |
    v  ng build / ng serve  (normal Angular CLI, AOT)
 dist/slide-ng/browser
@@ -51,6 +53,7 @@ dist/slide-ng/browser
 | `lib/theme-config.mjs`                                                                 | the `themeConfig` headmatter as `--slidev-theme-<key>` variables for `theme.css`, with the checks of the values                         |
 | `lib/head.mjs`                                                                         | tags for `<head>` from the headmatter (title, description, Open Graph, favicon, `htmlAttrs`), escaped                                   |
 | `lib/ui-text.mjs`, `lang.mjs`                                                          | the interface language: `locales/<lang>.json` of the roots merged and checked against `en.ts`, the Angular locale, writes `ui-text.ts`  |
+| `lib/languages.mjs`                                                                    | `languages`: reads the other languages' files, pairs their slides by number, writes `languages.ts` and the `index.ts` that picks one    |
 | `lib/remote-assets.mjs`, `build-options.mjs`                                           | download remote pictures for a build; read the `SLIDE_NG_*` variables that `slide-ng build` sets                                        |
 | `lib/frontmatter-edit.mjs`                                                             | set one key in a deck's headmatter and keep the rest of the file (`theme eject` uses it)                                                |
 

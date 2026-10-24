@@ -18,6 +18,17 @@ describe('withSlideSources', () => {
       'src/slides/generated/slide-009.ts:1:1',
     );
   });
+  it("names the markdown of a translation's slide (`languages`)", () => {
+    const app = mkdtempSync(join(tmpdir(), 'slide-ng-runtime-'));
+    mkdirSync(join(app, 'src/slides/generated'), { recursive: true });
+    writeFileSync(
+      join(app, 'src/slides/generated/slide-002.pt-BR.ts'),
+      '// GENERATED from slides.pt.md:9 (slide 2) - do not edit\n',
+    );
+    expect(
+      withSlideSources('ERROR src/slides/generated/slide-002.pt-BR.ts:4:1 - NG8001', app),
+    ).toBe('ERROR src/slides/generated/slide-002.pt-BR.ts:4:1 (slide 2, slides.pt.md:9) - NG8001');
+  });
   it('names the line of the markdown the error comes from, and adds the place once', () => {
     const app = mkdtempSync(join(tmpdir(), 'slide-ng-runtime-'));
     mkdirSync(join(app, 'src/slides/generated'), { recursive: true });

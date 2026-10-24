@@ -4,11 +4,17 @@
 //                                  `navPosition: top-right` puts its bar in the top right, with the menus below it
 //   tests/e2e/i18n/rtl/slides.md   `lang: ar` with `uiLang: tr`: the built-in Turkish (isolated left to right), `dir="rtl"`, a
 //                                  mirrored bar and overview, Arabic dates
+//   tests/e2e/i18n/languages       `languages: { en, tr }`: the language menu switches the slides, `<html lang>`, the date
+//                                  pipe and the interface at the same slide, in every window, and the choice survives a reload
 import { execSync } from 'node:child_process';
 import { launch, reporter, serve } from './browser.mjs';
 import { makeContext } from './helpers.mjs';
 
-const decks = { i18n: 'tests/e2e/i18n/slides.md', 'i18n-rtl': 'tests/e2e/i18n/rtl/slides.md' };
+const decks = {
+  i18n: 'tests/e2e/i18n/slides.md',
+  'i18n-rtl': 'tests/e2e/i18n/rtl/slides.md',
+  'i18n-languages': 'tests/e2e/i18n/languages/slides.md',
+};
 if (!process.env.SKIP_BUILD) {
   try {
     for (const [out, file] of Object.entries(decks))
@@ -54,6 +60,10 @@ const title = (page, selector) => page.locator(selector).first().getAttribute('t
   t.ok(
     'bar: the deck wins over the theme key by key',
     (await title(page, '#nav-overview')) === 'xx-overview (deck)',
+  );
+  t.ok(
+    'a deck in one language has no language button',
+    (await page.locator('#nav-language').count()) === 0,
   );
   t.ok(
     'bar: a key nobody translated stays English',
@@ -228,6 +238,174 @@ const title = (page, selector) => page.locator(selector).first().getAttribute('t
     (await print.locator('#month').innerText()).trim() === 'يناير',
   );
   await print.close();
+  problems.push(...ctx.problems);
+  server.close();
+}
+
+// ---- languages: { en: slides.md, tr: slides.tr.md }
+{
+  const { server, port } = await serve('dist/i18n-languages/browser');
+  const base = `http://localhost:${port}`;
+  const ctx = makeContext(base, browser, t);
+  const { open, until } = ctx;
+  console.log('\n== languages: en, tr');
+  // Windows of one browser: they share the stored choice.
+  const group = await ctx.windowGroup();
+  const shown = (page) =>
+    page.evaluate(() => ({
+      h1: document.querySelector('#slide-content h1')?.textContent?.trim(),
+      lang: document.documentElement.lang,
+      path: location.pathname,
+      title: document.title,
+      next: document.querySelector('#nav-next')?.getAttribute('title'),
+    }));
+  // A switch loads the page again: wait for the new one to draw its slide.
+  const reloaded = (page) =>
+    page.waitForFunction(
+      () => /clicks \d+\/\d+/.test(document.querySelector('#hud')?.innerText ?? ''),
+      null,
+      { timeout: 20000 },
+    );
+
+  const page = await open('/1', undefined, undefined, group);
+  let now = await shown(page);
+  t.ok(
+    "starts in the entry file's language",
+    now.lang === 'en' && now.h1 === 'Hello',
+    JSON.stringify(now),
+  );
+  t.ok(
+    'English dates and numbers',
+    (await page.locator('#date').innerText()) === 'March 5, 2026' &&
+      (await page.locator('#number').innerText()) === '1,234.5',
+  );
+  await page.keyboard.press('ArrowRight');
+  // Slide 2 has a routeAlias, so its address is /second.
+  await until(page, () => location.pathname === '/second');
+  const presenter = await open('/presenter/2', undefined, undefined, group);
+
+  await page.locator('#nav-language').click();
+  await page.locator('#language-menu').waitFor();
+  const options = await page
+    .locator('#language-menu [role=menuitemradio]')
+    .evaluateAll((all) => all.map((o) => [o.textContent.trim(), o.getAttribute('aria-checked')]));
+  t.ok(
+    'the menu names each language in its own language and ticks the current one',
+    JSON.stringify(options) ===
+      JSON.stringify([
+        ['English', 'true'],
+        ['Türkçe', 'false'],
+      ]),
+    JSON.stringify(options),
+  );
+  t.ok(
+    'the menu opens on the current language',
+    await page.evaluate(() => document.activeElement?.getAttribute('data-lang') === 'en'),
+  );
+  const presenterReloaded = presenter.waitForEvent('load', { timeout: 20000 });
+  await Promise.all([
+    page.waitForEvent('load', { timeout: 20000 }),
+    page.locator('#language-menu [data-lang=tr]').click(),
+  ]);
+  await reloaded(page);
+  now = await shown(page);
+  t.ok(
+    'Turkish: the same slide and address, <html lang="tr">, the Turkish title',
+    now.path === '/second' &&
+      now.h1 === 'İkinci slayt' &&
+      now.lang === 'tr' &&
+      now.title.includes('Diller'),
+    JSON.stringify(now),
+  );
+  t.ok('Turkish: the interface text', now.next === 'Sonraki slayta git', now.next);
+  t.ok(
+    "Turkish: the slide keeps the English slide's frontmatter (layout: center)",
+    (await page.locator('#layout').innerText()) === 'center',
+  );
+  await presenterReloaded;
+  await reloaded(presenter);
+  t.ok(
+    'the presenter window of the same browser switched too',
+    await until(
+      presenter,
+      () =>
+        document.documentElement.lang === 'tr' &&
+        document.querySelector('.slidev-presenter')?.textContent?.includes('İkinci slayt'),
+    ),
+  );
+  await presenter.close();
+
+  await page.goto(`${base}/1`);
+  await reloaded(page);
+  t.ok(
+    'Turkish dates and numbers (LOCALE_ID tr)',
+    (await page.locator('#date').innerText()) === '5 Mart 2026' &&
+      (await page.locator('#number').innerText()) === '1.234,5',
+    `${await page.locator('#date').innerText()} ${await page.locator('#number').innerText()}`,
+  );
+  await page.goto(`${base}/3`);
+  await reloaded(page);
+  now = await shown(page);
+  t.ok(
+    'a slide with no Turkish counterpart shows the English one',
+    now.h1 === 'Only in English',
+    JSON.stringify(now),
+  );
+  await page.reload();
+  await reloaded(page);
+  now = await shown(page);
+  t.ok(
+    'the choice survives a reload',
+    now.lang === 'tr' && now.next === 'Sonraki slayta git',
+    JSON.stringify(now),
+  );
+
+  // The keyboard: Enter opens the menu on the ticked language, the arrows move, Escape closes it back onto the button.
+  await page.goto(`${base}/2`);
+  await reloaded(page);
+  await page.locator('#nav-language').focus();
+  await page.keyboard.press('Enter');
+  await page.locator('#language-menu').waitFor();
+  await page.keyboard.press('ArrowUp');
+  t.ok(
+    'ArrowUp moves to English, and the slide stays',
+    await page.evaluate(
+      () =>
+        document.activeElement?.getAttribute('data-lang') === 'en' && location.pathname === '/2',
+    ),
+  );
+  await page.keyboard.press('Escape');
+  t.ok(
+    'Escape closes the menu and focuses the button',
+    await until(
+      page,
+      () =>
+        !document.querySelector('#language-menu') && document.activeElement?.id === 'nav-language',
+    ),
+  );
+  await page.keyboard.press('Enter');
+  await page.locator('#language-menu').waitFor();
+  await page.keyboard.press('ArrowDown');
+  await Promise.all([page.waitForEvent('load', { timeout: 20000 }), page.keyboard.press('Enter')]);
+  await reloaded(page);
+  now = await shown(page);
+  t.ok(
+    'Enter on English switches back, at the same slide',
+    now.lang === 'en' && now.h1 === 'Second slide' && now.path === '/2',
+    JSON.stringify(now),
+  );
+  await page.close();
+  await group.close();
+
+  // Another browser has its own choice: it starts in English.
+  const other = await open('/2');
+  now = await shown(other);
+  t.ok(
+    "another browser starts in the entry file's language",
+    now.lang === 'en',
+    JSON.stringify(now),
+  );
+  await other.close();
   problems.push(...ctx.problems);
   server.close();
 }

@@ -23,8 +23,9 @@ import { frontmatterSlip } from './frontmatter-slips.mjs';
 import { slideLine } from './slide-line.mjs';
 
 // `sources` is optional: a { path: text } map that replaces reading files (used by tests).
-// `options.theme` is the `--theme` flag. The result has `roots` (theme, addons, the deck's own folder) and a headmatter
-// with the themes' defaults under it (see roots.mjs).
+// `options.theme` is the `--theme` flag. `options.base` is a headmatter the file's own goes over (the entry file's, for a
+// translation listed in its `languages`). The result has `roots` (theme, addons, the deck's own folder), a headmatter
+// with the themes' defaults under it (see roots.mjs), and `ownHeadmatter`, the file's headmatter as written.
 export async function parseDeck(file = 'slides.md', sources, options = {}) {
   const entry = resolve(file);
   if (!sources && !existsSync(entry))
@@ -35,7 +36,7 @@ export async function parseDeck(file = 'slides.md', sources, options = {}) {
   injectPreparserExtensionLoader(async (_, headmatter, filepath, mode) => {
     const found = resolveRoots({
       deckRoot: dirname(entry),
-      headmatter,
+      headmatter: { ...options.base, ...headmatter },
       themeOverride: options.theme ?? (process.env.SLIDE_NG_THEME || undefined),
     });
     return preparserExtensions(found, { filepath, headmatter, mode });
@@ -54,14 +55,17 @@ export async function parseDeck(file = 'slides.md', sources, options = {}) {
     throw new Error(`${entry}:${line}: the headmatter is not valid YAML: ${message}`, { cause: e });
   }
   const problems = [];
+  const own = data.headmatter;
+  if (options.base) data.headmatter = { ...options.base, ...own };
   const roots = resolveRoots({
     deckRoot: dirname(entry),
     headmatter: data.headmatter,
     themeOverride: options.theme ?? (process.env.SLIDE_NG_THEME || undefined),
   });
   // Imports (`src:`) must stay inside the deck or a theme folder, by real path, unless the deck's own headmatter opts out.
-  // (A leading `/` in `src:` means the deck's folder, as in Slidev, so it cannot name a system path.)
-  const allowOutsideRoot = allowsOutsideRoot(data.headmatter);
+  // (A leading `/` in `src:` means the deck's folder, as in Slidev, so it cannot name a system path.) For a translation only
+  // the entry file's headmatter can.
+  const allowOutsideRoot = allowsOutsideRoot(options.base ?? data.headmatter);
   const readRoots = [dirname(entry), ...roots.map((r) => r.dir).filter(Boolean)];
   for (const path of Object.keys(data.markdownFiles))
     assertReadable(path, 'The imported file', { roots: readRoots, allowOutsideRoot });
@@ -93,15 +97,18 @@ export async function parseDeck(file = 'slides.md', sources, options = {}) {
 
   // Slidev's MDC syntax (`mdc: true`, `comark: true`) is not supported: say so instead of showing the syntax as text.
   for (const key of ['mdc', 'comark'])
-    if (data.headmatter[key])
+    if (own[key])
       problems.push(
         `${entry}: \`${key}: true\` is not supported (MDC syntax such as :span[x]{.c} stays text); use HTML with classes instead`,
       );
 
   // `themeConfig` keys that cannot be a CSS variable are skipped (lib/theme-config.mjs); the theme's defaults are checked too.
-  for (const p of themeConfigVars(headmatter.themeConfig).problems) problems.push(`${entry}: ${p}`);
+  // (A translation's headmatter is checked for its own keys only: the entry file's were checked with it.)
+  if (!options.base || own.themeConfig != null)
+    for (const p of themeConfigVars(headmatter.themeConfig).problems)
+      problems.push(`${entry}: ${p}`);
   // `progressBar` (slide.ng's own): anything but these draws no bar, which is easy to miss.
-  const bar = data.headmatter.progressBar;
+  const bar = own.progressBar;
   const barObject = bar != null && typeof bar === 'object' && !Array.isArray(bar);
   if (bar != null && ![true, false, 'top', 'bottom'].includes(bar) && !barObject)
     problems.push(
@@ -113,16 +120,16 @@ export async function parseDeck(file = 'slides.md', sources, options = {}) {
     );
 
   // `navPosition` (slide.ng's own; the same list as src/app/lib/nav-position.ts): another value keeps the bar at the bottom left.
-  const navAt = data.headmatter.navPosition;
+  const navAt = own.navPosition;
   if (navAt != null && !NAV_POSITIONS.includes(navAt))
     problems.push(
       `${entry}: \`navPosition: ${JSON.stringify(navAt)}\` is not used: write one of ${NAV_POSITIONS.join(', ')} (bottom-left is used).${didYouMean(String(navAt), NAV_POSITIONS)}`,
     );
 
   // Old Slidev decks pick Prism; code here is always Shiki, so Prism theme CSS no longer applies.
-  if (data.headmatter.highlighter && data.headmatter.highlighter !== 'shiki')
+  if (own.highlighter && own.highlighter !== 'shiki')
     problems.push(
-      `${entry}: \`highlighter: ${data.headmatter.highlighter}\` is not used: code is highlighted with Shiki (pick its colours in setup/shiki.ts); CSS written for Prism tokens does not apply`,
+      `${entry}: \`highlighter: ${own.highlighter}\` is not used: code is highlighted with Shiki (pick its colours in setup/shiki.ts); CSS written for Prism tokens does not apply`,
     );
 
   // A slide's frontmatter is parsed leniently, so a broken one would just lose keys: stop instead, as for the headmatter.
@@ -202,6 +209,7 @@ export async function parseDeck(file = 'slides.md', sources, options = {}) {
     .map((s) => String(s.frontmatter.routeAlias));
   return {
     headmatter,
+    ownHeadmatter: own,
     entry,
     roots,
     root: dirname(entry),

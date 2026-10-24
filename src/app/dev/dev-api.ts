@@ -1,5 +1,6 @@
 import { Injectable, inject, isDevMode, signal } from '@angular/core';
 import { UI_TEXT, uiText } from '../i18n/ui-text';
+import { LANGUAGE, LANGUAGES } from '../../slides/generated/languages';
 
 /** Where the dev companion server answers. The Angular dev server forwards this address to it. */
 export const API = '/__slide-ng';
@@ -28,6 +29,20 @@ export function withoutPassword(href: string): string {
     url.hash = url.hash.slice(0, inHash) + (rest ? `?${rest}` : '');
   }
   return url.href;
+}
+
+/**
+ * A deck with `languages` shown in another language than its entry file's: the slides and notes the page reads and writes
+ * are in that language's file, so the request names the language (`?lang=tr`).
+ */
+export function withLanguage(
+  path: string,
+  lang = LANGUAGE,
+  entryLang = LANGUAGES[0]?.lang,
+): string {
+  return lang && lang !== entryLang && /^\/(slides\/|notes$)/.test(path)
+    ? `${path}?lang=${encodeURIComponent(lang)}`
+    : path;
 }
 
 // Read when this file loads, before the router's first navigation: a redirect (`/` to `/1`, `#/` to `#/1`) drops the query, and
@@ -99,7 +114,7 @@ export class DevApi {
     const token = await this.token();
     if (!token) return 0;
     try {
-      const res = await fetch(`${API}${path}`, {
+      const res = await fetch(`${API}${withLanguage(path)}`, {
         method,
         credentials: 'same-origin',
         body: JSON.stringify(body),
@@ -115,7 +130,7 @@ export class DevApi {
     const token = await this.token();
     if (!token) return null;
     try {
-      const res = await fetch(`${API}${path}`, {
+      const res = await fetch(`${API}${withLanguage(path)}`, {
         credentials: 'same-origin',
         headers: { 'x-slide-ng-token': token },
       });

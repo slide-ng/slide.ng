@@ -21,7 +21,8 @@ default; `src/app/i18n/en.ts` holds it and is the source of truth for the keys. 
   `t` pipe, `{{ 'nav.next' | t }}` or `{{ 'presenter.noNotes' | t: { no: nav.no() } }}`; TypeScript uses `Ui.text(key, params)` or
   `uiText(inject(UI_TEXT), key, params)` (all in `src/app/i18n/`). A theme's component can import the pipe from `slide-ng/i18n/t`.
 - **Locale.** `lang` also sets `LOCALE_ID` for the `date`, `number`, `currency` and `percent` pipes, when Angular has data for it
-  (`pt-BR`, else `pt`); only that locale's data is added to the build. `ar`, `he`, `fa` and `ur` set `dir="rtl"` on the page unless
+  (`pt-BR`, else `pt`); only that locale's data is added to the build (with `languages`, each language's, and the generated
+  `ui-text.ts` holds every language's text). `ar`, `he`, `fa` and `ur` set `dir="rtl"` on the page unless
   `htmlAttrs.dir` is given; the bar, menus, goto box and presenter use logical CSS (`start`, `end`), so they mirror.
 - **Direction of the interface text.** When `uiLang` is written the other way than the page (`lang: ar` with `uiLang: en`, or
   `uiLang: he` in a left-to-right deck), every interface text is a bidi isolate of the interface language's direction (the Unicode
@@ -231,7 +232,7 @@ default; `src/app/i18n/en.ts` holds it and is the source of truth for the keys. 
 | `editor.problemSlides` | Some slides could not be read and are left out: {problem}             |
 | `dev.password`         | Password for this slide.ng session                                    |
 
-### The sync menu, the click preview and the notes pages
+### The sync and language menus, the click preview and the notes pages
 
 | key                           | English                                                                                  |
 | ----------------------------- | ---------------------------------------------------------------------------------------- |
@@ -247,6 +248,8 @@ default; `src/app/i18n/en.ts` holds it and is the source of truth for the keys. 
 | `sync.sendOnly`               | Send Only                                                                                |
 | `sync.off`                    | Disable                                                                                  |
 | `sync.cannotSendHere`         | This window is on another device: it can follow the presenter, but not move the others.  |
+| `nav.language`                | Change language                                                                          |
+| `language.menu`               | Language                                                                                 |
 | `overview.openPage`           | Open the overview page, with the notes                                                   |
 | `presenter.goToClick`         | Go to click {no}                                                                         |
 | `presenter.goToClickHides`    | Go to click {no}, where this part goes away                                              |

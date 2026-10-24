@@ -321,3 +321,25 @@ describe('parseDeck: navPosition', () => {
     }
   });
 });
+
+describe('a translation (options.base)', () => {
+  it("puts the file's own headmatter over the base and keeps it as written", async () => {
+    const d = await parseDeck(
+      '/deck/slides.tr.md',
+      { '/deck/slides.tr.md': '---\ntitle: Bir\n---\n\n# Bir\n' },
+      { base: { title: 'One', colorSchema: 'dark', allowOutsideRoot: true } },
+    );
+    expect(d.headmatter).toMatchObject({ title: 'Bir', colorSchema: 'dark' });
+    expect(d.ownHeadmatter).toEqual({ title: 'Bir' });
+    expect(d.allowOutsideRoot).toBe(true);
+  });
+  it('takes allowOutsideRoot from the base only, and checks only its own keys', async () => {
+    const d = await parseDeck(
+      '/deck/slides.tr.md',
+      { '/deck/slides.tr.md': '---\nallowOutsideRoot: true\n---\n\n# Bir\n' },
+      { base: { highlighter: 'prism' } },
+    );
+    expect(d.allowOutsideRoot).toBe(false);
+    expect(d.problems).toEqual([]);
+  });
+});

@@ -7,6 +7,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 ### Added
 
 - `navPosition` in the headmatter places the navigation bar of the slide page: `bottom-left` (default, as in Slidev), `bottom-center`, `bottom-right`, `top-left`, `top-center` or `top-right` (#78). Left and right follow the writing direction, so a right-to-left deck mirrors them; at the top, the settings and sync menus open below the bar. The presenter page keeps its bar. Another value is warned about, with the near name, and keeps the bottom left.
+- One deck in several languages: `languages: { en: slides.md, tr: slides.tr.md }` in the entry file's headmatter. Each file is read as a deck over the entry file's headmatter and its slides are paired by number, taking the frontmatter of the entry file's slide under their own; the generator warns, with files and lines, when the files do not line up (a missing slide shows the entry file's). The bar gets a language button with a menu of the languages; a switch keeps the address and the slide and sets the slides, `<html lang>` and `dir`, the page title, the locale of the pipes and the interface text. The choice is kept in the browser per deck, and the presenter and audience windows of the browser switch together. `--lang` picks the language a page starts in, and `export --lang tr` exports the Turkish slides. In `dev` the side editor, the notes editor and drags write to the file of the language on screen. A deck without `languages` has nothing of it in its build (#79).
 
 ## [2.0.0] - 2026-10-23
 

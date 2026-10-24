@@ -57,6 +57,8 @@ export function createHandler(ctx, { hub } = {}) {
   async function route(req, res, url) {
     const path = url.pathname.slice(API.length);
     const method = req.method;
+    // `?lang=tr`: the page shows another language of a deck with `languages` (slides-write.mjs deckFor).
+    const lang = url.searchParams.get('lang') || undefined;
     const unlocked = path === '/session' || path === '/login'; // these hand out the token
     const denied = check(req, ctx, { needToken: !unlocked, needLogin: path !== '/login' });
     if (denied) throw new HttpError(denied.status, denied.error);
@@ -88,15 +90,16 @@ export function createHandler(ctx, { hub } = {}) {
     let m;
     if ((m = /^\/slides\/(\d+)\/drag$/.exec(path)) && method === 'POST') {
       const { site, pos } = await body(req, 2_000);
-      await serial(() => writeDrag(ctx, number(m[1]), site, pos));
+      await serial(() => writeDrag(ctx, number(m[1]), site, pos, lang));
       return json(res, 200, { ok: true });
     }
     if ((m = /^\/slides\/(\d+)\/source$/.exec(path))) {
-      if (method === 'GET') return json(res, 200, { raw: await readSlide(ctx, number(m[1])) });
+      if (method === 'GET')
+        return json(res, 200, { raw: await readSlide(ctx, number(m[1]), lang) });
       if (method === 'PUT') {
         const { raw, base } = await body(req, MAX_FILE * 2);
         if (typeof raw !== 'string') throw new HttpError(400, 'raw must be text');
-        await serial(() => writeSlide(ctx, number(m[1]), raw, base));
+        await serial(() => writeSlide(ctx, number(m[1]), raw, base, lang));
         return json(res, 200, { ok: true });
       }
     }
@@ -109,11 +112,11 @@ export function createHandler(ctx, { hub } = {}) {
         problem: ctx.buildError ? generatorProblem(ctx.appRoot ?? process.cwd()) : '',
       });
     if (path === '/notes' && method === 'GET')
-      return json(res, 200, { notes: await readNotes(ctx) });
+      return json(res, 200, { notes: await readNotes(ctx, lang) });
     if ((m = /^\/slides\/(\d+)\/note$/.exec(path)) && method === 'PUT') {
       const { note, base } = await body(req, MAX_FILE * 2);
       if (typeof note !== 'string') throw new HttpError(400, 'note must be text');
-      await serial(() => writeNote(ctx, number(m[1]), note, base));
+      await serial(() => writeNote(ctx, number(m[1]), note, base, lang));
       return json(res, 200, { ok: true });
     }
     if ((m = /^\/drawings\/(\d+)$/.exec(path)) && method === 'PUT') {

@@ -101,15 +101,15 @@ function undeclaredHint(name, file) {
   return near ? ` (did you mean ${near}?)` : '';
 }
 
-// Angular's errors name the generated file (src/slides/generated/slide-003.ts); add the markdown file and line it came from,
-// which the generator wrote into the file's first line.
+// Angular's errors name the generated file (src/slides/generated/slide-003.ts, or slide-003.tr.ts for a translation); add the
+// markdown file and line it came from, which the generator wrote into the file's first line.
 export function withSlideSources(text, appRoot) {
   const generated = join(appRoot, 'src/slides/generated');
   let roots = null; // read once, when an error names a copied theme or deck file
   let tags = null; // read once, when an element is not known
   return text
     .replace(
-      /src\/slides\/generated\/(slide-(\d+))\.ts(?::(\d+):(\d+))?(?!\d|:\d| \(slide)/g,
+      /src\/slides\/generated\/(slide-(\d+)(?:\.[\w-]+)?)\.ts(?::(\d+):(\d+))?(?!\d|:\d| \(slide)/g,
       (match, name, no, line, column) => {
         try {
           const lines = readFileSync(join(generated, `${name}.ts`), 'utf8').split('\n');

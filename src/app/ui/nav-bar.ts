@@ -5,10 +5,13 @@ import {
   computed,
   inject,
   input,
+  signal,
+  Type,
   viewChild,
 } from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
 import { NAV_CONTROLS } from '../../slides/generated/layers';
+import { LANGUAGE_MENU } from '../../slides/generated/languages';
 import { Drawings } from '../drawing/drawings';
 import { Dark } from '../lib/dark';
 import { Download } from '../lib/download';
@@ -231,6 +234,11 @@ import { presenterEnabled } from '../lib/switches';
           <app-sync-controls [below]="menusBelow()" />
         }
 
+        <!-- A deck in several languages: the language menu (ui/language-menu.ts, loaded by languages.ts) -->
+        @if (languageMenu(); as menu) {
+          <ng-container *ngComponentOutlet="menu; inputs: { below: menusBelow() }" />
+        }
+
         <div class="flex relative" #menu>
           <button
             icon-btn
@@ -300,6 +308,8 @@ export class NavBar {
   protected customControls = NAV_CONTROLS;
   /** As in Slidev, the sync menu is there whenever the deck has a presenter (and so window sync). */
   protected syncControls = presenterEnabled();
+  /** Headmatter `languages`: the language menu. Only such a deck has its code (the generated languages.ts imports it). */
+  protected languageMenu = signal<Type<unknown> | null>(null);
   protected filtered = computed(() =>
     (Object.keys(defaultFilters) as (keyof Filters)[]).some(
       (k) => this.view.filters()[k] !== defaultFilters[k],
@@ -310,6 +320,7 @@ export class NavBar {
   private settingsMenu = viewChild<ElementRef<HTMLElement>>('settingsMenu');
 
   constructor() {
+    void LANGUAGE_MENU?.().then((menu) => this.languageMenu.set(menu));
     afterRenderEffect(() => {
       if (this.settingsMenu()) this.fitSettings();
     });

@@ -151,6 +151,8 @@
   "sync.sendOnly": "Yalnızca gönder",
   "sync.off": "Kapat",
   "sync.cannotSendHere": "Bu pencere başka bir cihazda: sunucuyu izleyebilir, ama diğerlerini hareket ettiremez.",
+  "nav.language": "Dili değiştir",
+  "language.menu": "Dil",
   "overview.openPage": "Genel bakış sayfasını notlarla aç",
   "presenter.goToClick": "{no}. tıklamaya git",
   "presenter.goToClickHides": "Bu bölümün kaybolduğu {no}. tıklamaya git",

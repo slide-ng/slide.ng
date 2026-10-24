@@ -17,7 +17,7 @@ Starts the dev server: the deck at `http://localhost:4230`, the presenter at `/p
 | `--log`               | `error`, `warn`, `info` (default) or `silent`                                                                                                                        |
 | `--force`, `-f`       | clear the Angular build cache first                                                                                                                                  |
 | `--theme`, `-t`       | use this theme (a name or a folder) instead of the headmatter's                                                                                                      |
-| `--lang`              | use this language (`tr`, `pt-BR`) instead of the headmatter's `lang`: the interface, the locale of dates and numbers, `<html lang>`                                  |
+| `--lang`              | use this language (`tr`, `pt-BR`) instead of the headmatter's `lang`: interface, locale of dates and numbers, `<html lang>`; with `languages`, the first one         |
 
 With `--remote` the dev server prints the public slide show, the private one and the presenter for each network address; the
 private addresses carry the password (`http://192.168.1.5:4230/?password=...`, `.../presenter/1?password=...`). The page logs in
@@ -77,7 +77,7 @@ Makes a static site in `dist/`. With several entries (`slide-ng build a.md b.md`
 | `--without-notes`   | leave the speaker notes out of the site                                                                             |
 | `--router-mode`     | `history`, `hash` or `memory`: replaces the headmatter's `routerMode` for this build (with `--offline` only `hash`) |
 | `--theme`, `-t`     | use this theme instead of the headmatter's                                                                          |
-| `--lang`            | use this language instead of the headmatter's `lang` (one deck in several languages)                                |
+| `--lang`            | use this language instead of the headmatter's `lang`; with `languages`, the language a page starts in               |
 | `--executable-path` | the Chromium to use for the PDF and the Open Graph picture (or `CHROME_PATH`)                                       |
 | `--no-sandbox`      | run that Chromium without its sandbox (root or containers, trusted decks only)                                      |
 | `--allow-local`     | let that page reach loopback and private addresses                                                                  |
@@ -107,7 +107,7 @@ To export one deck of such a build, name its folder: `slide-ng export a.md --dis
 | `--url`                                              | export a running server (such as the dev server)                                           |
 | `--base`                                             | the base the build at `--dist` was made with; read from its `index.html` when left out     |
 | `--theme`, `-t`                                      | use this theme instead of the headmatter's                                                 |
-| `--lang`                                             | use this language instead of the headmatter's `lang` (refused with `--dist` and `--url`)   |
+| `--lang`                                             | this language, not `lang`; with `languages`, its slides (refused with `--dist`, `--url`)   |
 | `--executable-path`, `--no-sandbox`, `--allow-local` | as for `build`                                                                             |
 
 `--per-slide` joins one PDF per slide, and the joined file loses what Chromium only writes into a single document: links
@@ -119,7 +119,8 @@ The headmatter's `export:` block sets the same options (`withClicks`, `perSlide`
 `--no-sandbox` (or `SLIDE_NG_NO_SANDBOX=1`).
 
 The language of a deck is chosen when it is built, so `--lang` cannot change an existing build (`--dist`) or a running
-server (`--url`): build each language with `slide-ng build --lang <tag>` and export that folder.
+server (`--url`): build each language with `slide-ng build --lang <tag>` and export that folder. For a deck with `languages`
+(SYNTAX.md "One deck in several languages"), `slide-ng export --lang tr` builds the deck and exports its Turkish slides.
 
 ## export-notes
 

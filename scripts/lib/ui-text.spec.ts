@@ -20,6 +20,7 @@ import {
   readTranslations,
   uiDirection,
   uiTextSource,
+  uiTextsSource,
 } from './ui-text.mjs';
 
 // Every `locales/*.json` of the repository: the built-in translations, the example theme, the scaffold and the test decks.
@@ -139,6 +140,29 @@ describe('uiDirection', () => {
     expect(uiDirection({ lang: 'en', uiLang: 'ar', htmlAttrs: { dir: 'rtl' } })).toBe('');
     expect(uiDirection({ lang: 'ar', htmlAttrs: { dir: 'ltr' } })).toBe('rtl');
     expect(uiDirection({ lang: 'ar', uiLang: 'en', htmlAttrs: { dir: 'auto' } })).toBe('');
+  });
+});
+
+describe('uiTextsSource', () => {
+  it('registers the locale data of every language once and picks the texts of the page language', () => {
+    const text = uiTextsSource([
+      { lang: 'en', locale: 'en-US', translations: {}, dir: '' },
+      { lang: 'tr', locale: 'tr', translations: { 'nav.next': 'Sonraki' }, dir: '' },
+      { lang: 'tr-CY', locale: 'tr', translations: {}, dir: '' },
+    ]);
+    expect(text.match(/@angular\/common\/locales\//g)).toHaveLength(1);
+    expect(text).toContain("import locale0 from '@angular/common/locales/tr';");
+    expect(text).toContain("import { LANGUAGE } from './languages';");
+    expect(text).toContain('const PICKED = TEXTS[LANGUAGE] ?? TEXTS["en"];');
+    for (const name of ['LOCALE', 'UI_TRANSLATIONS', 'UI_DIR'])
+      expect(text).toMatch(new RegExp(`^export const ${name}\\b`, 'm'));
+  });
+  it('needs no locale data when every language is English', () => {
+    const text = uiTextsSource([
+      { lang: 'en', locale: 'en-US', translations: {}, dir: '' },
+      { lang: 'en-US', locale: 'en-US', translations: {}, dir: '' },
+    ]);
+    expect(text).not.toContain('registerLocaleData');
   });
 });
 
