@@ -1,6 +1,6 @@
 {
   "name": "@slide-ng/core",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Presentations written in markdown, with Angular templates inside. A Slidev port for Angular.",
   "keywords": [
     "slides",

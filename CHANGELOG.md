@@ -4,6 +4,8 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-10-24
+
 ### Added
 
 - A Nav Bar Position control in the settings menu: a small picture of the page with the six places of `navPosition` (#84). A choice moves the bar and its menus at once and is kept in the browser per deck, over the headmatter; Deck Default goes back to the headmatter's place, also after the author changes it. Left and right follow the writing direction, and the arrow keys move through the places. Not on the presenter page, which keeps its bar.
@@ -326,7 +328,8 @@ The first version, built in phases.
 
 See `docs/STATUS.md` for what is missing or not verified.
 
-[Unreleased]: https://github.com/slide-ng/slide.ng/compare/v2.1.0...HEAD
+[Unreleased]: https://github.com/slide-ng/slide.ng/compare/v2.2.0...HEAD
+[2.2.0]: https://github.com/slide-ng/slide.ng/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/slide-ng/slide.ng/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/slide-ng/slide.ng/compare/v1.0.0...v2.0.0
 [1.0.0]: https://github.com/slide-ng/slide.ng/compare/v0.1.0...v1.0.0
