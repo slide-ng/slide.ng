@@ -1,9 +1,10 @@
 // `npm run test:e2e` (last part): the interface language (docs/UI-STRINGS.md). Builds two decks and checks them in a browser:
 //   tests/e2e/i18n/slides.md       `lang: xx`, with locales/xx.json in the deck and in its theme: labels of the bar, the
 //                                  settings menu, goto, overview, info, presenter and print come from the files, the rest is English;
-//                                  `navPosition: top-right` puts its bar in the top right, with the menus below it
+//                                  `navPosition: top-right` puts its bar in the top right, with the menus below it; the
+//                                  settings menu moves it, keeps the choice after a reload and goes back to the deck's place
 //   tests/e2e/i18n/rtl/slides.md   `lang: ar` with `uiLang: tr`: the built-in Turkish (isolated left to right), `dir="rtl"`, a
-//                                  mirrored bar and overview, Arabic dates
+//                                  mirrored bar, overview and grid of bar places, Arabic dates
 //   tests/e2e/i18n/languages       `languages: { en, tr }`: the language menu switches the slides, `<html lang>`, the date
 //                                  pipe and the interface at the same slide, in every window, and the choice survives a reload
 import { execSync } from 'node:child_process';
@@ -105,6 +106,76 @@ const title = (page, selector) => page.locator(selector).first().getAttribute('t
   );
   await page.locator('#nav-settings').click();
 
+  // The settings menu places the bar too: the choice wins over the headmatter, is kept in this browser and can go back.
+  const barBox = () => page.locator('.nav-bar-box').boundingBox();
+  const checked = () =>
+    page
+      .locator('#nav-position [aria-checked=true]')
+      .evaluateAll((all) => all.map((o) => o.dataset.navPosition));
+  await page.locator('#nav-settings').click();
+  await page.locator('#nav-position').waitFor();
+  t.ok(
+    "nav position: the menu shows the deck's own place, and Deck Default is on",
+    JSON.stringify(await checked()) === '["top-right"]' &&
+      (await page.locator('#nav-position-default').getAttribute('aria-pressed')) === 'true',
+    JSON.stringify(await checked()),
+  );
+  await page.locator('#nav-position [data-nav-position=bottom-center]').click();
+  let moved = await barBox();
+  t.ok(
+    'nav position: choosing the bottom center moves the bar there at once',
+    Math.abs(moved.y + moved.height - 720) < 2 && Math.abs(moved.x + moved.width / 2 - 640) < 2,
+    JSON.stringify(moved),
+  );
+  const [setButton, setMenu] = await Promise.all(
+    ['#nav-settings', '#settings-menu'].map((s) => page.locator(s).boundingBox()),
+  );
+  t.ok(
+    'nav position: the open settings menu now opens above the bar and stays in the window',
+    setMenu.y + setMenu.height < setButton.y + setButton.height / 2 &&
+      setMenu.y >= 0 &&
+      setMenu.x + setMenu.width <= 1280,
+    JSON.stringify({ setButton, setMenu }),
+  );
+  // The keyboard: the ticked place has the focus, the arrows move through the grid (not the slides).
+  await page.locator('#nav-position [data-nav-position=bottom-center]').focus();
+  await press(page, 'ArrowLeft');
+  moved = await barBox();
+  t.ok(
+    'nav position: ArrowLeft moves to the bottom left, and the slide stays',
+    JSON.stringify(await checked()) === '["bottom-left"]' &&
+      moved.x < 2 &&
+      Math.abs(moved.y + moved.height - 720) < 2 &&
+      new URL(page.url()).pathname === '/1',
+    JSON.stringify({ moved, url: page.url() }),
+  );
+  await page.reload();
+  await page.waitForFunction(() =>
+    /clicks \d+\/\d+/.test(document.querySelector('#hud')?.innerText ?? ''),
+  );
+  moved = await barBox();
+  t.ok(
+    'nav position: the choice is kept after a reload',
+    moved.x < 2 && Math.abs(moved.y + moved.height - 720) < 2,
+    JSON.stringify(moved),
+  );
+  await page.locator('#nav-settings').click();
+  await page.locator('#nav-position-default').click();
+  moved = await barBox();
+  t.ok(
+    "nav position: Deck Default puts the bar back in the deck's own place and stores no choice",
+    moved.y < 2 &&
+      Math.abs(moved.x + moved.width - 1280) < 2 &&
+      (await page.evaluate(() =>
+        Object.keys(localStorage)
+          .filter((k) => k.includes('slide-ng-nav-position'))
+          .map((k) => localStorage.getItem(k))
+          .join(),
+      )) === 'null',
+    JSON.stringify(moved),
+  );
+  await page.locator('#nav-settings').click();
+
   await press(page, 'g', 300);
   t.ok(
     'goto: translated placeholder',
@@ -141,6 +212,12 @@ const title = (page, selector) => page.locator(selector).first().getAttribute('t
   t.ok(
     'presenter: the bar uses the same texts',
     (await title(presenter, '#nav-next')) === 'xx-next',
+  );
+  await presenter.locator('#nav-settings').click();
+  await presenter.locator('#settings-menu').waitFor();
+  t.ok(
+    'presenter: the settings menu has no place for the bar (it keeps its own)',
+    (await presenter.locator('#nav-position').count()) === 0,
   );
   await presenter.close();
 
@@ -196,6 +273,29 @@ const title = (page, selector) => page.locator(selector).first().getAttribute('t
     bar.x > 640 && full.x > next.x,
     JSON.stringify({ bar: bar.x, full: full.x, next: next.x }),
   );
+  // The grid of places is mirrored too: `bottom-left` (the start) is drawn on the right and named so.
+  await page.locator('#nav-settings').click();
+  await page.locator('#nav-position').waitFor();
+  const [startCell, endCell] = await Promise.all(
+    ['bottom-left', 'bottom-right'].map((p) =>
+      page.locator(`#nav-position [data-nav-position=${p}]`).boundingBox(),
+    ),
+  );
+  t.ok(
+    'nav position: the grid is mirrored and names each place by where it is',
+    startCell.x > endCell.x &&
+      (await title(page, '#nav-position [data-nav-position=bottom-left]')) ===
+        '\u2066Sağ alt\u2069',
+    await title(page, '#nav-position [data-nav-position=bottom-left]'),
+  );
+  await page.locator('#nav-position [data-nav-position=top-right]').click();
+  const placed = await page.locator('.nav-bar-box').boundingBox();
+  t.ok(
+    'nav position: top-right (the end) puts the bar in the top left of a right-to-left page',
+    placed.x < 2 && placed.y < 2,
+    JSON.stringify(placed),
+  );
+  await page.locator('#nav-settings').click();
   const quote = await page
     .locator('#slide-content blockquote')
     .evaluate((e) => [getComputedStyle(e).borderLeftWidth, getComputedStyle(e).borderRightWidth]);
@@ -404,6 +504,19 @@ const title = (page, selector) => page.locator(selector).first().getAttribute('t
     "another browser starts in the entry file's language",
     now.lang === 'en',
     JSON.stringify(now),
+  );
+  // A place chosen in the settings menu: the language menu follows the bar to the top and opens below its button.
+  await other.locator('#nav-settings').click();
+  await other.locator('#nav-position [data-nav-position=top-left]').click();
+  await other.locator('#nav-language').click();
+  await other.locator('#language-menu').waitFor();
+  const [langButton, langMenu] = await Promise.all(
+    ['#nav-language', '#language-menu'].map((s) => other.locator(s).boundingBox()),
+  );
+  t.ok(
+    'nav position: at the top, the language menu opens below its button without a reload',
+    langButton.y < 40 && langMenu.y > langButton.y + langButton.height / 2,
+    JSON.stringify({ langButton, langMenu }),
   );
   await other.close();
   problems.push(...ctx.problems);
