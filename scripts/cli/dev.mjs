@@ -12,7 +12,8 @@ import { createInterface } from 'node:readline';
 import { pathToFileURL } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
 import { parse } from 'yaml';
-import { mergeHeadmatter, resolveRoots } from '../lib/roots.mjs';
+import { readDeckConfig } from '../lib/deck-config.mjs';
+import { mergeHeadmatter, overlayHeadmatter, resolveRoots } from '../lib/roots.mjs';
 import { checkToolDir, removeInside } from '../lib/tool-dir.mjs';
 import { randomPassword, randomSecret } from '../dev/config.mjs';
 import { startWaitingPage } from '../dev/waiting-page.mjs';
@@ -97,12 +98,14 @@ export function devPlan(argv, env = process.env) {
 }
 
 // The `routerMode` of the deck, read when the remote addresses are printed: a hash deck has its route after `/#/`. It is the
-// entry's headmatter over that of its theme (`theme.json`, also a `--theme`) and addons, as the generator merges them; no imports
-// and no setup code are read. A missing file, invalid YAML or a root that is not found is taken as the default, history.
+// entry's headmatter over its config file and that of its theme (`theme.json`, also a `--theme`) and addons, as the generator
+// merges them; no imports and no setup code are read. A missing file, invalid YAML or a root that is not found is taken as
+// the default, history.
 export function deckRouterMode(entry, themeOverride = process.env.SLIDE_NG_THEME || undefined) {
   try {
     const head = /^---\r?\n([\s\S]*?)\r?\n---/.exec(readFileSync(entry, 'utf8'))?.[1];
-    const headmatter = (head && parse(head)) || {};
+    const config = readDeckConfig(dirname(entry))?.headmatter ?? {};
+    const headmatter = overlayHeadmatter(config, (head && parse(head)) || {});
     const roots = resolveRoots({ deckRoot: dirname(entry), headmatter, themeOverride });
     return mergeHeadmatter(roots, headmatter).routerMode === 'hash' ? 'hash' : 'history';
   } catch {

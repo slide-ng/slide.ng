@@ -34,6 +34,25 @@ The frontmatter of the **first slide** configures the deck. Other keys are kept 
 | `customElements`                                                                                                   | web component tags such as `[model-viewer, sl-*]` (or `true`), see `core-custom-components.md`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `dragPos`                                                                                                          | named positions for `slide-ng-drag`; a slide's own frontmatter key (here it covers slide 1 only), see `layout-draggable.md`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 
+## In a file of its own: `slide-ng.config.yaml`
+
+The same keys can go in `slide-ng.config.yaml` (or `.yml`, `.json`) next to `slides.md`; each key does what it does in the headmatter. Not in Slidev.
+
+```yaml
+title: My talk
+fonts:
+  sans: Inter
+languages:
+  en: slides.md
+  tr: slides.tr.md
+```
+
+- The headmatter wins key by key; `fonts`, `themeConfig`, `htmlAttrs`, `drawings` and `defaults` are merged one level deep, other objects and lists are replaced whole.
+- Keys of the first slide (`layout`, `class`, `src`, `hide`, `routeAlias`, `clicks`, `dragPos`, layout props) are not read from it (a warning says so): put them in the first slide or under `defaults`. Its `title` is the deck's; slide 1's title is its heading.
+- Read only from the entry file's folder; it can set what the headmatter can (`allowOutsideRoot` too), no more. With `languages` it is for every language file, and each file's headmatter still goes over it.
+- Warnings name the file and line (`slide-ng.config.yaml:3: ...`); invalid YAML or JSON stops the build. `dev` watches it.
+- `slide-ng.config.mjs` / `.ts` are not supported.
+
 <!-- verify -->
 
 ```md

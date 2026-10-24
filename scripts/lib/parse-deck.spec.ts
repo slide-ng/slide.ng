@@ -343,3 +343,103 @@ describe('a translation (options.base)', () => {
     expect(d.problems).toEqual([]);
   });
 });
+
+describe('parseDeck: the config file', () => {
+  const CONFIG = '/deck/slide-ng.config.yaml';
+  const withConfig = (config: string, md = '# One\n') =>
+    parseDeck('/deck/slides.md', { '/deck/slides.md': md, [CONFIG]: config });
+
+  it('takes the headmatter keys from the config file', async () => {
+    const d = await withConfig(
+      'title: From config\ncolorSchema: dark\ndefaults:\n  layout: center\n',
+    );
+    expect(d.headmatter).toMatchObject({ title: 'From config', colorSchema: 'dark' });
+    expect(d.ownHeadmatter).toEqual({
+      title: 'From config',
+      colorSchema: 'dark',
+      defaults: { layout: 'center' },
+    });
+    expect(d.slides[0].frontmatter).toMatchObject({ layout: 'center' });
+    expect(d.config).toEqual({ file: CONFIG, lines: expect.objectContaining({ title: 1 }) });
+  });
+  it('lets the headmatter win key by key, merging fonts, themeConfig and defaults', async () => {
+    const d = await withConfig(
+      'title: Config\nlang: tr\nfonts: { sans: Inter, mono: Fira Code }\nthemeConfig: { primary: red }\ndefaults: { layout: center }\nseoMeta: { ogTitle: A, ogDescription: B }\n',
+      '---\ntitle: Headmatter\nfonts: { mono: JetBrains Mono }\nthemeConfig: { accent: blue }\ndefaults: { class: big }\nseoMeta: { ogTitle: C }\n---\n\n# One\n',
+    );
+    expect(d.headmatter).toMatchObject({
+      title: 'Headmatter',
+      lang: 'tr',
+      fonts: { sans: 'Inter', mono: 'JetBrains Mono' },
+      themeConfig: { primary: 'red', accent: 'blue' },
+      defaults: { layout: 'center', class: 'big' },
+      seoMeta: { ogTitle: 'C' },
+    });
+  });
+  it('changes nothing for a deck without one', async () => {
+    const d = await parse('---\ntitle: T\n---\n\n# One\n');
+    expect(d.ownHeadmatter).toEqual({ title: 'T' });
+    expect(d.config).toBeNull();
+  });
+  it('names the config file and line in a warning about its key, the entry file for its own', async () => {
+    const d = await withConfig('title: T\nnavPosition: top-lft\nhighlighter: prism\n');
+    expect(d.problems).toEqual([
+      expect.stringMatching(
+        /^\/deck\/slide-ng\.config\.yaml:2: `navPosition: "top-lft"` is not used/,
+      ),
+      expect.stringMatching(/^\/deck\/slide-ng\.config\.yaml:3: `highlighter: prism` is not used/),
+    ]);
+    const over = await withConfig('navPosition: top-lft\n', '---\nnavPosition: top-rigt\n---\n');
+    expect(over.problems).toEqual([
+      expect.stringMatching(/^\/deck\/slides\.md: `navPosition: "top-rigt"` is not used/),
+    ]);
+  });
+  it('passes on the warnings of the config file itself', async () => {
+    const d = await withConfig('layout: center\n');
+    expect(d.problems).toEqual([
+      expect.stringContaining(`${CONFIG}:1: \`layout\` belongs to the first slide`),
+    ]);
+  });
+  it('stops the build at a config file that is not valid YAML', async () => {
+    await expect(withConfig('title: [x\n')).rejects.toThrow(
+      `${CONFIG}:1: the config file is not valid YAML`,
+    );
+  });
+  it('is not read for a translation, which has it in its base', async () => {
+    const d = await parseDeck(
+      '/deck/slides.tr.md',
+      { '/deck/slides.tr.md': '---\ntitle: Bir\n---\n\n# Bir\n', [CONFIG]: 'colorSchema: dark\n' },
+      { base: { title: 'One' } },
+    );
+    expect(d.headmatter.colorSchema).toBeUndefined();
+    expect(d.config).toBeNull();
+  });
+});
+
+describe('parseDeck: allowOutsideRoot in the config file', () => {
+  const base = mkdtempSync(join(tmpdir(), 'slideng-config-out-'));
+  const dir = join(base, 'deck');
+  mkdirSync(dir);
+  writeFileSync(join(base, 'outside.md'), '# Outside one\n');
+  writeFileSync(
+    join(dir, 'slides.md'),
+    '---\ntitle: T\n---\n\n# First\n\n---\nsrc: ../outside.md\n---\n',
+  );
+
+  it('refuses an import outside the deck without it', async () => {
+    await expect(parseDeck(join(dir, 'slides.md'))).rejects.toThrow('allowOutsideRoot: true');
+  });
+  it('allows it as the headmatter does', async () => {
+    writeFileSync(join(dir, 'slide-ng.config.yaml'), 'allowOutsideRoot: true\n');
+    const d = await parseDeck(join(dir, 'slides.md'));
+    expect(d.allowOutsideRoot).toBe(true);
+    expect(d.slides.map((s) => s.title)).toEqual(['T', 'Outside one']);
+  });
+  it('lets the headmatter turn it off again', async () => {
+    writeFileSync(
+      join(dir, 'slides.md'),
+      '---\nallowOutsideRoot: false\n---\n\n# First\n\n---\nsrc: ../outside.md\n---\n',
+    );
+    await expect(parseDeck(join(dir, 'slides.md'))).rejects.toThrow('allowOutsideRoot: true');
+  });
+});

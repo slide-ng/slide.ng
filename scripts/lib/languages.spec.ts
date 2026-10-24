@@ -72,6 +72,20 @@ describe('readLanguages', () => {
       }),
     ).toThrow('languages.tr: gone.md not found');
   });
+  it('names the config file and line when only the config file sets languages', () => {
+    const config = { file: '/deck/slide-ng.config.yaml', lines: { title: 1, languages: 2 } };
+    const text = '---\ntitle: T\n---\n';
+    expect(() =>
+      readLanguages({ languages: ['slides.md'] }, ENTRY, () => {}, { exists, text, config }),
+    ).toThrow(/^\/deck\/slide-ng\.config\.yaml:2: languages should map/);
+    expect(() =>
+      readLanguages({ languages: ['slides.md'] }, ENTRY, () => {}, {
+        exists,
+        text: '---\nlanguages: x\n---\n',
+        config,
+      }),
+    ).toThrow(/^\/deck\/slides\.md:2: languages should map/);
+  });
 });
 
 describe('keyPlace and baseHeadmatter', () => {
@@ -243,5 +257,35 @@ describe('deckInLanguage', () => {
     expect(await deckInLanguage(deck, 'en')).toBe(deck);
     expect(await deckInLanguage(deck, 'de')).toBe(deck);
     expect(await deckInLanguage(deck, undefined)).toBe(deck);
+  });
+});
+
+describe('languages with a config file', () => {
+  let dir: string;
+  beforeAll(() => {
+    dir = mkdtempSync(join(tmpdir(), 'slide-ng-languages-config-'));
+    writeFileSync(
+      join(dir, 'slide-ng.config.yaml'),
+      'title: Talk\ninfo: About\ncolorSchema: dark\nlanguages:\n  en: slides.md\n  tr: slides.tr.md\n',
+    );
+    writeFileSync(join(dir, 'slides.md'), '# One\n\n---\n\n# Two\n');
+    writeFileSync(join(dir, 'slides.tr.md'), '---\ntitle: Konuşma\ninfo: Hakkında\n---\n\n# Bir\n');
+  });
+  afterAll(() => rmSync(dir, { recursive: true, force: true }));
+
+  it('reads languages from the config file, and gives every language its keys', async () => {
+    const deck = await parseDeck(join(dir, 'slides.md'));
+    const languages = readLanguages(deck.ownHeadmatter, deck.entry, () => {}, {
+      config: deck.config,
+    });
+    expect(languages?.map((l) => l.lang)).toEqual(['en', 'tr']);
+    const tr = await deckInLanguage(deck, 'tr');
+    expect(tr.headmatter).toMatchObject({
+      title: 'Konuşma',
+      info: 'Hakkında',
+      colorSchema: 'dark',
+      lang: 'tr',
+    });
+    expect(tr.headmatter.languages).toBeUndefined();
   });
 });

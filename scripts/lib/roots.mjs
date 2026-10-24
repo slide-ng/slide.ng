@@ -210,11 +210,12 @@ export function resolveRoots({ deckRoot, headmatter, themeOverride }) {
 const MERGED_OBJECTS = ['fonts', 'drawings', 'htmlAttrs', 'themeConfig'];
 const plain = (v) => v && typeof v === 'object' && !Array.isArray(v);
 
-/** The headmatter with the themes' defaults underneath it. `defaults` (per-slide defaults) and `fonts` are merged key by key. */
-export function mergeHeadmatter(roots, headmatter) {
+/** Headmatters put over each other, the last wins. `defaults` and the objects above are merged key by key, the rest replaced. */
+export function overlayHeadmatter(...layers) {
+  /** @type {any} */
   const merged = {};
   let defaults = {};
-  for (const source of [...roots.map((r) => r.manifest.headmatter), headmatter]) {
+  for (const source of layers) {
     const { defaults: d, ...rest } = source;
     for (const key of MERGED_OBJECTS)
       if (plain(rest[key]) && plain(merged[key])) rest[key] = { ...merged[key], ...rest[key] };
@@ -222,6 +223,12 @@ export function mergeHeadmatter(roots, headmatter) {
     defaults = { ...defaults, ...(d && typeof d === 'object' ? d : {}) };
   }
   if (Object.keys(defaults).length) merged.defaults = defaults;
+  return merged;
+}
+
+/** The headmatter with the themes' defaults underneath it. `defaults` (per-slide defaults) and `fonts` are merged key by key. */
+export function mergeHeadmatter(roots, headmatter) {
+  const merged = overlayHeadmatter(...roots.map((r) => r.manifest.headmatter), headmatter);
   // A theme made for one mode (`colorSchema: light` or `dark` in its theme.json) has no colours for the other, so it keeps
   // its mode, as in Slidev; a deck that asks for `auto` is told why its toggle is gone.
   const fixed = roots
