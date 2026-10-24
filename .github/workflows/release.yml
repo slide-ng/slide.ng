@@ -1,8 +1,11 @@
 name: Release
 
+# Publishes to npm. Either push a tag `v<version>`, or run it by hand from `main` (Actions > Release > Run workflow):
+# then the tag is made here, on the published commit, after the package is out.
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -12,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
-      contents: read
+      contents: write # only to make the tag of a run started by hand
       id-token: write
     steps:
       - uses: actions/checkout@v7
@@ -29,8 +32,19 @@ jobs:
       - run: npm ci
 
       - name: The tag matches the version
+        if: github.event_name == 'push'
         run: |
           node -e "const v = require('./package.json').version; if ('v' + v !== process.env.GITHUB_REF_NAME) { console.error('Tag ' + process.env.GITHUB_REF_NAME + ' does not match version ' + v); process.exit(1); }"
+
+      - name: Run by hand from main, for a version that has no tag yet
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then echo "Run this from main, not $GITHUB_REF_NAME"; exit 1; fi
+          v="v$(node -p "require('./package.json').version")"
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$v" --silent 2>/dev/null; then echo "$v is already tagged: push nothing, it was released"; exit 1; fi
+          echo "TAG=$v" >> "$GITHUB_ENV"
 
       - run: npm run lint
       - run: npm run check:skills
@@ -38,3 +52,9 @@ jobs:
       - run: npm test
 
       - run: npm publish --provenance --access public
+
+      - name: Tag the published commit
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$TAG" -f sha="$GITHUB_SHA"
