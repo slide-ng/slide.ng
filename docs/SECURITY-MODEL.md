@@ -33,7 +33,7 @@ The server refuses an edit that would switch on `allowOutsideRoot` or `fonts.all
 
 ## Reading files: `<<<` and `src:`
 
-Snippets (`<<< ./file`) and imported slides (`src:`) must be inside the deck's folder or a theme or addon folder, judged by the real path (a symbolic link that leads out does not count). Otherwise the build stops with an error. A leading `/` in `src:` means the deck's folder, as in Slidev. The deck can opt out with `allowOutsideRoot: true` in its **own** headmatter (a theme cannot set it for the deck). The MCP `get_slide` tool checks the same rule.
+Snippets (`<<< ./file`) and imported slides (`src:`) must be inside the deck's folder or a theme or addon folder, judged by the real path (a symbolic link that leads out does not count). Otherwise the build stops with an error. A leading `/` in `src:` means the deck's folder, as in Slidev. The deck can opt out with `allowOutsideRoot: true` in its **own** headmatter, or in its config file `slide-ng.config.yaml`, which is read only from the folder of `slides.md` and only when it is really there (a theme cannot set it for the deck). The dev server and the MCP tools cannot write the config file. The MCP `get_slide` tool checks the same rule.
 
 ## Downloads at build time
 

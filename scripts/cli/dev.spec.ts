@@ -138,4 +138,12 @@ describe('deckRouterMode', () => {
       'history',
     );
   });
+  it('takes routerMode from the config file, under the headmatter', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'router-mode-config-'));
+    writeFileSync(join(dir, 'slide-ng.config.yaml'), 'routerMode: hash\n');
+    writeFileSync(join(dir, 'a.md'), '# One\n');
+    writeFileSync(join(dir, 'b.md'), '---\nrouterMode: history\n---\n');
+    expect(deckRouterMode(join(dir, 'a.md'), undefined)).toBe('hash');
+    expect(deckRouterMode(join(dir, 'b.md'), undefined)).toBe('history');
+  });
 });

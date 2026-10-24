@@ -4,6 +4,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, relative, resolve } from 'node:path';
 import { normalizeLang } from './lang.mjs';
+import { configKeyPlace } from './deck-config.mjs';
 import { assertReadable } from './outside-root.mjs';
 import { parseDeck } from './parse-deck.mjs';
 import { slideLine } from './slide-line.mjs';
@@ -27,14 +28,16 @@ export function keyPlace(file, key, text) {
 
 /**
  * The languages of the entry file's headmatter: `[{ lang, file }]`, the entry file first, or null without `languages` (or
- * with one file only, which `warn` is told). A value that cannot be used throws, with the file and line of `languages`.
+ * with one file only, which `warn` is told). A value that cannot be used throws, with the file and line of `languages`
+ * (in the deck's config file, `options.config` from parseDeck, when the entry file does not set it).
  * @param {Record<string, unknown>} headmatter @param {string} entry @param {(m: string) => void} warn
- * @param {{ text?: string, exists?: (f: string) => boolean, allowOutsideRoot?: boolean }} [options]
+ * @param {{ text?: string, exists?: (f: string) => boolean, allowOutsideRoot?: boolean, config?: { file: string, lines: Record<string, number> } | null }} [options]
  */
 export function readLanguages(headmatter, entry, warn, options = {}) {
   const value = headmatter.languages;
   if (value == null) return null;
-  const where = keyPlace(entry, 'languages', options.text);
+  const inEntry = keyPlace(entry, 'languages', options.text);
+  const where = (inEntry === entry ? configKeyPlace(options.config, 'languages') : null) ?? inEntry;
   const exists = options.exists ?? existsSync;
   if (typeof value !== 'object' || Array.isArray(value))
     throw new Error(
@@ -152,6 +155,7 @@ export function pairSlides(entrySlides, slides, names, warn) {
 export async function languageDeck(deck, lang) {
   const languages = readLanguages(deck.ownHeadmatter, deck.entry, () => {}, {
     allowOutsideRoot: deck.allowOutsideRoot,
+    config: deck.config,
   });
   const found = languages?.find((l) => l.lang === normalizeLang(lang));
   if (!found) return null;

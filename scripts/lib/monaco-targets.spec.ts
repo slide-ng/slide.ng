@@ -26,6 +26,8 @@ describe('writeTargetProblem', () => {
       'INDEX.HTML',
       'uno.config.ts',
       'vite.config.js',
+      'slide-ng.config.yaml',
+      'slide-ng.config.json',
     ])
       expect(writeTargetProblem(p), p).not.toBeNull();
   });

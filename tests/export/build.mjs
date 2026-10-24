@@ -475,6 +475,49 @@ t.ok(
     readFileSync(join(siteC, 'pwa-icon-maskable-512.png')).readUInt32BE(16) === 512,
 );
 
+// ---- deck D: its options only in slide-ng.config.yaml, slides.md has no headmatter
+const dirD = join(scratch, 'deck-d');
+mkdirSync(dirD, { recursive: true });
+writeFileSync(join(dirD, 'slides.md'), '# First\n\n---\n\n# Second\n');
+writeFileSync(
+  join(dirD, 'slide-ng.config.yaml'),
+  "title: Deck D\ntitleTemplate: '%s | From config'\nlang: tr\nhtmlAttrs:\n  data-config: yes\nrouterMode: hash\n",
+);
+const siteD = join(scratch, 'site-d');
+await cli(['build', join(dirD, 'slides.md'), '--out', siteD], dirD);
+const htmlD = readFileSync(join(siteD, 'index.html'), 'utf8');
+t.ok(
+  'a deck with a config file only: the page has its title, lang and attributes',
+  htmlD.includes('<title>Deck D | From config</title>') &&
+    /<html[^>]*lang="tr"/.test(htmlD) &&
+    /<html[^>]*data-config="yes"/.test(htmlD),
+  htmlD.slice(0, 600),
+);
+const servedD = await serveDirectory(siteD, '/');
+const pageD = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+await pageD.goto(`${servedD.origin}/#/2`);
+await pageD.waitForFunction(() =>
+  /clicks \d+\/\d+/.test(document.querySelector('#hud')?.innerText ?? ''),
+);
+t.ok(
+  "the config file's routerMode: hash opens #/2 on slide 2",
+  (await pageD.locator('#hud').innerText()).startsWith('slide 2/2'),
+);
+await pageD.close();
+await servedD.close();
+writeFileSync(join(dirD, 'slide-ng.config.yaml'), 'title: [unclosed\n');
+let brokenD = '';
+try {
+  await cli(['build', join(dirD, 'slides.md'), '--out', siteD], dirD);
+} catch (e) {
+  brokenD = String(e.stderr);
+}
+t.ok(
+  'a config file that is not valid YAML stops the build with its file and line',
+  brokenD.includes(`${join(dirD, 'slide-ng.config.yaml')}:1: the config file is not valid YAML`),
+  brokenD,
+);
+
 // ---- deck B: hash routing under a nested base, built twice into the same folder
 const dirB = join(scratch, 'deck-b');
 mkdirSync(dirB, { recursive: true });

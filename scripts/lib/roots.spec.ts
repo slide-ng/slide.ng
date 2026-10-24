@@ -7,6 +7,7 @@ import {
   candidateNames,
   findRootDir,
   mergeHeadmatter,
+  overlayHeadmatter,
   packageToInstall,
   readManifest,
   resolveRoots,
@@ -208,6 +209,26 @@ describe('resolveRoots', () => {
     expect(
       resolveRoots({ deckRoot: deck, headmatter: { theme: './a' }, themeOverride: './b' })[0].id,
     ).toBe('theme-b');
+  });
+});
+
+describe('overlayHeadmatter', () => {
+  it('puts each headmatter over the one before, merging the objects of fonts, themeConfig and defaults', () => {
+    const merged = overlayHeadmatter(
+      {
+        title: 'A',
+        fonts: { sans: 'Inter' },
+        seoMeta: { ogTitle: 'A' },
+        defaults: { layout: 'center' },
+      },
+      { title: 'B', fonts: { mono: 'Fira Code' }, seoMeta: { ogDescription: 'B' } },
+    );
+    expect(merged).toEqual({
+      title: 'B',
+      fonts: { sans: 'Inter', mono: 'Fira Code' },
+      seoMeta: { ogDescription: 'B' },
+      defaults: { layout: 'center' },
+    });
   });
 });
 
