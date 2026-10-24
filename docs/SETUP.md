@@ -86,7 +86,8 @@ export default () => ({
 
 ## Preparser: `setup/preparser.ts`
 
-Runs when the markdown file is read, before it is cut into slides. The function gets `{ filepath, headmatter, mode }` and returns a list of
+Runs when the markdown file is read, before it is cut into slides. The function gets `{ filepath, headmatter, mode }` (the headmatter over the
+deck's `slide-ng.config.yaml`, if there is one) and returns a list of
 extensions of Slidev's parser: `transformRawLines(lines)` (change the array in place), `transformSlide(content, frontmatter)` (return new text) and
 `transformNote(note, frontmatter)`. The extensions of all roots are used.
 

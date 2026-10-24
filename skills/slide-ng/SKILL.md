@@ -101,7 +101,7 @@ Angular control flow works.
 | Port a Slidev deck  | Recipe, Vue to Angular example, pitfalls                | [port-a-slidev-deck](references/port-a-slidev-deck.md)           |
 | Angular syntax      | Template syntax in markdown, converter rules            | [core-angular-syntax](references/core-angular-syntax.md)         |
 | Syntax              | Separators, frontmatter, notes                          | [core-syntax](references/core-syntax.md)                         |
-| Headmatter          | Deck-wide keys                                          | [core-headmatter](references/core-headmatter.md)                 |
+| Headmatter          | Deck-wide keys, also in `slide-ng.config.yaml`          | [core-headmatter](references/core-headmatter.md)                 |
 | Frontmatter         | Per-slide keys                                          | [core-frontmatter](references/core-frontmatter.md)               |
 | CLI                 | Commands, flags, checks                                 | [core-cli](references/core-cli.md)                               |
 | Built-in components | Tags available everywhere                               | [core-components](references/core-components.md)                 |

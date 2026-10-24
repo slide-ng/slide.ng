@@ -71,6 +71,45 @@ In the headmatter (the frontmatter of the first slide) you can also set:
 
 Other keys are kept in the slide's metadata and ignored, unless a theme or a component reads them.
 
+### The config file: `slide-ng.config.yaml`
+
+The deck's options can also live in a file next to `slides.md`: `slide-ng.config.yaml` (or `slide-ng.config.yml`, or
+`slide-ng.config.json`). It holds the keys of the headmatter, and each key does what it does there:
+
+```yaml
+# slide-ng.config.yaml
+title: My talk
+theme: ./my-theme
+fonts:
+  sans: Inter
+themeConfig:
+  primary: '#5d8392'
+languages:
+  en: slides.md
+  tr: slides.tr.md
+```
+
+- **The headmatter wins, key by key.** A key set in both places takes the headmatter's value. `fonts`, `themeConfig`, `htmlAttrs`,
+  `drawings` and `defaults` are merged one level deep, the same way a theme's `theme.json` and the deck are merged: a config file with
+  `fonts: { sans: Inter, mono: Fira Code }` and a headmatter with `fonts: { mono: JetBrains Mono }` give `sans: Inter` and
+  `mono: JetBrains Mono`. Any other value, a list or an object such as `seoMeta` or `languages`, is replaced whole.
+- **Keys of the first slide stay in `slides.md`.** In the headmatter, `layout`, `class`, `src`, `hide`, `routeAlias`, `clicks`,
+  `dragPos`, the layout props and the like are about the first slide; the config file does not set them, and says so with a warning.
+  Put them in the first slide, or under `defaults` for every slide. `title` in the config file is the deck's title; the first slide's
+  own title is its heading.
+- **Only the entry file's folder** is looked in, and the file must really be there: a symbolic link that leads out of the folder stops
+  the build. It is part of the deck like `slides.md`, so it can set what the headmatter can, `allowOutsideRoot` included, and nothing
+  more. When more than one of the three names is there, the first in the order above is read and the others are warned about.
+- **With `languages`**, the config file is for the whole deck: each language file reads it under its own headmatter, as it reads the
+  entry file's, so `title`, `info`, `titleTemplate` and the rest can still be translated per file. The `languages` map itself may be in
+  the config file.
+- **Errors and warnings** name the config file and the line of the key (`slide-ng.config.yaml:3: ...`), as they name `slides.md` for
+  the headmatter. A config file that is not valid YAML or JSON stops the build, with its file and line.
+- `dev` watches it like `slides.md`: saving it, adding it or removing it regenerates the deck.
+- Only YAML and JSON are read: `slide-ng.config.mjs` or `.ts`, with code that computes the options, are not supported.
+
+Slidev has no such file; its options are in the headmatter only.
+
 ### Reading errors and warnings
 
 Messages start with the file and line they are about (`slides.md:12: ...`), or with the slide (`[slides] slide 4: ...`); a

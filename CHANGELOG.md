@@ -4,6 +4,10 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+### Added
+
+- The deck's options can live in `slide-ng.config.yaml` (or `.yml`, `.json`) next to `slides.md`, with the keys of the headmatter (#85). The headmatter still wins key by key; `fonts`, `themeConfig`, `htmlAttrs`, `drawings` and `defaults` are merged one level deep, as with a theme. With `languages` the file is for every language, and the `languages` map may be in it. Warnings about its keys name the file and line, and a file that is not valid YAML or JSON stops the build. `dev` watches it. It is read only from the entry file's folder and can set nothing the headmatter cannot. Keys of the first slide (`layout`, `class`, ...) stay in `slides.md`. Decks without the file do not change.
+
 ## [2.1.0] - 2026-10-24
 
 ### Added
