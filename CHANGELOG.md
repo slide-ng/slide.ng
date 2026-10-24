@@ -4,6 +4,8 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-10-24
+
 ### Added
 
 - `navPosition` in the headmatter places the navigation bar of the slide page: `bottom-left` (default, as in Slidev), `bottom-center`, `bottom-right`, `top-left`, `top-center` or `top-right` (#78). Left and right follow the writing direction, so a right-to-left deck mirrors them; at the top, the settings and sync menus open below the bar. The presenter page keeps its bar. Another value is warned about, with the near name, and keeps the bottom left.
@@ -319,7 +321,8 @@ The first version, built in phases.
 
 See `docs/STATUS.md` for what is missing or not verified.
 
-[Unreleased]: https://github.com/slide-ng/slide.ng/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/slide-ng/slide.ng/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/slide-ng/slide.ng/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/slide-ng/slide.ng/compare/v1.0.0...v2.0.0
 [1.0.0]: https://github.com/slide-ng/slide.ng/compare/v0.1.0...v1.0.0
 [0.1.0]: https://github.com/slide-ng/slide.ng/commits/main
