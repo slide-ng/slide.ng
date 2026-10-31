@@ -1,5 +1,6 @@
 import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 import { DevApi } from '../dev/dev-api';
+import { Fullscreen } from '../lib/fullscreen';
 import { storedSignal } from '../lib/stored-signal';
 import { SyncState } from '../sync/sync-state';
 import {
@@ -15,6 +16,7 @@ export interface OpenTab {
   id: number;
   name: string;
   url: string;
+  icon: string;
   src: string;
   history: string[];
   index: number;
@@ -26,7 +28,16 @@ export interface OpenTab {
 export interface Visited {
   name: string;
   url: string;
+  icon?: string;
 }
+
+export const siteIcon = (url: string) => {
+  try {
+    return new URL('/favicon.ico', url).href;
+  } catch {
+    return '';
+  }
+};
 
 @Injectable({ providedIn: 'root' })
 export class DeckBrowser {
@@ -57,6 +68,7 @@ export class DeckBrowser {
 
   constructor() {
     if (!this.config.enabled) return;
+    inject(Fullscreen).lockEscape = true;
     effect(() => {
       const shown = this.shown();
       if (untracked(() => this.sync.shared().browser ?? null) !== shown)
@@ -133,6 +145,7 @@ export class DeckBrowser {
     this.patch(id, {
       url,
       name: name || tabTitle(url),
+      icon: siteIcon(url),
       history,
       index: history.length - 1,
       framable: null,
@@ -148,12 +161,36 @@ export class DeckBrowser {
     this.bookmarks.update((all) =>
       all.some((b) => b.url === url)
         ? all.filter((b) => b.url !== url)
-        : [...all, { name: tab.name || tabTitle(url), url }],
+        : [...all, { name: tab.name || tabTitle(url), url, icon: tab.icon }],
     );
+  }
+
+  forget(url: string) {
+    this.visited.update((all) => all.filter((v) => v.url !== url));
   }
 
   removeBookmark(url: string) {
     this.bookmarks.update((all) => all.filter((b) => b.url !== url));
+  }
+
+  goHome() {
+    const tab = this.active();
+    if (!tab) {
+      this.newTab();
+      return;
+    }
+    if (!tab.url) return;
+    const history = [...tab.history.slice(0, tab.index + 1), ''];
+    this.patch(tab.id, {
+      url: '',
+      name: '',
+      icon: '',
+      src: '',
+      history,
+      index: history.length - 1,
+      framable: null,
+      loaded: false,
+    });
   }
 
   back() {
@@ -176,8 +213,17 @@ export class DeckBrowser {
     if (!tab) return;
     const index = tab.index + by;
     const url = tab.history[index];
-    if (!url) return;
-    this.patch(tab.id, { index, url, name: tabTitle(url) });
+    if (url === undefined) return;
+    this.patch(tab.id, {
+      index,
+      url,
+      name: url ? tabTitle(url) : '',
+      icon: url ? siteIcon(url) : '',
+    });
+    if (!url) {
+      this.patch(tab.id, { src: '', framable: null, loaded: false });
+      return;
+    }
     this.pending.set(tab.id, url);
     const frame = this.frame(tab.id);
     if (this.proxy() && frame) {
@@ -190,8 +236,9 @@ export class DeckBrowser {
 
   private receive(e: MessageEvent) {
     const proxy = this.proxy();
-    const message = (e.data as { slideNgWeb?: { type?: string; url?: unknown; title?: unknown } })
-      ?.slideNgWeb;
+    const message = (
+      e.data as { slideNgWeb?: { type?: string; url?: unknown; title?: unknown; icon?: unknown } }
+    )?.slideNgWeb;
     if (!proxy || !message || !isProxyOrigin(e.origin, proxy)) return;
     const tab = this.tabs().find((t) => this.frame(t.id)?.contentWindow === e.source);
     const url = webAddress(message.url);
@@ -204,14 +251,15 @@ export class DeckBrowser {
     if (message.type !== 'state') return;
     const title = typeof message.title === 'string' ? message.title.trim().slice(0, 80) : '';
     const name = title || tabTitle(url);
+    const icon = webAddress(message.icon) ?? siteIcon(url);
     if (this.pending.get(tab.id) === url || tab.url === url) {
       this.pending.delete(tab.id);
-      this.patch(tab.id, { name });
+      this.patch(tab.id, { name, icon });
     } else {
       const history = [...tab.history.slice(0, tab.index + 1), url];
-      this.patch(tab.id, { url, name, history, index: history.length - 1 });
+      this.patch(tab.id, { url, name, icon, history, index: history.length - 1 });
     }
-    this.remember({ name, url });
+    this.remember({ name, url, icon });
   }
 
   private remember(page: Visited) {
@@ -269,6 +317,7 @@ export class DeckBrowser {
       id: this.nextId++,
       name: name || (url ? tabTitle(url) : ''),
       url,
+      icon: url ? siteIcon(url) : '',
       src: '',
       history: url ? [url] : [],
       index: url ? 0 : -1,

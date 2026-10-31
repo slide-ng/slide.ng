@@ -17,12 +17,23 @@
           <button
             type="button"
             role="tab"
-            class="truncate px-3 py-1.5 text-sm"
+            class="flex items-center gap-2 min-w-0 px-3 py-1.5 text-sm"
             [attr.aria-selected]="tab.id === browser.activeId()"
             [title]="tab.url"
             (click)="browser.select(tab.id)"
           >
-            {{ tab.name || ('browser.newTab' | t) }}
+            @if (tab.icon && !failed().has(tab.icon)) {
+              <span
+                class="w-5 h-5 shrink-0 rounded-full bg-white grid place-content-center ring-1 ring-black/10"
+              >
+                <img class="w-3.5 h-3.5" alt="" [src]="tab.icon" (error)="iconFailed(tab.icon)" />
+              </span>
+            } @else if (tab.url) {
+              <div class="i-carbon:earth shrink-0 op60"></div>
+            } @else {
+              <app-slide-ng-mark class="w-4 h-4 shrink-0" />
+            }
+            <span class="truncate">{{ tab.name || ('browser.newTab' | t) }}</span>
           </button>
           <button
             type="button"
@@ -66,6 +77,15 @@
         (click)="browser.forward()"
       >
         <div class="i-carbon:arrow-right rtl-flip"></div>
+      </button>
+      <button
+        icon-btn
+        type="button"
+        id="deck-browser-home"
+        [title]="'browser.home' | t"
+        (click)="browser.goHome()"
+      >
+        <div class="i-carbon:home"></div>
       </button>
       <button
         icon-btn
@@ -129,23 +149,40 @@
     @if (browser.bookmarks().length) {
       <nav
         id="deck-browser-bookmarks"
-        class="flex items-center gap-1 px-3 pb-1.5 overflow-x-auto text-xs"
+        class="flex items-center gap-1.5 px-3 py-1.5 overflow-x-auto text-xs border-b border-main"
         [attr.aria-label]="'browser.bookmarks' | t"
       >
         @for (mark of browser.bookmarks(); track mark.url) {
-          <span class="deck-browser-bookmark group flex items-center rounded-full hover:bg-active">
+          <span
+            class="deck-browser-bookmark group flex items-center shrink-0 rounded-full border border-main bg-active/40 hover:bg-active transition-colors"
+          >
             <button
               type="button"
-              class="flex items-center gap-1.5 ps-2 pe-1 py-1 max-w-48"
-              [title]="mark.url"
+              class="flex items-center gap-2 ps-1 pe-1 py-0.5 max-w-52"
+              [title]="mark.name + '\n' + mark.url"
               (click)="openTile(mark.url, mark.name)"
             >
-              <div class="i-carbon:star-filled text-primary shrink-0"></div>
-              <span class="truncate">{{ mark.name }}</span>
+              @if (mark.icon && !failed().has(mark.icon)) {
+                <span
+                  class="w-5 h-5 shrink-0 rounded-full bg-white grid place-content-center ring-1 ring-black/10"
+                >
+                  <img
+                    class="w-3.5 h-3.5"
+                    alt=""
+                    [src]="mark.icon"
+                    (error)="iconFailed(mark.icon)"
+                  />
+                </span>
+              } @else {
+                <span class="w-5 h-5 shrink-0 rounded-full bg-primary grid place-content-center">
+                  <div class="i-carbon:star-filled text-white text-[10px]"></div>
+                </span>
+              }
+              <span class="truncate font-medium">{{ label(mark) }}</span>
             </button>
             <button
               type="button"
-              class="pe-2 op0 group-hover:op60 hover:op100 focus:op100"
+              class="pe-2 ps-0.5 op0 group-hover:op60 hover:op100 focus:op100 transition-opacity"
               [title]="'browser.bookmarkRemove' | t"
               [attr.aria-label]="'browser.bookmarkRemove' | t"
               (click)="browser.removeBookmark(mark.url)"
@@ -227,23 +264,54 @@
           />
         </div>
       </form>
-      @if (tiles().length) {
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full max-w-2xl">
-          @for (tile of tiles(); track tile.url) {
-            <button
-              type="button"
-              class="deck-browser-tile flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-active text-sm"
-              [title]="tile.url"
-              (click)="openTile(tile.url, tile.name)"
-            >
-              <span
-                class="w-10 h-10 rounded-full grid place-content-center bg-primary text-white font-semibold uppercase"
-                >{{ initial(tile) }}</span
-              >
-              <span class="truncate max-w-full">{{ tile.name }}</span>
-            </button>
-          }
-        </div>
+      @for (section of sections(); track section.key) {
+        <section class="w-full max-w-3xl">
+          <h2 class="text-xs font-semibold uppercase tracking-wider op50 mb-2 px-2">
+            {{ section.key | t }}
+          </h2>
+          <div class="flex flex-wrap gap-1">
+            @for (tile of section.tiles; track tile.url) {
+              <div class="relative group">
+                <button
+                  type="button"
+                  class="deck-browser-tile w-28 flex flex-col items-center gap-2 px-2 pt-3 pb-2 rounded-2xl hover:bg-active transition-colors"
+                  [title]="tile.name + '\n' + tile.url"
+                  (click)="openTile(tile.url, tile.name)"
+                >
+                  <span
+                    class="w-14 h-14 rounded-2xl grid place-content-center shadow-sm ring-1 ring-black/10 transition-transform group-hover:scale-105"
+                    [class]="tile.icon && !failed().has(tile.icon) ? 'bg-white' : 'bg-primary'"
+                  >
+                    @if (tile.icon && !failed().has(tile.icon)) {
+                      <img
+                        class="w-8 h-8"
+                        alt=""
+                        [src]="tile.icon"
+                        (error)="iconFailed(tile.icon)"
+                      />
+                    } @else {
+                      <span class="text-xl text-white font-semibold uppercase">{{
+                        initial(tile)
+                      }}</span>
+                    }
+                  </span>
+                  <span class="w-full text-xs leading-snug text-center line-clamp-2 break-words">{{
+                    label(tile)
+                  }}</span>
+                </button>
+                <button
+                  type="button"
+                  class="deck-browser-tile-remove absolute top-1 end-2 w-6 h-6 rounded-full grid place-content-center bg-main border border-main shadow-sm op0 group-hover:op100 focus:op100 transition-opacity"
+                  [title]="'browser.removeTile' | t"
+                  [attr.aria-label]="'browser.removeTile' | t"
+                  (click)="removeTile(tile.url)"
+                >
+                  <div class="i-carbon:close text-xs"></div>
+                </button>
+              </div>
+            }
+          </div>
+        </section>
       }
     </div>
   </ng-template>

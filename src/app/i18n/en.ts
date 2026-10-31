@@ -241,6 +241,10 @@ export const EN = {
   'browser.bookmarkAdd': 'Bookmark this page',
   'browser.bookmarkRemove': 'Remove bookmark',
   'browser.bookmarks': 'Bookmarks',
+  'browser.home': 'Start page',
+  'browser.removeTile': 'Remove from the start page',
+  'browser.shortcuts': 'Shortcuts',
+  'browser.recent': 'Recent',
   'presenter.browserOpen': 'Deck browser: {site}',
 } as const;
 

@@ -37,6 +37,10 @@
       type: 'state',
       url: toReal(location.href),
       title: document.title,
+      icon: toReal(
+        document.querySelector('link[rel~="icon"]')?.href ??
+          new URL('/favicon.ico', location.href).href,
+      ),
     });
 
   const realFetch = window.fetch;

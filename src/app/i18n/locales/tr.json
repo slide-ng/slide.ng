@@ -212,5 +212,9 @@
   "browser.start": "slide.ng tarayıcı",
   "browser.bookmarkAdd": "Bu sayfayı yer imlerine ekle",
   "browser.bookmarkRemove": "Yer imini kaldır",
-  "browser.bookmarks": "Yer imleri"
+  "browser.bookmarks": "Yer imleri",
+  "browser.home": "Başlangıç sayfası",
+  "browser.removeTile": "Başlangıç sayfasından kaldır",
+  "browser.shortcuts": "Kısayollar",
+  "browser.recent": "Son açılanlar"
 }

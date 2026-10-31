@@ -40,6 +40,7 @@ export interface ShortcutActions {
   browserOpen(): boolean;
   toggleBrowser(): void;
   hideBrowser(): void;
+  escapeLocked(): boolean;
 }
 
 /** Deck authors provide this to change the list: `{ provide: SHORTCUTS_SETUP, useValue: (a, list) => [...list, mine] }`. */
@@ -79,6 +80,12 @@ export function defaultShortcuts(a: ShortcutActions): Shortcut[] {
     { name: 'toggle_overview', key: 'o', run: a.toggleOverview, when: notDrawing },
     { name: 'toggle_overview_backtick', key: '`', run: a.toggleOverview, when: notDrawing },
     { name: 'hide_overview', key: 'Escape', run: a.closeAll, when: notDrawing },
+    {
+      name: 'exit_fullscreen',
+      key: 'Escape',
+      run: a.toggleFullscreen,
+      when: () => a.escapeLocked() && !a.browserOpen(),
+    },
     { name: 'hide_browser', key: 'Escape', run: a.hideBrowser, when: a.browserOpen },
     { name: 'goto', key: 'g', run: a.toggleGoto, when: notDrawing },
     {

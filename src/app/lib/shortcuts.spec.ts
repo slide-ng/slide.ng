@@ -65,6 +65,7 @@ function actions(
     isPresenter: () => presenter,
     browserEnabled: () => true,
     browserOpen: () => browserOpen,
+    escapeLocked: () => false,
     overviewMove: (by: string) => log.push(`move ${by}`),
   };
 }

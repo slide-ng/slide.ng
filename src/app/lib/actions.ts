@@ -44,5 +44,6 @@ export function makeActions(
     browserOpen: () => browser.open(),
     toggleBrowser: () => browser.toggle(),
     hideBrowser: () => browser.hide(),
+    escapeLocked: () => fullscreen.escapeIsLocked(),
   };
 }

@@ -317,3 +317,7 @@ default; `src/app/i18n/en.ts` holds it and is the source of truth for the keys. 
 | `browser.bookmarkAdd`    | Bookmark this page                                 |
 | `browser.bookmarkRemove` | Remove bookmark                                    |
 | `browser.bookmarks`      | Bookmarks                                          |
+| `browser.home`           | Start page                                         |
+| `browser.removeTile`     | Remove from the start page                         |
+| `browser.shortcuts`      | Shortcuts                                          |
+| `browser.recent`         | Recent                                             |

@@ -1340,13 +1340,14 @@ presses a button, and a touch on the slide hides it again. On a screen taller th
 
 slide.ng's own (issue #72): a browser inside the deck, so a talk can show websites without leaving the slides. `b`, or the globe
 button in the bar, opens it as a full-screen layer over the current slide; closing it (the × button, `b` or Escape) brings back the
-same slide and click. Its tabs stay loaded while it is closed.
+same slide and click. Its tabs stay loaded while it is closed. In fullscreen, Escape closes the deck browser and keeps fullscreen; the next Escape leaves
+fullscreen. For that the deck locks the Escape key when it goes fullscreen (Chrome and Edge ask once for the keyboard permission;
+without it, or in other browsers, Escape leaves fullscreen at once as before).
 
 - A click on a link to another site, on a slide, opens it in a new tab of the deck browser (or the tab that already shows it).
   Cmd/Ctrl/Shift/Alt+click and a middle click open the browser's own tab as before. `browser: { links: false }` turns this off.
 - The address field takes an address (`angular.dev`, `localhost:4200/demo`) or words to search for. Searches use
-  `browser.search`, an address with `%s` for the words (Bing by default: most other search engines refuse to be framed without the
-  proxy below).
+  `browser.search`, an address with `%s` for the words (Bing by default: Google and most other search engines refuse to be framed, and Google also blocks the proxy below).
 - It opens on the slide.ng browser page, as does a new tab: a search box and a tile for each of the deck's `browser.tabs` and each
   page opened since. `browser: { tabs: [{ name: Docs, url: https://angular.dev }] }` adds a tile; a click opens it in that tab.
 - Back and forward move through the pages a tab showed.

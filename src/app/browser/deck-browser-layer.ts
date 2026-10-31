@@ -1,4 +1,4 @@
-import { Component, ElementRef, computed, inject, viewChild } from '@angular/core';
+import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { DevApi } from '../dev/dev-api';
@@ -6,7 +6,7 @@ import { T } from '../i18n/t';
 import { IconBtn } from '../ui/icon-btn';
 import { SlideNgMark } from '../ui/slide-ng-mark';
 import { addressOrSearch, tabTitle } from './browser-config';
-import { DeckBrowser, OpenTab } from './deck-browser';
+import { DeckBrowser, OpenTab, Visited, siteIcon } from './deck-browser';
 
 @Component({
   selector: 'app-deck-browser',
@@ -25,12 +25,40 @@ export class DeckBrowserLayer {
     const tab = this.browser.active();
     return !!tab?.url && tab.framable === null && !this.browser.proxy() && !this.dev.enabled;
   });
-  protected tiles = computed(() => {
+  private removed = signal(new Set<string>());
+  protected removeTile(url: string) {
+    this.browser.removeBookmark(url);
+    this.browser.forget(url);
+    this.removed.update((all) => new Set(all).add(url));
+  }
+  protected failed = signal(new Set<string>());
+  protected iconFailed(url: string) {
+    this.failed.update((all) => new Set(all).add(url));
+  }
+  protected sections = computed(() => {
     const seen = new Set<string>();
-    return [...this.browser.bookmarks(), ...this.browser.config.tabs, ...this.browser.visited()]
-      .filter((t) => !seen.has(t.url) && !!seen.add(t.url))
-      .slice(0, 8);
+    const pick = (list: Visited[], max: number) =>
+      list
+        .filter((t) => !this.removed().has(t.url) && !seen.has(t.url) && !!seen.add(t.url))
+        .slice(0, max);
+    return [
+      { key: 'browser.bookmarks' as const, tiles: pick(this.browser.bookmarks(), 12) },
+      {
+        key: 'browser.shortcuts' as const,
+        tiles: pick(
+          this.browser.config.tabs.map((t) => ({ ...t, icon: siteIcon(t.url) })),
+          12,
+        ),
+      },
+      { key: 'browser.recent' as const, tiles: pick(this.browser.visited(), 8) },
+    ].filter((section) => section.tiles.length);
   });
+
+  protected label(tile: Visited) {
+    const host = tabTitle(tile.url);
+    const name = tile.name.replace(/\s+[-–|·•]\s+[^-–|·•]+$/, '').trim();
+    return name && name !== tile.url ? name : host;
+  }
 
   protected initial(tile: { name: string; url: string }) {
     return (tile.name || tabTitle(tile.url)).trim().charAt(0) || '?';
