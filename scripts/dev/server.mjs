@@ -9,8 +9,17 @@ import { API, check } from './auth.mjs';
 import { readConfig } from './config.mjs';
 import { createHandler } from './routes.mjs';
 import { createHub } from './ws-hub.mjs';
+import { createWebProxy } from './web-proxy.mjs';
 
-export function startServer(ctx) {
+export async function startServer(ctx) {
+  if (!ctx.remote && ctx.appPort) {
+    const proxy = createWebProxy({
+      deckOrigins: [`http://localhost:${ctx.appPort}`, `http://127.0.0.1:${ctx.appPort}`],
+      blockedPorts: [ctx.appPort, ctx.port].filter(Boolean),
+    });
+    await proxy.listen();
+    ctx.webProxy = { key: proxy.key, port: proxy.port };
+  }
   const hub = createHub();
   const server = createServer(createHandler(ctx, { hub }));
   // A WebSocket starts as an HTTP request: it gets the same checks as a write (host, origin, password, token).

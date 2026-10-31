@@ -40,25 +40,33 @@ const layerOpen = () => page.locator('#deck-browser').isVisible();
 const tabs = () => page.locator('#deck-browser [role=tab]').allInnerTexts();
 
 await press(page, 'ArrowRight');
-t.ok('deck browser: it starts closed, with the tab of the headmatter', !(await layerOpen()));
-await page.locator('a', { hasText: 'Demo site' }).click();
-await page.locator('#deck-browser .deck-browser-frame[src*="/demo"]').waitFor();
-const frame = page.frameLocator('#deck-browser .deck-browser-frame[src*="/demo"]');
+t.ok('deck browser: it starts closed', !(await layerOpen()));
+await press(page, 'b');
 t.ok(
-  'deck browser: a link to another site opens in a tab, and the page loads inside',
-  (await layerOpen()) &&
-    JSON.stringify(await tabs()) === '["Ready tab","Demo site"]' &&
-    (await frame.locator('#page').innerText()) === '/demo',
-  JSON.stringify(await tabs()),
+  'deck browser: it opens on the slide.ng browser page, with a tile for each tab of the headmatter',
+  (await page.locator('#deck-browser-start').isVisible()) &&
+    (await page.locator('.deck-browser-tile', { hasText: 'Ready tab' }).count()) === 1,
 );
-await page.locator('#deck-browser [role=tab]', { hasText: 'Ready tab' }).click();
+await page.locator('.deck-browser-tile', { hasText: 'Ready tab' }).click();
 await page
   .frameLocator('#deck-browser .deck-browser-frame[src*="/ready"]')
   .locator('#page')
   .waitFor();
 t.ok(
-  'deck browser: a tab of the headmatter loads when it is chosen, the other tab stays loaded',
-  (await page.locator('#deck-browser .deck-browser-frame').count()) === 2,
+  'deck browser: a tile opens its page in that tab',
+  JSON.stringify(await tabs()) === '["Ready tab"]',
+);
+await page.locator('#deck-browser-hide').click();
+await page.locator('a', { hasText: 'Demo site' }).click();
+await page.locator('#deck-browser .deck-browser-frame[src*="/demo"]').waitFor();
+const frame = page.frameLocator('#deck-browser .deck-browser-frame[src*="/demo"]');
+t.ok(
+  'deck browser: a link to another site opens in a new tab, and the other tab stays loaded',
+  (await layerOpen()) &&
+    JSON.stringify(await tabs()) === '["Ready tab","Demo site"]' &&
+    (await frame.locator('#page').innerText()) === '/demo' &&
+    (await page.locator('#deck-browser .deck-browser-frame').count()) === 2,
+  JSON.stringify(await tabs()),
 );
 await page.locator('#deck-browser-address').fill('127.0.0.1:47121/typed');
 await page.locator('#deck-browser-address').press('Enter');

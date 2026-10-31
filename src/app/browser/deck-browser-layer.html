@@ -1,0 +1,250 @@
+@if (browser.config.enabled) {
+  <section
+    id="deck-browser"
+    class="fixed inset-0 z-modal flex flex-col bg-main text-main"
+    [style.display]="browser.open() ? null : 'none'"
+    [attr.aria-hidden]="!browser.open()"
+    [attr.aria-label]="'browser.label' | t"
+    (keydown.escape)="hide($event)"
+  >
+    <div class="flex items-center gap-1 px-2 pt-2 border-b border-main" role="tablist">
+      @for (tab of browser.tabs(); track tab.id) {
+        <div
+          class="deck-browser-tab group flex items-center max-w-56 min-w-0 rounded-t-md border border-b-0 border-main"
+          [class.bg-active]="tab.id === browser.activeId()"
+          [class.op70]="tab.id !== browser.activeId()"
+        >
+          <button
+            type="button"
+            role="tab"
+            class="truncate px-3 py-1.5 text-sm"
+            [attr.aria-selected]="tab.id === browser.activeId()"
+            [title]="tab.url"
+            (click)="browser.select(tab.id)"
+          >
+            {{ tab.name || ('browser.newTab' | t) }}
+          </button>
+          <button
+            type="button"
+            class="deck-browser-close-tab px-1.5 op50 hover:op100"
+            [title]="'browser.closeTab' | t"
+            [attr.aria-label]="'browser.closeTab' | t"
+            (click)="browser.close(tab.id)"
+          >
+            <div class="i-carbon:close"></div>
+          </button>
+        </div>
+      }
+      <button
+        icon-btn
+        id="deck-browser-new"
+        class="text-lg"
+        [title]="'browser.newTab' | t"
+        (click)="newTab()"
+      >
+        <div class="i-carbon:add"></div>
+      </button>
+    </div>
+
+    <form class="flex items-center gap-1 px-2 py-1.5 text-lg" (submit)="go($event, address)">
+      <button
+        icon-btn
+        type="button"
+        id="deck-browser-back"
+        [title]="'browser.back' | t"
+        [disabled]="!browser.canBack()"
+        (click)="browser.back()"
+      >
+        <div class="i-carbon:arrow-left rtl-flip"></div>
+      </button>
+      <button
+        icon-btn
+        type="button"
+        id="deck-browser-forward"
+        [title]="'browser.forward' | t"
+        [disabled]="!browser.canForward()"
+        (click)="browser.forward()"
+      >
+        <div class="i-carbon:arrow-right rtl-flip"></div>
+      </button>
+      <button
+        icon-btn
+        type="button"
+        id="deck-browser-reload"
+        [title]="'browser.reload' | t"
+        [disabled]="!browser.active()?.url"
+        (click)="reload()"
+      >
+        <div class="i-carbon:renew"></div>
+      </button>
+      <input
+        #address
+        id="deck-browser-address"
+        class="flex-1 min-w-0 px-3 py-1 text-sm rounded-full border border-main bg-transparent"
+        spellcheck="false"
+        autocomplete="off"
+        enterkeyhint="go"
+        [attr.aria-label]="'browser.address' | t"
+        [placeholder]="'browser.searchHint' | t"
+        [value]="browser.active()?.url ?? ''"
+        (focus)="address.select()"
+      />
+      <button
+        icon-btn
+        type="button"
+        id="deck-browser-bookmark"
+        [title]="(browser.bookmarked() ? 'browser.bookmarkRemove' : 'browser.bookmarkAdd') | t"
+        [active]="browser.bookmarked()"
+        [disabled]="!browser.active()?.url"
+        (click)="browser.toggleBookmark()"
+      >
+        <div
+          [class]="browser.bookmarked() ? 'i-carbon:star-filled text-primary' : 'i-carbon:star'"
+        ></div>
+      </button>
+      @if (hint()) {
+        <span class="hidden md:block text-xs op60 px-1">{{ 'browser.maybeBlank' | t }}</span>
+      }
+      <button
+        icon-btn
+        type="button"
+        id="deck-browser-window"
+        [title]="'browser.openWindow' | t"
+        [disabled]="!browser.active()?.url"
+        (click)="openWindow()"
+      >
+        <div class="i-carbon:launch"></div>
+      </button>
+      <button
+        icon-btn
+        type="button"
+        id="deck-browser-hide"
+        [title]="'browser.hide' | t"
+        (click)="browser.hide()"
+      >
+        <div class="i-carbon:close"></div>
+      </button>
+    </form>
+
+    @if (browser.bookmarks().length) {
+      <nav
+        id="deck-browser-bookmarks"
+        class="flex items-center gap-1 px-3 pb-1.5 overflow-x-auto text-xs"
+        [attr.aria-label]="'browser.bookmarks' | t"
+      >
+        @for (mark of browser.bookmarks(); track mark.url) {
+          <span class="deck-browser-bookmark group flex items-center rounded-full hover:bg-active">
+            <button
+              type="button"
+              class="flex items-center gap-1.5 ps-2 pe-1 py-1 max-w-48"
+              [title]="mark.url"
+              (click)="openTile(mark.url, mark.name)"
+            >
+              <div class="i-carbon:star-filled text-primary shrink-0"></div>
+              <span class="truncate">{{ mark.name }}</span>
+            </button>
+            <button
+              type="button"
+              class="pe-2 op0 group-hover:op60 hover:op100 focus:op100"
+              [title]="'browser.bookmarkRemove' | t"
+              [attr.aria-label]="'browser.bookmarkRemove' | t"
+              (click)="browser.removeBookmark(mark.url)"
+            >
+              <div class="i-carbon:close"></div>
+            </button>
+          </span>
+        }
+      </nav>
+    }
+    <div #view class="relative flex-1 min-h-0 bg-white">
+      @for (tab of browser.tabs(); track tab.id + ':' + tab.rev) {
+        @if (tab.src && tab.framable !== false) {
+          <iframe
+            class="deck-browser-frame absolute inset-0 w-full h-full border-0"
+            [class.invisible]="tab.id !== browser.activeId()"
+            [src]="safe(tab)"
+            [title]="tab.name"
+            [attr.data-tab]="tab.id"
+            allow="
+              fullscreen;
+              clipboard-read;
+              clipboard-write;
+              autoplay;
+              encrypted-media;
+              picture-in-picture;
+            "
+          ></iframe>
+        }
+      }
+      @if (browser.active(); as tab) {
+        @if (tab.framable === false) {
+          <div
+            id="deck-browser-refused"
+            class="absolute inset-0 grid place-content-center gap-4 text-center bg-main text-main p-8"
+          >
+            <div class="i-carbon:locked text-4xl mx-auto op60"></div>
+            <p class="max-w-md">{{ 'browser.refused' | t: { site: tab.name } }}</p>
+            <button
+              type="button"
+              class="mx-auto px-4 py-2 rounded-md bg-primary text-white"
+              (click)="openWindow()"
+            >
+              {{ 'browser.openWindow' | t }}
+            </button>
+          </div>
+        } @else if (!tab.url) {
+          <ng-container *ngTemplateOutlet="start" />
+        }
+      } @else {
+        <ng-container *ngTemplateOutlet="start" />
+      }
+    </div>
+  </section>
+
+  <ng-template #start>
+    <div
+      id="deck-browser-start"
+      class="absolute inset-0 overflow-auto bg-main text-main flex flex-col items-center px-6 pt-[14vh] pb-8 gap-8"
+    >
+      <div class="flex items-center gap-3 text-3xl font-semibold">
+        <app-slide-ng-mark class="w-12 h-12" />
+        <span>{{ 'browser.start' | t }}</span>
+      </div>
+      <form class="w-full max-w-2xl" (submit)="go($event, search)">
+        <div
+          class="flex items-center gap-3 px-5 py-3 rounded-full border border-main bg-active shadow-sm focus-within:shadow-md"
+        >
+          <div class="i-carbon:search op60 text-lg"></div>
+          <input
+            #search
+            id="deck-browser-search"
+            class="flex-1 min-w-0 bg-transparent outline-none text-lg"
+            spellcheck="false"
+            autocomplete="off"
+            enterkeyhint="search"
+            [attr.aria-label]="'browser.searchHint' | t"
+            [placeholder]="'browser.searchHint' | t"
+          />
+        </div>
+      </form>
+      @if (tiles().length) {
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full max-w-2xl">
+          @for (tile of tiles(); track tile.url) {
+            <button
+              type="button"
+              class="deck-browser-tile flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-active text-sm"
+              [title]="tile.url"
+              (click)="openTile(tile.url, tile.name)"
+            >
+              <span
+                class="w-10 h-10 rounded-full grid place-content-center bg-primary text-white font-semibold uppercase"
+                >{{ initial(tile) }}</span
+              >
+              <span class="truncate max-w-full">{{ tile.name }}</span>
+            </button>
+          }
+        </div>
+      }
+    </div>
+  </ng-template>
+}

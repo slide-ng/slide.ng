@@ -9,6 +9,14 @@ export interface BrowserConfig {
   enabled: boolean;
   links: boolean;
   tabs: BrowserTab[];
+  search: string;
+}
+
+export const DEFAULT_SEARCH = 'https://www.bing.com/search?q=%s';
+
+export interface WebProxy {
+  key: string;
+  port: number;
 }
 
 const obj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
@@ -24,7 +32,7 @@ export function webAddress(value: unknown): string | null {
 }
 
 export function readBrowserConfig(value: unknown): BrowserConfig {
-  if (value === false) return { enabled: false, links: false, tabs: [] };
+  if (value === false) return { enabled: false, links: false, tabs: [], search: DEFAULT_SEARCH };
   const config = obj(value) ? value : {};
   const tabs = (Array.isArray(config['tabs']) ? config['tabs'] : []).flatMap((tab) => {
     const url = webAddress(obj(tab) ? tab['url'] : tab);
@@ -32,7 +40,13 @@ export function readBrowserConfig(value: unknown): BrowserConfig {
     const name = obj(tab) && typeof tab['name'] === 'string' ? tab['name'].trim() : '';
     return [{ name: name || tabTitle(url), url }];
   });
-  return { enabled: true, links: config['links'] !== false, tabs };
+  const search =
+    typeof config['search'] === 'string' &&
+    config['search'].includes('%s') &&
+    webAddress(config['search'].replace('%s', 'x'))
+      ? config['search']
+      : DEFAULT_SEARCH;
+  return { enabled: true, links: config['links'] !== false, tabs, search };
 }
 
 export const deckBrowserConfig = (): BrowserConfig => readBrowserConfig(HEADMATTER['browser']);
@@ -49,9 +63,14 @@ export function typedAddress(text: string): string | null {
   const trimmed = text.trim();
   if (!trimmed || /\s/.test(trimmed)) return null;
   if (/^https?:\/\//i.test(trimmed)) return webAddress(trimmed);
-  if (/^[a-z][a-z\d+.-]*:/i.test(trimmed) && !/^localhost:\d/i.test(trimmed)) return null;
+  if (/^[a-z][a-z\d+.-]*:(?!\d)/i.test(trimmed)) return null;
   const local = /^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?(\/|$)/i.test(trimmed);
-  return webAddress(`${local ? 'http' : 'https'}://${trimmed}`);
+  const url = webAddress(`${local ? 'http' : 'https'}://${trimmed}`);
+  if (!url) return null;
+  const typedHost = trimmed.split(/[/:?#]/)[0];
+  const named = /\.[a-z][a-z\d-]+$/i.test(typedHost);
+  const ip = /^\d{1,3}(\.\d{1,3}){3}$/.test(typedHost);
+  return local || named || ip ? url : null;
 }
 
 export function linkForBrowser(
@@ -62,4 +81,27 @@ export function linkForBrowser(
   const url = webAddress(link.href);
   if (!url || new URL(url).origin === pageOrigin) return null;
   return url;
+}
+
+export function addressOrSearch(text: string, search = DEFAULT_SEARCH): string | null {
+  const address = typedAddress(text);
+  if (address) return address;
+  const query = text.trim();
+  return query ? search.replace('%s', encodeURIComponent(query)) : null;
+}
+
+export function proxiedAddress(url: string, proxy: WebProxy): string {
+  const u = new URL(url);
+  const scheme = u.protocol.slice(0, -1);
+  const label = u.port ? `${scheme}-${u.port}` : scheme;
+  return `http://${u.hostname}.${label}.${proxy.key}.localhost:${proxy.port}${u.pathname}${u.search}${u.hash}`;
+}
+
+export function isProxyOrigin(origin: string, proxy: WebProxy): boolean {
+  try {
+    const u = new URL(origin);
+    return u.hostname.endsWith(`.${proxy.key}.localhost`) && Number(u.port) === proxy.port;
+  } catch {
+    return false;
+  }
 }

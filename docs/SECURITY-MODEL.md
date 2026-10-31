@@ -26,6 +26,14 @@ then requests that address itself (http and https only, five seconds at most, th
 null; the answer is kept for ten minutes. It is behind the same checks as every other request, so only the page (and, with
 `--remote`, a logged-in viewer) can ask, and it can learn nothing but whether an address allows framing.
 
+The deck browser's proxy runs in the companion server, on 127.0.0.1 and a port of its own, and only without `--remote`. It answers
+only host names of the form `<site>.<scheme>.<key>.localhost`, where the key is random for each session, so a page on the web cannot
+make it load anything. Each proxied site has its own origin, apart from the deck's origin and from the other sites: a page shown in
+it cannot read the deck's storage, and the dev server refuses its requests (wrong Host and Origin, no token). The proxy refuses to
+load the deck's own servers (the dev server port, the companion and itself), also through a name that points to this machine. It
+drops the headers that refuse framing and the site's Content-Security-Policy, so a page in it has less protection against
+clickjacking than in a tab; it is meant for showing pages during a talk.
+
 ## `--remote`
 
 `--remote` opens the dev server to your network so that others can follow the presenter. It always has a password (`--remote=secret`, `SLIDE_NG_PASSWORD`, a prompt on a terminal, or a random one that is printed). Wrong passwords are limited per client address, a login lasts 8 hours, and every other rule above still applies. The login cookie is signed with the password, so a login survives a restart of the dev server with the same password (and stops working when the password changes); it cannot be withdrawn before it runs out except by changing the password.

@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+  DEFAULT_SEARCH,
+  addressOrSearch,
+  isProxyOrigin,
   linkForBrowser,
+  proxiedAddress,
   readBrowserConfig,
   tabTitle,
   typedAddress,
@@ -9,10 +13,20 @@ import {
 
 describe('readBrowserConfig', () => {
   it('is on, with links and no tabs, when the headmatter says nothing', () => {
-    expect(readBrowserConfig(undefined)).toEqual({ enabled: true, links: true, tabs: [] });
+    expect(readBrowserConfig(undefined)).toEqual({
+      enabled: true,
+      links: true,
+      tabs: [],
+      search: DEFAULT_SEARCH,
+    });
   });
   it('is off with `browser: false`', () => {
-    expect(readBrowserConfig(false)).toEqual({ enabled: false, links: false, tabs: [] });
+    expect(readBrowserConfig(false)).toEqual({
+      enabled: false,
+      links: false,
+      tabs: [],
+      search: DEFAULT_SEARCH,
+    });
   });
   it('reads the tabs, names them by host when unnamed, and drops what is not a web address', () => {
     const config = readBrowserConfig({
@@ -74,5 +88,49 @@ describe('linkForBrowser', () => {
 describe('tabTitle', () => {
   it('is the host without www', () => {
     expect(tabTitle('https://www.example.com/a')).toBe('example.com');
+  });
+});
+
+describe('addressOrSearch', () => {
+  it('opens an address, and searches for anything else', () => {
+    expect(addressOrSearch('angular.dev')).toBe('https://angular.dev/');
+    expect(addressOrSearch('angular signals')).toBe(
+      'https://www.bing.com/search?q=angular%20signals',
+    );
+    expect(addressOrSearch('what is x', 'https://duckduckgo.com/?q=%s')).toBe(
+      'https://duckduckgo.com/?q=what%20is%20x',
+    );
+    expect(addressOrSearch('   ')).toBeNull();
+  });
+  it('searches for one word, and opens a name with a dot, localhost or an address', () => {
+    expect(addressOrSearch('erkam')).toBe('https://www.bing.com/search?q=erkam');
+    expect(addressOrSearch('angular')).toBe('https://www.bing.com/search?q=angular');
+    expect(addressOrSearch('erkam.dev')).toBe('https://erkam.dev/');
+    expect(addressOrSearch('erkam.dev:8080/x')).toBe('https://erkam.dev:8080/x');
+    expect(addressOrSearch('localhost:4200')).toBe('http://localhost:4200/');
+    expect(addressOrSearch('192.168.1.5:8080')).toBe('https://192.168.1.5:8080/');
+    expect(addressOrSearch('3.14')).toBe('https://www.bing.com/search?q=3.14');
+  });
+  it('takes the search address of the headmatter only with %s and a web address', () => {
+    expect(readBrowserConfig({ search: 'https://s.dev/?q=%s' }).search).toBe('https://s.dev/?q=%s');
+    expect(readBrowserConfig({ search: 'javascript:%s' }).search).toBe(DEFAULT_SEARCH);
+    expect(readBrowserConfig({ search: 'https://s.dev/' }).search).toBe(DEFAULT_SEARCH);
+  });
+});
+
+describe('proxiedAddress', () => {
+  const proxy = { key: 'k1', port: 5000 };
+  it('is the same address as the proxy makes', () => {
+    expect(proxiedAddress('https://github.com/a?b#c', proxy)).toBe(
+      'http://github.com.https.k1.localhost:5000/a?b#c',
+    );
+    expect(proxiedAddress('http://localhost:4200/', proxy)).toBe(
+      'http://localhost.http-4200.k1.localhost:5000/',
+    );
+  });
+  it('knows the origins of the proxy', () => {
+    expect(isProxyOrigin('http://github.com.https.k1.localhost:5000', proxy)).toBe(true);
+    expect(isProxyOrigin('http://github.com.https.k2.localhost:5000', proxy)).toBe(false);
+    expect(isProxyOrigin('http://evil.dev', proxy)).toBe(false);
   });
 });

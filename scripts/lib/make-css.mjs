@@ -8,7 +8,7 @@ import config from '../../uno.config.mjs';
 // Every .ts file under a folder (layouts and components use class names too).
 export function tsFiles(dir) {
   return readdirSync(dir, { withFileTypes: true, recursive: true })
-    .filter((f) => f.isFile() && f.name.endsWith('.ts'))
+    .filter((f) => f.isFile() && /\.(ts|html)$/.test(f.name))
     .map((f) => `${f.parentPath}/${f.name}`);
 }
 

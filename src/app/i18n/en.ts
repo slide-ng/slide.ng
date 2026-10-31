@@ -230,11 +230,17 @@ export const EN = {
   'browser.closeTab': 'Close tab',
   'browser.reload': 'Reload',
   'browser.address': 'Address',
-  'browser.addressHint': 'Type an address and press Enter',
   'browser.openWindow': 'Open in window',
   'browser.hide': 'Back to the slides',
   'browser.refused': '{site} does not allow being shown inside the deck.',
   'browser.maybeBlank': 'Blank? Some sites refuse to be shown here.',
+  'browser.back': 'Back',
+  'browser.forward': 'Forward',
+  'browser.searchHint': 'Search or type an address',
+  'browser.start': 'slide.ng browser',
+  'browser.bookmarkAdd': 'Bookmark this page',
+  'browser.bookmarkRemove': 'Remove bookmark',
+  'browser.bookmarks': 'Bookmarks',
   'presenter.browserOpen': 'Deck browser: {site}',
 } as const;
 

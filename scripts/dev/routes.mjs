@@ -112,6 +112,7 @@ export function createHandler(ctx, { hub } = {}) {
         file: ctx.buildError?.file ?? '',
         problem: ctx.buildError ? generatorProblem(ctx.appRoot ?? process.cwd()) : '',
       });
+    if (path === '/web-proxy' && method === 'GET') return json(res, 200, ctx.webProxy ?? null);
     if (path === '/frame-check' && method === 'GET') {
       const embedder = `http://${req.headers.host ?? 'localhost'}`;
       return json(res, 200, {

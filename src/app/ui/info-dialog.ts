@@ -3,10 +3,12 @@ import { HEADMATTER, INFO_HTML } from '../../slides/generated';
 import { focusWhileOpen } from '../lib/dialog-focus';
 import { splitAt } from '../i18n/ui-text';
 import { Ui } from '../lib/ui-state';
+import { SlideNgMark } from './slide-ng-mark';
 
 // The "info" dialog: the deck's `info:` text from the headmatter (markdown), or its title, plus a credit line.
 @Component({
   selector: 'app-info-dialog',
+  imports: [SlideNgMark],
   template: `
     @if (ui.info()) {
       <div id="info-dialog" class="fixed inset-0 grid z-modal">
@@ -27,25 +29,7 @@ import { Ui } from '../lib/ui-state';
           }
           <div id="info-credit" class="flex gap-1 items-center text-sm">
             <span class="opacity-75 mr-2">{{ credit[0] }}</span>
-            <svg class="w-5 h-5" viewBox="13 6 102 113" fill="none" aria-hidden="true">
-              <path
-                d="M64 11L110 27 103 88 64 114 25 88 18 27Z"
-                fill="#CC4209"
-                stroke="#CC4209"
-                stroke-width="10"
-                stroke-linejoin="round"
-              />
-              <rect x="44" y="26" width="60" height="34" rx="6" fill="#8F300A" />
-              <rect x="22" y="38" width="76" height="56" rx="10" fill="#CC4209" />
-              <rect x="26" y="42" width="68" height="46" rx="6" fill="#561C08" />
-              <rect x="26" y="42" width="68" height="38" rx="6" fill="#FAF6EE" />
-              <circle cx="40" cy="51" r="4" fill="#CC4209" />
-              <path d="M50.5 51h30.3" stroke="#CC4209" stroke-width="6" stroke-linecap="round" />
-              <circle cx="40" cy="61" r="3.5" fill="#8F300A" />
-              <path d="M50.25 61h21.7" stroke="#8F300A" stroke-width="5.5" stroke-linecap="round" />
-              <circle cx="40" cy="71" r="3.5" fill="#8F300A" />
-              <path d="M50.25 71h12.7" stroke="#8F300A" stroke-width="5.5" stroke-linecap="round" />
-            </svg>
+            <app-slide-ng-mark class="w-5 h-5" />
             <b>slide.ng</b>
             <span class="opacity-75">{{ credit[1] }}</span>
           </div>

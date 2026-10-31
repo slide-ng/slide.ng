@@ -66,7 +66,7 @@ In the headmatter (the frontmatter of the first slide) you can also set:
 | `monaco`, `twoslash`                                                             | `true` (default), `false`, `dev` or `build`: off, `{monaco}` blocks are plain code; Twoslash not run                                                                                                                                                                                                                                             |
 | `wakeLock`                                                                       | `true` (default), `false`, `dev`, `build`: the settings wake lock; a choice the browser stored wins                                                                                                                                                                                                                                              |
 | `navPosition`                                                                    | where the navigation bar sits on the slide page: `bottom-left` (default), `bottom-center`, `bottom-right`, `top-left`, `top-center` or `top-right`; left and right follow the writing direction, and its menus open below it at the top. A viewer can choose another place in the settings menu. The presenter page keeps its bar. Not in Slidev |
-| `browser`                                                                        | the deck browser (slide.ng's own, see "Deck browser" below): `false` turns it off; `{ links: false }` keeps links on slides opening as usual; `tabs: [{ name, url }]` are pages ready to open with one click                                                                                                                                     |
+| `browser`                                                                        | the deck browser (slide.ng's own, see "Deck browser" below): `false` turns it off; `{ links: false }` keeps links on slides opening as usual; `tabs: [{ name, url }]` are tiles on its start page; `search` is the search address with `%s` (Bing by default)                                                                                    |
 | `monacoRunUseStrict`                                                             | `false` runs `{monaco-run}` code without `"use strict"` (on by default, as in Slidev)                                                                                                                                                                                                                                                            |
 | `themeConfig`                                                                    | settings for the theme, e.g. `themeConfig: { primary: '#5d8392' }`; see "Themes and addons" below                                                                                                                                                                                                                                                |
 
@@ -1338,22 +1338,35 @@ presses a button, and a touch on the slide hides it again. On a screen taller th
 
 ## Deck browser
 
-slide.ng's own (issue #72): a browser inside the deck, so a talk can show a website without leaving the slides. `b`, or the globe
+slide.ng's own (issue #72): a browser inside the deck, so a talk can show websites without leaving the slides. `b`, or the globe
 button in the bar, opens it as a full-screen layer over the current slide; closing it (the × button, `b` or Escape) brings back the
 same slide and click. Its tabs stay loaded while it is closed.
 
 - A click on a link to another site, on a slide, opens it in a new tab of the deck browser (or the tab that already shows it).
   Cmd/Ctrl/Shift/Alt+click and a middle click open the browser's own tab as before. `browser: { links: false }` turns this off.
-- `browser: { tabs: [{ name: Docs, url: https://angular.dev }] }` adds tabs that are ready when the deck opens; a new empty tab lists
-  them too. Type any address in the address field and press Enter.
-- Many sites refuse to be shown inside another page (`X-Frame-Options`, or `frame-ancestors` in their Content-Security-Policy).
-  With `slide-ng dev` (or `npm start`) the companion server reads those headers first, and such a site gets a card with **Open in
-  window**, which opens it in a popup placed over the deck browser. A built deck has no server to ask: a blank page there is such a
-  site, and the same button is in the toolbar.
-- Once you click inside a page, it has the keys: use the × button to go back to the slides.
-- The presenter page shows which page the deck browser shows, with a button that closes it in every window; the other windows
-  follow the one that opened or closed it.
+- The address field takes an address (`angular.dev`, `localhost:4200/demo`) or words to search for. Searches use
+  `browser.search`, an address with `%s` for the words (Bing by default: most other search engines refuse to be framed without the
+  proxy below).
+- It opens on the slide.ng browser page, as does a new tab: a search box and a tile for each of the deck's `browser.tabs` and each
+  page opened since. `browser: { tabs: [{ name: Docs, url: https://angular.dev }] }` adds a tile; a click opens it in that tab.
+- Back and forward move through the pages a tab showed.
+- The star in the toolbar bookmarks the page. Bookmarks show in a bar under the toolbar and first on the start page, and are
+  kept in this browser for this deck (`slide-ng-browser-bookmarks`).
 - `browser: false` removes it (the key, the button and the link handling).
+
+With `slide-ng dev` (or `npm start`) on this machine, pages load through the companion server's proxy. Each site then gets its own
+address under `localhost`, so sites that refuse framing (GitHub, Google and most large sites) still show inside the deck, and the
+address field follows the clicks inside a page. The proxy drops the headers that refuse framing, keeps each site's cookies on its own
+proxy address, turns off service workers and sends links that open a new window to a new tab. Some sites still break through it,
+for example sign-ins that check where they are shown: **Open in window** opens the real page in a popup placed over the deck
+browser.
+
+Without the proxy (a built deck, or `--remote`), pages load directly. With the dev server running, a site that refuses framing gets
+a card with **Open in window**; in a built deck such a site stays blank and the same button is in the toolbar. Back, forward and the
+address field then only know the pages opened from the deck, not the clicks inside a page.
+
+The presenter page shows which page the deck browser shows, with a button that closes it in every window; the other windows follow
+the one that opened or closed it.
 
 Try it with the demo deck: `npm start -- examples/deck-browser/slides.md`.
 

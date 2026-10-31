@@ -296,18 +296,24 @@ default; `src/app/i18n/en.ts` holds it and is the source of truth for the keys. 
 
 ### The deck browser
 
-| key                     | English                                            |
-| ----------------------- | -------------------------------------------------- |
-| `nav.browserShow`       | Show deck browser                                  |
-| `nav.browserHide`       | Hide deck browser                                  |
-| `browser.label`         | Deck browser                                       |
-| `browser.newTab`        | New tab                                            |
-| `browser.closeTab`      | Close tab                                          |
-| `browser.reload`        | Reload                                             |
-| `browser.address`       | Address                                            |
-| `browser.addressHint`   | Type an address and press Enter                    |
-| `browser.openWindow`    | Open in window                                     |
-| `browser.hide`          | Back to the slides                                 |
-| `browser.refused`       | {site} does not allow being shown inside the deck. |
-| `browser.maybeBlank`    | Blank? Some sites refuse to be shown here.         |
-| `presenter.browserOpen` | Deck browser: {site}                               |
+| key                      | English                                            |
+| ------------------------ | -------------------------------------------------- |
+| `nav.browserShow`        | Show deck browser                                  |
+| `nav.browserHide`        | Hide deck browser                                  |
+| `browser.label`          | Deck browser                                       |
+| `browser.newTab`         | New tab                                            |
+| `browser.closeTab`       | Close tab                                          |
+| `browser.reload`         | Reload                                             |
+| `browser.address`        | Address                                            |
+| `browser.openWindow`     | Open in window                                     |
+| `browser.hide`           | Back to the slides                                 |
+| `browser.refused`        | {site} does not allow being shown inside the deck. |
+| `browser.maybeBlank`     | Blank? Some sites refuse to be shown here.         |
+| `presenter.browserOpen`  | Deck browser: {site}                               |
+| `browser.back`           | Back                                               |
+| `browser.forward`        | Forward                                            |
+| `browser.searchHint`     | Search or type an address                          |
+| `browser.start`          | slide.ng browser                                   |
+| `browser.bookmarkAdd`    | Bookmark this page                                 |
+| `browser.bookmarkRemove` | Remove bookmark                                    |
+| `browser.bookmarks`      | Bookmarks                                          |

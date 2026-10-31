@@ -337,6 +337,9 @@ describe('parseDeck: browser', () => {
     expect((await parse('---\nbrowser: yes please\n---\n\n# A\n')).problems.join()).toContain(
       '`browser: "yes please"` is not used',
     );
+    expect(
+      (await parse('---\nbrowser: { search: "https://s.dev/" }\n---\n\n# A\n')).problems.join(),
+    ).toContain('browser.search');
     expect((await parse('---\nbrowser: { links: maybe }\n---\n\n# A\n')).problems.join()).toContain(
       'browser.links',
     );
