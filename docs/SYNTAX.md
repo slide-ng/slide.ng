@@ -1355,6 +1355,8 @@ same slide and click. Its tabs stay loaded while it is closed.
   follow the one that opened or closed it.
 - `browser: false` removes it (the key, the button and the link handling).
 
+Try it with the demo deck: `npm start -- examples/deck-browser/slides.md`.
+
 ## Translating the interface
 
 The interface (the bar and its tooltips, the settings menu, the overview, the goto box, the presenter, the info dialog, the menus) is in
