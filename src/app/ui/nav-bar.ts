@@ -1,5 +1,7 @@
 import {
   Component,
+  Injector,
+  afterNextRender,
   ElementRef,
   afterRenderEffect,
   computed,
@@ -22,6 +24,7 @@ import { ViewPrefs } from '../lib/view-prefs';
 import { PresenterPrefs } from '../presenter/prefs';
 import { Ui } from '../lib/ui-state';
 import { fitMenu } from '../lib/fit-menu';
+import { navPositionAt } from '../lib/nav-position';
 import { T } from '../i18n/t';
 import { IconBtn } from './icon-btn';
 import { SideEditorState } from '../dev/side-editor-state';
@@ -38,6 +41,7 @@ import { presenterEnabled } from '../lib/switches';
   host: {
     '(document:click)': 'closeSettingsOutside($event)',
     '(window:resize)': 'fitSettings()',
+    '(window:keydown.escape)': 'dragCancel()',
   },
   template: `
     <nav class="flex flex-col" [attr.data-fullscreen]="fullscreen.isFullscreen()">
@@ -45,6 +49,22 @@ import { presenterEnabled } from '../lib/switches';
         class="flex flex-wrap-reverse text-xl gap-0.5 p-1 lg:p-2 text-main"
         [class]="persist() ? 'bg-transparent' : 'rounded-md bg-main shadow-xl border border-main'"
       >
+        @if (!persist() && !nav.isPresenter) {
+          <div
+            id="nav-grip"
+            class="nav-grip flex items-center px-0.5 opacity-50 hover:opacity-100 touch-none select-none"
+            [class]="ui.barDrag() ? 'cursor-grabbing' : 'cursor-grab'"
+            [title]="'nav.move' | t"
+            aria-hidden="true"
+            (pointerdown)="dragStart($event)"
+            (pointermove)="dragMove($event)"
+            (pointerup)="dragEnd($event)"
+            (pointercancel)="dragCancel()"
+            (lostpointercapture)="dragCancel()"
+          >
+            <div class="i-carbon:draggable"></div>
+          </div>
+        }
         @if (fullscreen.available) {
           <button
             icon-btn
@@ -343,6 +363,84 @@ export class NavBar {
     e.stopPropagation();
     this.ui.settings.set(false);
     this.el.querySelector<HTMLElement>('#nav-settings')?.focus();
+  }
+
+  private injector = inject(Injector);
+  private dragFrom: { x: number; y: number } | null = null;
+
+  protected dragStart(e: PointerEvent) {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    this.dragFrom = { x: e.clientX, y: e.clientY };
+    this.ui.settings.set(false);
+    this.ui.barDrag.set({ dx: 0, dy: 0, over: this.dropAt(e) });
+  }
+
+  protected dragMove(e: PointerEvent) {
+    if (!this.dragFrom) return;
+    const { x, y } = this.dragFrom;
+    this.ui.barDrag.set({ dx: e.clientX - x, dy: e.clientY - y, over: this.dropAt(e) });
+  }
+
+  protected dragEnd(e: PointerEvent) {
+    if (!this.dragFrom) return;
+    const place = this.dropAt(e);
+    this.settle(() => {
+      this.stopDrag();
+      if (place) this.view.navPosition.set(place);
+    });
+  }
+
+  protected dragCancel() {
+    if (this.dragFrom) this.settle(() => this.stopDrag());
+  }
+
+  private stopDrag() {
+    this.dragFrom = null;
+    this.ui.barDrag.set(null);
+  }
+
+  private settle(change: () => void) {
+    const box = this.el.closest<HTMLElement>('.nav-bar-box');
+    const from = box?.getBoundingClientRect();
+    change();
+    if (!box || !from || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    afterNextRender(
+      () => {
+        const to = box.getBoundingClientRect();
+        const dx = from.left + from.width / 2 - (to.left + to.width / 2);
+        const dy = from.top + from.height / 2 - (to.top + to.height / 2);
+        const distance = Math.hypot(dx, dy);
+        if (distance < 1) return;
+        const past = -Math.min(10, distance * 0.05) / distance;
+        box.animate(
+          [
+            {
+              transform: `translate(${dx}px, ${dy}px) scale(1.04)`,
+              opacity: 1,
+              easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+            },
+            {
+              transform: `translate(${dx * past}px, ${dy * past}px) scale(0.99)`,
+              opacity: 1,
+              offset: 0.6,
+              easing: 'ease-in-out',
+            },
+            { transform: 'none', opacity: 1 },
+          ],
+          { duration: 480 },
+        );
+      },
+      { injector: this.injector },
+    );
+  }
+
+  private dropAt(e: PointerEvent) {
+    const page = this.el.closest('main')?.getBoundingClientRect();
+    if (!page) return null;
+    const rtl = getComputedStyle(this.el).direction === 'rtl';
+    return navPositionAt(e.clientX - page.left, e.clientY - page.top, page.width, page.height, rtl);
   }
 
   // A click anywhere outside the bar closes the settings menu.

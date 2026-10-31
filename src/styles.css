@@ -122,6 +122,28 @@ html.dark .canvas {
   scale: 0.9;
 }
 
+.nav-bar-dragging nav > div {
+  box-shadow: 0 16px 40px rgb(0 0 0 / 0.35);
+}
+.nav-drop-target {
+  animation: nav-drop-in 220ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  transition:
+    opacity 160ms,
+    background-color 160ms,
+    border-color 160ms,
+    scale 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.nav-drop-target-over {
+  border-style: solid;
+  scale: 1.02;
+}
+@keyframes nav-drop-in {
+  from {
+    opacity: 0;
+    scale: 0.94;
+  }
+}
+
 /* People who ask their system for less motion get no slide transitions, fades or animations: changes happen at once. */
 @media (prefers-reduced-motion: reduce) {
   :root {

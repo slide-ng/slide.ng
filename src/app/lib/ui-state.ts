@@ -1,6 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { UiTextKey } from '../i18n/en';
 import { UI_TEXT, UiTextParams, uiText } from '../i18n/ui-text';
+import { NavPositionName } from './nav-position';
 
 /** Which pieces of interface are open. Plain signals; the components read and flip them. */
 @Injectable()
@@ -13,6 +14,7 @@ export class Ui {
   readonly syncMenu = signal(false);
   /** The language menu of the bar (a deck with `languages`). */
   readonly languageMenu = signal(false);
+  readonly barDrag = signal<{ dx: number; dy: number; over: NavPositionName | null } | null>(null);
   /** The right-click menu: where it opened, or null when closed. */
   readonly contextMenu = signal<{ x: number; y: number } | null>(null);
   /** Slide scale: 0 = fit the window, 1 = real size (1:1). */
