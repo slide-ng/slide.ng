@@ -2,7 +2,8 @@
 //   tests/e2e/i18n/slides.md       `lang: xx`, with locales/xx.json in the deck and in its theme: labels of the bar, the
 //                                  settings menu, goto, overview, info, presenter and print come from the files, the rest is English;
 //                                  `navPosition: top-right` puts its bar in the top right, with the menus below it; the
-//                                  settings menu moves it, keeps the choice after a reload and goes back to the deck's place
+//                                  settings menu moves it, keeps the choice after a reload and goes back to the deck's place;
+//                                  the grip drags it onto a place, and the right-click menu shows it or resets its place
 //   tests/e2e/i18n/rtl/slides.md   `lang: ar` with `uiLang: tr`: the built-in Turkish (isolated left to right), `dir="rtl"`, a
 //                                  mirrored bar, overview and grid of bar places, Arabic dates
 //   tests/e2e/i18n/languages       `languages: { en, tr }`: the language menu switches the slides, `<html lang>`, the date
@@ -202,6 +203,64 @@ const title = (page, selector) => page.locator(selector).first().getAttribute('t
     JSON.stringify(moved),
   );
   await page.locator('#nav-settings').click();
+
+  // The grip drags the bar onto one of the six places; Escape puts it back; the right-click menu shows or resets it.
+  const stored = () =>
+    page.evaluate(() =>
+      Object.keys(localStorage)
+        .filter((k) => k.includes('slide-ng-nav-position'))
+        .map((k) => localStorage.getItem(k))
+        .join(),
+    );
+  const grip = await page.locator('#nav-grip').boundingBox();
+  await page.mouse.move(grip.x + grip.width / 2, grip.y + grip.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(200, 600, { steps: 8 });
+  const over = await page
+    .locator('.nav-drop-target-over')
+    .evaluateAll((all) => all.map((o) => o.dataset.place));
+  t.ok(
+    'nav drag: the six places show and the one under the pointer lights up',
+    (await page.locator('.nav-drop-target').count()) === 6 &&
+      JSON.stringify(over) === '["bottom-left"]',
+    JSON.stringify(over),
+  );
+  await page.mouse.up();
+  await barAt('bottom', 'left');
+  t.ok(
+    'nav drag: a drop moves the bar there, keeps the choice and hides the places',
+    (await page.locator('#nav-drop-targets').count()) === 0 && (await stored()) === '"bottom-left"',
+    await stored(),
+  );
+  const grip2 = await page.locator('#nav-grip').boundingBox();
+  await page.mouse.move(grip2.x + grip2.width / 2, grip2.y + grip2.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(1100, 100, { steps: 8 });
+  await press(page, 'Escape');
+  await page.mouse.up();
+  await barAt('bottom', 'left');
+  t.ok(
+    'nav drag: Escape leaves the bar where it was, and the slide stays',
+    (await page.locator('#nav-drop-targets').count()) === 0 &&
+      new URL(page.url()).pathname === '/1',
+    page.url(),
+  );
+  await page.mouse.move(640, 300);
+  await page.mouse.click(640, 300, { button: 'right' });
+  await page.getByRole('menuitem', { name: 'Show Navigation Bar' }).click();
+  t.ok(
+    'right-click menu: Show Navigation Bar shows the bar',
+    await ctx.until(page, () => document.querySelector('.nav-bar-box').style.opacity === '1'),
+  );
+  await page.mouse.click(640, 300, { button: 'right' });
+  await page.getByRole('menuitem', { name: 'Reset Navigation Bar Position' }).click();
+  await barAt('top', 'right');
+  await page.mouse.click(640, 300, { button: 'right' });
+  t.ok(
+    "right-click menu: Reset puts the bar back in the deck's own place and is gone after",
+    (await page.getByRole('menuitem', { name: 'Reset Navigation Bar Position' }).count()) === 0,
+  );
+  await press(page, 'Escape');
 
   await press(page, 'g', 300);
   t.ok(

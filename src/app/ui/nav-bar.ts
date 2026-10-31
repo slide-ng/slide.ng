@@ -1,7 +1,5 @@
 import {
   Component,
-  Injector,
-  afterNextRender,
   ElementRef,
   afterRenderEffect,
   computed,
@@ -365,81 +363,41 @@ export class NavBar {
     this.el.querySelector<HTMLElement>('#nav-settings')?.focus();
   }
 
-  private injector = inject(Injector);
-  private dragFrom: { x: number; y: number } | null = null;
+  private drag: { x: number; y: number; page: DOMRect; rtl: boolean } | null = null;
 
   protected dragStart(e: PointerEvent) {
-    if (e.button !== 0) return;
+    if (this.drag || !e.isPrimary || e.button !== 0) return;
+    const page = this.el.closest('main')?.getBoundingClientRect();
+    if (!page) return;
     e.preventDefault();
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    this.dragFrom = { x: e.clientX, y: e.clientY };
-    this.ui.settings.set(false);
+    const rtl = getComputedStyle(this.el).direction === 'rtl';
+    this.drag = { x: e.clientX, y: e.clientY, page, rtl };
+    this.ui.closeAll();
     this.ui.barDrag.set({ dx: 0, dy: 0, over: this.dropAt(e) });
   }
 
   protected dragMove(e: PointerEvent) {
-    if (!this.dragFrom) return;
-    const { x, y } = this.dragFrom;
+    if (!this.drag || !e.isPrimary) return;
+    const { x, y } = this.drag;
     this.ui.barDrag.set({ dx: e.clientX - x, dy: e.clientY - y, over: this.dropAt(e) });
   }
 
   protected dragEnd(e: PointerEvent) {
-    if (!this.dragFrom) return;
+    if (!this.drag || !e.isPrimary) return;
     const place = this.dropAt(e);
-    this.settle(() => {
-      this.stopDrag();
-      if (place) this.view.navPosition.set(place);
-    });
+    this.dragCancel();
+    if (place) this.view.navPosition.set(place);
   }
 
   protected dragCancel() {
-    if (this.dragFrom) this.settle(() => this.stopDrag());
-  }
-
-  private stopDrag() {
-    this.dragFrom = null;
+    if (!this.drag) return;
+    this.drag = null;
     this.ui.barDrag.set(null);
   }
 
-  private settle(change: () => void) {
-    const box = this.el.closest<HTMLElement>('.nav-bar-box');
-    const from = box?.getBoundingClientRect();
-    change();
-    if (!box || !from || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    afterNextRender(
-      () => {
-        const to = box.getBoundingClientRect();
-        const dx = from.left + from.width / 2 - (to.left + to.width / 2);
-        const dy = from.top + from.height / 2 - (to.top + to.height / 2);
-        const distance = Math.hypot(dx, dy);
-        if (distance < 1) return;
-        const past = -Math.min(10, distance * 0.05) / distance;
-        box.animate(
-          [
-            {
-              transform: `translate(${dx}px, ${dy}px) scale(1.04)`,
-              opacity: 1,
-              easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-            },
-            {
-              transform: `translate(${dx * past}px, ${dy * past}px) scale(0.99)`,
-              opacity: 1,
-              offset: 0.6,
-              easing: 'ease-in-out',
-            },
-            { transform: 'none', opacity: 1 },
-          ],
-          { duration: 480 },
-        );
-      },
-      { injector: this.injector },
-    );
-  }
-
   private dropAt(e: PointerEvent) {
-    const page = this.el.closest('main')?.getBoundingClientRect();
-    if (!page) return null;
-    const rtl = getComputedStyle(this.el).direction === 'rtl';
+    const { page, rtl } = this.drag!;
     return navPositionAt(e.clientX - page.left, e.clientY - page.top, page.width, page.height, rtl);
   }
 

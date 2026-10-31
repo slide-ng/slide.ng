@@ -170,12 +170,16 @@ export class ContextMenu {
       ...(this.nav.isPresenter
         ? []
         : [
-            {
-              icon: 'i-carbon:view',
-              label: this.ui.text('menu.barShow'),
-              run: () => this.ui.peekBar(),
-              disabled: false,
-            },
+            ...(this.ui.barPinned()
+              ? []
+              : [
+                  {
+                    icon: 'i-carbon:view',
+                    label: this.ui.text('menu.barShow'),
+                    run: () => this.ui.peekBar(),
+                    disabled: false,
+                  },
+                ]),
             ...(this.view.navPosition() === null
               ? []
               : [

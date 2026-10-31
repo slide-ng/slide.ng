@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { DestroyRef, Injectable, inject, signal } from '@angular/core';
 import { UiTextKey } from '../i18n/en';
 import { UI_TEXT, UiTextParams, uiText } from '../i18n/ui-text';
 import { NavPositionName } from './nav-position';
@@ -15,6 +15,7 @@ export class Ui {
   /** The language menu of the bar (a deck with `languages`). */
   readonly languageMenu = signal(false);
   readonly barPeek = signal(false);
+  readonly barPinned = signal(false);
   private barPeekTimer?: ReturnType<typeof setTimeout>;
   readonly barDrag = signal<{ dx: number; dy: number; over: NavPositionName | null } | null>(null);
   /** The right-click menu: where it opened, or null when closed. */
@@ -28,6 +29,10 @@ export class Ui {
   readonly overviewPage = signal(1);
   readonly overviewColumns = signal(1);
   private dictionary = inject(UI_TEXT);
+
+  constructor() {
+    inject(DestroyRef).onDestroy(() => clearTimeout(this.barPeekTimer));
+  }
 
   /** A text of the interface in the deck's language, for TypeScript (templates use the `t` pipe). */
   text(key: UiTextKey, params?: UiTextParams): string {
