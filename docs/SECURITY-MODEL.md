@@ -21,6 +21,11 @@ Without `--remote` the companion server listens on `127.0.0.1` and the Angular d
 
 What the server can do for the page that passes these checks: move `v-drag` elements and replace a slide's markdown in `slides.md` (or a file it imports with `src:`), save drawings, and save text into the files that a `<<< ./file {monaco-write}` line lists. It never accepts a file name from a request. Writes go to existing files only, never through a symbolic link, and `{monaco-write}` is limited to text-like files in the deck's folder (never `setup/`, `layouts/`, `components/` or `index.html` at the top of the deck's folder or of a theme or addon folder in it, `.git/`, `node_modules/`, package, lock, config or hidden files).
 
+The deck browser asks the companion server whether a site may be shown in a frame (`/__slide-ng/frame-check?url=`). The server
+then requests that address itself (http and https only, five seconds at most, the body is not read) and answers only true, false or
+null; the answer is kept for ten minutes. It is behind the same checks as every other request, so only the page (and, with
+`--remote`, a logged-in viewer) can ask, and it can learn nothing but whether an address allows framing.
+
 ## `--remote`
 
 `--remote` opens the dev server to your network so that others can follow the presenter. It always has a password (`--remote=secret`, `SLIDE_NG_PASSWORD`, a prompt on a terminal, or a random one that is printed). Wrong passwords are limited per client address, a login lasts 8 hours, and every other rule above still applies. The login cookie is signed with the password, so a login survives a restart of the dev server with the same password (and stops working when the password changes); it cannot be withdrawn before it runs out except by changing the password.

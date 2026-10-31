@@ -293,3 +293,21 @@ default; `src/app/i18n/en.ts` holds it and is the source of truth for the keys. 
 | `notesEdit.offline`           | The notes can only be edited while the dev server runs.                                  |
 
 `entry.overview` and `entry.notesEdit` also start the heading and tab title of `/overview` and `/notes-edit` (`Overview - <title>`).
+
+### The deck browser
+
+| key                     | English                                            |
+| ----------------------- | -------------------------------------------------- |
+| `nav.browserShow`       | Show deck browser                                  |
+| `nav.browserHide`       | Hide deck browser                                  |
+| `browser.label`         | Deck browser                                       |
+| `browser.newTab`        | New tab                                            |
+| `browser.closeTab`      | Close tab                                          |
+| `browser.reload`        | Reload                                             |
+| `browser.address`       | Address                                            |
+| `browser.addressHint`   | Type an address and press Enter                    |
+| `browser.openWindow`    | Open in window                                     |
+| `browser.hide`          | Back to the slides                                 |
+| `browser.refused`       | {site} does not allow being shown inside the deck. |
+| `browser.maybeBlank`    | Blank? Some sites refuse to be shown here.         |
+| `presenter.browserOpen` | Deck browser: {site}                               |

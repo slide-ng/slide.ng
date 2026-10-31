@@ -193,5 +193,18 @@
   "notesEdit.conflict": "Kaydedilmedi: bir not dosyada değişti. Sayfayı yeniden yükleyin.",
   "notesEdit.outside": "Kaydedilmedi: projenin dışından alınan bir slaytın notları burada düzenlenemez.",
   "notesEdit.error": "Kaydedilmedi",
-  "notesEdit.offline": "Notlar yalnızca geliştirme sunucusu çalışırken düzenlenebilir."
+  "notesEdit.offline": "Notlar yalnızca geliştirme sunucusu çalışırken düzenlenebilir.",
+  "nav.browserShow": "Sunum tarayıcısını göster",
+  "nav.browserHide": "Sunum tarayıcısını gizle",
+  "browser.label": "Sunum tarayıcısı",
+  "browser.newTab": "Yeni sekme",
+  "browser.closeTab": "Sekmeyi kapat",
+  "browser.reload": "Yeniden yükle",
+  "browser.address": "Adres",
+  "browser.addressHint": "Bir adres yazıp Enter tuşuna basın",
+  "browser.openWindow": "Pencerede aç",
+  "browser.hide": "Slaytlara dön",
+  "browser.refused": "{site} sunumun içinde gösterilmeye izin vermiyor.",
+  "browser.maybeBlank": "Boş mu? Bazı siteler burada gösterilmeyi reddeder.",
+  "presenter.browserOpen": "Sunum tarayıcısı: {site}"
 }

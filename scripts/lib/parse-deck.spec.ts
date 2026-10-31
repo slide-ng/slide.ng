@@ -322,6 +322,32 @@ describe('parseDeck: navPosition', () => {
   });
 });
 
+describe('parseDeck: browser', () => {
+  it('takes false and { links, tabs } with web addresses', async () => {
+    for (const v of [
+      'false',
+      '{ links: false }',
+      '{ tabs: [{ name: Docs, url: "https://angular.dev" }, "https://a.dev"] }',
+    ]) {
+      const { problems } = await parse(`---\nbrowser: ${v}\n---\n\n# A\n`);
+      expect(problems).toEqual([]);
+    }
+  });
+  it('warns about another value, a bad links and a tab that is not a web address', async () => {
+    expect((await parse('---\nbrowser: yes please\n---\n\n# A\n')).problems.join()).toContain(
+      '`browser: "yes please"` is not used',
+    );
+    expect((await parse('---\nbrowser: { links: maybe }\n---\n\n# A\n')).problems.join()).toContain(
+      'browser.links',
+    );
+    expect(
+      (
+        await parse('---\nbrowser: { tabs: [{ url: "javascript:x" }] }\n---\n\n# A\n')
+      ).problems.join(),
+    ).toContain('is left out');
+  });
+});
+
 describe('a translation (options.base)', () => {
   it("puts the file's own headmatter over the base and keeps it as written", async () => {
     const d = await parseDeck(

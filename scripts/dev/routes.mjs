@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { API, COOKIE, check, clientAddress, readBody, safeEqual } from './auth.mjs';
 import { writeDrawing, MAX_DRAWING } from './drawings-store.mjs';
+import { checkFraming } from './frame-check.mjs';
 import { HttpError } from './http-error.mjs';
 import { MCP_PATH, handleMcp } from './mcp-http.mjs';
 import { MAX_FILE, writeMonaco } from './monaco-write.mjs';
@@ -111,6 +112,12 @@ export function createHandler(ctx, { hub } = {}) {
         file: ctx.buildError?.file ?? '',
         problem: ctx.buildError ? generatorProblem(ctx.appRoot ?? process.cwd()) : '',
       });
+    if (path === '/frame-check' && method === 'GET') {
+      const embedder = `http://${req.headers.host ?? 'localhost'}`;
+      return json(res, 200, {
+        framable: await checkFraming(url.searchParams.get('url') ?? '', embedder),
+      });
+    }
     if (path === '/notes' && method === 'GET')
       return json(res, 200, { notes: await readNotes(ctx, lang) });
     if ((m = /^\/slides\/(\d+)\/note$/.exec(path)) && method === 'PUT') {

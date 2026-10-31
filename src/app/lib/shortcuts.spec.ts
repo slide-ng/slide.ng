@@ -39,6 +39,7 @@ function actions(
   drawing = false,
   drag = false,
   presenter = false,
+  browserOpen = false,
 ): ShortcutActions {
   const names = [
     'next',
@@ -52,6 +53,8 @@ function actions(
     'closeAll',
     'overviewGo',
     'toggleClickPreview',
+    'toggleBrowser',
+    'hideBrowser',
   ];
   const base: any = Object.fromEntries(names.map((n) => [n, () => log.push(n)]));
   return {
@@ -60,6 +63,8 @@ function actions(
     drawingEnabled: () => drawing,
     dragActive: () => drag,
     isPresenter: () => presenter,
+    browserEnabled: () => true,
+    browserOpen: () => browserOpen,
     overviewMove: (by: string) => log.push(`move ${by}`),
   };
 }
@@ -156,5 +161,22 @@ describe('findShortcut', () => {
       list.filter((s) => s.name !== 'next_space');
     const list = setup(actions([]), defaultShortcuts(actions([])));
     expect(findShortcut(key(' '), list)).toBeUndefined();
+  });
+});
+
+describe('deck browser keys', () => {
+  it('b opens or closes it on the slide page only, Escape closes it while open', () => {
+    const run = (k: string, presenter = false, open = false) => {
+      const log: string[] = [];
+      findShortcut(
+        key(k),
+        defaultShortcuts(actions(log, false, false, false, presenter, open)),
+      )?.run();
+      return log.join();
+    };
+    expect(run('b')).toBe('toggleBrowser');
+    expect(run('b', true)).toBe('');
+    expect(run('Escape', false, true)).toBe('hideBrowser');
+    expect(run('Escape')).toBe('closeAll');
   });
 });

@@ -540,6 +540,12 @@ Source: an independent review of the repository (nine findings). Each fix has a 
    (no window follows it). Every window that follows the move reports once its slide is there, also when it took the step as asked
    (on `position`, as nothing needs to follow it), so goto_slide waits for the first report rather than a fixed time: a fixed half
    second gave the asked step when the slide loaded slowly. A window that does not follow (its sync is off) is waited for 5 s.
+4. **The deck browser uses plain iframes, with a header check and a popup, not a proxy or a webview** (issue #72). No web page can
+   show a site that refuses framing: a proxy that strips `X-Frame-Options` and `frame-ancestors` breaks logins, cookies and service
+   workers and weakens the site's clickjacking protection; a real webview needs a desktop wrapper (Electron, Tauri) or Chrome's
+   `<controlledframe>`, which only runs in Isolated Web Apps on ChromeOS; and capturing a tab (Captured Surface Control) can only scroll
+   and zoom it, not click. So the companion server reads the framing headers and the deck offers **Open in window** for a site that
+   refuses. A desktop wrapper can come later without changing the deck's side.
 
 ## Made while measuring the first load
 

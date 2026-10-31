@@ -222,6 +222,20 @@ export const EN = {
     'Not saved: the notes of a slide imported from outside the project cannot be edited here.',
   'notesEdit.error': 'Not saved',
   'notesEdit.offline': 'The notes can only be edited while the dev server runs.',
+
+  'nav.browserShow': 'Show deck browser',
+  'nav.browserHide': 'Hide deck browser',
+  'browser.label': 'Deck browser',
+  'browser.newTab': 'New tab',
+  'browser.closeTab': 'Close tab',
+  'browser.reload': 'Reload',
+  'browser.address': 'Address',
+  'browser.addressHint': 'Type an address and press Enter',
+  'browser.openWindow': 'Open in window',
+  'browser.hide': 'Back to the slides',
+  'browser.refused': '{site} does not allow being shown inside the deck.',
+  'browser.maybeBlank': 'Blank? Some sites refuse to be shown here.',
+  'presenter.browserOpen': 'Deck browser: {site}',
 } as const;
 
 /** A key of the interface text. */

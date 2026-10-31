@@ -61,7 +61,7 @@
     "start": "node scripts/dev.mjs",
     "build": "npm run generate && ng build",
     "test": "npm run generate && ng test --no-watch",
-    "test:e2e": "node tests/e2e/run.mjs && node tests/e2e/showcase.mjs && node tests/e2e/phase2.mjs && node tests/e2e/phase3.mjs && node tests/e2e/phase4.mjs && node tests/e2e/phase5.mjs && node tests/e2e/i18n.mjs",
+    "test:e2e": "node tests/e2e/run.mjs && node tests/e2e/showcase.mjs && node tests/e2e/phase2.mjs && node tests/e2e/phase3.mjs && node tests/e2e/phase4.mjs && node tests/e2e/phase5.mjs && node tests/e2e/i18n.mjs && node tests/e2e/deck-browser.mjs",
     "test:dev": "node --expose-gc tests/e2e/generator-memory.mjs && node tests/e2e/generator-watch.mjs && node tests/e2e/dev-hmr.mjs && node tests/e2e/dev-server.mjs",
     "test:skills": "node tests/skills/verify-samples.mjs",
     "check:skills": "node scripts/check-skills-drift.mjs",

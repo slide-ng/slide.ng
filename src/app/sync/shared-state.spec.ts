@@ -123,3 +123,14 @@ describe('cleanDrawings', () => {
     expect(cleanDrawings({ 0: 'a', '-1': 'b', x: 'c', 3: 5, 4: 'z'.repeat(600_000) })).toEqual({});
   });
 });
+
+describe('cleanShared: the deck browser', () => {
+  it('keeps a web address or null, and drops anything else', () => {
+    expect(cleanShared({ browser: 'https://angular.dev/' })).toEqual({
+      browser: 'https://angular.dev/',
+    });
+    expect(cleanShared({ browser: null })).toEqual({ browser: null });
+    expect(cleanShared({ browser: 'javascript:alert(1)' })).toEqual({});
+    expect(cleanShared({ browser: 3 })).toEqual({});
+  });
+});
