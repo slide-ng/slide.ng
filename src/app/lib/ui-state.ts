@@ -1,6 +1,7 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { DestroyRef, Injectable, inject, signal } from '@angular/core';
 import { UiTextKey } from '../i18n/en';
 import { UI_TEXT, UiTextParams, uiText } from '../i18n/ui-text';
+import { NavPositionName } from './nav-position';
 
 /** Which pieces of interface are open. Plain signals; the components read and flip them. */
 @Injectable()
@@ -13,6 +14,10 @@ export class Ui {
   readonly syncMenu = signal(false);
   /** The language menu of the bar (a deck with `languages`). */
   readonly languageMenu = signal(false);
+  readonly barPeek = signal(false);
+  readonly barPinned = signal(false);
+  private barPeekTimer?: ReturnType<typeof setTimeout>;
+  readonly barDrag = signal<{ dx: number; dy: number; over: NavPositionName | null } | null>(null);
   /** The right-click menu: where it opened, or null when closed. */
   readonly contextMenu = signal<{ x: number; y: number } | null>(null);
   /** Slide scale: 0 = fit the window, 1 = real size (1:1). */
@@ -25,9 +30,19 @@ export class Ui {
   readonly overviewColumns = signal(1);
   private dictionary = inject(UI_TEXT);
 
+  constructor() {
+    inject(DestroyRef).onDestroy(() => clearTimeout(this.barPeekTimer));
+  }
+
   /** A text of the interface in the deck's language, for TypeScript (templates use the `t` pipe). */
   text(key: UiTextKey, params?: UiTextParams): string {
     return uiText(this.dictionary, key, params);
+  }
+
+  peekBar(ms = 3000) {
+    clearTimeout(this.barPeekTimer);
+    this.barPeek.set(true);
+    this.barPeekTimer = setTimeout(() => this.barPeek.set(false), ms);
   }
 
   toggleOverview() {

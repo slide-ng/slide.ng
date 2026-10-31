@@ -1,4 +1,13 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  afterRenderEffect,
+  computed,
+  effect,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { SLIDES } from '../slides/generated';
 import { DragControls } from './drag/drag-controls';
 import { ProblemBanner } from './dev/problem-banner';
@@ -13,7 +22,7 @@ import { Nav } from './lib/nav';
 import { swipeAction } from './lib/swipe';
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from './lib/canvas';
 import { contextMenuEnabled } from './lib/switches';
-import { navPosition } from './lib/nav-position';
+import { NavPosition, NavPositionName, navPosition } from './lib/nav-position';
 import { SlideShow } from './lib/slide-show';
 import { ViewPrefs } from './lib/view-prefs';
 import { keyHandler } from './lib/key-handler';
@@ -69,7 +78,8 @@ import { Overview } from './ui/overview';
         ><app-drawing-layer /><app-drag-controls /><app-presenter-cursor
       /></app-slide-show>
       <div
-        class="nav-bar-box absolute p-2 transition duration-300 opacity-0 hover:opacity-100 focus-within:opacity-100"
+        #barBox
+        class="nav-bar-box absolute p-2 transition-opacity duration-300 opacity-0 hover:opacity-100 focus-within:opacity-100"
         [class.top-0]="bar().edge === 'top'"
         [class.bottom-0]="bar().edge === 'bottom'"
         [class.start-0]="bar().side === 'start'"
@@ -77,11 +87,34 @@ import { Overview } from './ui/overview';
         [class.inset-x-0]="bar().side === 'center'"
         [class.mx-auto]="bar().side === 'center'"
         [class.w-fit]="bar().side === 'center'"
-        [style.opacity]="portrait() || barShown() ? 1 : null"
+        [style.opacity]="portrait() || barShown() || ui.barPeek() || ui.barDrag() ? 1 : null"
+        [style.transition]="ui.barDrag() ? 'none' : null"
+        [style.transform]="barOffset()"
+        [class.z-nav]="!!ui.barDrag()"
+        [class.nav-bar-dragging]="!!ui.barDrag()"
         (touchstart)="revealBar($event)"
       >
         <app-nav-bar [menusBelow]="bar().edge === 'top'" />
       </div>
+      @if (ui.barDrag(); as drag) {
+        <div
+          id="nav-drop-targets"
+          class="absolute inset-0 grid grid-cols-3 grid-rows-2 gap-3 p-3 pointer-events-none z-menu"
+        >
+          @for (place of dropTargets; track place; let i = $index) {
+            <div
+              [style.animation-delay.ms]="i * 25"
+              class="nav-drop-target rounded-lg border-2 border-dashed border-current op30"
+              [class.nav-drop-target-over]="drag.over === place"
+              [class.op80]="drag.over === place"
+              [style.background]="
+                drag.over === place ? 'color-mix(in srgb, currentColor 12%, transparent)' : null
+              "
+              [attr.data-place]="place"
+            ></div>
+          }
+        </div>
+      }
       <app-offline-badge />
     </main>
     <app-drawing-controls />
@@ -101,7 +134,21 @@ import { Overview } from './ui/overview';
 })
 export class Deck {
   protected nav = inject(Nav);
-  private ui = inject(Ui);
+  protected ui = inject(Ui);
+  protected barOffset = computed(() => {
+    const drag = this.ui.barDrag();
+    return drag ? `translate(${drag.dx}px, ${drag.dy}px) scale(1.04)` : null;
+  });
+  protected dropTargets: NavPositionName[] = [
+    'top-left',
+    'top-center',
+    'top-right',
+    'bottom-left',
+    'bottom-center',
+    'bottom-right',
+  ];
+  private barBox = viewChild.required<ElementRef<HTMLElement>>('barBox');
+  private barWas: { place: NavPosition; dragged: boolean; rect: DOMRect } | null = null;
   // `[results](#results)` to a heading of the same slide: the page's <base href> would turn it into another address and
   // leave the deck, so the slide scrolls to the element instead. `#/3` (hash routing) is a slide address and stays as it is.
   protected anchor(e: MouseEvent) {
@@ -136,6 +183,19 @@ export class Deck {
   protected bar = computed(() => navPosition(this.view.navPosition()));
 
   constructor() {
+    effect(() => this.ui.barPinned.set(this.portrait()));
+    afterRenderEffect(() => {
+      const place = this.bar();
+      const dragged = !!this.barOffset();
+      const box = this.barBox().nativeElement;
+      const rect = box.getBoundingClientRect();
+      const was = this.barWas;
+      this.barWas = { place, dragged, rect };
+      const moved = was && (was.place.edge !== place.edge || was.place.side !== place.side);
+      if (!was || dragged || !(moved || was.dragged)) return;
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      glide(box, was.rect, rect, was.dragged);
+    });
     hideIdleCursor(() => this.ui.hideIdleCursor());
     startNavSync(this.nav);
   }
@@ -149,7 +209,7 @@ export class Deck {
     const target = e.target as Element | null;
     if (!target?.closest?.('.nav-bar-box')) this.barShown.set(false);
     const onDrag = !!target?.closest?.(
-      '[slide-ng-drag], slide-ng-drag, [data-drag-ui], .drag-grab',
+      '[slide-ng-drag], slide-ng-drag, [data-drag-ui], .drag-grab, .nav-grip',
     );
     this.swipeFrom =
       e.touches.length === 1 && !this.drawings.enabled() && !onDrag
@@ -190,4 +250,29 @@ export class Deck {
     e.preventDefault();
     this.ui.contextMenu.set({ x: e.pageX, y: e.pageY });
   }
+}
+
+function glide(box: HTMLElement, from: DOMRect, to: DOMRect, lifted: boolean) {
+  const dx = from.left + from.width / 2 - (to.left + to.width / 2);
+  const dy = from.top + from.height / 2 - (to.top + to.height / 2);
+  const distance = Math.hypot(dx, dy);
+  if (distance < 1) return;
+  const past = -Math.min(10, distance * 0.05) / distance;
+  box.animate(
+    [
+      {
+        transform: `translate(${dx}px, ${dy}px) scale(${lifted ? 1.04 : 1})`,
+        opacity: 1,
+        easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+      },
+      {
+        transform: `translate(${dx * past}px, ${dy * past}px) scale(0.99)`,
+        opacity: 1,
+        offset: 0.6,
+        easing: 'ease-in-out',
+      },
+      { transform: 'none', opacity: 1 },
+    ],
+    { duration: 480 },
+  );
 }

@@ -43,6 +43,7 @@ export function keyHandler(nav: Nav, ui: Ui): (e: KeyboardEvent) => void {
     if (document.querySelector('dialog:modal')) return;
     // The same for the info dialog and the context menu: only Escape (which closes them) reaches the shortcuts.
     if ((ui.info() || ui.contextMenu()) && e.key !== 'Escape') return;
+    if (ui.barDrag()) return;
     // Typing in the side editor can reload the page; keys that land on the page right then were meant for the editor.
     // Only in the first seconds after the page loaded, so a key pressed later on the slide still works.
     if (e.target === document.body && performance.now() < 5_000 && typedJustNow()) return;

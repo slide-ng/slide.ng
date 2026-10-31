@@ -13,6 +13,7 @@ import {
 import { Drawings } from '../drawing/drawings';
 import { Fullscreen } from '../lib/fullscreen';
 import { Nav } from '../lib/nav';
+import { ViewPrefs } from '../lib/view-prefs';
 import { presenterEnabled } from '../lib/switches';
 import { Ui } from '../lib/ui-state';
 import { CONTEXT_MENU_SETUP } from '../setup/tokens';
@@ -90,6 +91,7 @@ export class ContextMenu {
   private nav = inject(Nav);
   private fullscreen = inject(Fullscreen);
   private drawings = inject(Drawings);
+  private view = inject(ViewPrefs);
   private setup = inject(CONTEXT_MENU_SETUP); // setup/context-menu.ts of the roots
   private menu = viewChild<ElementRef<HTMLElement>>('menu');
   // The key is drawn as a <kbd>, so the text is drawn in two parts around it.
@@ -165,6 +167,33 @@ export class ContextMenu {
         run: () => this.fullscreen.toggle(),
         disabled: !this.fullscreen.available,
       },
+      ...(this.nav.isPresenter
+        ? []
+        : [
+            ...(this.ui.barPinned()
+              ? []
+              : [
+                  {
+                    icon: 'i-carbon:view',
+                    label: this.ui.text('menu.barShow'),
+                    run: () => this.ui.peekBar(),
+                    disabled: false,
+                  },
+                ]),
+            ...(this.view.navPosition() === null
+              ? []
+              : [
+                  {
+                    icon: 'i-carbon:reset',
+                    label: this.ui.text('menu.barReset'),
+                    run: () => {
+                      this.view.navPosition.set(null);
+                      this.ui.peekBar();
+                    },
+                    disabled: false,
+                  },
+                ]),
+          ]),
     ]),
   );
 

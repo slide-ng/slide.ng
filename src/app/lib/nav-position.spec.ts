@@ -4,6 +4,7 @@ import {
   deckNavPosition,
   isNavPosition,
   navPosition,
+  navPositionAt,
   navPositionStep,
   readNavPosition,
 } from './nav-position';
@@ -52,5 +53,21 @@ describe('navPositionStep', () => {
   });
   it('is null for another key', () => {
     expect(navPositionStep('top-left', 'Enter', false)).toBeNull();
+  });
+});
+
+describe('navPositionAt', () => {
+  it('is the cell of the 2 x 3 grid under the point', () => {
+    expect(navPositionAt(10, 10, 900, 600, false)).toBe('top-left');
+    expect(navPositionAt(450, 590, 900, 600, false)).toBe('bottom-center');
+    expect(navPositionAt(899, 300, 900, 600, false)).toBe('bottom-right');
+  });
+  it('mirrors the columns in a right-to-left page', () => {
+    expect(navPositionAt(10, 10, 900, 600, true)).toBe('top-right');
+    expect(navPositionAt(890, 500, 900, 600, true)).toBe('bottom-left');
+  });
+  it('is null outside the page', () => {
+    expect(navPositionAt(-1, 10, 900, 600, false)).toBeNull();
+    expect(navPositionAt(10, 600, 900, 600, false)).toBeNull();
   });
 });

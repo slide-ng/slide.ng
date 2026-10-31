@@ -24,6 +24,7 @@ export const EN = {
   'nav.info': 'Show info',
   'nav.layout': 'Toggle Presenter Layout',
   'nav.settings': 'More Options',
+  'nav.move': 'Drag to move the bar',
   'nav.cameraShow': 'Show camera view',
   'nav.cameraHide': 'Hide camera view',
   'nav.recordStart': 'Start recording',
@@ -82,6 +83,8 @@ export const EN = {
   'menu.nextSlide': 'Next Slide',
   'menu.presenterEnter': 'Enter Presenter Mode',
   'menu.presenterExit': 'Exit Presenter Mode',
+  'menu.barShow': 'Show Navigation Bar',
+  'menu.barReset': 'Reset Navigation Bar Position',
   'menu.nativeHint': 'Hold {key} and right click to open the native context menu',
 
   // The info dialog and the offline badge (info-dialog.ts, offline-badge.ts)

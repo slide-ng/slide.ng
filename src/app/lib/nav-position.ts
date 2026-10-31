@@ -66,3 +66,16 @@ export function navPositionStep(
   const c = Math.min(Math.max(col + by[1], 0), 2);
   return NAV_POSITIONS[r * 3 + c];
 }
+
+export function navPositionAt(
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  rtl: boolean,
+): NavPositionName | null {
+  if (x < 0 || y < 0 || x >= w || y >= h) return null;
+  const col = Math.floor((x / w) * 3);
+  const row = y < h / 2 ? 1 : 0;
+  return NAV_POSITIONS[row * 3 + (rtl ? 2 - col : col)];
+}

@@ -22,6 +22,7 @@ import { ViewPrefs } from '../lib/view-prefs';
 import { PresenterPrefs } from '../presenter/prefs';
 import { Ui } from '../lib/ui-state';
 import { fitMenu } from '../lib/fit-menu';
+import { navPositionAt } from '../lib/nav-position';
 import { T } from '../i18n/t';
 import { IconBtn } from './icon-btn';
 import { SideEditorState } from '../dev/side-editor-state';
@@ -38,6 +39,7 @@ import { presenterEnabled } from '../lib/switches';
   host: {
     '(document:click)': 'closeSettingsOutside($event)',
     '(window:resize)': 'fitSettings()',
+    '(window:keydown.escape)': 'dragCancel()',
   },
   template: `
     <nav class="flex flex-col" [attr.data-fullscreen]="fullscreen.isFullscreen()">
@@ -45,6 +47,22 @@ import { presenterEnabled } from '../lib/switches';
         class="flex flex-wrap-reverse text-xl gap-0.5 p-1 lg:p-2 text-main"
         [class]="persist() ? 'bg-transparent' : 'rounded-md bg-main shadow-xl border border-main'"
       >
+        @if (!persist() && !nav.isPresenter) {
+          <div
+            id="nav-grip"
+            class="nav-grip flex items-center px-0.5 opacity-50 hover:opacity-100 touch-none select-none"
+            [class]="ui.barDrag() ? 'cursor-grabbing' : 'cursor-grab'"
+            [title]="'nav.move' | t"
+            aria-hidden="true"
+            (pointerdown)="dragStart($event)"
+            (pointermove)="dragMove($event)"
+            (pointerup)="dragEnd($event)"
+            (pointercancel)="dragCancel()"
+            (lostpointercapture)="dragCancel()"
+          >
+            <div class="i-carbon:draggable"></div>
+          </div>
+        }
         @if (fullscreen.available) {
           <button
             icon-btn
@@ -343,6 +361,44 @@ export class NavBar {
     e.stopPropagation();
     this.ui.settings.set(false);
     this.el.querySelector<HTMLElement>('#nav-settings')?.focus();
+  }
+
+  private drag: { x: number; y: number; page: DOMRect; rtl: boolean } | null = null;
+
+  protected dragStart(e: PointerEvent) {
+    if (this.drag || !e.isPrimary || e.button !== 0) return;
+    const page = this.el.closest('main')?.getBoundingClientRect();
+    if (!page) return;
+    e.preventDefault();
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    const rtl = getComputedStyle(this.el).direction === 'rtl';
+    this.drag = { x: e.clientX, y: e.clientY, page, rtl };
+    this.ui.closeAll();
+    this.ui.barDrag.set({ dx: 0, dy: 0, over: this.dropAt(e) });
+  }
+
+  protected dragMove(e: PointerEvent) {
+    if (!this.drag || !e.isPrimary) return;
+    const { x, y } = this.drag;
+    this.ui.barDrag.set({ dx: e.clientX - x, dy: e.clientY - y, over: this.dropAt(e) });
+  }
+
+  protected dragEnd(e: PointerEvent) {
+    if (!this.drag || !e.isPrimary) return;
+    const place = this.dropAt(e);
+    this.dragCancel();
+    if (place) this.view.navPosition.set(place);
+  }
+
+  protected dragCancel() {
+    if (!this.drag) return;
+    this.drag = null;
+    this.ui.barDrag.set(null);
+  }
+
+  private dropAt(e: PointerEvent) {
+    const { page, rtl } = this.drag!;
+    return navPositionAt(e.clientX - page.left, e.clientY - page.top, page.width, page.height, rtl);
   }
 
   // A click anywhere outside the bar closes the settings menu.
