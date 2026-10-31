@@ -14,6 +14,8 @@ export class Ui {
   readonly syncMenu = signal(false);
   /** The language menu of the bar (a deck with `languages`). */
   readonly languageMenu = signal(false);
+  readonly barPeek = signal(false);
+  private barPeekTimer?: ReturnType<typeof setTimeout>;
   readonly barDrag = signal<{ dx: number; dy: number; over: NavPositionName | null } | null>(null);
   /** The right-click menu: where it opened, or null when closed. */
   readonly contextMenu = signal<{ x: number; y: number } | null>(null);
@@ -30,6 +32,12 @@ export class Ui {
   /** A text of the interface in the deck's language, for TypeScript (templates use the `t` pipe). */
   text(key: UiTextKey, params?: UiTextParams): string {
     return uiText(this.dictionary, key, params);
+  }
+
+  peekBar(ms = 3000) {
+    clearTimeout(this.barPeekTimer);
+    this.barPeek.set(true);
+    this.barPeekTimer = setTimeout(() => this.barPeek.set(false), ms);
   }
 
   toggleOverview() {

@@ -77,7 +77,7 @@ import { Overview } from './ui/overview';
         [class.inset-x-0]="bar().side === 'center'"
         [class.mx-auto]="bar().side === 'center'"
         [class.w-fit]="bar().side === 'center'"
-        [style.opacity]="portrait() || barShown() || ui.barDrag() ? 1 : null"
+        [style.opacity]="portrait() || barShown() || ui.barPeek() || ui.barDrag() ? 1 : null"
         [style.transition]="ui.barDrag() ? 'none' : null"
         [style.transform]="barOffset()"
         [class.z-nav]="!!ui.barDrag()"
