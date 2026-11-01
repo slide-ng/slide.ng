@@ -94,22 +94,20 @@ describe('tabTitle', () => {
 describe('addressOrSearch', () => {
   it('opens an address, and searches for anything else', () => {
     expect(addressOrSearch('angular.dev')).toBe('https://angular.dev/');
-    expect(addressOrSearch('angular signals')).toBe(
-      'https://www.bing.com/search?q=angular%20signals',
-    );
+    expect(addressOrSearch('angular signals')).toBe('https://duckduckgo.com/?q=angular%20signals');
     expect(addressOrSearch('what is x', 'https://duckduckgo.com/?q=%s')).toBe(
       'https://duckduckgo.com/?q=what%20is%20x',
     );
     expect(addressOrSearch('   ')).toBeNull();
   });
   it('searches for one word, and opens a name with a dot, localhost or an address', () => {
-    expect(addressOrSearch('erkam')).toBe('https://www.bing.com/search?q=erkam');
-    expect(addressOrSearch('angular')).toBe('https://www.bing.com/search?q=angular');
+    expect(addressOrSearch('erkam')).toBe('https://duckduckgo.com/?q=erkam');
+    expect(addressOrSearch('angular')).toBe('https://duckduckgo.com/?q=angular');
     expect(addressOrSearch('erkam.dev')).toBe('https://erkam.dev/');
     expect(addressOrSearch('erkam.dev:8080/x')).toBe('https://erkam.dev:8080/x');
     expect(addressOrSearch('localhost:4200')).toBe('http://localhost:4200/');
     expect(addressOrSearch('192.168.1.5:8080')).toBe('https://192.168.1.5:8080/');
-    expect(addressOrSearch('3.14')).toBe('https://www.bing.com/search?q=3.14');
+    expect(addressOrSearch('3.14')).toBe('https://duckduckgo.com/?q=3.14');
   });
   it('takes the search address of the headmatter only with %s and a web address', () => {
     expect(readBrowserConfig({ search: 'https://s.dev/?q=%s' }).search).toBe('https://s.dev/?q=%s');

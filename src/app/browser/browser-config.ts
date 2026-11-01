@@ -12,7 +12,18 @@ export interface BrowserConfig {
   search: string;
 }
 
-export const DEFAULT_SEARCH = 'https://www.bing.com/search?q=%s';
+export const DEFAULT_SEARCH = 'https://duckduckgo.com/?q=%s';
+
+export const SEARCH_ENGINES = [
+  { name: 'DuckDuckGo', url: 'https://duckduckgo.com/?q=%s' },
+  { name: 'Bing', url: 'https://www.bing.com/search?q=%s' },
+  { name: 'Wikipedia', url: 'https://en.wikipedia.org/w/index.php?search=%s' },
+] as const;
+
+export const searchAddress = (value: unknown): string | null =>
+  typeof value === 'string' && value.includes('%s') && webAddress(value.replace('%s', 'x'))
+    ? value
+    : null;
 
 export interface WebProxy {
   key: string;

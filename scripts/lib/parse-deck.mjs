@@ -156,7 +156,7 @@ export async function parseDeck(file = 'slides.md', sources, options = {}) {
       !(webUrl(browser.search) && String(browser.search).includes('%s'))
     )
       problems.push(
-        `${at('browser')}: \`browser.search: ${JSON.stringify(browser.search)}\` is not used: write a web address with %s for the words (Bing is used)`,
+        `${at('browser')}: \`browser.search: ${JSON.stringify(browser.search)}\` is not used: write a web address with %s for the words (DuckDuckGo is used)`,
       );
     if (browser.tabs != null && !Array.isArray(browser.tabs))
       problems.push(

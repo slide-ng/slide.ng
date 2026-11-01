@@ -245,6 +245,18 @@ export const EN = {
   'browser.removeTile': 'Remove from the start page',
   'browser.shortcuts': 'Shortcuts',
   'browser.recent': 'Recent',
+  'browser.settings': 'Browser settings',
+  'browser.searchEngine': 'Search engine',
+  'browser.customSearch': 'Your own: https://…?q=%s',
+  'browser.deckDefault': 'Use the deck default',
+  'browser.openLinks': 'Open slide links here',
+  'browser.showBookmarks': 'Show the bookmarks bar',
+  'browser.clearRecent': 'Clear recent pages',
+  'browser.clearBookmarks': 'Remove all bookmarks',
+  'browser.noBookmarks': 'No bookmarks yet: the star in the toolbar adds the page.',
+  'browser.slides': 'Slides',
+  'browser.customEngine': 'Custom',
+  'browser.data': 'Data',
   'presenter.browserOpen': 'Deck browser: {site}',
 } as const;
 

@@ -7,12 +7,14 @@
     [attr.aria-label]="'browser.label' | t"
     (keydown.escape)="hide($event)"
   >
-    <div class="flex items-center gap-1 px-2 pt-2 border-b border-main" role="tablist">
+    <div class="flex items-end gap-0.5 px-2 pt-2" role="tablist">
       @for (tab of browser.tabs(); track tab.id) {
         <div
-          class="deck-browser-tab group relative flex items-center max-w-56 min-w-0 rounded-t-md border border-b-0 border-main"
+          class="deck-browser-tab group relative flex items-center w-52 min-w-0 rounded-t-lg transition-colors"
           [class.bg-active]="tab.id === browser.activeId()"
           [class.op70]="tab.id !== browser.activeId()"
+          [class.hover:op100]="tab.id !== browser.activeId()"
+          [class.hover:bg-active]="tab.id !== browser.activeId()"
           [class.op40]="dragging() === tab.id"
           [attr.data-tab-id]="tab.id"
           draggable="true"
@@ -23,7 +25,7 @@
         >
           @if (dropMark()?.id === tab.id) {
             <span
-              class="absolute top-1 bottom-0 w-0.5 rounded-full bg-primary pointer-events-none"
+              class="absolute top-1 bottom-0 w-0.5 rounded-full bg-[#cc4209] pointer-events-none"
               [style.inset-inline-start.px]="dropMark()!.before ? -2 : null"
               [style.inset-inline-end.px]="dropMark()!.before ? null : -2"
             ></span>
@@ -31,9 +33,8 @@
           <button
             type="button"
             role="tab"
-            class="flex items-center gap-2 min-w-0 px-3 py-1.5 text-sm"
+            class="flex-1 flex items-center gap-2 min-w-0 ps-3 pe-1 py-1.5 text-sm text-start"
             [attr.aria-selected]="tab.id === browser.activeId()"
-            [title]="tab.url"
             (click)="browser.select(tab.id)"
           >
             @if (tab.icon && !failed().has(tab.icon)) {
@@ -51,7 +52,7 @@
           </button>
           <button
             type="button"
-            class="deck-browser-close-tab px-1.5 op50 hover:op100"
+            class="deck-browser-close-tab shrink-0 me-1.5 w-6 h-6 rounded-full grid place-content-center op50 hover:op100 hover:bg-active"
             [title]="'browser.closeTab' | t"
             [attr.aria-label]="'browser.closeTab' | t"
             (click)="browser.close(tab.id)"
@@ -71,7 +72,10 @@
       </button>
     </div>
 
-    <form class="flex items-center gap-1 px-2 py-1.5 text-lg" (submit)="go($event, address)">
+    <form
+      class="flex items-center gap-0.5 px-2 py-1.5 text-base bg-active"
+      (submit)="go($event, address)"
+    >
       <button
         icon-btn
         type="button"
@@ -80,7 +84,7 @@
         [disabled]="!browser.canBack()"
         (click)="browser.back()"
       >
-        <div class="i-carbon:arrow-left rtl-flip"></div>
+        <div class="i-ph:arrow-left rtl-flip"></div>
       </button>
       <button
         icon-btn
@@ -90,7 +94,7 @@
         [disabled]="!browser.canForward()"
         (click)="browser.forward()"
       >
-        <div class="i-carbon:arrow-right rtl-flip"></div>
+        <div class="i-ph:arrow-right rtl-flip"></div>
       </button>
       <button
         icon-btn
@@ -99,7 +103,7 @@
         [title]="'browser.home' | t"
         (click)="browser.goHome()"
       >
-        <div class="i-carbon:home"></div>
+        <div class="i-ph:house"></div>
       </button>
       <button
         icon-btn
@@ -109,36 +113,264 @@
         [disabled]="!browser.active()?.url"
         (click)="reload()"
       >
-        <div class="i-carbon:renew"></div>
+        <div class="i-ph:arrow-clockwise" [class.animate-spin]="browser.active()?.loading"></div>
       </button>
-      <input
-        #address
-        id="deck-browser-address"
-        class="flex-1 min-w-0 px-3 py-1 text-sm rounded-full border border-main bg-transparent"
-        spellcheck="false"
-        autocomplete="off"
-        enterkeyhint="go"
-        [attr.aria-label]="'browser.address' | t"
-        [placeholder]="'browser.searchHint' | t"
-        [value]="browser.active()?.url ?? ''"
-        (focus)="address.select()"
-      />
-      <button
-        icon-btn
-        type="button"
-        id="deck-browser-bookmark"
-        [title]="(browser.bookmarked() ? 'browser.bookmarkRemove' : 'browser.bookmarkAdd') | t"
-        [active]="browser.bookmarked()"
-        [disabled]="!browser.active()?.url"
-        (click)="browser.toggleBookmark()"
+      <div
+        class="deck-browser-omnibox flex-1 min-w-0 mx-1.5 flex items-center gap-2 h-9 ps-3 pe-1 rounded-xl border border-main bg-main transition-shadow focus-within:border-transparent focus-within:ring-2 focus-within:ring-[#cc4209]"
       >
-        <div
-          [class]="browser.bookmarked() ? 'i-carbon:star-filled text-primary' : 'i-carbon:star'"
-        ></div>
-      </button>
+        @if (
+          browser.active()?.url && browser.active()!.icon && !failed().has(browser.active()!.icon)
+        ) {
+          <span
+            class="w-5 h-5 shrink-0 rounded-full bg-white grid place-content-center ring-1 ring-black/10"
+          >
+            <img
+              class="w-3.5 h-3.5"
+              alt=""
+              [src]="browser.active()!.icon"
+              (error)="iconFailed(browser.active()!.icon)"
+            />
+          </span>
+        } @else {
+          <div class="i-ph:magnifying-glass shrink-0 op60"></div>
+        }
+        <input
+          #address
+          id="deck-browser-address"
+          class="flex-1 min-w-0 bg-transparent outline-none text-sm"
+          spellcheck="false"
+          autocomplete="off"
+          enterkeyhint="go"
+          [attr.aria-label]="'browser.address' | t"
+          [placeholder]="'browser.searchHint' | t"
+          [value]="browser.active()?.url ?? ''"
+          (focus)="address.select()"
+        />
+        @if (browser.active()?.url) {
+          <button
+            type="button"
+            id="deck-browser-bookmark"
+            class="w-7 h-7 shrink-0 rounded-lg grid place-content-center op70 hover:op100 hover:bg-active"
+            [title]="(browser.bookmarked() ? 'browser.bookmarkRemove' : 'browser.bookmarkAdd') | t"
+            [attr.aria-pressed]="browser.bookmarked()"
+            (click)="browser.toggleBookmark()"
+          >
+            <div
+              [class]="browser.bookmarked() ? 'i-ph:star-fill text-[#ff7a3d] op100' : 'i-ph:star'"
+            ></div>
+          </button>
+        }
+      </div>
       @if (hint()) {
         <span class="hidden md:block text-xs op60 px-1">{{ 'browser.maybeBlank' | t }}</span>
       }
+      <div class="relative flex" #bookmarksBox>
+        <button
+          icon-btn
+          type="button"
+          id="deck-browser-bookmarks-menu-button"
+          [title]="'browser.bookmarks' | t"
+          [active]="bookmarksOpen()"
+          aria-haspopup="menu"
+          [attr.aria-expanded]="bookmarksOpen()"
+          (click)="toggleMenu('bookmarks')"
+        >
+          <div class="i-ph:bookmarks-simple"></div>
+        </button>
+        @if (bookmarksOpen()) {
+          <div
+            id="deck-browser-bookmarks-menu"
+            role="menu"
+            [attr.aria-label]="'browser.bookmarks' | t"
+            class="absolute end-0 top-11 z-menu w-80 max-h-[60vh] overflow-y-auto p-2 rounded-xl border border-main bg-main text-main shadow-xl text-sm"
+            (keydown.escape)="closeMenu($event)"
+          >
+            <p class="px-2 pt-1 pb-2 text-xs font-semibold uppercase tracking-wider op60">
+              {{ 'browser.bookmarks' | t }}
+            </p>
+            @for (mark of browser.bookmarks(); track mark.url) {
+              <div class="group flex items-center rounded-lg hover:bg-active">
+                <button
+                  type="button"
+                  role="menuitem"
+                  class="flex-1 min-w-0 flex items-center gap-3 px-2 py-2 text-start"
+                  [title]="mark.url"
+                  (click)="openTile(mark.url, mark.name); closeMenu()"
+                >
+                  @if (mark.icon && !failed().has(mark.icon)) {
+                    <span
+                      class="w-6 h-6 shrink-0 rounded-full bg-white grid place-content-center ring-1 ring-black/10"
+                    >
+                      <img
+                        class="w-4 h-4"
+                        alt=""
+                        [src]="mark.icon"
+                        (error)="iconFailed(mark.icon)"
+                      />
+                    </span>
+                  } @else {
+                    <span
+                      class="w-6 h-6 shrink-0 rounded-full bg-[#cc4209] grid place-content-center"
+                    >
+                      <div class="i-carbon:star-filled text-white text-xs"></div>
+                    </span>
+                  }
+                  <span class="min-w-0 flex flex-col">
+                    <span class="truncate font-medium">{{ label(mark) }}</span>
+                    <span class="truncate text-xs op50">{{ host(mark.url) }}</span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  class="me-1 w-7 h-7 shrink-0 rounded-full grid place-content-center op0 group-hover:op60 hover:op100 focus:op100"
+                  [title]="'browser.bookmarkRemove' | t"
+                  [attr.aria-label]="'browser.bookmarkRemove' | t"
+                  (click)="browser.removeBookmark(mark.url)"
+                >
+                  <div class="i-carbon:close"></div>
+                </button>
+              </div>
+            } @empty {
+              <p class="px-2 py-3 op60">{{ 'browser.noBookmarks' | t }}</p>
+            }
+          </div>
+        }
+      </div>
+      <div class="relative flex" #settingsBox>
+        <button
+          icon-btn
+          type="button"
+          id="deck-browser-settings"
+          [title]="'browser.settings' | t"
+          [active]="settingsOpen()"
+          aria-haspopup="dialog"
+          [attr.aria-expanded]="settingsOpen()"
+          (click)="toggleMenu('settings')"
+        >
+          <div class="i-ph:gear-six"></div>
+        </button>
+        @if (settingsOpen()) {
+          <div
+            id="deck-browser-settings-menu"
+            role="dialog"
+            [attr.aria-label]="'browser.settings' | t"
+            class="absolute end-0 top-11 z-menu w-80 p-2 rounded-2xl border border-main bg-main text-main shadow-2xl text-sm flex flex-col gap-3"
+            (keydown.escape)="closeMenu($event)"
+          >
+            <section class="flex flex-col gap-1">
+              <p class="px-2 text-xs font-semibold uppercase tracking-wider op50">
+                {{ 'browser.searchEngine' | t }}
+              </p>
+              <div role="radiogroup" class="flex flex-col gap-0.5">
+                @for (engine of engines; track engine.url) {
+                  <button
+                    type="button"
+                    role="radio"
+                    class="flex items-center gap-3 px-2 py-2 rounded-lg text-start hover:bg-active"
+                    [class.bg-active]="browser.search() === engine.url"
+                    [attr.aria-checked]="browser.search() === engine.url"
+                    (click)="browser.setPrefs({ search: engine.url })"
+                  >
+                    <span
+                      class="w-6 h-6 shrink-0 rounded-full bg-white grid place-content-center ring-1 ring-black/10"
+                    >
+                      <img class="w-4 h-4" alt="" [src]="engineIcon(engine.url)" />
+                    </span>
+                    <span class="flex-1">{{ engine.name }}</span>
+                    @if (browser.search() === engine.url) {
+                      <div class="i-ph:check-bold text-[#ff7a3d]"></div>
+                    }
+                  </button>
+                }
+                <button
+                  type="button"
+                  role="radio"
+                  class="flex items-center gap-3 px-2 py-2 rounded-lg text-start hover:bg-active"
+                  [class.bg-active]="customSearch() || customEditing()"
+                  [attr.aria-checked]="customSearch()"
+                  (click)="customEditing.set(true)"
+                >
+                  <span class="w-6 h-6 shrink-0 rounded-full bg-active grid place-content-center">
+                    <div class="i-ph:magnifying-glass text-sm"></div>
+                  </span>
+                  <span class="flex-1">{{ 'browser.customEngine' | t }}</span>
+                  @if (customSearch()) {
+                    <div class="i-ph:check-bold text-[#ff7a3d]"></div>
+                  }
+                </button>
+                @if (customSearch() || customEditing()) {
+                  <input
+                    #customInput
+                    class="mx-2 mt-1 px-3 py-1.5 rounded-lg border border-main bg-main text-xs outline-none focus:ring-2 focus:ring-[#cc4209]"
+                    spellcheck="false"
+                    [placeholder]="'browser.customSearch' | t"
+                    [value]="customSearch() ? browser.search() : ''"
+                    (change)="setCustomSearch(customInput)"
+                  />
+                }
+              </div>
+              @if (browser.prefs().search !== null) {
+                <button
+                  type="button"
+                  class="self-start px-2 text-xs op60 hover:op100 underline underline-offset-2"
+                  (click)="browser.setPrefs({ search: null }); customEditing.set(false)"
+                >
+                  {{ 'browser.deckDefault' | t }}
+                </button>
+              }
+            </section>
+
+            <section class="flex flex-col gap-0.5 border-t border-main pt-3">
+              @for (toggle of toggles(); track toggle.key) {
+                <button
+                  type="button"
+                  role="switch"
+                  class="flex items-center justify-between gap-3 px-2 py-2 rounded-lg text-start hover:bg-active"
+                  [attr.aria-checked]="toggle.on"
+                  (click)="toggle.flip()"
+                >
+                  <span>{{ toggle.key | t }}</span>
+                  <span
+                    class="relative w-9 h-5 shrink-0 rounded-full transition-colors"
+                    [class.bg-[#cc4209]]="toggle.on"
+                    [class.bg-gray-500]="!toggle.on"
+                    [class.op50]="!toggle.on"
+                  >
+                    <span
+                      class="absolute top-0.5 start-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform"
+                      [class.translate-x-4]="toggle.on"
+                    ></span>
+                  </span>
+                </button>
+              }
+            </section>
+
+            <section class="flex flex-col gap-0.5 border-t border-main pt-3">
+              <p class="px-2 pb-1 text-xs font-semibold uppercase tracking-wider op50">
+                {{ 'browser.data' | t }}
+              </p>
+              <button
+                type="button"
+                class="flex items-center gap-3 px-2 py-2 rounded-lg text-start hover:bg-active disabled:op40 disabled:hover:bg-transparent"
+                [disabled]="!browser.visited().length"
+                (click)="browser.clearRecent()"
+              >
+                <div class="i-ph:clock-counter-clockwise op70"></div>
+                <span>{{ 'browser.clearRecent' | t }}</span>
+              </button>
+              <button
+                type="button"
+                class="flex items-center gap-3 px-2 py-2 rounded-lg text-start text-red-500 hover:bg-red-500/10 disabled:op40 disabled:hover:bg-transparent"
+                [disabled]="!browser.bookmarks().length"
+                (click)="browser.clearBookmarks()"
+              >
+                <div class="i-ph:trash"></div>
+                <span>{{ 'browser.clearBookmarks' | t }}</span>
+              </button>
+            </section>
+          </div>
+        }
+      </div>
       <button
         icon-btn
         type="button"
@@ -147,23 +379,24 @@
         [disabled]="!browser.active()?.url"
         (click)="openWindow()"
       >
-        <div class="i-carbon:launch"></div>
+        <div class="i-ph:arrow-square-out"></div>
       </button>
       <button
-        icon-btn
         type="button"
         id="deck-browser-hide"
+        class="ms-1.5 flex items-center gap-1.5 h-8 ps-2.5 pe-3 rounded-lg bg-[#cc4209] text-white text-sm font-medium shadow-sm hover:brightness-110 transition"
         [title]="'browser.hide' | t"
         (click)="browser.hide()"
       >
-        <div class="i-carbon:close"></div>
+        <div class="i-ph:presentation"></div>
+        <span>{{ 'browser.slides' | t }}</span>
       </button>
     </form>
 
-    @if (browser.bookmarks().length) {
+    @if (browser.bookmarks().length && browser.prefs().bookmarksBar) {
       <nav
         id="deck-browser-bookmarks"
-        class="flex items-center gap-1.5 px-3 py-1.5 overflow-x-auto text-xs border-b border-main"
+        class="flex items-center gap-1.5 px-3 pb-1.5 overflow-x-auto text-xs bg-active"
         [attr.aria-label]="'browser.bookmarks' | t"
       >
         @for (mark of browser.bookmarks(); track mark.url) {
@@ -188,7 +421,7 @@
                   />
                 </span>
               } @else {
-                <span class="w-5 h-5 shrink-0 rounded-full bg-primary grid place-content-center">
+                <span class="w-5 h-5 shrink-0 rounded-full bg-[#cc4209] grid place-content-center">
                   <div class="i-carbon:star-filled text-white text-[10px]"></div>
                 </span>
               }
@@ -216,6 +449,7 @@
             [src]="safe(tab)"
             [title]="tab.name"
             [attr.data-tab]="tab.id"
+            (load)="browser.loaded(tab.id)"
             allow="
               fullscreen;
               clipboard-read;
@@ -237,17 +471,21 @@
             <p class="max-w-md">{{ 'browser.refused' | t: { site: tab.name } }}</p>
             <button
               type="button"
-              class="mx-auto px-4 py-2 rounded-md bg-primary text-white"
+              class="mx-auto px-4 py-2 rounded-md bg-[#cc4209] text-white"
               (click)="openWindow()"
             >
               {{ 'browser.openWindow' | t }}
             </button>
           </div>
         } @else if (!tab.url) {
-          <ng-container *ngTemplateOutlet="start" />
+          @if (browser.open()) {
+            <ng-container *ngTemplateOutlet="start" />
+          }
         }
       } @else {
-        <ng-container *ngTemplateOutlet="start" />
+        @if (browser.open()) {
+          <ng-container *ngTemplateOutlet="start" />
+        }
       }
     </div>
   </section>
@@ -265,14 +503,14 @@
           ></div>
           <app-slide-ng-mark class="relative w-16 h-16 drop-shadow-lg" [animated]="true" />
         </div>
-        <h1 class="flex items-baseline gap-2 text-4xl tracking-tight">
+        <p class="flex items-baseline gap-2 text-4xl tracking-tight">
           <span
             class="font-extrabold bg-clip-text text-transparent"
             style="background-image: linear-gradient(120deg, #ff7a3d, #cc4209 55%, #8f300a)"
             >slide.ng</span
           >
           <span class="font-light op60">{{ 'browser.start' | t }}</span>
-        </h1>
+        </p>
       </div>
       <form class="w-full max-w-2xl" (submit)="go($event, search)">
         <div
@@ -307,7 +545,7 @@
                 >
                   <span
                     class="w-14 h-14 rounded-2xl grid place-content-center shadow-sm ring-1 ring-black/10 transition-transform group-hover:scale-105"
-                    [class]="tile.icon && !failed().has(tile.icon) ? 'bg-white' : 'bg-primary'"
+                    [class]="tile.icon && !failed().has(tile.icon) ? 'bg-white' : 'bg-[#cc4209]'"
                   >
                     @if (tile.icon && !failed().has(tile.icon)) {
                       <img

@@ -5,11 +5,15 @@ import { DevApi } from '../dev/dev-api';
 import { T } from '../i18n/t';
 import { IconBtn } from '../ui/icon-btn';
 import { SlideNgMark } from '../ui/slide-ng-mark';
-import { addressOrSearch, tabTitle } from './browser-config';
+import { SEARCH_ENGINES, addressOrSearch, searchAddress, tabTitle } from './browser-config';
 import { DeckBrowser, OpenTab, Visited, siteIcon } from './deck-browser';
 
 @Component({
   selector: 'app-deck-browser',
+  host: {
+    '(document:click)': 'closeSettingsOutside($event)',
+    '(window:blur)': 'closeMenu()',
+  },
   imports: [IconBtn, NgTemplateOutlet, SlideNgMark, T],
   templateUrl: './deck-browser-layer.html',
 })
@@ -25,6 +29,62 @@ export class DeckBrowserLayer {
     const tab = this.browser.active();
     return !!tab?.url && tab.framable === null && !this.browser.proxy() && !this.dev.enabled;
   });
+  protected engines = SEARCH_ENGINES;
+  private menu = signal<'settings' | 'bookmarks' | null>(null);
+  protected settingsOpen = computed(() => this.menu() === 'settings');
+  protected bookmarksOpen = computed(() => this.menu() === 'bookmarks');
+  private settingsBox = viewChild<ElementRef<HTMLElement>>('settingsBox');
+  private bookmarksBox = viewChild<ElementRef<HTMLElement>>('bookmarksBox');
+
+  protected toggleMenu(name: 'settings' | 'bookmarks') {
+    this.menu.update((open) => (open === name ? null : name));
+  }
+
+  protected closeMenu(e?: Event) {
+    e?.stopPropagation();
+    this.menu.set(null);
+  }
+
+  protected host(url: string) {
+    return tabTitle(url);
+  }
+
+  protected customEditing = signal(false);
+  protected toggles = computed(() => [
+    {
+      key: 'browser.openLinks' as const,
+      on: this.browser.links(),
+      flip: () => this.browser.setPrefs({ links: !this.browser.links() }),
+    },
+    {
+      key: 'browser.showBookmarks' as const,
+      on: this.browser.prefs().bookmarksBar,
+      flip: () => this.browser.setPrefs({ bookmarksBar: !this.browser.prefs().bookmarksBar }),
+    },
+  ]);
+
+  protected engineIcon(url: string) {
+    return siteIcon(url.replace('%s', ''));
+  }
+
+  protected customSearch = computed(
+    () => !SEARCH_ENGINES.some((e) => e.url === this.browser.search()),
+  );
+
+  protected setCustomSearch(input: HTMLInputElement) {
+    const url = searchAddress(input.value.trim());
+    if (url) {
+      this.browser.setPrefs({ search: url });
+      this.customEditing.set(false);
+    }
+  }
+
+  protected closeSettingsOutside(e: MouseEvent) {
+    const target = e.target as Node;
+    const boxes = [this.settingsBox()?.nativeElement, this.bookmarksBox()?.nativeElement];
+    if (this.menu() && !boxes.some((box) => box?.contains(target))) this.menu.set(null);
+  }
+
   protected frameTabs = computed(() => [...this.browser.tabs()].sort((a, b) => a.id - b.id));
   protected dragging = signal<number | null>(null);
   protected dropMark = signal<{ id: number; before: boolean } | null>(null);
@@ -107,7 +167,7 @@ export class DeckBrowserLayer {
 
   protected go(e: Event, input: HTMLInputElement) {
     e.preventDefault();
-    const url = addressOrSearch(input.value, this.browser.config.search);
+    const url = addressOrSearch(input.value, this.browser.search());
     if (!url) return;
     const tab = this.browser.active();
     if (tab) this.browser.navigate(tab.id, url);

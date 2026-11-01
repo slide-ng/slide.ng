@@ -66,7 +66,7 @@ In the headmatter (the frontmatter of the first slide) you can also set:
 | `monaco`, `twoslash`                                                             | `true` (default), `false`, `dev` or `build`: off, `{monaco}` blocks are plain code; Twoslash not run                                                                                                                                                                                                                                             |
 | `wakeLock`                                                                       | `true` (default), `false`, `dev`, `build`: the settings wake lock; a choice the browser stored wins                                                                                                                                                                                                                                              |
 | `navPosition`                                                                    | where the navigation bar sits on the slide page: `bottom-left` (default), `bottom-center`, `bottom-right`, `top-left`, `top-center` or `top-right`; left and right follow the writing direction, and its menus open below it at the top. A viewer can choose another place in the settings menu. The presenter page keeps its bar. Not in Slidev |
-| `browser`                                                                        | the deck browser (slide.ng's own, see "Deck browser" below): `false` turns it off; `{ links: false }` keeps links on slides opening as usual; `tabs: [{ name, url }]` are tiles on its start page; `search` is the search address with `%s` (Bing by default)                                                                                    |
+| `browser`                                                                        | the deck browser (slide.ng's own, see "Deck browser" below): `false` turns it off; `{ links: false }` keeps links on slides opening as usual; `tabs: [{ name, url }]` are tiles on its start page; `search` is the search address with `%s` (DuckDuckGo by default)                                                                              |
 | `monacoRunUseStrict`                                                             | `false` runs `{monaco-run}` code without `"use strict"` (on by default, as in Slidev)                                                                                                                                                                                                                                                            |
 | `themeConfig`                                                                    | settings for the theme, e.g. `themeConfig: { primary: '#5d8392' }`; see "Themes and addons" below                                                                                                                                                                                                                                                |
 
@@ -1347,12 +1347,17 @@ without it, or in other browsers, Escape leaves fullscreen at once as before).
 - A click on a link to another site, on a slide, opens it in a new tab of the deck browser (or the tab that already shows it).
   Cmd/Ctrl/Shift/Alt+click and a middle click open the browser's own tab as before. `browser: { links: false }` turns this off.
 - The address field takes an address (`angular.dev`, `localhost:4200/demo`) or words to search for. Searches use
-  `browser.search`, an address with `%s` for the words (Bing by default: Google and most other search engines refuse to be framed, and Google also blocks the proxy below).
+  `browser.search`, an address with `%s` for the words (DuckDuckGo by default: it shows inside the deck through the proxy below, and in a built deck its results open in a window; Google blocks the proxy).
 - It opens on the slide.ng browser page, as does a new tab: a search box and a tile for each of the deck's `browser.tabs` and each
   page opened since. `browser: { tabs: [{ name: Docs, url: https://angular.dev }] }` adds a tile; a click opens it in that tab.
 - Back and forward move through the pages a tab showed.
-- The star in the toolbar bookmarks the page. Bookmarks show in a bar under the toolbar and first on the start page, and are
+- The star in the toolbar bookmarks the page, and the bookmark button next to it lists them all. Bookmarks also show in a bar
+  under the toolbar and first on the start page, and are
   kept in this browser for this deck (`slide-ng-browser-bookmarks`).
+- The gear in its toolbar opens the browser settings: the search engine (DuckDuckGo, Bing, Wikipedia or your own address with
+  `%s`), whether slide links open in it, whether the bookmarks bar shows, and buttons that clear recent pages and bookmarks. The
+  choices are kept in this browser for this deck (`slide-ng-browser-prefs`) and win over `browser.search` and `browser.links`;
+  "Use the deck default" goes back to the headmatter's search.
 - `browser: false` removes it (the key, the button and the link handling).
 
 With `slide-ng dev` (or `npm start`) on this machine, pages load through the companion server's proxy. Each site then gets its own

@@ -216,5 +216,17 @@
   "browser.home": "Başlangıç sayfası",
   "browser.removeTile": "Başlangıç sayfasından kaldır",
   "browser.shortcuts": "Kısayollar",
-  "browser.recent": "Son açılanlar"
+  "browser.recent": "Son açılanlar",
+  "browser.settings": "Tarayıcı ayarları",
+  "browser.searchEngine": "Arama motoru",
+  "browser.customSearch": "Kendi adresiniz: https://…?q=%s",
+  "browser.deckDefault": "Sunumun ayarını kullan",
+  "browser.openLinks": "Slayt bağlantılarını burada aç",
+  "browser.showBookmarks": "Yer imleri çubuğunu göster",
+  "browser.clearRecent": "Son açılanları temizle",
+  "browser.clearBookmarks": "Tüm yer imlerini kaldır",
+  "browser.noBookmarks": "Henüz yer imi yok: araç çubuğundaki yıldız sayfayı ekler.",
+  "browser.slides": "Slaytlar",
+  "browser.customEngine": "Özel",
+  "browser.data": "Veriler"
 }

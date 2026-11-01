@@ -37,10 +37,13 @@
       type: 'state',
       url: toReal(location.href),
       title: document.title,
-      icon: toReal(
-        document.querySelector('link[rel~="icon"]')?.href ??
-          new URL('/favicon.ico', location.href).href,
-      ),
+      icon:
+        document.readyState === 'loading'
+          ? null
+          : toReal(
+              document.querySelector('link[rel~="icon"]')?.href ??
+                new URL('/favicon.ico', location.href).href,
+            ),
     });
 
   const realFetch = window.fetch;
@@ -107,6 +110,7 @@
     });
     navigation.addEventListener('navigatesuccess', report);
   }
+  addEventListener('beforeunload', () => tell({ type: 'leaving', url: toReal(location.href) }));
   addEventListener('popstate', report);
   addEventListener('hashchange', report);
   addEventListener('DOMContentLoaded', () => {

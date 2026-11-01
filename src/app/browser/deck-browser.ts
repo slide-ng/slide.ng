@@ -5,6 +5,7 @@ import { storedSignal } from '../lib/stored-signal';
 import { SyncState } from '../sync/sync-state';
 import {
   WebProxy,
+  searchAddress,
   deckBrowserConfig,
   isProxyOrigin,
   proxiedAddress,
@@ -22,7 +23,14 @@ export interface OpenTab {
   index: number;
   framable: boolean | null;
   loaded: boolean;
+  loading: boolean;
   rev: number;
+}
+
+export interface BrowserPrefs {
+  search: string | null;
+  links: boolean | null;
+  bookmarksBar: boolean;
 }
 
 export interface Visited {
@@ -54,6 +62,13 @@ export class DeckBrowser {
   readonly open = signal(false);
   readonly visited = signal<Visited[]>([]);
   readonly bookmarks = storedSignal<Visited[]>('slide-ng-browser-bookmarks', []);
+  readonly prefs = storedSignal<BrowserPrefs>('slide-ng-browser-prefs', {
+    search: null,
+    links: null,
+    bookmarksBar: true,
+  });
+  readonly search = computed(() => searchAddress(this.prefs().search) ?? this.config.search);
+  readonly links = computed(() => this.prefs().links ?? this.config.links);
   readonly bookmarked = computed(() => {
     const url = this.active()?.url;
     return !!url && this.bookmarks().some((b) => b.url === url);
@@ -177,12 +192,28 @@ export class DeckBrowser {
     );
   }
 
+  setPrefs(change: Partial<BrowserPrefs>) {
+    this.prefs.update((p) => ({ ...p, ...change }));
+  }
+
+  clearRecent() {
+    this.visited.set([]);
+  }
+
+  clearBookmarks() {
+    this.bookmarks.set([]);
+  }
+
   forget(url: string) {
     this.visited.update((all) => all.filter((v) => v.url !== url));
   }
 
   removeBookmark(url: string) {
     this.bookmarks.update((all) => all.filter((b) => b.url !== url));
+  }
+
+  loaded(id: number) {
+    this.patch(id, { loading: false });
   }
 
   goHome() {
@@ -216,6 +247,7 @@ export class DeckBrowser {
   reload(id: number) {
     const frame = this.frame(id);
     const proxy = this.proxy();
+    this.patch(id, { loading: true });
     if (proxy && frame?.contentWindow) this.post(id, frame, { type: 'reload' });
     else this.patch(id, { rev: (this.tabs().find((t) => t.id === id)?.rev ?? 0) + 1 });
   }
@@ -239,6 +271,7 @@ export class DeckBrowser {
     this.pending.set(tab.id, url);
     const frame = this.frame(tab.id);
     if (this.proxy() && frame) {
+      this.patch(tab.id, { loading: true });
       this.post(tab.id, frame, { type: 'go', url });
       return;
     }
@@ -260,10 +293,15 @@ export class DeckBrowser {
       this.openUrl(url);
       return;
     }
+    if (message.type === 'leaving') {
+      this.patch(tab.id, { loading: true });
+      return;
+    }
     if (message.type !== 'state') return;
     const title = typeof message.title === 'string' ? message.title.trim().slice(0, 80) : '';
-    const name = title || tabTitle(url);
-    const icon = webAddress(message.icon) ?? siteIcon(url);
+    const samePage = tab.url === url;
+    const name = title || (samePage && tab.name ? tab.name : tabTitle(url));
+    const icon = webAddress(message.icon) ?? (samePage && tab.icon ? tab.icon : siteIcon(url));
     if (this.pending.get(tab.id) === url || tab.url === url) {
       this.pending.delete(tab.id);
       this.patch(tab.id, { name, icon });
@@ -286,10 +324,10 @@ export class DeckBrowser {
       const now = this.tabs().find((t) => t.id === id);
       if (now?.url !== tab.url) return;
       if (proxy) {
-        this.patch(id, { src: proxiedAddress(tab.url, proxy), framable: true });
+        this.patch(id, { src: proxiedAddress(tab.url, proxy), framable: true, loading: true });
         return;
       }
-      this.patch(id, { src: tab.url });
+      this.patch(id, { src: tab.url, loading: true });
       void this.dev
         .get<{ framable: boolean | null }>(`/frame-check?url=${encodeURIComponent(tab.url)}`)
         .then((answer) => {
@@ -335,6 +373,7 @@ export class DeckBrowser {
       index: url ? 0 : -1,
       framable: null,
       loaded: false,
+      loading: false,
       rev: 0,
     };
   }

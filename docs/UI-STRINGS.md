@@ -296,28 +296,40 @@ default; `src/app/i18n/en.ts` holds it and is the source of truth for the keys. 
 
 ### The deck browser
 
-| key                      | English                                            |
-| ------------------------ | -------------------------------------------------- |
-| `nav.browserShow`        | Show deck browser                                  |
-| `nav.browserHide`        | Hide deck browser                                  |
-| `browser.label`          | Deck browser                                       |
-| `browser.newTab`         | New tab                                            |
-| `browser.closeTab`       | Close tab                                          |
-| `browser.reload`         | Reload                                             |
-| `browser.address`        | Address                                            |
-| `browser.openWindow`     | Open in window                                     |
-| `browser.hide`           | Back to the slides                                 |
-| `browser.refused`        | {site} does not allow being shown inside the deck. |
-| `browser.maybeBlank`     | Blank? Some sites refuse to be shown here.         |
-| `presenter.browserOpen`  | Deck browser: {site}                               |
-| `browser.back`           | Back                                               |
-| `browser.forward`        | Forward                                            |
-| `browser.searchHint`     | Search or type an address                          |
-| `browser.start`          | browser (after the slide.ng name)                  |
-| `browser.bookmarkAdd`    | Bookmark this page                                 |
-| `browser.bookmarkRemove` | Remove bookmark                                    |
-| `browser.bookmarks`      | Bookmarks                                          |
-| `browser.home`           | Start page                                         |
-| `browser.removeTile`     | Remove from the start page                         |
-| `browser.shortcuts`      | Shortcuts                                          |
-| `browser.recent`         | Recent                                             |
+| key                      | English                                                  |
+| ------------------------ | -------------------------------------------------------- |
+| `nav.browserShow`        | Show deck browser                                        |
+| `nav.browserHide`        | Hide deck browser                                        |
+| `browser.label`          | Deck browser                                             |
+| `browser.newTab`         | New tab                                                  |
+| `browser.closeTab`       | Close tab                                                |
+| `browser.reload`         | Reload                                                   |
+| `browser.address`        | Address                                                  |
+| `browser.openWindow`     | Open in window                                           |
+| `browser.hide`           | Back to the slides                                       |
+| `browser.refused`        | {site} does not allow being shown inside the deck.       |
+| `browser.maybeBlank`     | Blank? Some sites refuse to be shown here.               |
+| `presenter.browserOpen`  | Deck browser: {site}                                     |
+| `browser.back`           | Back                                                     |
+| `browser.forward`        | Forward                                                  |
+| `browser.searchHint`     | Search or type an address                                |
+| `browser.start`          | browser (after the slide.ng name)                        |
+| `browser.bookmarkAdd`    | Bookmark this page                                       |
+| `browser.bookmarkRemove` | Remove bookmark                                          |
+| `browser.bookmarks`      | Bookmarks                                                |
+| `browser.home`           | Start page                                               |
+| `browser.removeTile`     | Remove from the start page                               |
+| `browser.shortcuts`      | Shortcuts                                                |
+| `browser.recent`         | Recent                                                   |
+| `browser.settings`       | Browser settings                                         |
+| `browser.searchEngine`   | Search engine                                            |
+| `browser.customSearch`   | Your own: https://…?q=%s                                 |
+| `browser.deckDefault`    | Use the deck default                                     |
+| `browser.openLinks`      | Open slide links here                                    |
+| `browser.showBookmarks`  | Show the bookmarks bar                                   |
+| `browser.clearRecent`    | Clear recent pages                                       |
+| `browser.clearBookmarks` | Remove all bookmarks                                     |
+| `browser.noBookmarks`    | No bookmarks yet: the star in the toolbar adds the page. |
+| `browser.slides`         | Slides                                                   |
+| `browser.customEngine`   | Custom                                                   |
+| `browser.data`           | Data                                                     |

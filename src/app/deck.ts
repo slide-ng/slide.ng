@@ -166,7 +166,7 @@ export class Deck {
     document.getElementById(decodeURIComponent(id))?.scrollIntoView({ block: 'nearest' });
   }
   private openInBrowser(e: MouseEvent) {
-    if (!this.browser.config.links || e.defaultPrevented || e.button !== 0) return false;
+    if (!this.browser.links() || e.defaultPrevented || e.button !== 0) return false;
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return false;
     const target = e.target as Element | null;
     const link = target?.closest?.('app-slide-show a[href]') as HTMLAnchorElement | null;
