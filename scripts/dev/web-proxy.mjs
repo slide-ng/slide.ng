@@ -131,11 +131,16 @@ const DROP_REQUEST = new Set([
   'trailer',
 ]);
 
+// The proxied page sits in a frame on its own `*.localhost` origin, which the browser counts as another site than the deck, so a
+// `SameSite=Lax` (or default) cookie would be refused and a sign-in would never stick. `None; Secure` lets the frame keep it.
 export function cookieForProxy(setCookie) {
-  return setCookie
-    .split(';')
-    .filter((part) => !/^\s*domain\s*=/i.test(part))
-    .join(';');
+  return [
+    ...setCookie
+      .split(';')
+      .filter((part) => !/^\s*(domain|samesite)\s*=/i.test(part) && !/^\s*secure\s*$/i.test(part)),
+    ' SameSite=None',
+    ' Secure',
+  ].join(';');
 }
 
 export function responseHeaders(upstream, { key, port, target }) {

@@ -93,8 +93,18 @@ describe('rewriteCss', () => {
 describe('cookieForProxy', () => {
   it('drops the Domain, so the cookie stays on the proxied site', () => {
     expect(cookieForProxy('sid=1; Domain=.github.com; Path=/; Secure; HttpOnly')).toBe(
-      'sid=1; Path=/; Secure; HttpOnly',
+      'sid=1; Path=/; HttpOnly; SameSite=None; Secure',
     );
+  });
+
+  it('lets the frame keep the cookie: SameSite=None; Secure, whatever the site sent', () => {
+    expect(cookieForProxy('sid=1; Path=/; SameSite=Lax')).toBe(
+      'sid=1; Path=/; SameSite=None; Secure',
+    );
+    expect(cookieForProxy('sid=1; samesite=strict; HttpOnly')).toBe(
+      'sid=1; HttpOnly; SameSite=None; Secure',
+    );
+    expect(cookieForProxy('sid=1')).toBe('sid=1; SameSite=None; Secure');
   });
 });
 

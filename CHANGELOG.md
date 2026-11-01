@@ -4,6 +4,10 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+### Fixed
+
+- Through the dev proxy, a sign-in that set a `SameSite=Lax` cookie (the default) never stayed signed in: the shown page sits on its own `*.localhost` origin, which the browser counts as another site than the deck, so it refused the cookie. The proxy now sends every cookie as `SameSite=None; Secure`. Tried in Chrome on a local test site only.
+
 ## [3.3.0] - 2026-11-01
 
 ### Changed

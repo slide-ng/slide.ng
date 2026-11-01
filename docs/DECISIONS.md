@@ -547,7 +547,8 @@ Source: an independent review of the repository (nine findings). Each fix has a 
    with a random key, drops the framing headers, and adds a small script that tells the deck the page's real address and title and
    keeps links inside the deck browser. Back and forward are the deck's own list of what a tab showed, not the frame's history, so
    they work the same with and without the proxy. Some sites still break through a proxy (sign-ins, apps that check where they run);
-   they keep **Open in window**. A built deck has no server: there the frames load directly, with a header check when the dev
+   they keep **Open in window**. The proxy sends cookies on as `SameSite=None; Secure`, because the shown page sits on another
+   site than the deck and the browser would refuse a `Lax` one. A built deck has no server: there the frames load directly, with a header check when the dev
    server runs and the popup for sites that refuse.
 
 5. **`@iconify-json/meteocons` draws the deck browser's weather** (MIT, by Bas Milius). Colour weather icons with day and night
