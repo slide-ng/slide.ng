@@ -157,6 +157,8 @@ Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'
 
 Add what the slides themselves load from elsewhere: `img-src https:` for remote pictures (or `remoteAssets: true`), `frame-src` for
 `<slide-ng-youtube>` and other iframes, `font-src` and `style-src` for a web font provider (or `fonts.selfHost`).
+The deck browser needs `frame-src` for the sites it shows (or `browser: false`), and its weather card, if a viewer turns it on,
+`connect-src https://api.open-meteo.com https://geocoding-api.open-meteo.com https://nominatim.openstreetmap.org`.
 Only `slide-ng build` moves the scripts (not `--offline`, which is opened from disk); `npm run build` in this repository is the plain Angular build and keeps them inline.
 Trusted Types (`require-trusted-types-for 'script'`) are not supported: with them Mermaid diagrams are not drawn and the error overlay
 does not open. Leave that directive out of the policy. `default-src 'none'` instead of `'self'` works, with the sources above listed.
