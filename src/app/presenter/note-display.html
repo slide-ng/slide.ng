@@ -1,0 +1,15 @@
+@if (html()) {
+  <div
+    #note
+    class="slidev-note prose dark:prose-invert overflow-auto outline-none"
+    [class.slidev-note-with-clicks]="withClicks()"
+    [innerHTML]="trusted()"
+    (click)="follow($event)"
+  ></div>
+} @else {
+  <div
+    class="slidev-note prose dark:prose-invert overflow-auto outline-none opacity-75 italic select-none"
+  >
+    <p>{{ placeholder() }}</p>
+  </div>
+}

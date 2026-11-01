@@ -66,76 +66,7 @@ import { Overview } from './ui/overview';
       'size.set({ w: $any($event.target).innerWidth, h: $any($event.target).innerHeight })',
     '(click)': 'anchor($event)',
   },
-  template: `
-    <main
-      class="stage"
-      [style.right.px]="editor.open() && editor.available() ? editor.width : 0"
-      [class.slidev-nav-go-forward]="nav.direction() > 0"
-      [class.slidev-nav-go-backward]="nav.direction() < 0"
-      (contextmenu)="contextMenu($event)"
-      (touchstart)="swipeStart($event)"
-      (touchmove)="swipeMove($event)"
-      (touchend)="swipeEnd()"
-      (touchcancel)="swipeCancel()"
-    >
-      <app-slide-show context="slide"
-        ><app-drawing-layer /><app-drag-controls /><app-presenter-cursor
-      /></app-slide-show>
-      <div
-        #barBox
-        class="nav-bar-box absolute p-2 transition-opacity duration-300 opacity-0 hover:opacity-100 focus-within:opacity-100"
-        [class.top-0]="bar().edge === 'top'"
-        [class.bottom-0]="bar().edge === 'bottom'"
-        [class.start-0]="bar().side === 'start'"
-        [class.end-0]="bar().side === 'end'"
-        [class.inset-x-0]="bar().side === 'center'"
-        [class.mx-auto]="bar().side === 'center'"
-        [class.w-fit]="bar().side === 'center'"
-        [style.opacity]="portrait() || barShown() || ui.barPeek() || ui.barDrag() ? 1 : null"
-        [style.transition]="ui.barDrag() ? 'none' : null"
-        [style.transform]="barOffset()"
-        [class.z-nav]="!!ui.barDrag()"
-        [class.nav-bar-dragging]="!!ui.barDrag()"
-        (touchstart)="revealBar($event)"
-      >
-        <app-nav-bar [menusBelow]="bar().edge === 'top'" />
-      </div>
-      @if (ui.barDrag(); as drag) {
-        <div
-          id="nav-drop-targets"
-          class="absolute inset-0 grid grid-cols-3 grid-rows-2 gap-3 p-3 pointer-events-none z-menu"
-        >
-          @for (place of dropTargets; track place; let i = $index) {
-            <div
-              [style.animation-delay.ms]="i * 25"
-              class="nav-drop-target rounded-lg border-2 border-dashed border-current op30"
-              [class.nav-drop-target-over]="drag.over === place"
-              [class.op80]="drag.over === place"
-              [style.background]="
-                drag.over === place ? 'color-mix(in srgb, currentColor 12%, transparent)' : null
-              "
-              [attr.data-place]="place"
-            ></div>
-          }
-        </div>
-      }
-      <app-offline-badge />
-    </main>
-    <app-drawing-controls />
-    <app-web-camera />
-    <app-side-editor />
-    <app-overview />
-    <app-goto />
-    <app-info-dialog />
-    <app-context-menu />
-    <app-problem-banner />
-    <app-deck-browser />
-    <div id="hud" aria-hidden="true">
-      slide {{ nav.no() }}/{{ nav.total }} clicks {{ nav.clicks() }}/{{ nav.clicksTotal() }}
-    </div>
-    <!-- Screen readers hear the new slide's number and title (not every click) -->
-    <div class="sr-only" aria-live="polite" aria-atomic="true">{{ announcement() }}</div>
-  `,
+  templateUrl: './deck.html',
 })
 export class Deck {
   protected nav = inject(Nav);

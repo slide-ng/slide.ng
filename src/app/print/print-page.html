@@ -1,0 +1,5 @@
+<div id="print-content" [attr.data-slide-ng-print]="ready() ? 'ready' : 'loading'">
+  @for (no of pages; track no) {
+    <app-print-slide [no]="no" [withClicks]="withClicks" />
+  }
+</div>

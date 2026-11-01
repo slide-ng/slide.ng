@@ -4,6 +4,6 @@ import { Component } from '@angular/core';
 @Component({
   selector: 'sn-default',
   host: { class: 'slidev-layout default' },
-  template: '<ng-content />',
+  templateUrl: './default.html',
 })
 export class DefaultLayout {}

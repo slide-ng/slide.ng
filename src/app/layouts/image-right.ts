@@ -5,10 +5,7 @@ import { background } from './background';
 @Component({
   selector: 'sn-image-right',
   host: { class: 'grid grid-cols-2 w-full h-full auto-rows-fr' },
-  template: `
-    <div class="slidev-layout default" [class]="contentClass()"><ng-content /></div>
-    <div class="w-full h-full" [style]="style()"></div>
-  `,
+  templateUrl: './image-right.html',
 })
 export class ImageRightLayout {
   image = input('');

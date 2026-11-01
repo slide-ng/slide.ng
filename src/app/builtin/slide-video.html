@@ -1,0 +1,9 @@
+<video
+  #video
+  [attr.poster]="canPlay ? poster() : (printPoster() ?? poster())"
+  [controls]="controls() && canPlay"
+  (play)="played = true"
+  (loadedmetadata)="onLoadedMetadata()"
+>
+  <ng-content />
+</video>

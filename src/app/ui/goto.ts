@@ -36,63 +36,7 @@ export function foldForSearch(text: string, lang?: string): string {
 @Component({
   selector: 'app-goto',
   imports: [T],
-  template: `
-    <div
-      id="slidev-goto-dialog"
-      role="dialog"
-      [attr.aria-label]="'goto.label' | t"
-      class="fixed end-5 transition-all w-90 max-w-[calc(100vw-2.5rem)] z-modal text-main"
-      [class]="ui.goto() ? 'top-5' : '-top-20 op0 pointer-events-none'"
-      [attr.aria-hidden]="ui.goto() ? null : 'true'"
-    >
-      <div class="bg-main shadow px-4 py-2 rounded border border-transparent dark:border-gray/20">
-        <input
-          #input
-          id="slidev-goto-input"
-          type="text"
-          class="outline-none bg-transparent w-full"
-          [placeholder]="'goto.placeholder' | t"
-          [attr.aria-label]="'goto.label' | t"
-          role="combobox"
-          aria-autocomplete="list"
-          aria-controls="goto-results"
-          [attr.aria-expanded]="ui.goto() && results().length > 0"
-          [attr.aria-activedescendant]="results().length ? 'goto-result-' + selected() : null"
-          [class.text-red-400]="text() && !results().length"
-          [disabled]="!ui.goto()"
-          [value]="text()"
-          (input)="type($event)"
-          (keydown.enter)="!$any($event).isComposing && go()"
-          (keydown.escape)="!$any($event).isComposing && close()"
-          (keydown.arrowdown)="move($event, 1)"
-          (keydown.arrowup)="move($event, -1)"
-        />
-      </div>
-      @if (ui.goto() && results().length) {
-        <ul
-          id="goto-results"
-          role="listbox"
-          [attr.aria-label]="'goto.results' | t"
-          class="bg-main shadow mt-1 rounded border border-transparent dark:border-gray/20 overflow-auto max-h-80"
-        >
-          @for (r of results(); track r.no; let i = $index) {
-            <li
-              role="option"
-              [id]="'goto-result-' + i"
-              [attr.aria-selected]="i === selected()"
-              class="flex gap-3 px-4 py-2 cursor-pointer hover:op100"
-              [class]="i === selected() ? 'bg-active op100' : 'op80'"
-              (click)="open(r.no)"
-            >
-              <!-- The space keeps the number and the title apart in the option's text (the gap is only drawn). -->
-              <span class="opacity-80 text-sm w-6 text-end">{{ r.no }}</span
-              >{{ ' ' }}<span>{{ r.title }}</span>
-            </li>
-          }
-        </ul>
-      }
-    </div>
-  `,
+  templateUrl: './goto.html',
 })
 export class Goto {
   protected ui = inject(Ui);

@@ -13,7 +13,7 @@ import { Component, input } from '@angular/core';
     '[attr.disabled]': 'disabled() ? "" : null',
     '[attr.title]': 'label()',
   },
-  template: '<span class="sr-only">{{ label() }}</span><ng-content />',
+  templateUrl: './icon-btn.html',
 })
 export class IconBtn {
   label = input.required<string>({ alias: 'title' });

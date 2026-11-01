@@ -6,6 +6,6 @@ import { SlideNgDrag } from './slide-ng-drag';
   selector: 'slide-ng-drag',
   hostDirectives: [{ directive: SlideNgDrag, inputs: ['slide-ng-drag: pos', 'drag-site'] }],
   host: { style: 'display: block' },
-  template: '<ng-content />',
+  templateUrl: './slide-ng-drag-box.html',
 })
 export class SlideNgDragBox {}

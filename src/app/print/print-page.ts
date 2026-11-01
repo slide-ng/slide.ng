@@ -19,13 +19,7 @@ import { SyncState } from '../sync/sync-state';
   selector: 'app-print-page',
   imports: [PrintSlide],
   providers: [Nav, Ui],
-  template: `
-    <div id="print-content" [attr.data-slide-ng-print]="ready() ? 'ready' : 'loading'">
-      @for (no of pages; track no) {
-        <app-print-slide [no]="no" [withClicks]="withClicks" />
-      }
-    </div>
-  `,
+  templateUrl: './print-page.html',
 })
 export class PrintPage {
   private query = inject(ActivatedRoute).snapshot.queryParamMap;

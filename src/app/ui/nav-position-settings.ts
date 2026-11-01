@@ -35,59 +35,7 @@ const LABELS: Record<NavPositionName, [UiTextKey, UiTextKey]> = {
 @Component({
   selector: 'app-nav-position-settings',
   imports: [T],
-  template: `
-    <div class="slidev-form-item">
-      <span id="nav-position-title" class="slidev-form-title" (dblclick)="choose(null)">
-        {{ 'settings.navPosition' | t }}
-        @if (prefs.navPosition() !== null) {
-          <i class="slidev-form-dot"></i>
-        }
-      </span>
-      <div class="flex gap-2 items-center">
-        <div
-          id="nav-position"
-          role="radiogroup"
-          aria-labelledby="nav-position-title"
-          class="grid grid-cols-3 gap-0.5 p-0.5 rounded border border-main"
-          (keydown)="key($event)"
-        >
-          @for (c of cells; track c.value) {
-            <button
-              type="button"
-              role="radio"
-              class="nav-position-option flex w-7 h-5 p-0.5 rounded cursor-pointer hover:bg-gray-400/10"
-              [class.items-start]="c.edge === 'top'"
-              [class.items-end]="c.edge === 'bottom'"
-              [class.justify-start]="c.side === 'start'"
-              [class.justify-center]="c.side === 'center'"
-              [class.justify-end]="c.side === 'end'"
-              [attr.data-nav-position]="c.value"
-              [attr.aria-checked]="current() === c.value"
-              [attr.tabindex]="current() === c.value ? 0 : -1"
-              [attr.aria-label]="c.label | t"
-              [title]="c.label | t"
-              (click)="choose(c.value)"
-            >
-              <div
-                class="w-3 h-1 rounded-sm"
-                [class]="current() === c.value ? 'bg-primary' : 'bg-current op25'"
-              ></div>
-            </button>
-          }
-        </div>
-        <button
-          type="button"
-          id="nav-position-default"
-          class="px-2 py-1 text-xs whitespace-nowrap rounded cursor-pointer hover:bg-gray-400/10"
-          [class.op65]="prefs.navPosition() !== null"
-          [attr.aria-pressed]="prefs.navPosition() === null"
-          (click)="choose(null)"
-        >
-          {{ 'settings.navPositionDefault' | t }}
-        </button>
-      </div>
-    </div>
-  `,
+  templateUrl: './nav-position-settings.html',
 })
 export class NavPositionSettings {
   protected prefs = inject(ViewPrefs);

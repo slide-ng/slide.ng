@@ -4,6 +4,6 @@ import { Component } from '@angular/core';
 @Component({
   selector: 'sn-center',
   host: { class: 'slidev-layout center h-full grid place-content-center' },
-  template: '<div class="my-auto"><ng-content /></div>',
+  templateUrl: './center.html',
 })
 export class CenterLayout {}

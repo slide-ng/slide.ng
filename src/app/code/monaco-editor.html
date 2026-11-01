@@ -1,0 +1,11 @@
+<div class="relative slidev-monaco-container-inner" [style.height]="height()">
+  <div #box class="absolute inset-0.5"></div>
+</div>
+@if (runnable()) {
+  <code-runner
+    [code]="code()"
+    [execute]="execute"
+    [autorun]="autorun()"
+    [showOutputAt]="showOutputAt()"
+  />
+}

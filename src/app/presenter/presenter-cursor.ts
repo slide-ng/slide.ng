@@ -15,30 +15,7 @@ import { PresenterPrefs } from './prefs';
     '(document:pointermove)': 'move($event)',
     '(document:pointerleave)': 'mouse.set(null)',
   },
-  template: `
-    @if (point(); as p) {
-      @if (p.style === 'laser') {
-        <div
-          id="laser-pointer"
-          class="laser-pointer"
-          [style.left.%]="p.x"
-          [style.top.%]="p.y"
-        ></div>
-      } @else {
-        <div
-          id="presenter-cursor"
-          class="absolute text-black dark:text-white"
-          [style.left.%]="p.x"
-          [style.top.%]="p.y"
-        >
-          <div
-            class="i-ph-cursor-fill stroke-white dark:stroke-black"
-            style="stroke-width: 16"
-          ></div>
-        </div>
-      }
-    }
-  `,
+  templateUrl: './presenter-cursor.html',
 })
 export class PresenterCursor {
   private nav = inject(Nav);

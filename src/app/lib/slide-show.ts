@@ -37,25 +37,7 @@ import { documentTitle } from './page-title';
     '(click)': 'hostTap($event)',
   },
   imports: [NgComponentOutlet, SlideLayer, DeckProgressBar],
-  template: `
-    <div
-      #canvas
-      id="slide-content"
-      class="canvas"
-      [style.width.px]="width"
-      [style.height.px]="height"
-      [style]="canvasStyle()"
-    >
-      <app-slide-layer name="global-bottom" [no]="nav.no()" />
-      <ng-container #host />
-      @if (nav.notFound()) {
-        <ng-container *ngComponentOutlet="notFound" />
-      }
-      <app-slide-layer name="global-top" [no]="nav.no()" />
-      <app-deck-progress-bar [no]="nav.no()" />
-      <ng-content />
-    </div>
-  `,
+  templateUrl: './slide-show.html',
 })
 export class SlideShow {
   /** 'slide' for the audience's page, 'presenter' for the presenter's main pane. */

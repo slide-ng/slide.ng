@@ -7,7 +7,7 @@ import { UI_TEXT, uiText } from '../i18n/ui-text';
   host: {
     class: 'block px-4 py-10 text-center text-red-700 dark:text-red-500 font-bold font-mono',
   },
-  template: '{{ message() }}',
+  templateUrl: './error.html',
 })
 export class ErrorLayout {
   message = input(uiText(inject(UI_TEXT), isDevMode() ? 'slide.errorDev' : 'slide.errorBuild'));

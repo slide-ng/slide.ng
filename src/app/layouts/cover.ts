@@ -5,7 +5,7 @@ import { background } from './background';
 @Component({
   selector: 'sn-cover',
   host: { class: 'slidev-layout cover', '[style]': 'style()' },
-  template: '<div class="my-auto w-full"><ng-content /></div>',
+  templateUrl: './cover.html',
 })
 export class CoverLayout {
   background = input('');

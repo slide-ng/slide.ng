@@ -7,7 +7,7 @@ import { SLIDE_NO } from '../lib/slide-context';
 // Without `no`, it draws the title of the slide it is on. (Slidev's <TitleRenderer />.)
 @Component({
   selector: 'slide-ng-title-renderer',
-  template: `<span [innerHTML]="html()"></span>`,
+  templateUrl: './slide-title-renderer.html',
 })
 export class SlideTitleRenderer {
   no = input<string | number | undefined>(undefined);

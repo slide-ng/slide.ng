@@ -39,21 +39,7 @@ const OPTIONS = readProgressBar(HEADMATTER['progressBar']);
   selector: 'app-deck-progress-bar',
   imports: [SlideProgressBar],
   host: { style: 'display: contents' },
-  template: `
-    @if (options; as o) {
-      <slide-ng-progress-bar
-        class="deck-progress-bar"
-        [no]="no()"
-        [at]="at()"
-        [position]="o.position"
-        [height]="o.height"
-        [color]="o.color"
-        [track]="o.track"
-        [clicks]="o.clicks"
-        [minutes]="o.minutes"
-      />
-    }
-  `,
+  templateUrl: './deck-progress-bar.html',
 })
 export class DeckProgressBar {
   /** The slide drawn under the bar. */

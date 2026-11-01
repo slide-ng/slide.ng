@@ -20,17 +20,7 @@ import { SlideNgClick } from '../lib/slide-ng-click';
 
 @Component({
   selector: 'slide-ng-video',
-  template: `
-    <video
-      #video
-      [attr.poster]="canPlay ? poster() : (printPoster() ?? poster())"
-      [controls]="controls() && canPlay"
-      (play)="played = true"
-      (loadedmetadata)="onLoadedMetadata()"
-    >
-      <ng-content />
-    </video>
-  `,
+  templateUrl: './slide-video.html',
   host: { style: 'display: inline-block' },
   // A class or size on the element (Slidev's `<SlidevVideo class="h-60">`) sizes the video: it fits inside, keeping its shape.
   styles: 'video { display: block; max-width: 100%; max-height: 100%; margin: auto }',

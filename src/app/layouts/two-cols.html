@@ -1,0 +1,5 @@
+<div class="col-left" [class]="contentClass()">
+  <ng-content />
+  <ng-content select="[left]" />
+</div>
+<div class="col-right" [class]="contentClass()"><ng-content select="[right]" /></div>

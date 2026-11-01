@@ -24,28 +24,7 @@ import { T } from '../i18n/t';
   selector: 'app-next-preview',
   imports: [DrawingPreview, SlideLayer, DeckProgressBar, T],
   host: { class: 'block relative h-full w-full overflow-hidden' },
-  template: `
-    @if (frame(); as f) {
-      <!-- A picture of what comes next: screen readers and the Tab key skip it (the current slide has the same content). -->
-      <div
-        id="next-canvas"
-        class="canvas absolute left-1/2 top-1/2"
-        aria-hidden="true"
-        inert
-        [style]="style()"
-      >
-        <app-slide-layer name="global-bottom" [no]="f.no" [at]="step()" /><ng-container
-          #host
-        /><app-slide-layer name="global-top" [no]="f.no" [at]="step()" /><app-drawing-preview
-          [no]="f.no"
-        /><app-deck-progress-bar [no]="f.no" [at]="step()" />
-      </div>
-    } @else if (nav.ready()) {
-      <div class="h-full flex justify-center items-center">
-        <div class="text-gray-500">{{ 'presenter.end' | t }}</div>
-      </div>
-    }
-  `,
+  templateUrl: './next-preview.html',
 })
 export class NextPreview {
   protected nav = inject(Nav);

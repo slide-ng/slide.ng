@@ -14,9 +14,7 @@ import { printAnchor } from '../print/print-anchor';
 @Component({
   selector: 'slide-ng-link',
   // `title` is the link's text when it has none, as in Slidev's <Link to="7" title="Details" />.
-  template: `<a [href]="href()" (click)="go($event)"
-    ><ng-content>{{ title() }}</ng-content></a
-  >`,
+  templateUrl: './slide-link.html',
 })
 export class SlideLink {
   to = input.required<string | number>();

@@ -17,57 +17,7 @@ import { IconBtn } from './icon-btn';
     '(document:click)': 'closeOutside($event)',
     '(window:resize)': 'fit()',
   },
-  template: `
-    <button
-      icon-btn
-      id="nav-language"
-      [title]="'nav.language' | t"
-      [active]="open()"
-      aria-haspopup="menu"
-      [attr.aria-expanded]="open()"
-      [attr.aria-controls]="open() ? 'language-menu' : null"
-      (click)="toggle()"
-    >
-      <div class="i-carbon:translate"></div>
-    </button>
-    @if (open()) {
-      <div
-        id="language-menu"
-        role="menu"
-        [attr.aria-label]="'language.menu' | t"
-        (keydown)="menuKey($event)"
-        [class.bottom-10]="!below()"
-        [class.top-10]="below()"
-        class="bg-main text-main shadow-xl absolute start-0 z-menu py-2 border border-main rounded-md max-w-[calc(100vw-1rem)] overflow-y-auto"
-      >
-        <div
-          class="text-sm op75 px-3 py-1 select-none whitespace-nowrap font-bold"
-          aria-hidden="true"
-        >
-          {{ 'language.menu' | t }}
-        </div>
-        @for (l of languages; track l.lang) {
-          <button
-            type="button"
-            role="menuitemradio"
-            class="language-option flex w-full rounded whitespace-nowrap py-1 gap-1 px-2 text-sm cursor-default bg-transparent border-0 text-inherit hover:bg-gray-400/10"
-            [attr.data-lang]="l.lang"
-            [attr.lang]="l.lang"
-            [attr.dir]="l.dir || null"
-            [attr.aria-checked]="l.lang === current"
-            [attr.tabindex]="l.lang === current ? 0 : -1"
-            (click)="choose(l.lang)"
-          >
-            <div
-              class="i-carbon:checkmark text-green-500 my-auto"
-              [class.op0]="l.lang !== current"
-            ></div>
-            <div [class.op75]="l.lang !== current">{{ l.name }}</div>
-          </button>
-        }
-      </div>
-    }
-  `,
+  templateUrl: './language-menu.html',
 })
 export class LanguageMenu {
   /** The bar is at the top of the page (`navPosition`): the menu opens below the button. */

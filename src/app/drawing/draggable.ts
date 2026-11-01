@@ -12,7 +12,7 @@ import { scopedKey } from '../lib/deck-scope';
     '(window:pointermove)': 'move($event)',
     '(window:pointerup)': 'up()',
   },
-  template: '<ng-content />',
+  templateUrl: './draggable.html',
 })
 export class Draggable {
   initialX = input(10);

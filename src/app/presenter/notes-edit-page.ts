@@ -39,29 +39,7 @@ interface Draft {
   selector: 'app-notes-edit-page',
   imports: [RouterLink, T],
   host: { class: 'flex flex-col h-full bg-main text-main' },
-  template: `
-    <header class="flex items-center gap-4 px-6 py-3 border-b border-main">
-      <h1 class="text-lg">{{ 'notesEdit.heading' | t }}</h1>
-      <span id="notes-edit-status" class="text-sm op60" [attr.data-status]="status()">{{
-        statusText[status()] | t: { count: slideCount }
-      }}</span>
-      <div class="flex-auto"></div>
-      <a routerLink="/entry" class="text-sm op75 hover:op100">{{ 'pages.all' | t }}</a>
-    </header>
-    <main class="flex-auto flex flex-col min-h-0">
-      <textarea
-        #area
-        id="notes-edit-text"
-        class="flex-auto w-full p-6 font-mono text-sm bg-transparent outline-none resize-none"
-        style="unicode-bidi: plaintext"
-        spellcheck="false"
-        [attr.aria-label]="'notesEdit.label' | t"
-        [disabled]="(status() === 'loading' && !draft) || status() === 'offline'"
-        [value]="text()"
-        (input)="edit($any($event.target).value)"
-      ></textarea>
-    </main>
-  `,
+  templateUrl: './notes-edit-page.html',
 })
 export class NotesEditPage {
   private store = inject(NoteStore);

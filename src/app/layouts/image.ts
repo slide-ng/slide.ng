@@ -5,7 +5,7 @@ import { background } from './background';
 @Component({
   selector: 'sn-image',
   host: { class: 'slidev-layout w-full h-full', '[style]': 'style()' },
-  template: '<ng-content />',
+  templateUrl: './image.html',
 })
 export class ImageLayout {
   image = input('');

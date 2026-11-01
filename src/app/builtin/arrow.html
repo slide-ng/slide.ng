@@ -1,0 +1,38 @@
+<svg [attr.width]="Math.max(+x1(), +x2()) + 50" [attr.height]="Math.max(+y1(), +y2()) + 50">
+  <defs>
+    <marker
+      [id]="id"
+      markerWidth="10"
+      refX="9"
+      markerUnits="strokeWidth"
+      markerHeight="7"
+      refY="3.5"
+      orient="auto"
+    >
+      <polygon points="0 0, 10 3.5, 0 7" [attr.fill]="color() || 'currentColor'" />
+    </marker>
+    @if (twoWay()) {
+      <marker
+        [id]="id + '-rev'"
+        markerWidth="20"
+        refX="11"
+        markerUnits="strokeWidth"
+        markerHeight="7"
+        refY="3.5"
+        orient="auto"
+      >
+        <polygon points="20 0, 10 3.5, 20 7" [attr.fill]="color() || 'currentColor'" />
+      </marker>
+    }
+  </defs>
+  <line
+    [attr.x1]="x1()"
+    [attr.y1]="y1()"
+    [attr.x2]="x2()"
+    [attr.y2]="y2()"
+    [attr.stroke]="color() || 'currentColor'"
+    [attr.stroke-width]="width() || 2"
+    [attr.marker-end]="'url(#' + id + ')'"
+    [attr.marker-start]="twoWay() ? 'url(#' + id + '-rev)' : 'none'"
+  />
+</svg>

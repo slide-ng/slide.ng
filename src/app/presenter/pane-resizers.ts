@@ -22,52 +22,7 @@ interface Drag {
   selector: 'app-pane-resizers',
   imports: [T],
   host: { class: 'contents' },
-  template: `
-    @if (handles(); as h) {
-      @if (h.width) {
-        <div
-          id="pane-resize-width"
-          class="pane-resizer pane-resizer-col"
-          role="separator"
-          aria-orientation="vertical"
-          [title]="'presenter.resizeNotes' | t"
-          tabindex="0"
-          [attr.aria-valuenow]="size().width"
-          [attr.aria-valuemin]="limits().width[0]"
-          [attr.aria-valuemax]="limits().width[1]"
-          (keydown)="key($event, 'width')"
-          [style.left.px]="h.width.x"
-          [style.top.px]="h.width.top"
-          [style.height.px]="h.width.length"
-          (pointerdown)="start($event, 'width')"
-          (pointermove)="move($event)"
-          (pointerup)="stop()"
-          (pointercancel)="stop()"
-        ></div>
-      }
-      @if (h.rows) {
-        <div
-          id="pane-resize-rows"
-          class="pane-resizer pane-resizer-row"
-          role="separator"
-          aria-orientation="horizontal"
-          [title]="'presenter.resizeNotesHeight' | t"
-          tabindex="0"
-          [attr.aria-valuenow]="size().rows"
-          [attr.aria-valuemin]="limits().rows[0]"
-          [attr.aria-valuemax]="limits().rows[1]"
-          (keydown)="key($event, 'rows')"
-          [style.top.px]="h.rows.y"
-          [style.left.px]="h.rows.left"
-          [style.width.px]="h.rows.length"
-          (pointerdown)="start($event, 'rows')"
-          (pointermove)="move($event)"
-          (pointerup)="stop()"
-          (pointercancel)="stop()"
-        ></div>
-      }
-    }
-  `,
+  templateUrl: './pane-resizers.html',
 })
 export class PaneResizers {
   grid = input.required<HTMLElement>();

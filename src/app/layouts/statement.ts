@@ -4,6 +4,6 @@ import { Component } from '@angular/core';
 @Component({
   selector: 'sn-statement',
   host: { class: 'slidev-layout statement' },
-  template: '<div class="my-auto"><ng-content /></div>',
+  templateUrl: './statement.html',
 })
 export class StatementLayout {}

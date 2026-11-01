@@ -18,13 +18,7 @@ import { RENDER_CONTEXT } from '../lib/slide-context';
 //   <slide-ng-render-when context="slide">only on the real slide<div fallback>thumbnail</div></slide-ng-render-when>
 @Component({
   selector: 'slide-ng-render-when',
-  template: `
-    @if (show()) {
-      <ng-content />
-    } @else {
-      <ng-content select="[fallback]" />
-    }
-  `,
+  templateUrl: './render-when.html',
   host: { '[style.display]': 'watchesVisibility() ? "block" : null' },
 })
 export class RenderWhen {

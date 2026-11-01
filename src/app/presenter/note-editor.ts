@@ -27,29 +27,7 @@ const SAVE_DELAY = 500; // Slidev's NoteEditable waits as long
   selector: 'app-note-editor',
   imports: [T],
   host: { class: 'flex flex-col h-full', '(document:pointerdown)': 'outside($event)' },
-  template: `
-    <textarea
-      #area
-      id="note-editor"
-      [attr.aria-label]="'noteEditor.label' | t"
-      class="slidev-note prose dark:prose-invert flex-auto w-full resize-none overflow-auto outline-none bg-transparent block border-2 border-primary placeholder:op25"
-      [class.italic]="!text()"
-      [placeholder]="'presenter.noNotes' | t: { no: no() }"
-      [value]="text()"
-      [disabled]="status() === 'loading' || !loaded()"
-      (input)="edit($any($event.target).value)"
-      (keydown)="keydown($event)"
-      (keyup)="remember()"
-      (click)="remember()"
-    ></textarea>
-    <div
-      id="note-editor-status"
-      class="text-xs op60 px-2"
-      [class.color-red-500]="status() === 'error' || status() === 'conflict'"
-    >
-      {{ label() | t }}
-    </div>
-  `,
+  templateUrl: './note-editor.html',
 })
 export class NoteEditor {
   no = input.required<number>();

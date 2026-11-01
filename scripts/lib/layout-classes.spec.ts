@@ -35,6 +35,8 @@ const tokens = (text: string) =>
     .sort();
 const source = (name: string) =>
   readFileSync(join(process.cwd(), 'src/app/layouts', `${name}.ts`), 'utf8');
+const template = (name: string) =>
+  readFileSync(join(process.cwd(), 'src/app/layouts', `${name}.html`), 'utf8');
 
 describe('layouts against Slidev', () => {
   it('lists all 21 layouts', () => expect(Object.keys(SLIDEV)).toHaveLength(21));
@@ -46,7 +48,7 @@ describe('layouts against Slidev', () => {
     });
     if (expected.inner) {
       it(`${name}: the box inside has Slidev's classes`, () => {
-        const inner = /template:\s*'<div class="([^"]*)">/.exec(source(name));
+        const inner = /^<div class="([^"]*)">/.exec(template(name));
         expect(tokens(inner?.[1] ?? '')).toEqual(tokens(expected.inner!));
       });
     }
@@ -54,7 +56,7 @@ describe('layouts against Slidev', () => {
 
   it('the content boxes of the image and iframe layouts are the default layout', () => {
     for (const name of ['image-left', 'image-right', 'iframe-left', 'iframe-right'])
-      expect(source(name)).toContain('class="slidev-layout default"');
+      expect(template(name)).toContain('class="slidev-layout default"');
   });
 });
 

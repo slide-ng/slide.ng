@@ -1,0 +1,14 @@
+<div
+  class="slide-ng-progress-fill transition-all duration-300"
+  [style.width.%]="percent()"
+  [style.height.%]="100"
+  [style.background]="color() || 'var(--slidev-theme-primary)'"
+></div>
+@if (minutesText(); as text) {
+  <span
+    class="slide-ng-progress-minutes absolute end-2 text-xs op75"
+    [style.top]="position() === 'top' ? '100%' : null"
+    [style.bottom]="position() === 'top' ? null : '100%'"
+    ><bdi>{{ text }}</bdi></span
+  >
+}

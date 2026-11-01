@@ -60,7 +60,7 @@ export function parseSlots(items: { el: Element; at: string }[]): Slot[] {
 
 @Component({
   selector: 'slide-ng-switch',
-  template: '<ng-content />',
+  templateUrl: './slide-ng-switch.html',
   host: { style: 'display: block' },
 })
 export class SlideNgSwitch implements OnInit, OnDestroy {

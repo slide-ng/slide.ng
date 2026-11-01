@@ -1,0 +1,4 @@
+<app-print-frame [no]="no()" [at]="withClicks() ? 0 : maxClick" [anchor]="true" />
+@for (click of steps(); track click) {
+  <app-print-frame [no]="no()" [at]="click" />
+}

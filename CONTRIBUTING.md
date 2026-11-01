@@ -51,7 +51,7 @@ Small files, plain comments, few dependencies. The rules are in [docs/contributi
 
 **A layout.**
 
-1. Write the component in `src/app/layouts/<name>.ts` (copy `center.ts`; the selector is `sn-<name>`) and export it from `layouts/index.ts`.
+1. Write the component in `src/app/layouts/<name>.ts` with its template in `<name>.html` (copy `center.ts` and `center.html`; the selector is `sn-<name>`) and export it from `layouts/index.ts`.
 2. Add one line to `LAYOUTS` in `scripts/lib/layouts.mjs`: the class name, the frontmatter props it takes and its slots.
 3. Put its styles in `src/styles/layouts.css`.
 4. Add a unit test, a slide in a browser suite under `tests/e2e`, and a row in `docs/PARITY.md` or `docs/SYNTAX.md`.

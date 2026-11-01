@@ -7,18 +7,7 @@ import { youtubeEmbedSrc } from './youtube-src';
 @Component({
   selector: 'slide-ng-youtube',
   host: { style: 'display: inline-block' },
-  template: `
-    <iframe
-      class="youtube"
-      [attr.width]="width()"
-      [attr.height]="height()"
-      [src]="src()"
-      title="YouTube"
-      frameborder="0"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-      allowfullscreen
-    ></iframe>
-  `,
+  templateUrl: './youtube.html',
 })
 export class Youtube {
   id = input.required<string>();

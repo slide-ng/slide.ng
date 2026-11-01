@@ -17,7 +17,7 @@ import { stateOf } from './slide-ng-click';
 
 @Component({
   selector: 'slide-ng-clicks',
-  template: '<ng-content />',
+  templateUrl: './slide-ng-clicks.html',
   host: { style: 'display: contents' },
 })
 export class SlideNgClicks implements OnInit, OnDestroy {

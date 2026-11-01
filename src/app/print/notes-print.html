@@ -1,0 +1,18 @@
+<main id="notes-print" data-slide-ng-print="ready" class="p-4 min-h-screen bg-main text-main">
+  <div class="mb-10">
+    <h1 class="text-4xl font-bold mt-2">{{ title }}</h1>
+    <div class="opacity-75">{{ date }}</div>
+  </div>
+  @for (slide of withNotes; track slide.no; let last = $last) {
+    <div class="flex flex-col gap-4 break-inside-avoid-page">
+      <h2 class="text-lg font-bold flex gap-2">
+        <span class="opacity-75">{{ slide.no }}/{{ total }}</span
+        >{{ slide.title }}
+      </h2>
+      <app-note-display [html]="slide.html" />
+      @if (!last) {
+        <hr class="border-main mb-8" />
+      }
+    </div>
+  }
+</main>

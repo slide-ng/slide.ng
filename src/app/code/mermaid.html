@@ -1,0 +1,5 @@
+@if (error()) {
+  <pre class="mermaid-error border border-red-500 rounded p-3 text-wrap">{{ error() }}</pre>
+} @else {
+  <div #box class="mermaid"></div>
+}

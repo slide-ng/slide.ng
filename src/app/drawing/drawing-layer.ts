@@ -16,16 +16,7 @@ import { Drawings } from './drawings';
   selector: 'app-drawing-layer',
   // The host must let clicks through to the slide; only the <svg> catches them, and only while drawing is on.
   host: { class: 'block pointer-events-none' },
-  template: `@if (drawings.available) {
-    <svg
-      #svg
-      id="drawing-layer"
-      aria-hidden="true"
-      class="w-full h-full absolute top-0"
-      [class.pointer-events-auto]="drawings.enabled()"
-      [class.touch-none]="drawings.enabled()"
-    ></svg>
-  }`,
+  templateUrl: './drawing-layer.html',
 })
 export class DrawingLayer implements OnDestroy {
   protected drawings = inject(Drawings);

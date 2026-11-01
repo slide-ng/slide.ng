@@ -4,21 +4,7 @@ import { Component, computed, input } from '@angular/core';
 // one cell per slide, the current one filled by how far through its clicks we are.
 @Component({
   selector: 'app-progress-bar',
-  template: `
-    <div class="relative flex gap-px">
-      @for (i of cells(); track i) {
-        <div
-          class="border-x border-b border-main h-4px transition-all"
-          [style.width.%]="100 / cells().length"
-          [class]="i < current() ? 'bg-primary border-primary' : ''"
-        >
-          @if (i === current()) {
-            <div class="h-full bg-primary op75 transition-all" [style.width.%]="fill()"></div>
-          }
-        </div>
-      }
-    </div>
-  `,
+  templateUrl: './progress-bar.html',
 })
 export class ProgressBar {
   current = input.required<number>();

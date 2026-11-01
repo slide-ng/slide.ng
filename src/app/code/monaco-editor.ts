@@ -40,19 +40,7 @@ const toAutorun = (v: unknown): boolean | 'once' =>
     class: 'relative slidev-monaco-container block',
     '[attr.data-slide-ng-waitfor]': 'loaded() ? null : ".monaco-editor"',
   },
-  template: `
-    <div class="relative slidev-monaco-container-inner" [style.height]="height()">
-      <div #box class="absolute inset-0.5"></div>
-    </div>
-    @if (runnable()) {
-      <code-runner
-        [code]="code()"
-        [execute]="execute"
-        [autorun]="autorun()"
-        [showOutputAt]="showOutputAt()"
-      />
-    }
-  `,
+  templateUrl: './monaco-editor.html',
 })
 export class MonacoEditor {
   lang = input('typescript');

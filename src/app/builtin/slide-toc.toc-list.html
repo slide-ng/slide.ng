@@ -1,0 +1,30 @@
+@if (list().length) {
+  <ol
+    [class]="classes()"
+    [attr.start]="level() === 1 ? start() : null"
+    [style.list-style]="style()"
+  >
+    @for (item of list(); track item.no) {
+      <li
+        class="slidev-toc-item"
+        [class.slidev-toc-item-active]="item.active"
+        [class.slidev-toc-item-parent-active]="item.activeParent"
+      >
+        <slide-ng-link [to]="item.path">
+          @if (item.titleHtml) {
+            <span [innerHTML]="trusted(item.titleHtml)"></span>
+          } @else {
+            {{ item.title }}
+          }
+        </slide-ng-link>
+        <app-toc-list
+          [list]="item.children"
+          [level]="level() + 1"
+          [start]="start()"
+          [listClass]="listClass()"
+          [listStyle]="listStyle()"
+        />
+      </li>
+    }
+  </ol>
+}

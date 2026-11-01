@@ -24,12 +24,7 @@ import { mountSlide } from '../lib/mount-slide';
     '[style.width.px]': 'width()',
     '[style.height.px]': 'height()',
   },
-  template: `<div
-    class="bg-main text-main absolute top-0 left-0 overflow-hidden origin-top-left"
-    [style]="style()"
-  >
-    <ng-container #host /><app-drawing-preview [no]="no()" />
-  </div>`,
+  templateUrl: './thumbnail.html',
 })
 export class Thumbnail {
   no = input.required<number>();
