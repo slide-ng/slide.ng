@@ -4,6 +4,15 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+### Added
+
+- Brave Search is in the deck browser's list of search engines, next to DuckDuckGo, Bing and Wikipedia.
+
+### Fixed
+
+- Through `docs/browser-proxy/`, clicking a link inside a shown page gave a blank frame: a sandboxed page sends no `Referer`, so the proxy's deck check refused it. Moving on from a page shown in a frame is now let through without one.
+- Links that a page's own scripts set or change after it loads (such as Brave Search's logo) stay on the proxy, and Brave Search is shown without its scripts, which only sent the frame back to the real site. Brave Search's home page is a plain search box through the proxy.
+
 ## [3.1.1] - 2026-11-01
 
 ### Fixed
