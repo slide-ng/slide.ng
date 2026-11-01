@@ -1362,7 +1362,7 @@ without it, or in other browsers, Escape leaves fullscreen at once as before).
   Open-Meteo, which then gets that place, every fifteen minutes at most; when it cannot be reached the card says so and tries
   again each minute), and links and data. All of it is kept in this browser. An uploaded image that no longer fits in the
   browser's storage is refused with a message.
-- The gear in its toolbar opens the browser settings: the search engine (DuckDuckGo, Bing, Wikipedia or your own address with
+- The gear in its toolbar opens the browser settings: the search engine (DuckDuckGo, Brave Search, Bing, Wikipedia or your own address with
   `%s`), whether slide links open in it, whether the bookmarks bar shows, and buttons that clear recent pages and bookmarks. The
   choices are kept in this browser for this deck (`slide-ng-browser-prefs`) and win over `browser.search` and `browser.links`;
   "Use the deck default" goes back to the headmatter's search.
@@ -1394,8 +1394,9 @@ has one fetch handler (`browser-proxy.js`) and a file for each host that can run
 - **Deno Deploy**: deploy `deno.js`; the address is `https://<project>.deno.dev/?url=%s`.
 
 Set `DECK_ORIGINS` on the host to the deck's address (`https://you.github.io`; several are separated by commas): the proxy then only
-answers that deck and the pages shown through it. It reads the browser's `Referer` (and makes its own pages always send one), so it
-stops other sites, not a script that sends a false one. Every page it shows is sandboxed on an origin of its own, so it cannot reach the deck (also when the proxy is on the
+answers that deck when it opens a page. It reads the browser's `Referer`; a sandboxed page sends none, so moving on from a page
+shown in a frame is let through without one. That keeps scripts off it, not another site that frames it (which only costs your plan
+its requests). Every page it shows is sandboxed on an origin of its own, so it cannot reach the deck (also when the proxy is on the
 deck's own site, as with Netlify) or the other pages, and their cookies are dropped; sites that need their own storage or a sign-in
 may not work, and nobody should sign in to anything through it. It refuses addresses written as local or private (`localhost`,
 private and link-local ranges, names without a dot); it does not look up names, so run it on one of these hosts, which cannot reach a

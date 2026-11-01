@@ -19,6 +19,7 @@ export const PROXIED_SEARCH = 'https://search.brave.com/search?q=%s';
 
 export const SEARCH_ENGINES = [
   { name: 'DuckDuckGo', url: 'https://duckduckgo.com/?q=%s' },
+  { name: 'Brave Search', url: 'https://search.brave.com/search?q=%s' },
   { name: 'Bing', url: 'https://www.bing.com/search?q=%s' },
   { name: 'Wikipedia', url: 'https://en.wikipedia.org/w/index.php?search=%s' },
 ] as const;

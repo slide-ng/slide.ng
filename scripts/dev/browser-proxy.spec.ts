@@ -111,14 +111,19 @@ describe('the deck browser proxy', () => {
       (await ask('https://p.dev/proxy?url=http%3A%2F%2F169.254.169.254%2Flatest%2F')).status,
     ).toBe(400);
   });
-  it('turns away a frame from another site that hides its Referer, and makes its own pages send one', async () => {
+  it('lets a page shown in a frame move on without a Referer (sandboxed pages send none), and asks for one otherwise', async () => {
     const hidden = await proxy(
       new Request('https://p.dev/proxy?url=https%3A%2F%2Fa.dev%2F', {
         headers: { 'sec-fetch-dest': 'iframe' },
       }),
       { decks: ['https://me.github.io'], fetch: site },
     );
-    expect(hidden.status).toBe(403);
+    expect(hidden.status).toBe(200);
+    const script = await proxy(new Request('https://p.dev/proxy?url=https%3A%2F%2Fa.dev%2F'), {
+      decks: ['https://me.github.io'],
+      fetch: site,
+    });
+    expect(script.status).toBe(403);
     const shown = await ask('https://p.dev/proxy?url=https%3A%2F%2Fa.dev%2F');
     expect(shown.headers.get('referrer-policy')).toBe('strict-origin-when-cross-origin');
   });
@@ -155,5 +160,14 @@ describe('the deck browser proxy', () => {
       fetch: refresh,
     });
     expect(await r2.text()).toContain('url=https://p.dev/proxy?url=https%3A%2F%2Fa.dev%2Fnext');
+  });
+  it("answers Brave Search's home page with a search box that goes through the proxy", async () => {
+    const res = await proxy(
+      new Request('https://p.dev/proxy?url=https%3A%2F%2Fsearch.brave.com%2F'),
+    );
+    const html = await res.text();
+    expect(res.headers.get('content-security-policy')).toMatch(/^sandbox/);
+    expect(html).toContain('<form action="https://p.dev/proxy">');
+    expect(html).toContain('name="__slide_ng_url" value="https://search.brave.com/search"');
   });
 });
