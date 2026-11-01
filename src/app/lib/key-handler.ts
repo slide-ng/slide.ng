@@ -58,6 +58,10 @@ export function keyHandler(nav: Nav, ui: Ui): (e: KeyboardEvent) => void {
         (e.target as HTMLElement).blur();
       return;
     }
+    if (browser.customiseOpen()) {
+      if (e.key === 'Escape') browser.customiseOpen.set(false);
+      return;
+    }
     if (pressesControl(e)) return;
     const shortcut = findShortcut(e, shortcuts);
     if (!shortcut) return;

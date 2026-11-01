@@ -34,6 +34,11 @@ load the deck's own servers (the dev server port, the companion and itself), als
 drops the headers that refuse framing and the site's Content-Security-Policy, so a page in it has less protection against
 clickjacking than in a tab; it is meant for showing pages during a talk.
 
+The deck browser's weather widget is off by default. When it is on, the page asks Open-Meteo (`api.open-meteo.com`, and
+`geocoding-api.open-meteo.com` for a city name) for the weather of the chosen place. "Use my location" asks the browser
+for the position (rounded to about a kilometre) and sends it once to OpenStreetMap's Nominatim for the city name; nothing else
+leaves the page.
+
 ## `--remote`
 
 `--remote` opens the dev server to your network so that others can follow the presenter. It always has a password (`--remote=secret`, `SLIDE_NG_PASSWORD`, a prompt on a terminal, or a random one that is printed). Wrong passwords are limited per client address, a login lasts 8 hours, and every other rule above still applies. The login cookie is signed with the password, so a login survives a restart of the dev server with the same password (and stops working when the password changes); it cannot be withdrawn before it runs out except by changing the password.

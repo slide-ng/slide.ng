@@ -110,7 +110,6 @@
     });
     navigation.addEventListener('navigatesuccess', report);
   }
-  addEventListener('beforeunload', () => tell({ type: 'leaving', url: toReal(location.href) }));
   addEventListener('popstate', report);
   addEventListener('hashchange', report);
   addEventListener('DOMContentLoaded', () => {

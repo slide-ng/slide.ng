@@ -1354,6 +1354,13 @@ without it, or in other browsers, Escape leaves fullscreen at once as before).
 - The star in the toolbar bookmarks the page, and the bookmark button next to it lists them all. Bookmarks also show in a bar
   under the toolbar and first on the start page, and are
   kept in this browser for this deck (`slide-ng-browser-bookmarks`).
+- **Customise** on the start page (or in the gear menu) opens a larger window: a background for the start page (none, solid
+- **Customise** on the start page (or in the gear menu) opens a larger window: the start page background (none, the slide.ng
+  gradient, solid colours, gradients or images uploaded from this device, each optionally changing on every new tab; text
+  stays readable on light and dark ones), the deck browser's appearance (like the deck, light or dark), the search engine, which
+  tile groups the start page shows, a clock (format, font and size), the weather (off until turned on: a city or your location,
+  °C or °F; the current condition, high and low, feels-like, wind and humidity, and a five-day forecast on hover, from
+  Open-Meteo, which then gets that place, every fifteen minutes at most), and links and data. All of it is kept in this browser.
 - The gear in its toolbar opens the browser settings: the search engine (DuckDuckGo, Bing, Wikipedia or your own address with
   `%s`), whether slide links open in it, whether the bookmarks bar shows, and buttons that clear recent pages and bookmarks. The
   choices are kept in this browser for this deck (`slide-ng-browser-prefs`) and win over `browser.search` and `browser.links`;

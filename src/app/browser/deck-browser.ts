@@ -1,7 +1,9 @@
-import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
+import { Injectable, LOCALE_ID, computed, effect, inject, signal, untracked } from '@angular/core';
 import { DevApi } from '../dev/dev-api';
 import { Fullscreen } from '../lib/fullscreen';
 import { storedSignal } from '../lib/stored-signal';
+import { WeatherNow, WeatherPlace, currentWeather, placeName } from './weather';
+import { UI_TEXT, uiText } from '../i18n/ui-text';
 import { SyncState } from '../sync/sync-state';
 import {
   WebProxy,
@@ -23,14 +25,93 @@ export interface OpenTab {
   index: number;
   framable: boolean | null;
   loaded: boolean;
-  loading: boolean;
   rev: number;
+}
+
+export type BackgroundKind = 'none' | 'plain' | 'solid' | 'gradient' | 'image';
+
+export interface BackgroundImage {
+  id: string;
+  data: string;
 }
 
 export interface BrowserPrefs {
   search: string | null;
   links: boolean | null;
   bookmarksBar: boolean;
+  background: { kind: BackgroundKind; value: string };
+  tiles: { bookmarks: boolean; shortcuts: boolean; recent: boolean };
+  shuffle: boolean;
+  clock: {
+    show: boolean;
+    format: 'auto' | '12' | '24';
+    font: 'light' | 'bold' | 'mono' | 'serif';
+    size: 's' | 'm' | 'l';
+    date: boolean;
+    dateStyle: 'long' | 'short' | 'numeric';
+    seconds: boolean;
+  };
+  theme: 'auto' | 'light' | 'dark';
+  weather: { show: boolean; place: WeatherPlace | null; unit: 'c' | 'f' };
+}
+
+export const SLIDE_NG_ART = [
+  'radial-gradient(ellipse 60% 55% at 18% 12%, rgb(255 122 61 / 0.55), transparent 70%)',
+  'radial-gradient(ellipse 55% 50% at 88% 28%, rgb(204 66 9 / 0.5), transparent 70%)',
+  'radial-gradient(ellipse 70% 60% at 50% 105%, rgb(126 34 128 / 0.6), transparent 70%)',
+  'radial-gradient(ellipse 40% 35% at 70% 75%, rgb(255 122 61 / 0.18), transparent 70%)',
+  'linear-gradient(160deg, #1d1016, #2b1322 45%, #150b12)',
+].join(', ');
+
+export const BRAND_GRADIENT = 'linear-gradient(135deg, #ff7a3d, #cc4209 55%, #561c08)';
+
+export const SOLID_BACKGROUNDS = [
+  '#5b5c61',
+  '#000000',
+  '#171e91',
+  '#4a96f2',
+  '#5cbfd8',
+  '#2b6580',
+  '#84d3b7',
+  '#387c5b',
+  '#4b7726',
+  '#b6cf6b',
+  '#e8cb5f',
+  '#e58f44',
+  '#eb8193',
+  '#b0336d',
+  '#efb6e9',
+  '#c0c4fa',
+  '#9179e4',
+  '#5034a8',
+  '#440a10',
+];
+
+export const GRADIENT_BACKGROUNDS = [
+  BRAND_GRADIENT,
+  'linear-gradient(135deg, #3c2ad6, #7a24a8 55%, #b51f7c)',
+  'linear-gradient(135deg, #3b2bd1, #2e7fd6 55%, #20bfd2)',
+  'linear-gradient(90deg, #4f33ae, #8b5cf6)',
+  'linear-gradient(135deg, #a737e6, #a6306f)',
+  'radial-gradient(circle at 80% 90%, #6b2208, #4a0f3d 45%, #05003d 75%)',
+  'radial-gradient(circle at 85% 85%, #2a0068, #13002f 50%, #02001a 80%)',
+  'linear-gradient(135deg, #47dcd6, #1595ad)',
+  'linear-gradient(135deg, #fbd963, #e06c2d)',
+  'linear-gradient(135deg, #4f84e6, #6c43d6)',
+  'linear-gradient(135deg, #85196a, #cf3b51)',
+  'linear-gradient(135deg, #ff7653, #c9283e)',
+  'linear-gradient(135deg, #10b981, #0f766e)',
+  'linear-gradient(160deg, #1e293b, #0f172a 60%, #000000)',
+];
+
+export function isLightBackground(css: string): boolean {
+  const colors = css.match(/#[0-9a-f]{6}/gi) ?? [];
+  if (!colors.length) return false;
+  const light = colors.map((hex) => {
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  });
+  return light.reduce((a, b) => a + b, 0) / light.length > 0.6;
 }
 
 export interface Visited {
@@ -66,7 +147,47 @@ export class DeckBrowser {
     search: null,
     links: null,
     bookmarksBar: true,
+    background: { kind: 'none', value: '' },
+    tiles: { bookmarks: true, shortcuts: true, recent: true },
+    shuffle: false,
+    clock: {
+      show: false,
+      format: 'auto',
+      font: 'light',
+      size: 'm',
+      date: true,
+      dateStyle: 'long',
+      seconds: false,
+    },
+    theme: 'auto',
+    weather: { show: false, place: null, unit: 'c' },
   });
+  readonly weatherNow = signal<WeatherNow | null>(null);
+  private weatherKey = '';
+  private naming = false;
+  private text = inject(UI_TEXT);
+  private locale = inject(LOCALE_ID);
+  private weatherAt = 0;
+  readonly backgroundImages = storedSignal<BackgroundImage[]>('slide-ng-browser-backgrounds', []);
+  readonly startSeed = signal(Math.random());
+  readonly startBackground = computed((): { css: string; light: boolean } | null => {
+    const { background: bg, shuffle } = this.prefs();
+    const pick = <T>(list: T[]) => list[Math.floor(this.startSeed() * list.length)];
+    if (bg.kind === 'image') {
+      const images = this.backgroundImages();
+      if (!images.length) return null;
+      const image = shuffle ? pick(images) : (images.find((i) => i.id === bg.value) ?? images[0]);
+      return { css: `center / cover no-repeat url(${image.data})`, light: false };
+    }
+    if (bg.kind === 'none') return { css: SLIDE_NG_ART, light: false };
+    if (bg.kind === 'solid' || bg.kind === 'gradient') {
+      const list = bg.kind === 'solid' ? SOLID_BACKGROUNDS : GRADIENT_BACKGROUNDS;
+      const css = shuffle ? pick(list) : bg.value;
+      return css ? { css, light: isLightBackground(css) } : null;
+    }
+    return null;
+  });
+  readonly customiseOpen = signal(false);
   readonly search = computed(() => searchAddress(this.prefs().search) ?? this.config.search);
   readonly links = computed(() => this.prefs().links ?? this.config.links);
   readonly bookmarked = computed(() => {
@@ -83,6 +204,13 @@ export class DeckBrowser {
 
   constructor() {
     if (!this.config.enabled) return;
+    const single = storedSignal<string>('slide-ng-browser-background', '');
+    if (single() && !this.backgroundImages().length) {
+      this.backgroundImages.set([{ id: 'first', data: single() }]);
+      if (this.prefs().background.kind === 'image')
+        this.setPrefs({ background: { kind: 'image', value: 'first' } });
+    }
+    single.set('');
     inject(Fullscreen).lockEscape = true;
     effect(() => {
       const shown = this.shown();
@@ -104,6 +232,7 @@ export class DeckBrowser {
 
   show() {
     if (!this.config.enabled) return;
+    this.startSeed.set(Math.random());
     this.open.set(true);
     const tab = this.active();
     if (tab) this.load(tab.id);
@@ -128,6 +257,7 @@ export class DeckBrowser {
   }
 
   newTab() {
+    this.startSeed.set(Math.random());
     const tab = this.tab('', '');
     this.tabs.update((all) => [...all, tab]);
     this.activeId.set(tab.id);
@@ -192,6 +322,49 @@ export class DeckBrowser {
     );
   }
 
+  addBackgroundImage(data: string) {
+    const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    this.backgroundImages.update((all) => [...all, { id, data }]);
+    this.setPrefs({ background: { kind: 'image', value: id } });
+  }
+
+  removeBackgroundImage(id: string) {
+    const rest = this.backgroundImages().filter((i) => i.id !== id);
+    this.backgroundImages.set(rest);
+    const bg = this.prefs().background;
+    if (bg.kind === 'image' && (bg.value === id || !rest.length))
+      this.setPrefs({
+        background: rest.length
+          ? { kind: 'image', value: rest[0].id }
+          : { kind: 'none', value: '' },
+      });
+  }
+
+  refreshWeather() {
+    const { show, place, unit } = this.prefs().weather;
+    if (!show || !place) return;
+    if (place.name === uiText(this.text, 'browser.weatherHere') && !this.naming) {
+      this.naming = true;
+      void placeName(place.lat, place.lon, this.locale).then((name) => {
+        const now = this.prefs().weather;
+        if (name && now.place?.lat === place.lat && now.place?.lon === place.lon)
+          this.setPrefs({ weather: { ...now, place: { ...place, name } } });
+      });
+    }
+    const key = `${place.lat},${place.lon},${unit}`;
+    if (key === this.weatherKey && Date.now() - this.weatherAt < 15 * 60_000) return;
+    const first = !this.weatherNow();
+    const started = Date.now();
+    this.weatherKey = key;
+    this.weatherAt = started;
+    void currentWeather(place, unit).then((now) => {
+      const wait = first ? Math.max(0, 1000 - (Date.now() - started)) : 0;
+      setTimeout(() => {
+        if (this.weatherKey === key) this.weatherNow.set(now);
+      }, wait);
+    });
+  }
+
   setPrefs(change: Partial<BrowserPrefs>) {
     this.prefs.update((p) => ({ ...p, ...change }));
   }
@@ -210,10 +383,6 @@ export class DeckBrowser {
 
   removeBookmark(url: string) {
     this.bookmarks.update((all) => all.filter((b) => b.url !== url));
-  }
-
-  loaded(id: number) {
-    this.patch(id, { loading: false });
   }
 
   goHome() {
@@ -247,9 +416,8 @@ export class DeckBrowser {
   reload(id: number) {
     const frame = this.frame(id);
     const proxy = this.proxy();
-    this.patch(id, { loading: true });
-    if (proxy && frame?.contentWindow) this.post(id, frame, { type: 'reload' });
-    else this.patch(id, { rev: (this.tabs().find((t) => t.id === id)?.rev ?? 0) + 1 });
+    const rev = (this.tabs().find((t) => t.id === id)?.rev ?? 0) + 1;
+    if (!(proxy && frame && this.post(id, frame, { type: 'reload' }))) this.patch(id, { rev });
   }
 
   private step(by: number) {
@@ -270,11 +438,7 @@ export class DeckBrowser {
     }
     this.pending.set(tab.id, url);
     const frame = this.frame(tab.id);
-    if (this.proxy() && frame) {
-      this.patch(tab.id, { loading: true });
-      this.post(tab.id, frame, { type: 'go', url });
-      return;
-    }
+    if (this.proxy() && frame && this.post(tab.id, frame, { type: 'go', url })) return;
     this.patch(tab.id, { framable: null, loaded: false });
     this.load(tab.id);
   }
@@ -291,10 +455,6 @@ export class DeckBrowser {
     this.origins.set(tab.id, e.origin);
     if (message.type === 'open') {
       this.openUrl(url);
-      return;
-    }
-    if (message.type === 'leaving') {
-      this.patch(tab.id, { loading: true });
       return;
     }
     if (message.type !== 'state') return;
@@ -324,15 +484,18 @@ export class DeckBrowser {
       const now = this.tabs().find((t) => t.id === id);
       if (now?.url !== tab.url) return;
       if (proxy) {
-        this.patch(id, { src: proxiedAddress(tab.url, proxy), framable: true, loading: true });
+        const src = proxiedAddress(tab.url, proxy);
+        this.patch(id, { src, framable: true });
         return;
       }
-      this.patch(id, { src: tab.url, loading: true });
+      this.patch(id, { src: tab.url });
       void this.dev
         .get<{ framable: boolean | null }>(`/frame-check?url=${encodeURIComponent(tab.url)}`)
         .then((answer) => {
           if (this.tabs().find((t) => t.id === id)?.url === tab.url)
-            this.patch(id, { framable: answer?.framable ?? null });
+            this.patch(id, {
+              framable: answer?.framable ?? null,
+            });
         });
     });
   }
@@ -355,7 +518,9 @@ export class DeckBrowser {
 
   private post(id: number, frame: HTMLIFrameElement, command: { type: string; url?: string }) {
     const origin = this.origins.get(id);
-    if (origin) frame.contentWindow?.postMessage({ slideNgWeb: command }, origin);
+    if (!origin || !frame.contentWindow) return false;
+    frame.contentWindow.postMessage({ slideNgWeb: command }, origin);
+    return true;
   }
 
   private patch(id: number, change: Partial<OpenTab>) {
@@ -373,7 +538,6 @@ export class DeckBrowser {
       index: url ? 0 : -1,
       framable: null,
       loaded: false,
-      loading: false,
       rev: 0,
     };
   }

@@ -550,6 +550,10 @@ Source: an independent review of the repository (nine findings). Each fix has a 
    they keep **Open in window**. A built deck has no server: there the frames load directly, with a header check when the dev
    server runs and the popup for sites that refuse.
 
+5. **`@iconify-json/meteocons` draws the deck browser's weather** (MIT, by Bas Milius). Colour weather icons with day and night
+   versions for every condition, read by UnoCSS like the other icon sets, so only the icons in use end up in the CSS and no code
+   is added to the app. The line icons of `ph` could not tell a sunny from a cloudy day at a glance.
+
 ## Made while measuring the first load
 
 1. **Monaco's stylesheet comes with the Monaco chunk, not with the deck's styles.** It is about 390 kB (125 kB compressed, the icon font
