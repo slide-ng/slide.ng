@@ -547,8 +547,8 @@ Source: an independent review of the repository (nine findings). Each fix has a 
    with a random key, drops the framing headers, and adds a small script that tells the deck the page's real address and title and
    keeps links inside the deck browser. Back and forward are the deck's own list of what a tab showed, not the frame's history, so
    they work the same with and without the proxy. Some sites still break through a proxy (sign-ins, apps that check where they run);
-   they keep **Open in window**. The proxy sends cookies on as `SameSite=None; Secure`, because the shown page sits on another
-   site than the deck and the browser would refuse a `Lax` one. A built deck has no server: there the frames load directly, with a header check when the dev
+   they keep **Open in window**. The proxy keeps the cookies itself (decision 7), because the browser would refuse the cookies of
+   a page that sits on another site than the deck. A built deck has no server: there the frames load directly, with a header check when the dev
    server runs and the popup for sites that refuse.
 
 5. **`@iconify-json/meteocons` draws the deck browser's weather** (MIT, by Bas Milius). Colour weather icons with day and night
@@ -559,6 +559,16 @@ Source: an independent review of the repository (nine findings). Each fix has a 
    address it actually connects to, not one it looked up before: otherwise a name can answer a public address to the check and
    this computer to the fetch (DNS rebinding). Node's built-in `fetch` takes no lookup of its own; undici's `Agent` does, so every
    connection is checked where it is made. It was already installed for the tests (through jsdom) and runs only in the dev server.
+
+7. **`tough-cookie` is the deck browser's cookie jar** (BSD-3-Clause, by Jeremy Stashewsky). A page that the proxy shows sits on its own
+   `*.localhost` origin, which the browser counts as another site than the deck, so it refused a `SameSite=Lax` cookie (the
+   default) and a sign-in never stayed. Sending every cookie as `SameSite=None` would have kept it, but also taken away the
+   protection against a form of another site acting as the presenter. So the proxy keeps the cookies in memory
+   (`scripts/dev/cookie-jar.mjs`), never sends them to the browser, and applies SameSite itself from the page that started each
+   request (`docs/SECURITY-MODEL.md`). tough-cookie parses `Set-Cookie`, matches Domain and Path, knows the public suffix list (no
+   cookie for `co.uk`), handles `__Host-` and `__Secure-`, Secure on local addresses and SameSite contexts: too much to write again.
+   It was already installed for the tests (through jsdom) and runs only in the dev server. Not covered: http and https of one site
+   count as the same site, the cookies are forgotten when the dev server stops, and `--remote` and a built deck have no proxy.
 
 ## Made while measuring the first load
 

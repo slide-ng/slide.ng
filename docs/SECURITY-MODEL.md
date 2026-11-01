@@ -42,6 +42,16 @@ too. So a site shown in the deck browser cannot use the proxy to read local serv
 drops the headers that refuse framing and the site's Content-Security-Policy, so a page in it has less protection against
 clickjacking than in a tab; it is meant for showing pages during a talk.
 
+The cookies of the proxied sites are kept by the proxy itself (`scripts/dev/cookie-jar.mjs`), in memory until the dev server stops,
+and never sent to the browser: a page cannot read them (`document.cookie` shows the cookies of its own address that are not
+HttpOnly) or send them to another site. The proxy applies SameSite on its own, because the browser would count a proxied page as
+another site than the deck. The page that started a request (`Origin`, else `Referer`) is the one on top; a cookie without SameSite
+counts as Lax; a link from another site gets the Lax cookies and a form or a script of another site only the `SameSite=None` ones. A
+request that says nothing about who asked is taken as another site's. So a page shown next to another one cannot act as the
+presenter there. A cookie that a page sets with `document.cookie` goes to the proxy through `POST /__slide-ng-web/cookie`, which
+answers only a request that the page made to its own origin (`Sec-Fetch-Site: same-origin`, and the page address named in the
+request is that origin).
+
 The deck browser's weather widget is off by default. When it is on, the page asks Open-Meteo (`api.open-meteo.com`, and
 `geocoding-api.open-meteo.com` for a city name) for the weather of the chosen place. "Use my location" asks the browser
 for the position (rounded to about a kilometre) and sends it to OpenStreetMap's Nominatim for the city name; nothing else

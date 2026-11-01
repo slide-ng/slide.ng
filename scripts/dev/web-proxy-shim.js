@@ -65,6 +65,41 @@
     };
     window.EventSource.prototype = RealEventSource.prototype;
   }
+  // `document.cookie` shows what the proxy's jar holds for this page, and what a page writes goes to the jar.
+  // A page cannot keep cookies in the browser itself: the browser would treat them as another site's.
+  const cookies = new Map();
+  for (const part of String(self.__slideNgCookie ?? '').split('; ')) {
+    const at = part.indexOf('=');
+    if (part) cookies.set(at < 0 ? '' : part.slice(0, at), at < 0 ? part : part.slice(at + 1));
+  }
+  const gone = (attributes) =>
+    attributes.some((attribute) => {
+      const [name, value = ''] = attribute.split('=');
+      const word = name.trim().toLowerCase();
+      return (
+        (word === 'max-age' && Number(value) <= 0) ||
+        (word === 'expires' && Date.parse(value) <= Date.now())
+      );
+    });
+  Object.defineProperty(document, 'cookie', {
+    configurable: true,
+    get: () => [...cookies].map(([name, value]) => (name ? `${name}=${value}` : value)).join('; '),
+    set: (text) => {
+      const [pair, ...attributes] = String(text).split(';');
+      const at = pair.indexOf('=');
+      const name = (at < 0 ? '' : pair.slice(0, at)).trim();
+      if (gone(attributes)) cookies.delete(name);
+      else cookies.set(name, (at < 0 ? pair : pair.slice(at + 1)).trim());
+      realFetch
+        .call(window, `${location.origin}/__slide-ng-web/cookie`, {
+          method: 'POST',
+          body: String(text),
+          keepalive: true,
+          headers: { 'content-type': 'text/plain', 'x-slide-ng-url': toReal(location.href) },
+        })
+        .catch(() => {});
+    },
+  });
   if (navigator.serviceWorker)
     navigator.serviceWorker.register = () =>
       Promise.reject(new Error('service workers are off in the slide.ng browser'));

@@ -1370,8 +1370,8 @@ without it, or in other browsers, Escape leaves fullscreen at once as before).
 
 With `slide-ng dev` (or `npm start`) on this machine, pages load through the companion server's proxy. Each site then gets its own
 address under `localhost`, so sites that refuse framing (GitHub, Google and most large sites) still show inside the deck, and the
-address field follows the clicks inside a page. The proxy drops the headers that refuse framing, keeps each site's cookies on its own
-proxy address, turns off service workers and sends links that open a new window to a new tab. An address on this computer or the
+address field follows the clicks inside a page. The proxy drops the headers that refuse framing, keeps each site's cookies itself (in
+memory until the dev server stops, with its own SameSite rules, so a sign-in can stay), turns off service workers and sends links that open a new window to a new tab. An address on this computer or the
 local network (`localhost:4200`, `192.168.1.1`) loads only when the deck opened it (the address field, a slide link, a tile or
 a bookmark), not when a page in the deck browser points to it. Some sites still break through it,
 for example sign-ins that check where they are shown: **Open in window** opens the real page in a popup placed over the deck

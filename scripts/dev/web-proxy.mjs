@@ -5,8 +5,10 @@ import { randomBytes } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { Readable } from 'node:stream';
 import { Agent, fetch as undiciFetch } from 'undici';
+import { createCookieJar, sameSiteContext } from './cookie-jar.mjs';
 
 export const SHIM_PATH = '/__slide-ng-web/shim.js';
+export const COOKIE_PATH = '/__slide-ng-web/cookie';
 let shimSource = null;
 const readShim = () =>
   (shimSource ??= readFileSync(new URL('./web-proxy-shim.js', import.meta.url), 'utf8'));
@@ -46,7 +48,11 @@ export function toReal(url, key) {
 
 const ABSOLUTE = /^(?:https?:)?\/\//i;
 
-export function rewriteHtml(html, { key, port, base }) {
+/**
+ * @param {string} html
+ * @param {{ key: string, port: number, base: string, cookie?: string }} options
+ */
+export function rewriteHtml(html, { key, port, base, cookie }) {
   const map = (value) => {
     const raw = value.trim();
     if (!ABSOLUTE.test(raw)) return value;
@@ -56,7 +62,11 @@ export function rewriteHtml(html, { key, port, base }) {
       return value;
     }
   };
-  const shim = `<script src="${SHIM_PATH}"></script>`;
+  const mirror =
+    typeof cookie === 'string'
+      ? `<script>self.__slideNgCookie=${JSON.stringify(cookie).replace(/</g, '\\u003c')}</script>`
+      : '';
+  const shim = `${mirror}<script src="${SHIM_PATH}"></script>`;
   const tag = (text) =>
     /^<meta\b/i.test(text) && /http-equiv\s*=\s*["']?content-security-policy/i.test(text)
       ? ''
@@ -124,6 +134,7 @@ const DROP_REQUEST = new Set([
   'upgrade',
   'accept-encoding',
   'content-length',
+  'cookie',
   'origin',
   'referer',
   'proxy-authorization',
@@ -131,16 +142,23 @@ const DROP_REQUEST = new Set([
   'trailer',
 ]);
 
-// The proxied page sits in a frame on its own `*.localhost` origin, which the browser counts as another site than the deck, so a
-// `SameSite=Lax` (or default) cookie would be refused and a sign-in would never stick. `None; Secure` lets the frame keep it.
-export function cookieForProxy(setCookie) {
-  return [
-    ...setCookie
-      .split(';')
-      .filter((part) => !/^\s*(domain|samesite)\s*=/i.test(part) && !/^\s*secure\s*$/i.test(part)),
-    ' SameSite=None',
-    ' Secure',
-  ].join(';');
+// Which site asked for a request, as far as the cookie rules care: the page (`Origin`, else `Referer`), or the user (the deck
+// itself asked, or a page asked its own origin). A request that tells nothing is taken as another site's and gets fewer cookies.
+export function cookieContext(req, key, target) {
+  const { origin, referer, 'sec-fetch-site': site, 'sec-fetch-mode': mode } = req.headers;
+  const asked = (raw) => {
+    try {
+      new URL(raw);
+    } catch {
+      return 'null:';
+    }
+    const real = toReal(raw, key);
+    return real === raw ? null : real;
+  };
+  let from = 'null:';
+  if (site === 'same-origin') from = target;
+  else if (origin !== 'null' && (origin || referer)) from = asked(origin || referer);
+  return sameSiteContext({ target, from, navigate: mode === 'navigate', method: req.method });
 }
 
 export function responseHeaders(upstream, { key, port, target }) {
@@ -161,8 +179,6 @@ export function responseHeaders(upstream, { key, port, target }) {
       }
     } else out[name] = value;
   }
-  const cookies = upstream.headers.getSetCookie?.() ?? [];
-  if (cookies.length) out['set-cookie'] = cookies.map(cookieForProxy);
   return out;
 }
 
@@ -238,12 +254,12 @@ export function guardedLookup(target, blockedPorts, allowed, resolve = lookupEac
 
 const MAX_BODY = 50 * 1024 * 1024;
 
-async function readAll(req) {
+async function readAll(req, max = MAX_BODY) {
   const parts = [];
   let size = 0;
   for await (const part of req) {
     size += part.length;
-    if (size > MAX_BODY) throw new Error('request body too large');
+    if (size > max) throw new Error('request body too large');
     parts.push(part);
   }
   return Buffer.concat(parts);
@@ -263,6 +279,7 @@ export function createWebProxy({
 } = {}) {
   const key = randomBytes(6).toString('hex');
   const allowed = new Set();
+  const jar = createCookieJar();
   let port = 0;
   const agents = new Map();
   const agentFor = (target) => {
@@ -278,6 +295,17 @@ export function createWebProxy({
   };
   const shim = () =>
     readShim().replace('__SLIDE_NG_WEB__', JSON.stringify({ key, port, deck: deckOrigins }));
+
+  async function scriptCookie(req, res, origin) {
+    const pageUrl = String(req.headers['x-slide-ng-url'] ?? '');
+    const own = req.method === 'POST' && req.headers['sec-fetch-site'] === 'same-origin';
+    if (!own || !URL.canParse(pageUrl) || new URL(pageUrl).origin !== origin) {
+      res.writeHead(403, { 'content-type': 'text/plain' }).end('not allowed');
+      return;
+    }
+    await jar.fromScript((await readAll(req, 8192)).toString('utf8'), pageUrl);
+    res.writeHead(204).end();
+  }
 
   const server = createServer(async (req, res) => {
     const origin = realOrigin(req.headers.host, key);
@@ -305,15 +333,21 @@ export function createWebProxy({
       );
     try {
       if (!(await targetAllowed(target, [...blockedPorts, port], allowed))) return refuse();
+      if (path === COOKIE_PATH) return await scriptCookie(req, res, origin);
       const body = req.method === 'GET' || req.method === 'HEAD' ? undefined : await readAll(req);
+      const context = cookieContext(req, key, target);
+      const sent = requestHeaders(req, { key, target });
+      const cookie = await jar.header(target, context);
+      if (cookie) sent.cookie = cookie;
       const upstream = await get(target, {
         method: req.method,
-        headers: requestHeaders(req, { key, target }),
+        headers: sent,
         body,
         redirect: 'manual',
         signal: AbortSignal.timeout(30_000),
         dispatcher: agentFor(target),
       });
+      await jar.store(upstream.headers.getSetCookie?.() ?? [], target, context);
       const headers = responseHeaders(upstream, { key, port, target });
       const type = upstream.headers.get('content-type') ?? '';
       const rewrite = /text\/html|application\/xhtml/i.test(type)
@@ -325,7 +359,10 @@ export function createWebProxy({
         const bytes = await upstream.arrayBuffer();
         const text = new TextDecoder(charsetOf(type)).decode(bytes);
         headers['content-type'] = type.replace(/;\s*charset=[\w-]+/i, '') + '; charset=utf-8';
-        res.writeHead(upstream.status, headers).end(rewrite(text, { key, port, base: target }));
+        const visible = await jar.visible(target);
+        res
+          .writeHead(upstream.status, headers)
+          .end(rewrite(text, { key, port, base: target, cookie: visible }));
         return;
       }
       res.writeHead(upstream.status, headers);
@@ -348,6 +385,7 @@ export function createWebProxy({
   return {
     key,
     server,
+    jar,
     get port() {
       return port;
     },

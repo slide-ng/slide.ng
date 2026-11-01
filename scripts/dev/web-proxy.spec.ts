@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
-  cookieForProxy,
+  cookieContext,
   realOrigin,
+  requestHeaders,
   rewriteCss,
   rewriteHtml,
   targetAllowed,
@@ -90,21 +91,62 @@ describe('rewriteCss', () => {
   });
 });
 
-describe('cookieForProxy', () => {
-  it('drops the Domain, so the cookie stays on the proxied site', () => {
-    expect(cookieForProxy('sid=1; Domain=.github.com; Path=/; Secure; HttpOnly')).toBe(
-      'sid=1; Path=/; HttpOnly; SameSite=None; Secure',
+describe('the cookie mirror in a page', () => {
+  const base = 'https://site.dev/docs/';
+  it('puts what the jar holds for the page in front of the shim, safe inside a script', () => {
+    const out = rewriteHtml('<head></head>', { key, port, base, cookie: 'a=1; b=</script>' });
+    expect(out).toBe(
+      '<head><script>self.__slideNgCookie="a=1; b=\\u003c/script>"</script>' +
+        '<script src="/__slide-ng-web/shim.js"></script></head>',
     );
   });
+  it('adds nothing when there is no cookie string, and an empty one when the jar is empty', () => {
+    expect(rewriteHtml('<head></head>', { key, port, base })).not.toContain('__slideNgCookie');
+    expect(rewriteHtml('<head></head>', { key, port, base, cookie: '' })).toContain(
+      '__slideNgCookie=""',
+    );
+  });
+  it('never sends the browser its own cookies on to the site', () => {
+    const out = Object.fromEntries(
+      Object.entries(
+        requestHeaders(
+          { headers: { cookie: 'stray=1', accept: 'text/html', host: 'x' } },
+          { key, target: 'https://site.dev/' },
+        ),
+      ),
+    );
+    expect(out['cookie']).toBeUndefined();
+    expect(out['accept']).toBe('text/html');
+  });
+});
 
-  it('lets the frame keep the cookie: SameSite=None; Secure, whatever the site sent', () => {
-    expect(cookieForProxy('sid=1; Path=/; SameSite=Lax')).toBe(
-      'sid=1; Path=/; SameSite=None; Secure',
+describe('cookieContext', () => {
+  const target = 'https://shop.example.com/cart';
+  const mine = `http://shop.example.com.https.${key}.localhost:${port}`;
+  const theirs = `http://evil.test.https.${key}.localhost:${port}`;
+  const ask = (headers: Record<string, string>, method = 'GET') =>
+    cookieContext({ headers, method }, key, target);
+
+  it('is strict when the page asked its own origin', () => {
+    expect(ask({ 'sec-fetch-site': 'same-origin' })).toBe('strict');
+    expect(ask({ origin: mine, referer: `${mine}/` })).toBe('strict');
+  });
+  it('is strict when the deck itself asked, as when it opens an address', () => {
+    expect(ask({ referer: 'http://localhost:4230/1', 'sec-fetch-mode': 'navigate' })).toBe(
+      'strict',
     );
-    expect(cookieForProxy('sid=1; samesite=strict; HttpOnly')).toBe(
-      'sid=1; HttpOnly; SameSite=None; Secure',
-    );
-    expect(cookieForProxy('sid=1')).toBe('sid=1; SameSite=None; Secure');
+  });
+  it('is lax when a page of another site sent the user here with a link', () => {
+    expect(ask({ referer: `${theirs}/`, 'sec-fetch-mode': 'navigate' })).toBe('lax');
+  });
+  it('is none for a form or a request of another site', () => {
+    expect(ask({ origin: theirs, 'sec-fetch-mode': 'navigate' }, 'POST')).toBe('none');
+    expect(ask({ referer: `${theirs}/`, 'sec-fetch-mode': 'no-cors' })).toBe('none');
+  });
+  it('is none when the request says nothing, or hides who asked', () => {
+    expect(ask({})).toBe('none');
+    expect(ask({ origin: 'null' })).toBe('none');
+    expect(ask({ origin: 'not a url' })).toBe('none');
   });
 });
 
