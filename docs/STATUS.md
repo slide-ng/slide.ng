@@ -106,7 +106,7 @@ one can be written. The decisions are in DECISIONS.md ("Made while testing for 1
 
 ## NOT VERIFIED
 
-- **A real install from the registry**: `@slide-ng/core` 2.1.0 is on npm, and a new deck asks for `^2.2.0`, which installs only once 2.2.0 is published; the scaffold test still links this repository into the new deck's `node_modules`, so it checks this checkout, not the registry copy.
+- **A real install from the registry**: `@slide-ng/core` 2.2.0 is on npm, and a new deck asks for `^3.0.0`, which installs only once 3.0.0 is published; the scaffold test still links this repository into the new deck's `node_modules`, so it checks this checkout, not the registry copy.
 - `dev --open` opening a real browser window: the flag is passed to `ng serve --open` and parsed in a unit test only. The terminal keys are tested with a fake terminal; `o` and `e` were not seen opening a real browser or editor, `r` was not tried by hand, and the QR code was not scanned with a phone.
 - `CODE_RUNNERS` (a theme replacing how `{monaco-run}` runs code): written, documented, no test.
 - Addons end to end: resolution and merge order are unit-tested, but no deck was built with an addon.

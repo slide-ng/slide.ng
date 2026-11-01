@@ -4,6 +4,28 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-11-01
+
+### Upgrading from 2.x
+
+Node (22.22.3 or newer) and Angular (22.2) are the same as in 2.x. These changes can alter a deck that 2.x showed correctly:
+
+- A click on a link to another site, on a slide, opens it in the new deck browser instead of a new browser tab. Cmd/Ctrl/Shift/Alt+click and a middle click still open a real tab. `browser: { links: false }` in the headmatter keeps the 2.x behaviour, and `browser: false` removes the deck browser altogether.
+- `b` on the slide page opens and closes the deck browser.
+- In fullscreen, Chrome and Edge give the deck the Escape key, so the first Escape closes the deck browser and the next one leaves fullscreen; those browsers say "Press and hold Esc to exit full screen". Other browsers leave fullscreen at once, as before. `browser: false` keeps 2.x fullscreen.
+- `slide-ng dev` on this machine opens one more port on 127.0.0.1, for the deck browser's proxy (not with `--remote`).
+
+### Added
+
+- The deck browser (#72): a browser inside the deck, so a talk can show websites without leaving the slides. `b` or the globe button in the bar opens it as a layer over the current slide; the Slides button, `b` or Escape bring back the same slide and click, and its tabs stay loaded while it is closed.
+  - Tabs with the site's icon, which can be closed and dragged into another order; back, forward, home and reload; an address field that takes an address (`angular.dev`, `localhost:4200/demo`) or words to search for; bookmarks in a bar, a menu and on the start page; **Open in window** for sites that only work in a real window.
+  - A slide.ng start page: a search box with a focus mode, and tiles for bookmarks, `browser.tabs` from the headmatter and recent pages.
+  - **Customise**: the start page background (the slide.ng artwork, solid colours, gradients or uploaded images, optionally a new one on every new tab), light or dark, the search engine (DuckDuckGo by default, Bing, Wikipedia or an address with `%s`), which tiles show, a clock and date, an opt-in weather card from Open-Meteo (a city or your location, °C or °F, a five-day forecast) and the link and data settings. All kept in the browser per deck.
+  - Under `slide-ng dev`, pages load through a proxy in the companion server, each site on its own `*.localhost` address, so sites that refuse framing (GitHub, most large sites) still show inside the deck, and the address follows clicks inside a page. The proxy refuses the deck's own servers, and an address on this computer or the local network only loads when the presenter opened it. A built deck or `--remote` loads pages directly and offers **Open in window** for sites that refuse framing.
+  - The presenter page shows the open page, with a button that closes it in every window.
+  - Headmatter: `browser: false`, `browser: { links: false }`, `browser: { tabs: [{ name: Docs, url: https://angular.dev }] }`, `browser: { search: 'https://example.com/?q=%s' }`. The generator warns about other values.
+- The navigation bar can be dragged by its grip to one of its six places (#89): the page shows the places while dragging and the one under the pointer lights up. The right-click menu has Show Navigation Bar while the bar is out of sight and Reset Navigation Bar Position once a place was chosen.
+
 ## [2.2.0] - 2026-10-24
 
 ### Added
@@ -328,7 +350,8 @@ The first version, built in phases.
 
 See `docs/STATUS.md` for what is missing or not verified.
 
-[Unreleased]: https://github.com/slide-ng/slide.ng/compare/v2.2.0...HEAD
+[Unreleased]: https://github.com/slide-ng/slide.ng/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/slide-ng/slide.ng/compare/v2.2.0...v3.0.0
 [2.2.0]: https://github.com/slide-ng/slide.ng/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/slide-ng/slide.ng/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/slide-ng/slide.ng/compare/v1.0.0...v2.0.0
