@@ -31,9 +31,12 @@ only host names of the form `<site>.<scheme>.<key>.localhost`, where the key is 
 make it load anything. Each proxied site has its own origin, apart from the deck's origin and from the other sites: a page shown in
 it cannot read the deck's storage, and the dev server refuses its requests (wrong Host and Origin, no token). The proxy refuses to
 load the deck's own servers (the dev server port, the companion and itself), also through a name that points to this machine.
-Other addresses on this computer or a private network (loopback, 10/8, 172.16/12, 192.168/16, link-local, also through a name
-that resolves there) load only after the deck page asked for that origin through the companion (`POST /web-proxy/open`, with the
-token), so a site shown in the deck browser cannot use the proxy to read local services. It
+Other addresses on this computer or a private network (0/8, loopback, 10/8, 100.64/10, 172.16/12, 192.168/16, link-local, IPv6
+unique-local and link-local, and IPv4-mapped forms of these, also through a name that resolves there) load only after the deck
+page asked for that origin through the companion (`POST /web-proxy/open`, with the token) because the presenter typed it, clicked
+a slide link, tile or bookmark: not when a page in the deck browser opens it, also in another window that follows through sync.
+The check runs again on the address each connection actually uses, so a name that changes its answer (DNS rebinding) is refused
+too. So a site shown in the deck browser cannot use the proxy to read local services. It
 drops the headers that refuse framing and the site's Content-Security-Policy, so a page in it has less protection against
 clickjacking than in a tab; it is meant for showing pages during a talk.
 

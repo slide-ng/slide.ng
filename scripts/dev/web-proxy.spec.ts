@@ -5,6 +5,8 @@ import {
   rewriteCss,
   rewriteHtml,
   targetAllowed,
+  LOCAL,
+  guardedLookup,
   toProxy,
   toReal,
 } from './web-proxy.mjs';
@@ -123,5 +125,64 @@ describe('targetAllowed', () => {
     expect(await targetAllowed('http://localhost:5432/', [4230], opened, resolve)).toBe(false);
     expect(await targetAllowed('http://router.lan/', [4230], opened, resolve)).toBe(false);
     expect(await targetAllowed('http://rebind.dev:8080/', [4230], opened, resolve)).toBe(false);
+  });
+});
+
+describe('LOCAL', () => {
+  it('knows loopback, private, shared and mapped addresses', () => {
+    for (const a of [
+      '127.0.0.1',
+      '10.1.2.3',
+      '172.20.0.1',
+      '192.168.1.1',
+      '169.254.169.254',
+      '100.100.100.100',
+      '0.1.2.3',
+      '::1',
+      'fd00::1',
+      'fe80::1',
+      '::ffff:172.16.0.1',
+      '::ffff:7f00:1',
+    ])
+      expect(LOCAL(a)).toBe(true);
+    for (const a of [
+      '93.184.216.34',
+      '172.32.0.1',
+      '100.128.0.1',
+      '2606:4700::1111',
+      '::ffff:93.184.216.34',
+    ])
+      expect(LOCAL(a)).toBe(false);
+  });
+});
+
+describe('guardedLookup', () => {
+  type Resolve = Parameters<typeof guardedLookup>[3];
+  const answer = (address: string) =>
+    ((
+      _host: string,
+      _o: unknown,
+      done: (e: null, list: { address: string; family: number }[]) => void,
+    ) => done(null, [{ address, family: 4 }])) as unknown as Resolve;
+  const run = (target: string, address: string, opened: string[] = []) =>
+    new Promise<string>((resolve) =>
+      guardedLookup(
+        target,
+        () => [4230],
+        new Set(opened),
+        answer(address),
+      )('h', {}, (e: { code?: string } | null, a?: string) =>
+        resolve(e ? (e.code ?? 'error') : String(a)),
+      ),
+    );
+  it('refuses a name that turns local at connect time, unless the deck opened that origin', async () => {
+    expect(await run('http://rebind.dev/', '127.0.0.1')).toBe('ELOCAL');
+    expect(await run('http://rebind.dev/', '93.184.216.34')).toBe('93.184.216.34');
+    expect(await run('http://localhost:4200/', '127.0.0.1', ['http://localhost:4200'])).toBe(
+      '127.0.0.1',
+    );
+    expect(await run('http://localhost:4230/', '127.0.0.1', ['http://localhost:4230'])).toBe(
+      'ELOCAL',
+    );
   });
 });

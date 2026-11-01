@@ -183,6 +183,10 @@ export class DeckBrowserCustomise {
     const { show, place } = this.browser.prefs().weather;
     this.setWeather({ show: !show });
     if (!show && !place) this.useMyLocation();
+    if (show) {
+      this.locateRun++;
+      this.locating.set(false);
+    }
   }
 
   protected async findWeatherPlace(input: HTMLInputElement) {
@@ -197,6 +201,7 @@ export class DeckBrowserCustomise {
   }
 
   protected locating = signal(false);
+  private locateRun = 0;
   protected locationError = signal<UiTextKey | null>(null);
 
   protected useMyLocation() {
@@ -206,16 +211,20 @@ export class DeckBrowserCustomise {
     }
     this.locating.set(true);
     this.locationError.set(null);
+    const run = ++this.locateRun;
     navigator.geolocation.getCurrentPosition(
       async (p) => {
+        if (run !== this.locateRun) return;
         const lat = Math.round(p.coords.latitude * 100) / 100;
         const lon = Math.round(p.coords.longitude * 100) / 100;
         const name =
           (await placeName(lat, lon, this.locale)) ?? uiText(this.text, 'browser.weatherHere');
+        if (run !== this.locateRun) return;
         this.locating.set(false);
         this.setWeather({ show: true, place: { name, lat, lon } });
       },
       (error) => {
+        if (run !== this.locateRun) return;
         this.locating.set(false);
         this.locationError.set(
           error.code === error.PERMISSION_DENIED

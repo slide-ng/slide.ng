@@ -1249,19 +1249,19 @@ in Slidev: `radius: 6` is `--slidev-theme-radius: 6`, which CSS does not take as
 
 ## Keys, mouse and the interface
 
-| key                          | action                                                                                                   |
-| ---------------------------- | -------------------------------------------------------------------------------------------------------- |
-| right, space, page down      | next click, or next slide                                                                                |
-| left, shift + space, page up | previous click, or previous slide                                                                        |
-| down, shift + right          | next slide (skips the clicks)                                                                            |
-| up, shift + left             | previous slide                                                                                           |
-| `f`                          | fullscreen                                                                                               |
-| `o` or backtick              | slide overview (arrows move, Enter opens, Escape closes)                                                 |
-| `d`                          | dark / light                                                                                             |
-| `g`                          | go to a slide: type a number or part of a title, Enter (any case, accents optional)                      |
-| Escape                       | close the overview, dialogs and menus                                                                    |
-| `u`                          | presenter page: show or hide the upcoming clicks                                                         |
-| `b`                          | slide page: open or close the deck browser (Escape closes it too; inside a page only with the dev proxy) |
+| key                          | action                                                                                                                   |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| right, space, page down      | next click, or next slide                                                                                                |
+| left, shift + space, page up | previous click, or previous slide                                                                                        |
+| down, shift + right          | next slide (skips the clicks)                                                                                            |
+| up, shift + left             | previous slide                                                                                                           |
+| `f`                          | fullscreen                                                                                                               |
+| `o` or backtick              | slide overview (arrows move, Enter opens, Escape closes)                                                                 |
+| `d`                          | dark / light                                                                                                             |
+| `g`                          | go to a slide: type a number or part of a title, Enter (any case, accents optional)                                      |
+| Escape                       | close the overview, dialogs and menus                                                                                    |
+| `u`                          | presenter page: show or hide the upcoming clicks                                                                         |
+| `b`                          | slide page: open or close the deck browser (Escape closes it too; in a page only with the dev proxy and nothing focused) |
 
 In a right-to-left deck the keys stay physical (right is next), the overview arrows follow its mirrored grid, and transitions are
 not mirrored (see [UI-STRINGS.md](UI-STRINGS.md)).

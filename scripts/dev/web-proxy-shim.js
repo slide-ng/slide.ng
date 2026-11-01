@@ -133,7 +133,10 @@
   }
 
   addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !e.defaultPrevented && !e.repeat) tell({ type: 'escape' });
+    const focused = document.activeElement;
+    const free = !focused || focused === document.body || focused === document.documentElement;
+    if (e.key === 'Escape' && free && !e.defaultPrevented && !e.repeat && !e.isComposing)
+      tell({ type: 'escape' });
   });
 
   addEventListener('message', (e) => {

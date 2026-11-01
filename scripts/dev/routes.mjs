@@ -114,9 +114,9 @@ export function createHandler(ctx, { hub } = {}) {
       });
     if (path === '/web-proxy' && method === 'GET') return json(res, 200, ctx.webProxy ?? null);
     if (path === '/web-proxy/open' && method === 'POST') {
+      if (!ctx.allowWebTarget) throw new HttpError(404, 'the web proxy is not running');
       const { url: target } = await body(req, 4_000);
-      if (typeof target !== 'string' || !ctx.allowWebTarget)
-        throw new HttpError(400, 'url must be text');
+      if (typeof target !== 'string') throw new HttpError(400, 'url must be text');
       try {
         ctx.allowWebTarget(target);
       } catch {

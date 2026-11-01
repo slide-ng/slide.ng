@@ -136,7 +136,8 @@ export class DeckBrowser {
   private nextId = 1;
   private pending = new Map<number, string>();
   private origins = new Map<number, string>();
-  private openedByPage = new Set<string>();
+  private chosen = new Set<string>();
+  private reachable = new Set<string>();
   readonly proxy = signal<WebProxy | null>(null);
   private proxyAsked: Promise<WebProxy | null> | null = null;
   readonly tabs = signal<OpenTab[]>([]);
@@ -163,7 +164,12 @@ export class DeckBrowser {
     theme: 'auto',
     weather: { show: false, place: null, unit: 'c' },
   });
-  readonly weatherNow = signal<WeatherNow | null>(null);
+  private weatherData = signal<{ key: string; now: WeatherNow } | null>(null);
+  readonly weatherNow = computed(() => {
+    const { place, unit } = this.prefs().weather;
+    const data = this.weatherData();
+    return place && data?.key === `${place.lat},${place.lon},${unit}` ? data.now : null;
+  });
   private weatherKey = '';
   readonly weatherFailed = signal(false);
   private weatherTimer?: ReturnType<typeof setTimeout>;
@@ -222,7 +228,7 @@ export class DeckBrowser {
     effect(() => {
       const remote = this.sync.shared().browser;
       if (remote === undefined || remote === untracked(() => this.shown())) return;
-      untracked(() => (remote ? this.openUrl(remote) : this.hide()));
+      untracked(() => (remote ? this.openUrl(remote, '', false) : this.hide()));
     });
     if (typeof window !== 'undefined') window.addEventListener('message', (e) => this.receive(e));
   }
@@ -247,9 +253,10 @@ export class DeckBrowser {
     this.open.set(false);
   }
 
-  openUrl(address: string, name = '') {
+  openUrl(address: string, name = '', chosen = true) {
     const url = webAddress(address);
     if (!url || !this.config.enabled) return;
+    if (chosen) this.chosen.add(url);
     const same = this.tabs().find((t) => t.url === url);
     if (same) this.select(same.id);
     else {
@@ -302,7 +309,7 @@ export class DeckBrowser {
     const url = webAddress(address);
     const tab = this.tabs().find((t) => t.id === id);
     if (!url || !tab) return;
-    this.openedByPage.delete(url);
+    this.chosen.add(url);
     const history = [...tab.history.slice(0, tab.index + 1), url];
     this.patch(id, {
       url,
@@ -379,7 +386,7 @@ export class DeckBrowser {
       }
       const wait = first ? Math.max(0, 1000 - (Date.now() - started)) : 0;
       this.weatherTimer = setTimeout(() => {
-        if (this.weatherKey === key) this.weatherNow.set(now);
+        if (this.weatherKey === key) this.weatherData.set({ key, now });
       }, wait);
     });
   }
@@ -477,8 +484,7 @@ export class DeckBrowser {
     if (!tab || !url) return;
     this.origins.set(tab.id, e.origin);
     if (message.type === 'open') {
-      this.openedByPage.add(url);
-      this.openUrl(url);
+      this.openUrl(url, '', false);
       return;
     }
     if (message.type !== 'state') return;
@@ -505,8 +511,10 @@ export class DeckBrowser {
     if (!tab || (tab.loaded && !force) || !tab.url) return;
     this.patch(id, { loaded: true });
     void this.webProxy().then(async (proxy) => {
-      if (proxy && !this.openedByPage.has(tab.url))
-        await this.dev.send('POST', '/web-proxy/open', { url: tab.url });
+      const origin = new URL(tab.url).origin;
+      if (proxy && this.chosen.delete(tab.url) && !this.reachable.has(origin))
+        if (await this.dev.send('POST', '/web-proxy/open', { url: tab.url }))
+          this.reachable.add(origin);
       const now = this.tabs().find((t) => t.id === id);
       if (now?.url !== tab.url) return;
       if (proxy) {

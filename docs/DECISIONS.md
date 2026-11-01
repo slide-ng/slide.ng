@@ -554,6 +554,11 @@ Source: an independent review of the repository (nine findings). Each fix has a 
    versions for every condition, read by UnoCSS like the other icon sets, so only the icons in use end up in the CSS and no code
    is added to the app. The line icons of `ph` could not tell a sunny from a cloudy day at a glance.
 
+6. **`undici` fetches the deck browser's proxied pages** (MIT, the library behind Node's own `fetch`). The proxy has to check the
+   address it actually connects to, not one it looked up before: otherwise a name can answer a public address to the check and
+   this computer to the fetch (DNS rebinding). Node's built-in `fetch` takes no lookup of its own; undici's `Agent` does, so every
+   connection is checked where it is made. It was already installed for the tests (through jsdom) and runs only in the dev server.
+
 ## Made while measuring the first load
 
 1. **Monaco's stylesheet comes with the Monaco chunk, not with the deck's styles.** It is about 390 kB (125 kB compressed, the icon font

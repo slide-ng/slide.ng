@@ -1,8 +1,10 @@
 import { createServer } from 'node:http';
+import { lookup as lookupEach } from 'node:dns';
 import { lookup } from 'node:dns/promises';
 import { randomBytes } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { Readable } from 'node:stream';
+import { Agent, fetch as undiciFetch } from 'undici';
 
 export const SHIM_PATH = '/__slide-ng-web/shim.js';
 let shimSource = null;
@@ -70,7 +72,7 @@ export function rewriteHtml(html, { key, port, base }) {
           })
           .replace(/(\starget\s*=\s*)(["']?)_(top|parent)\2/gi, '$1$2_self$2');
   let out = html.replace(
-    /(<(script|style|textarea|title)\b[^>]*>)([\s\S]*?)(<\/\2\s*>)|<!--[\s\S]*?-->|<[a-z][^>"']*(?:(?:"[^"]*"|'[^']*')[^>"']*)*>/gi,
+    /(<(script|style|textarea|title)\b[^>]*>)([\s\S]*?)(<\/\2\s*>)|<!--[\s\S]*?-->|<[a-z][^>"']*(?:(?:"[^">]*"|'[^'>]*')[^>"']*)*>/gi,
     (whole, open, name, body, close) => {
       if (!open) return whole.startsWith('<!--') ? whole : tag(whole);
       const inner = name.toLowerCase() === 'style' ? rewriteCss(body, { key, port, base }) : body;
@@ -182,13 +184,17 @@ const safeHost = (origin) => {
   }
 };
 
-const LOCAL = (address) =>
-  /^(127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.|0\.0\.0\.0$)/.test(address) ||
-  /^(::1?$|f[cd]|fe[89ab]|::ffff:(127|10|192\.168)\.)/i.test(address);
+const IPV4_LOCAL =
+  /^(0\.|127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.|100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.)/;
+
+export const LOCAL = (address) => {
+  const mapped = /^::ffff:(.+)$/i.exec(address)?.[1];
+  if (mapped) return /^[\d.]+$/.test(mapped) ? IPV4_LOCAL.test(mapped) : true;
+  return IPV4_LOCAL.test(address) || /^(::1?$|f[cd]|fe[89abcdef])/i.test(address);
+};
 
 export async function targetAllowed(target, blockedPorts, allowed = new Set(), resolve = lookup) {
   const u = new URL(target);
-  const port = Number(u.port || (u.protocol === 'https:' ? 443 : 80));
   const host = u.hostname.replace(/^\[|\]$/g, '');
   let local = host === 'localhost' || host.endsWith('.localhost');
   if (!local) {
@@ -200,7 +206,23 @@ export async function targetAllowed(target, blockedPorts, allowed = new Set(), r
     }
   }
   if (!local) return true;
-  return !blockedPorts.includes(port) && allowed.has(u.origin);
+  return mayReachLocal(u, blockedPorts, allowed);
+}
+
+const portOf = (u) => Number(u.port || (u.protocol === 'https:' ? 443 : 80));
+const mayReachLocal = (u, blockedPorts, allowed) =>
+  !blockedPorts.includes(portOf(u)) && allowed.has(u.origin);
+
+export function guardedLookup(target, blockedPorts, allowed, resolve = lookupEach) {
+  const u = new URL(target);
+  return (host, options, done) =>
+    resolve(host, { ...options, all: true }, (error, list) => {
+      if (error) return done(error);
+      const ok = list.filter((a) => !LOCAL(a.address) || mayReachLocal(u, blockedPorts(), allowed));
+      if (!ok.length) return done(Object.assign(new Error('local address'), { code: 'ELOCAL' }));
+      if (options?.all) done(null, ok);
+      else done(null, ok[0].address, ok[0].family);
+    });
 }
 
 const MAX_BODY = 50 * 1024 * 1024;
@@ -223,10 +245,26 @@ const escape = (s) => String(s).replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};
 
 const charsetOf = (type) => /charset=([\w-]+)/i.exec(type)?.[1] ?? 'utf-8';
 
-export function createWebProxy({ deckOrigins = [], blockedPorts = [], fetch: get = fetch } = {}) {
+export function createWebProxy({
+  deckOrigins = [],
+  blockedPorts = [],
+  fetch: get = undiciFetch,
+} = {}) {
   const key = randomBytes(6).toString('hex');
   const allowed = new Set();
   let port = 0;
+  const agents = new Map();
+  const agentFor = (target) => {
+    const origin = new URL(target).origin;
+    if (!agents.has(origin))
+      agents.set(
+        origin,
+        new Agent({
+          connect: { lookup: guardedLookup(target, () => [...blockedPorts, port], allowed) },
+        }),
+      );
+    return agents.get(origin);
+  };
   const shim = () =>
     readShim().replace('__SLIDE_NG_WEB__', JSON.stringify({ key, port, deck: deckOrigins }));
 
@@ -248,12 +286,13 @@ export function createWebProxy({ deckOrigins = [], blockedPorts = [], fetch: get
       res
         .writeHead(status, { 'content-type': 'text/html; charset=utf-8' })
         .end(page(status, title, text));
-    if (!(await targetAllowed(target, [...blockedPorts, port], allowed)))
-      return html(
+    const refuse = () =>
+      html(
         403,
         'Not shown here',
         `${escape(origin)} is on this computer or network, and the deck did not open it.`,
       );
+    if (!(await targetAllowed(target, [...blockedPorts, port], allowed))) return refuse();
     try {
       const body = req.method === 'GET' || req.method === 'HEAD' ? undefined : await readAll(req);
       const upstream = await get(target, {
@@ -262,6 +301,7 @@ export function createWebProxy({ deckOrigins = [], blockedPorts = [], fetch: get
         body,
         redirect: 'manual',
         signal: AbortSignal.timeout(30_000),
+        dispatcher: agentFor(target),
       });
       const headers = responseHeaders(upstream, { key, port, target });
       const type = upstream.headers.get('content-type') ?? '';
@@ -283,7 +323,8 @@ export function createWebProxy({ deckOrigins = [], blockedPorts = [], fetch: get
         .on('error', () => res.destroy())
         .pipe(res);
     } catch (e) {
-      if (!res.headersSent)
+      if (!res.headersSent && e?.cause?.code === 'ELOCAL') refuse();
+      else if (!res.headersSent)
         html(
           502,
           'Could not load this page',
