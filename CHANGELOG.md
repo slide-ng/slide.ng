@@ -4,6 +4,8 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-11-01
+
 ### Added
 
 - `browser.proxy`: a built deck (or one under `--remote`) can load the deck browser's pages through a proxy of your own, an address with `%s` for the page. Sites that refuse framing then show inside, and links and forms stay inside. slide.ng runs no server: `docs/browser-proxy/` has a fetch handler and a file each for Netlify, Vercel, Cloudflare Workers and Deno Deploy, all with free plans. `DECK_ORIGINS` keeps it to your own deck in browsers; every page it shows is sandboxed on an origin of its own (so it cannot reach the deck or other pages), cookies are dropped, and addresses written as local or private are refused.
@@ -358,7 +360,8 @@ The first version, built in phases.
 
 See `docs/STATUS.md` for what is missing or not verified.
 
-[Unreleased]: https://github.com/slide-ng/slide.ng/compare/v3.0.0...HEAD
+[Unreleased]: https://github.com/slide-ng/slide.ng/compare/v3.1.0...HEAD
+[3.1.0]: https://github.com/slide-ng/slide.ng/compare/v3.0.0...v3.1.0
 [3.0.0]: https://github.com/slide-ng/slide.ng/compare/v2.2.0...v3.0.0
 [2.2.0]: https://github.com/slide-ng/slide.ng/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/slide-ng/slide.ng/compare/v2.0.0...v2.1.0
