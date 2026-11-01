@@ -4,6 +4,14 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+### Fixed
+
+- Through the dev proxy, a sign-in never stayed signed in: the shown page sits on its own `*.localhost` origin, which the browser counts as another site than the deck, so it refused a `SameSite=Lax` cookie (the default). The proxy now keeps each site's cookies itself, in memory until the dev server stops, and applies SameSite on its own: a sign-in stays, and a form of another site still does not carry it. Cookies that a page sets with `document.cookie` work too. Tried in Chrome on a local test site only.
+
+### Changed
+
+- `tough-cookie` (BSD-3-Clause) is a dependency now, used only by the dev server's proxy for those cookies.
+
 ## [3.3.0] - 2026-11-01
 
 ### Changed
