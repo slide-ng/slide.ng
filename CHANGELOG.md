@@ -4,6 +4,8 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+## [3.1.1] - 2026-11-01
+
 ### Fixed
 
 - With `browser.proxy`, searches came back as a bot check: DuckDuckGo, Bing and Google show one to a hosting company's servers. The default search through a proxy of your own is now Brave Search, which answers them.
@@ -365,7 +367,8 @@ The first version, built in phases.
 
 See `docs/STATUS.md` for what is missing or not verified.
 
-[Unreleased]: https://github.com/slide-ng/slide.ng/compare/v3.1.0...HEAD
+[Unreleased]: https://github.com/slide-ng/slide.ng/compare/v3.1.1...HEAD
+[3.1.1]: https://github.com/slide-ng/slide.ng/compare/v3.1.0...v3.1.1
 [3.1.0]: https://github.com/slide-ng/slide.ng/compare/v3.0.0...v3.1.0
 [3.0.0]: https://github.com/slide-ng/slide.ng/compare/v2.2.0...v3.0.0
 [2.2.0]: https://github.com/slide-ng/slide.ng/compare/v2.1.0...v2.2.0
