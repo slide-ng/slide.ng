@@ -4,6 +4,11 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+### Fixed
+
+- With `browser.proxy`, searches came back as a bot check: DuckDuckGo, Bing and Google show one to a hosting company's servers. The default search through a proxy of your own is now Brave Search, which answers them.
+- Pages shown through `docs/browser-proxy/` get `localStorage`, `sessionStorage` and `document.cookie` in memory, so sites that need them (Brave Search) no longer stay blank in the sandbox.
+
 ## [3.1.0] - 2026-11-01
 
 ### Added

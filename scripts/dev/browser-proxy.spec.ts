@@ -37,7 +37,9 @@ describe('the deck browser proxy', () => {
     expect(res.headers.get('x-content-type-options')).toBe('nosniff');
     expect(res.headers.get('content-security-policy')).toMatch(/^sandbox allow-scripts/);
     expect(res.headers.get('content-security-policy')).not.toContain('allow-same-origin');
-    expect(html).toContain('<head><base href="https://a.dev/x">');
+    expect(html).toMatch(
+      /<head><script>[^<]*localStorage[^<]*<\/script><base href="https:\/\/a\.dev\/x">/,
+    );
     expect(html).not.toMatch(/content-security-policy/i);
     expect(html).toContain(
       'href="https://p.dev/proxy?url=https%3A%2F%2Fa.dev%2Fnext" target="_self"',
@@ -131,7 +133,7 @@ describe('the deck browser proxy', () => {
         fetch: based,
       })
     ).text();
-    expect(html).toContain('<head><base href="https://a.dev/docs/v2/">');
+    expect(html).toContain('<base href="https://a.dev/docs/v2/">');
     expect(html.match(/<base/g)?.length).toBe(1);
     expect(html).toContain('href="https://p.dev/proxy?url=https%3A%2F%2Fa.dev%2Fdocs%2Fv2%2Fx"');
     expect(html).not.toMatch(/no-referrer|noreferrer|referrerpolicy/);

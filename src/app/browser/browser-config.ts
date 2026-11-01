@@ -15,7 +15,7 @@ export interface BrowserConfig {
 
 export const DEFAULT_SEARCH = 'https://duckduckgo.com/?q=%s';
 export const FRAMABLE_SEARCH = 'https://www.bing.com/search?q=%s';
-export const PLAIN_SEARCH = 'https://html.duckduckgo.com/html/?q=%s';
+export const PROXIED_SEARCH = 'https://search.brave.com/search?q=%s';
 
 export const SEARCH_ENGINES = [
   { name: 'DuckDuckGo', url: 'https://duckduckgo.com/?q=%s' },

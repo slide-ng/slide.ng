@@ -8,7 +8,7 @@ import { SyncState } from '../sync/sync-state';
 import {
   DEFAULT_SEARCH,
   FRAMABLE_SEARCH,
-  PLAIN_SEARCH,
+  PROXIED_SEARCH,
   WebProxy,
   searchAddress,
   deckBrowserConfig,
@@ -205,7 +205,7 @@ export class DeckBrowser {
     () =>
       searchAddress(this.prefs().search) ??
       this.config.search ??
-      (this.proxy() ? DEFAULT_SEARCH : this.config.proxy ? PLAIN_SEARCH : FRAMABLE_SEARCH),
+      (this.proxy() ? DEFAULT_SEARCH : this.config.proxy ? PROXIED_SEARCH : FRAMABLE_SEARCH),
   );
   readonly links = computed(() => this.prefs().links ?? this.config.links);
   readonly bookmarked = computed(() => {
