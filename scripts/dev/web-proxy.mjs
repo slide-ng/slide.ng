@@ -30,7 +30,7 @@ export function realOrigin(host, key) {
     `^(.+)\\.(https?)(?:-(\\d{1,5}))?\\.${key}\\.localhost(?::\\d{1,5})?$`,
     'i',
   ).exec(String(host ?? ''));
-  if (!m || !/^[a-z\d.-]+$/i.test(m[1])) return null;
+  if (!m || !/^[a-z\d.-]+$/i.test(m[1]) || (m[3] && (+m[3] < 1 || +m[3] > 65535))) return null;
   return `${m[2].toLowerCase()}://${m[1].toLowerCase()}${m[3] ? `:${m[3]}` : ''}`;
 }
 
@@ -193,20 +193,26 @@ export const LOCAL = (address) => {
   return IPV4_LOCAL.test(address) || /^(::1?$|f[cd]|fe[89abcdef])/i.test(address);
 };
 
-export async function targetAllowed(target, blockedPorts, allowed = new Set(), resolve = lookup) {
-  const u = new URL(target);
+async function isLocal(u, resolve = lookup) {
   const host = u.hostname.replace(/^\[|\]$/g, '');
-  let local = host === 'localhost' || host.endsWith('.localhost');
-  if (!local) {
-    try {
-      const all = await resolve(host, { all: true });
-      local = all.some((a) => LOCAL(a.address));
-    } catch {
-      return false;
-    }
+  if (host === 'localhost' || host.endsWith('.localhost')) return true;
+  const all = await resolve(host, { all: true });
+  return all.some((a) => LOCAL(a.address));
+}
+
+export async function targetAllowed(target, blockedPorts, allowed = new Set(), resolve = lookup) {
+  try {
+    const u = new URL(target);
+    return !(await isLocal(u, resolve)) || mayReachLocal(u, blockedPorts, allowed);
+  } catch {
+    return false;
   }
-  if (!local) return true;
-  return mayReachLocal(u, blockedPorts, allowed);
+}
+
+export async function allowLocal(url, allowed, resolve = lookup) {
+  const u = new URL(url);
+  if (u.protocol !== 'http:' && u.protocol !== 'https:') throw new Error('not a web address');
+  if (await isLocal(u, resolve).catch(() => false)) allowed.add(u.origin);
 }
 
 const portOf = (u) => Number(u.port || (u.protocol === 'https:' ? 443 : 80));
@@ -292,8 +298,8 @@ export function createWebProxy({
         'Not shown here',
         `${escape(origin)} is on this computer or network, and the deck did not open it.`,
       );
-    if (!(await targetAllowed(target, [...blockedPorts, port], allowed))) return refuse();
     try {
+      if (!(await targetAllowed(target, [...blockedPorts, port], allowed))) return refuse();
       const body = req.method === 'GET' || req.method === 'HEAD' ? undefined : await readAll(req);
       const upstream = await get(target, {
         method: req.method,
@@ -340,10 +346,7 @@ export function createWebProxy({
     get port() {
       return port;
     },
-    allow(url) {
-      const u = new URL(url);
-      if (u.protocol === 'http:' || u.protocol === 'https:') allowed.add(u.origin);
-    },
+    allow: (url) => allowLocal(url, allowed),
     listen: (wanted = 0) =>
       new Promise((resolve) =>
         server.listen(wanted, '127.0.0.1', () => {

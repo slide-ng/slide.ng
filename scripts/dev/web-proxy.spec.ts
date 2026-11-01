@@ -7,6 +7,7 @@ import {
   targetAllowed,
   LOCAL,
   guardedLookup,
+  allowLocal,
   toProxy,
   toReal,
 } from './web-proxy.mjs';
@@ -184,5 +185,27 @@ describe('guardedLookup', () => {
     expect(await run('http://localhost:4230/', '127.0.0.1', ['http://localhost:4230'])).toBe(
       'ELOCAL',
     );
+  });
+});
+
+describe('allowLocal', () => {
+  const resolve = (async (host: string) => [
+    { address: host === 'router.lan' ? '192.168.1.1' : '93.184.216.34', family: 4 },
+  ]) as unknown as Parameters<typeof allowLocal>[2];
+  it('keeps only local origins, so a public name cannot later point here', async () => {
+    const allowed = new Set<string>();
+    await allowLocal('http://localhost:4200/a', allowed, resolve);
+    await allowLocal('http://router.lan/', allowed, resolve);
+    await allowLocal('https://evil.dev/', allowed, resolve);
+    expect([...allowed]).toEqual(['http://localhost:4200', 'http://router.lan']);
+    await expect(allowLocal('file:///etc/passwd', allowed, resolve)).rejects.toThrow();
+  });
+});
+
+describe('a bad port', () => {
+  it('is not a proxy address, and is refused instead of throwing', async () => {
+    expect(realOrigin('x.http-99999.abc123.localhost:5000', 'abc123')).toBeNull();
+    expect(realOrigin('x.http-0.abc123.localhost:5000', 'abc123')).toBeNull();
+    expect(await targetAllowed('http://x:99999/', [], new Set())).toBe(false);
   });
 });

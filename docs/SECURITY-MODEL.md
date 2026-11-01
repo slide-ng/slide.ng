@@ -34,7 +34,9 @@ load the deck's own servers (the dev server port, the companion and itself), als
 Other addresses on this computer or a private network (0/8, loopback, 10/8, 100.64/10, 172.16/12, 192.168/16, link-local, IPv6
 unique-local and link-local, and IPv4-mapped forms of these, also through a name that resolves there) load only after the deck
 page asked for that origin through the companion (`POST /web-proxy/open`, with the token) because the presenter typed it, clicked
-a slide link, tile or bookmark: not when a page in the deck browser opens it, also in another window that follows through sync.
+a slide link, tile or bookmark: not when a page in the deck browser opens it or reports it as its address (so a tile or the
+address field showing it does not count either), also in another window that follows through sync. Only origins that are local
+when asked are kept, so a public name the presenter opened cannot later point here.
 The check runs again on the address each connection actually uses, so a name that changes its answer (DNS rebinding) is refused
 too. So a site shown in the deck browser cannot use the proxy to read local services. It
 drops the headers that refuse framing and the site's Content-Security-Policy, so a page in it has less protection against

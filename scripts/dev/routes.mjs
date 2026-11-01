@@ -118,7 +118,7 @@ export function createHandler(ctx, { hub } = {}) {
       const { url: target } = await body(req, 4_000);
       if (typeof target !== 'string') throw new HttpError(400, 'url must be text');
       try {
-        ctx.allowWebTarget(target);
+        await ctx.allowWebTarget(target);
       } catch {
         throw new HttpError(400, 'not a web address');
       }

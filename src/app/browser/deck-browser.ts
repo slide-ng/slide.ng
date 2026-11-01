@@ -137,6 +137,7 @@ export class DeckBrowser {
   private pending = new Map<number, string>();
   private origins = new Map<number, string>();
   private chosen = new Set<string>();
+  private fromPages = new Set<string>();
   private reachable = new Set<string>();
   readonly proxy = signal<WebProxy | null>(null);
   private proxyAsked: Promise<WebProxy | null> | null = null;
@@ -256,7 +257,7 @@ export class DeckBrowser {
   openUrl(address: string, name = '', chosen = true) {
     const url = webAddress(address);
     if (!url || !this.config.enabled) return;
-    if (chosen) this.chosen.add(url);
+    if (chosen) this.choose(url);
     const same = this.tabs().find((t) => t.url === url);
     if (same) this.select(same.id);
     else {
@@ -309,7 +310,7 @@ export class DeckBrowser {
     const url = webAddress(address);
     const tab = this.tabs().find((t) => t.id === id);
     if (!url || !tab) return;
-    this.chosen.add(url);
+    this.choose(url);
     const history = [...tab.history.slice(0, tab.index + 1), url];
     this.patch(id, {
       url,
@@ -484,10 +485,12 @@ export class DeckBrowser {
     if (!tab || !url) return;
     this.origins.set(tab.id, e.origin);
     if (message.type === 'open') {
+      this.fromPages.add(url);
       this.openUrl(url, '', false);
       return;
     }
     if (message.type !== 'state') return;
+    this.fromPages.add(url);
     const title = typeof message.title === 'string' ? message.title.trim().slice(0, 80) : '';
     const samePage = tab.url === url;
     const name = title || (samePage && tab.name ? tab.name : tabTitle(url));
@@ -500,6 +503,10 @@ export class DeckBrowser {
       this.patch(tab.id, { url, name, icon, history, index: history.length - 1 });
     }
     this.remember({ name, url, icon });
+  }
+
+  private choose(url: string) {
+    if (!this.fromPages.has(url)) this.chosen.add(url);
   }
 
   private remember(page: Visited) {
