@@ -179,6 +179,12 @@ export class DeckBrowserCustomise {
     this.browser.setPrefs({ weather: { ...this.browser.prefs().weather, ...change } });
   }
 
+  protected toggleWeather() {
+    const { show, place } = this.browser.prefs().weather;
+    this.setWeather({ show: !show });
+    if (!show && !place) this.useMyLocation();
+  }
+
   protected async findWeatherPlace(input: HTMLInputElement) {
     if (!input.value.trim()) return;
     const place = await findPlace(input.value);

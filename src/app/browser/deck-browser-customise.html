@@ -513,7 +513,7 @@
               id="deck-browser-weather-toggle"
               class="w-full flex items-center justify-between gap-4 px-5 py-4 text-start border-b border-main"
               [attr.aria-checked]="browser.prefs().weather.show"
-              (click)="setWeather({ show: !browser.prefs().weather.show })"
+              (click)="toggleWeather()"
             >
               <span>{{ 'browser.showWeather' | t }}</span>
               <span
