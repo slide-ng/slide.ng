@@ -9,10 +9,11 @@ export interface BrowserConfig {
   enabled: boolean;
   links: boolean;
   tabs: BrowserTab[];
-  search: string;
+  search: string | null;
 }
 
 export const DEFAULT_SEARCH = 'https://duckduckgo.com/?q=%s';
+export const FRAMABLE_SEARCH = 'https://www.bing.com/search?q=%s';
 
 export const SEARCH_ENGINES = [
   { name: 'DuckDuckGo', url: 'https://duckduckgo.com/?q=%s' },
@@ -43,7 +44,7 @@ export function webAddress(value: unknown): string | null {
 }
 
 export function readBrowserConfig(value: unknown): BrowserConfig {
-  if (value === false) return { enabled: false, links: false, tabs: [], search: DEFAULT_SEARCH };
+  if (value === false) return { enabled: false, links: false, tabs: [], search: null };
   const config = obj(value) ? value : {};
   const tabs = (Array.isArray(config['tabs']) ? config['tabs'] : []).flatMap((tab) => {
     const url = webAddress(obj(tab) ? tab['url'] : tab);
@@ -51,13 +52,12 @@ export function readBrowserConfig(value: unknown): BrowserConfig {
     const name = obj(tab) && typeof tab['name'] === 'string' ? tab['name'].trim() : '';
     return [{ name: name || tabTitle(url), url }];
   });
-  const search =
-    typeof config['search'] === 'string' &&
-    config['search'].includes('%s') &&
-    webAddress(config['search'].replace('%s', 'x'))
-      ? config['search']
-      : DEFAULT_SEARCH;
-  return { enabled: true, links: config['links'] !== false, tabs, search };
+  return {
+    enabled: true,
+    links: config['links'] !== false,
+    tabs,
+    search: searchAddress(config['search']),
+  };
 }
 
 export const deckBrowserConfig = (): BrowserConfig => readBrowserConfig(HEADMATTER['browser']);

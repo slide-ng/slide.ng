@@ -4,6 +4,10 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+### Fixed
+
+- The deck browser's search came up blank in a built deck or with `--remote`: DuckDuckGo refuses to be shown in a frame and only the dev server's proxy gets around that. Without the proxy the default search is now Bing, which shows inside the deck. A search engine chosen in the settings or in `browser.search` is kept.
+
 ## [3.0.0] - 2026-11-01
 
 ### Upgrading from 2.x

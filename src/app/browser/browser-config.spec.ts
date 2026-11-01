@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  DEFAULT_SEARCH,
   addressOrSearch,
   isProxyOrigin,
   linkForBrowser,
@@ -17,7 +16,7 @@ describe('readBrowserConfig', () => {
       enabled: true,
       links: true,
       tabs: [],
-      search: DEFAULT_SEARCH,
+      search: null,
     });
   });
   it('is off with `browser: false`', () => {
@@ -25,7 +24,7 @@ describe('readBrowserConfig', () => {
       enabled: false,
       links: false,
       tabs: [],
-      search: DEFAULT_SEARCH,
+      search: null,
     });
   });
   it('reads the tabs, names them by host when unnamed, and drops what is not a web address', () => {
@@ -111,8 +110,8 @@ describe('addressOrSearch', () => {
   });
   it('takes the search address of the headmatter only with %s and a web address', () => {
     expect(readBrowserConfig({ search: 'https://s.dev/?q=%s' }).search).toBe('https://s.dev/?q=%s');
-    expect(readBrowserConfig({ search: 'javascript:%s' }).search).toBe(DEFAULT_SEARCH);
-    expect(readBrowserConfig({ search: 'https://s.dev/' }).search).toBe(DEFAULT_SEARCH);
+    expect(readBrowserConfig({ search: 'javascript:%s' }).search).toBeNull();
+    expect(readBrowserConfig({ search: 'https://s.dev/' }).search).toBeNull();
   });
 });
 
