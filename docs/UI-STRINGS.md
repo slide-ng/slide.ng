@@ -313,7 +313,7 @@ default; `src/app/i18n/en.ts` holds it and is the source of truth for the keys. 
 | `browser.back`           | Back                                               |
 | `browser.forward`        | Forward                                            |
 | `browser.searchHint`     | Search or type an address                          |
-| `browser.start`          | slide.ng browser                                   |
+| `browser.start`          | browser (after the slide.ng name)                  |
 | `browser.bookmarkAdd`    | Bookmark this page                                 |
 | `browser.bookmarkRemove` | Remove bookmark                                    |
 | `browser.bookmarks`      | Bookmarks                                          |

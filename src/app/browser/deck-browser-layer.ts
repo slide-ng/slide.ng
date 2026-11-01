@@ -25,6 +25,38 @@ export class DeckBrowserLayer {
     const tab = this.browser.active();
     return !!tab?.url && tab.framable === null && !this.browser.proxy() && !this.dev.enabled;
   });
+  protected frameTabs = computed(() => [...this.browser.tabs()].sort((a, b) => a.id - b.id));
+  protected dragging = signal<number | null>(null);
+  protected dropMark = signal<{ id: number; before: boolean } | null>(null);
+
+  protected tabDragStart(e: DragEvent, id: number) {
+    this.dragging.set(id);
+    e.dataTransfer?.setData('text/plain', String(id));
+    if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+  }
+
+  protected tabDragOver(e: DragEvent, id: number) {
+    if (this.dragging() === null) return;
+    e.preventDefault();
+    const box = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const rtl = getComputedStyle(e.currentTarget as HTMLElement).direction === 'rtl';
+    const firstHalf = e.clientX < box.left + box.width / 2;
+    this.dropMark.set(id === this.dragging() ? null : { id, before: rtl ? !firstHalf : firstHalf });
+  }
+
+  protected tabDrop(e: DragEvent) {
+    e.preventDefault();
+    const from = this.dragging();
+    const mark = this.dropMark();
+    if (from !== null && mark) this.browser.moveTab(from, mark.id, mark.before);
+    this.tabDragEnd();
+  }
+
+  protected tabDragEnd() {
+    this.dragging.set(null);
+    this.dropMark.set(null);
+  }
+
   private removed = signal(new Set<string>());
   protected removeTile(url: string) {
     this.browser.removeBookmark(url);

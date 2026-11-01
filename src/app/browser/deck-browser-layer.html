@@ -10,10 +10,24 @@
     <div class="flex items-center gap-1 px-2 pt-2 border-b border-main" role="tablist">
       @for (tab of browser.tabs(); track tab.id) {
         <div
-          class="deck-browser-tab group flex items-center max-w-56 min-w-0 rounded-t-md border border-b-0 border-main"
+          class="deck-browser-tab group relative flex items-center max-w-56 min-w-0 rounded-t-md border border-b-0 border-main"
           [class.bg-active]="tab.id === browser.activeId()"
           [class.op70]="tab.id !== browser.activeId()"
+          [class.op40]="dragging() === tab.id"
+          [attr.data-tab-id]="tab.id"
+          draggable="true"
+          (dragstart)="tabDragStart($event, tab.id)"
+          (dragover)="tabDragOver($event, tab.id)"
+          (drop)="tabDrop($event)"
+          (dragend)="tabDragEnd()"
         >
+          @if (dropMark()?.id === tab.id) {
+            <span
+              class="absolute top-1 bottom-0 w-0.5 rounded-full bg-primary pointer-events-none"
+              [style.inset-inline-start.px]="dropMark()!.before ? -2 : null"
+              [style.inset-inline-end.px]="dropMark()!.before ? null : -2"
+            ></span>
+          }
           <button
             type="button"
             role="tab"
@@ -194,7 +208,7 @@
       </nav>
     }
     <div #view class="relative flex-1 min-h-0 bg-white">
-      @for (tab of browser.tabs(); track tab.id + ':' + tab.rev) {
+      @for (tab of frameTabs(); track tab.id + ':' + tab.rev) {
         @if (tab.src && tab.framable !== false) {
           <iframe
             class="deck-browser-frame absolute inset-0 w-full h-full border-0"
@@ -241,11 +255,24 @@
   <ng-template #start>
     <div
       id="deck-browser-start"
-      class="absolute inset-0 overflow-auto bg-main text-main flex flex-col items-center px-6 pt-[14vh] pb-8 gap-8"
+      class="absolute inset-0 overflow-auto bg-main text-main flex flex-col items-center px-6 pt-[12vh] pb-8 gap-10"
     >
-      <div class="flex items-center gap-3 text-3xl font-semibold">
-        <app-slide-ng-mark class="w-12 h-12" />
-        <span>{{ 'browser.start' | t }}</span>
+      <div class="flex flex-col items-center gap-4 select-none">
+        <div class="relative grid place-content-center">
+          <div
+            class="deck-browser-glow absolute -inset-6 rounded-full blur-2xl op40"
+            style="background: radial-gradient(circle, #cc4209 0%, transparent 70%)"
+          ></div>
+          <app-slide-ng-mark class="relative w-16 h-16 drop-shadow-lg" [animated]="true" />
+        </div>
+        <h1 class="flex items-baseline gap-2 text-4xl tracking-tight">
+          <span
+            class="font-extrabold bg-clip-text text-transparent"
+            style="background-image: linear-gradient(120deg, #ff7a3d, #cc4209 55%, #8f300a)"
+            >slide.ng</span
+          >
+          <span class="font-light op60">{{ 'browser.start' | t }}</span>
+        </h1>
       </div>
       <form class="w-full max-w-2xl" (submit)="go($event, search)">
         <div

@@ -237,7 +237,7 @@ export const EN = {
   'browser.back': 'Back',
   'browser.forward': 'Forward',
   'browser.searchHint': 'Search or type an address',
-  'browser.start': 'slide.ng browser',
+  'browser.start': 'browser',
   'browser.bookmarkAdd': 'Bookmark this page',
   'browser.bookmarkRemove': 'Remove bookmark',
   'browser.bookmarks': 'Bookmarks',

@@ -124,6 +124,18 @@ export class DeckBrowser {
     this.load(id);
   }
 
+  moveTab(id: number, target: number, before: boolean) {
+    if (id === target) return;
+    const all = this.tabs();
+    const moving = all.find((t) => t.id === id);
+    if (!moving) return;
+    const rest = all.filter((t) => t.id !== id);
+    const at = rest.findIndex((t) => t.id === target);
+    if (at < 0) return;
+    rest.splice(before ? at : at + 1, 0, moving);
+    this.tabs.set(rest);
+  }
+
   close(id: number) {
     const all = this.tabs();
     const i = all.findIndex((t) => t.id === id);
