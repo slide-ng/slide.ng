@@ -4,6 +4,7 @@
 //   a theme folder or package:   a copy of its layouts, components, layers, styles, public, setup, theme.json, uno.config.mjs
 import { didYouMean } from '../lib/did-you-mean.mjs';
 import {
+  copyFileSync,
   cpSync,
   existsSync,
   lstatSync,
@@ -41,6 +42,9 @@ function ejectBuiltIn(target) {
       join(target, 'layouts', file),
       rewriteImports(readFileSync(join(from, file), 'utf8')),
     );
+    const template = file.replace(/\.ts$/, '.html');
+    if (existsSync(join(from, template)))
+      copyFileSync(join(from, template), join(target, 'layouts', template));
   }
   // The typography of the layouts, as the theme's own style sheet.
   mkdirSync(join(target, 'styles'), { recursive: true });

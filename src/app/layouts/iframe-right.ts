@@ -6,10 +6,7 @@ import { Frame } from './frame';
   selector: 'sn-iframe-right',
   imports: [Frame],
   host: { class: 'grid grid-cols-2 w-full h-full' },
-  template: `
-    <div class="slidev-layout default" [class]="contentClass()"><ng-content /></div>
-    <sn-frame [url]="url()" [scale]="scale()" />
-  `,
+  templateUrl: './iframe-right.html',
 })
 export class IframeRightLayout {
   url = input.required<string>();

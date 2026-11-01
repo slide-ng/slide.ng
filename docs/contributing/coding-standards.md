@@ -19,6 +19,7 @@ Prettier formats everything (`npm run format`) and ESLint checks the code (`npm 
 ## Angular (`src/app`)
 
 - Standalone components, signals (`input()`, `output()`, `signal()`, `computed()`) and `inject()`.
+- A component keeps its template in an `.html` file next to its `.ts` (`templateUrl: './name.html'`), also a one-line one. The class scan of the generator reads `.html` files too, so classes used only there still get their CSS.
 - Native control flow (`@if`, `@for`, `@switch`). Use `class` and `style` bindings instead of `ngClass` and `ngStyle`.
 - Host bindings go in the `host` object of the decorator.
 - The app is zoneless: state that changes must be a signal.

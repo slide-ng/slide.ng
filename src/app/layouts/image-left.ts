@@ -5,10 +5,7 @@ import { background } from './background';
 @Component({
   selector: 'sn-image-left',
   host: { class: 'grid grid-cols-2 w-full h-full auto-rows-fr' },
-  template: `
-    <div class="w-full h-full" [style]="style()"></div>
-    <div class="slidev-layout default" [class]="contentClass()"><ng-content /></div>
-  `,
+  templateUrl: './image-left.html',
 })
 export class ImageLeftLayout {
   image = input('');

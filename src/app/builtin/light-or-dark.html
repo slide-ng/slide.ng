@@ -1,0 +1,5 @@
+@if (dark.isDark()) {
+  <ng-content select="[dark]" />
+} @else {
+  <ng-content select="[light]" />
+}

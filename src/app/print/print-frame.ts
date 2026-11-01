@@ -29,16 +29,7 @@ import { printAnchor } from './print-anchor';
     '[style.height.px]': 'height',
   },
   // The first page of a slide holds the anchor that links to this slide point at (print-anchor.ts).
-  template: `
-    @if (anchor()) {
-      <span [id]="anchorId()" aria-hidden="true"></span>
-    }
-    <app-slide-layer name="global-bottom" [no]="no()" [at]="step()" />
-    <ng-container #host />
-    <app-drawing-preview [no]="no()" />
-    <app-slide-layer name="global-top" [no]="no()" [at]="step()" />
-    <app-deck-progress-bar [no]="no()" [at]="step()" />
-  `,
+  templateUrl: './print-frame.html',
 })
 export class PrintFrame {
   no = input.required<number>();

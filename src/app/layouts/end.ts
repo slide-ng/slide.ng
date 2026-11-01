@@ -4,6 +4,6 @@ import { Component } from '@angular/core';
 @Component({
   selector: 'sn-end',
   host: { class: 'slidev-layout end' },
-  template: '<ng-content>END</ng-content>',
+  templateUrl: './end.html',
 })
 export class EndLayout {}

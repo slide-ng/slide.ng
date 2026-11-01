@@ -94,13 +94,7 @@ export function findRenderer(setups: MermaidRendererSetup[]): Promise<MermaidRen
     class: 'block',
     '[attr.data-slide-ng-waitfor]': 'pending() ? ".mermaid > svg, .mermaid-error" : null',
   },
-  template: `
-    @if (error()) {
-      <pre class="mermaid-error border border-red-500 rounded p-3 text-wrap">{{ error() }}</pre>
-    } @else {
-      <div #box class="mermaid"></div>
-    }
-  `,
+  templateUrl: './mermaid.html',
 })
 export class Mermaid {
   code = input('');

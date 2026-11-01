@@ -71,22 +71,7 @@ export function minutesLabel(
     '[attr.aria-valuenow]': 'percent()',
     '[style]': 'hostStyle()',
   },
-  template: `
-    <div
-      class="slide-ng-progress-fill transition-all duration-300"
-      [style.width.%]="percent()"
-      [style.height.%]="100"
-      [style.background]="color() || 'var(--slidev-theme-primary)'"
-    ></div>
-    @if (minutesText(); as text) {
-      <span
-        class="slide-ng-progress-minutes absolute end-2 text-xs op75"
-        [style.top]="position() === 'top' ? '100%' : null"
-        [style.bottom]="position() === 'top' ? null : '100%'"
-        ><bdi>{{ text }}</bdi></span
-      >
-    }
-  `,
+  templateUrl: './progress-bar.html',
 })
 export class SlideProgressBar {
   /** `bottom` or `top` sits on that edge of the slide; `inline` stays where it is written. */

@@ -216,7 +216,7 @@ slide-ng theme eject [slides.md] [--dir theme]
 ```
 
 Copies the theme in use into `./theme` and sets `theme: ./theme` (`--theme` or `SLIDE_NG_THEME` picks another theme). For the
-built-in theme this copies every layout (their imports are rewritten to `slide-ng/...`, including the helpers `background` and `frame`,
+built-in theme this copies every layout, its `.ts` and its `.html` template (their imports are rewritten to `slide-ng/...`, including the helpers `background` and `frame`,
 which stay in the package) and the layouts' CSS as `styles/index.css`. For a package it copies the whole package folder without
 `node_modules`, `.git` and symbolic links. It refuses a folder that is not empty.
 

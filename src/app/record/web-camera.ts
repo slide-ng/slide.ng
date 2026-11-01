@@ -6,25 +6,7 @@ import { Devices } from './devices';
 @Component({
   selector: 'app-web-camera',
   imports: [Draggable],
-  template: `
-    @if (devices.available && devices.cameraOn() && devices.stream()) {
-      <app-draggable storageKey="slidev-camera-pos" [initialX]="20" [initialY]="20">
-        <div
-          id="web-camera"
-          class="rounded-full overflow-hidden shadow-xl border-2 border-main bg-black w-48 h-48 cursor-move"
-        >
-          <video
-            #video
-            autoplay
-            muted
-            playsinline
-            class="w-full h-full object-cover pointer-events-none"
-            [style.transform]="devices.mirror() ? 'scaleX(-1)' : null"
-          ></video>
-        </div>
-      </app-draggable>
-    }
-  `,
+  templateUrl: './web-camera.html',
 })
 export class WebCamera {
   protected devices = inject(Devices);

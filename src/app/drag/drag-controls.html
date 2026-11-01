@@ -1,0 +1,52 @@
+@let t = drag.active();
+@if (t && box(); as b) {
+  <div
+    id="drag-frame"
+    data-drag-ui
+    class="absolute border border-dashed border-primary"
+    [style.left.px]="b.x * zoom()"
+    [style.top.px]="b.y * zoom()"
+    [style.width.px]="b.w * zoom()"
+    [style.height.px]="b.h * zoom()"
+    [style.transform]="b.rot ? 'rotate(' + b.rot + 'deg)' : null"
+  >
+    @for (c of corners; track c) {
+      <div
+        data-drag-ui
+        class="drag-handle absolute w-3 h-3 bg-white border border-primary pointer-events-auto touch-none"
+        [attr.data-corner]="c"
+        [style]="cornerStyle(c)"
+        (pointerdown)="startResize($event, c)"
+        (pointermove)="onMove($event)"
+        (pointerup)="end($event)"
+        (pointercancel)="end($event)"
+      ></div>
+    }
+    <div
+      data-drag-ui
+      id="drag-rotate"
+      class="absolute w-3 h-3 rounded-full bg-white border border-primary pointer-events-auto touch-none"
+      style="left: calc(50% - 6px); top: -28px; cursor: grab"
+      (pointerdown)="startRotate($event)"
+      (pointermove)="onMove($event)"
+      (pointerup)="end($event)"
+      (pointercancel)="end($event)"
+    ></div>
+  </div>
+}
+@if (t && arrow(); as a) {
+  @for (n of [1, 2]; track n) {
+    <div
+      data-drag-ui
+      class="drag-end absolute w-3 h-3 rounded-full bg-white border border-primary pointer-events-auto touch-none"
+      [attr.data-end]="n"
+      style="cursor: move; margin: -6px 0 0 -6px"
+      [style.left.px]="(n === 1 ? a.x1 : a.x2) * zoom()"
+      [style.top.px]="(n === 1 ? a.y1 : a.y2) * zoom()"
+      (pointerdown)="startEnd($event, n === 1 ? 1 : 2)"
+      (pointermove)="onMove($event)"
+      (pointerup)="end($event)"
+      (pointercancel)="end($event)"
+    ></div>
+  }
+}

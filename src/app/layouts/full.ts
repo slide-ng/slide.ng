@@ -4,6 +4,6 @@ import { Component } from '@angular/core';
 @Component({
   selector: 'sn-full',
   host: { class: 'slidev-layout full w-full h-full' },
-  template: '<ng-content />',
+  templateUrl: './full.html',
 })
 export class FullLayout {}

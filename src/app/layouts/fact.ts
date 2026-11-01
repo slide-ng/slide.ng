@@ -4,6 +4,6 @@ import { Component } from '@angular/core';
 @Component({
   selector: 'sn-fact',
   host: { class: 'slidev-layout fact' },
-  template: '<div class="my-auto"><ng-content /></div>',
+  templateUrl: './fact.html',
 })
 export class FactLayout {}

@@ -6,7 +6,7 @@ import { Frame } from './frame';
   selector: 'sn-iframe',
   imports: [Frame],
   host: { class: 'block h-full w-full' },
-  template: '<sn-frame [url]="url()" [scale]="scale()" />',
+  templateUrl: './iframe.html',
 })
 export class IframeLayout {
   url = input.required<string>();

@@ -4,6 +4,6 @@ import { Component } from '@angular/core';
 @Component({
   selector: 'sn-intro',
   host: { class: 'slidev-layout intro' },
-  template: '<div class="my-auto"><ng-content /></div>',
+  templateUrl: './intro.html',
 })
 export class IntroLayout {}

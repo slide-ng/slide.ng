@@ -4,6 +4,10 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+### Changed
+
+- Every component of the app keeps its template in an `.html` file next to its `.ts` (`templateUrl`), instead of an inline `template` (#92): 102 components, each `@Component` with one property per line. The deck browser's button has a lighter globe. Nothing changes for a deck; a layout or component copied from the app to change it now comes in two files. `slide-ng theme eject` copies each built-in layout's `.html` with its `.ts`.
+
 ## [3.2.0] - 2026-11-01
 
 ### Added

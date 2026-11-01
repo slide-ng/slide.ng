@@ -32,29 +32,7 @@ export async function resolvePostUri(input: string): Promise<string | undefined>
 @Component({
   selector: 'slide-ng-blue-sky',
   imports: [Transform, T],
-  template: `
-    <slide-ng-transform [scale]="scale() || 1">
-      <div #box class="slidev-bluesky">
-        @if (uri2()) {
-          <blockquote
-            class="bluesky-embed"
-            [attr.data-bluesky-uri]="uri2()"
-            [attr.data-bluesky-embed-color-mode]="dark.isDark() ? 'dark' : 'light'"
-          ></blockquote>
-        }
-        @if (!loaded() || notFound()) {
-          <div class="h-30 w-30 my-10px bg-gray-400 bg-opacity-10 rounded-lg flex opacity-50">
-            <div class="m-auto animate-pulse text-4xl">
-              <div class="i-carbon:logo-twitter"></div>
-              @if (notFound()) {
-                <span>{{ 'embed.blueskyFailed' | t }}</span>
-              }
-            </div>
-          </div>
-        }
-      </div>
-    </slide-ng-transform>
-  `,
+  templateUrl: './blue-sky.html',
   styles: ['.slidev-bluesky .bluesky-embed iframe { border-radius: 12px; overflow: hidden; }'],
 })
 export class BlueSky implements OnInit {

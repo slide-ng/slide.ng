@@ -13,24 +13,7 @@ export function hashHue(name: string): number {
 // Slidev's SegmentControl: small coloured badges in a grey pill, the chosen one lit.
 @Component({
   selector: 'app-segment-control',
-  template: `
-    <div class="flex gap-1 items-center rounded bg-gray/4 p-1 -m-1" role="group">
-      @for (o of options(); track o.id) {
-        <button
-          type="button"
-          [id]="o.id"
-          class="px-2 py-1 text-xs font-mono whitespace-nowrap rounded cursor-pointer"
-          [class.op65]="o.value !== value()"
-          [attr.aria-pressed]="o.value === value()"
-          [style.color]="o.value === value() ? hsla(o.hue ?? o.label, 1) : null"
-          [style.background]="o.value === value() ? hsla(o.hue ?? o.label, 0.1) : null"
-          (click)="changed.emit(o.value)"
-        >
-          {{ o.label }}
-        </button>
-      }
-    </div>
-  `,
+  templateUrl: './segment-control.html',
 })
 export class SegmentControl {
   private dark = inject(Dark);

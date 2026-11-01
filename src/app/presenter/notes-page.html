@@ -1,0 +1,58 @@
+<main class="bg-main text-main h-full flex flex-col">
+  <h1 class="sr-only">{{ title }}</h1>
+  <app-progress-bar
+    [current]="page()"
+    [clicks]="state().clicks"
+    [clicksTotal]="state().clicksTotal"
+    [total]="total"
+  />
+  <app-timer-bar />
+  <div
+    id="notes-scroller"
+    class="px-5 py-3 flex-auto h-full overflow-auto"
+    [style.font-size.px]="fontSize()"
+  >
+    <app-note-display
+      [html]="html()"
+      [clicks]="state().clicks"
+      [placeholder]="'presenter.noNotes' | t: { no: page() }"
+      [autoScroll]="true"
+    />
+  </div>
+  <div class="flex-none border-t border-main px-3 py-2">
+    <app-clicks-slider [current]="state().clicks" [total]="state().clicksTotal" [readonly]="true" />
+  </div>
+  <div class="flex-none border-t border-main">
+    <div class="flex gap-1 items-center px-6 py-3">
+      @if (fullscreen.available) {
+        <button icon-btn [title]="'nav.fullscreenEnter' | t" (click)="fullscreen.toggle()">
+          <div class="i-carbon:maximize"></div>
+        </button>
+      }
+      <button
+        icon-btn
+        id="notes-bigger"
+        [title]="'presenter.fontBigger' | t"
+        (click)="fontSize.set(fontSize() + 1)"
+      >
+        <div class="i-carbon:zoom-in"></div>
+      </button>
+      <button
+        icon-btn
+        id="notes-smaller"
+        [title]="'presenter.fontSmaller' | t"
+        (click)="fontSize.set(fontSize() - 1)"
+      >
+        <div class="i-carbon:zoom-out"></div>
+      </button>
+      <div class="flex-auto"></div>
+      <div id="notes-counter" class="px-2 my-auto">
+        <span class="text-lg">{{ page() }}</span
+        ><span class="opacity-65 text-sm"> / {{ total }}</span>
+      </div>
+    </div>
+  </div>
+</main>
+<div id="hud" aria-hidden="true">
+  slide {{ page() }}/{{ total }} clicks {{ state().clicks }}/{{ state().clicksTotal }}
+</div>

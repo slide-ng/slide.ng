@@ -8,7 +8,7 @@ import { Component, computed, input } from '@angular/core';
     '[style.transform-origin]': 'origin() || "top left"',
     style: 'display: block',
   },
-  template: '<ng-content />',
+  templateUrl: './transform.html',
 })
 export class Transform {
   scale = input<number | string>();

@@ -21,7 +21,7 @@ export function collectRows(root: Element): Element[][] {
 
 @Component({
   selector: 'slide-ng-katex-block-wrapper',
-  template: '<ng-content />',
+  templateUrl: './katex-block.html',
   host: { class: 'slidev-katex-wrapper block' },
 })
 export class KatexBlockWrapper extends RangedBlock {

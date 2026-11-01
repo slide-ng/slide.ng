@@ -5,12 +5,7 @@ import { Component, input } from '@angular/core';
 @Component({
   selector: 'sn-two-cols-header',
   host: { class: 'slidev-layout two-cols-header w-full h-full', '[class]': 'layoutClass()' },
-  template: `
-    <div class="col-header"><ng-content /></div>
-    <div class="col-left" [class]="contentClass()"><ng-content select="[left]" /></div>
-    <div class="col-right" [class]="contentClass()"><ng-content select="[right]" /></div>
-    <div class="col-bottom" [class]="contentClass()"><ng-content select="[bottom]" /></div>
-  `,
+  templateUrl: './two-cols-header.html',
 })
 export class TwoColsHeaderLayout {
   layoutClass = input('');

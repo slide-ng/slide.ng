@@ -7,12 +7,7 @@ import { PrintFrame } from './print-frame';
   selector: 'app-print-slide',
   imports: [PrintFrame],
   host: { class: 'contents' },
-  template: `
-    <app-print-frame [no]="no()" [at]="withClicks() ? 0 : maxClick" [anchor]="true" />
-    @for (click of steps(); track click) {
-      <app-print-frame [no]="no()" [at]="click" />
-    }
-  `,
+  templateUrl: './print-slide.html',
 })
 export class PrintSlide {
   no = input.required<number>();

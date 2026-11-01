@@ -30,9 +30,7 @@ export function biggestFit(min: number, max: number, fits: (size: number) => boo
 @Component({
   selector: 'slide-ng-auto-fit-text',
   host: { class: 'slidev-auto-fit-text block overflow-hidden' },
-  template: `<div #inner class="slidev-auto-fit-text-inner">
-    <ng-content>{{ modelValue() }}</ng-content>
-  </div>`,
+  templateUrl: './auto-fit-text.html',
   // A line height relative to the size: an inherited one in px would let big lines overlap and spill out.
   styles: ['.slidev-auto-fit-text-inner { display: inline-block; line-height: 1.2; }'],
 })

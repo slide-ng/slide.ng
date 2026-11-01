@@ -7,9 +7,7 @@ import { cleanSvg, drawingImageUrl } from './clean-svg';
 @Component({
   selector: 'app-drawing-preview',
   host: { class: 'pointer-events-none' },
-  template: `@if (url(); as src) {
-    <img class="drawing-preview w-full h-full absolute top-0 left-0" [src]="src" alt="" />
-  }`,
+  templateUrl: './drawing-preview.html',
 })
 export class DrawingPreview {
   no = input.required<number>();

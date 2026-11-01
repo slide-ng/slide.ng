@@ -9,38 +9,7 @@ import { SlideLink } from './slide-link';
 @Component({
   selector: 'app-toc-list',
   imports: [SlideLink],
-  template: `
-    @if (list().length) {
-      <ol
-        [class]="classes()"
-        [attr.start]="level() === 1 ? start() : null"
-        [style.list-style]="style()"
-      >
-        @for (item of list(); track item.no) {
-          <li
-            class="slidev-toc-item"
-            [class.slidev-toc-item-active]="item.active"
-            [class.slidev-toc-item-parent-active]="item.activeParent"
-          >
-            <slide-ng-link [to]="item.path">
-              @if (item.titleHtml) {
-                <span [innerHTML]="trusted(item.titleHtml)"></span>
-              } @else {
-                {{ item.title }}
-              }
-            </slide-ng-link>
-            <app-toc-list
-              [list]="item.children"
-              [level]="level() + 1"
-              [start]="start()"
-              [listClass]="listClass()"
-              [listStyle]="listStyle()"
-            />
-          </li>
-        }
-      </ol>
-    }
-  `,
+  templateUrl: './slide-toc.toc-list.html',
 })
 export class TocList {
   list = input<TocItem[]>([]);
@@ -72,12 +41,7 @@ export class TocList {
   selector: 'slide-ng-toc',
   imports: [TocList],
   host: { class: 'slidev-toc block', '[style.column-count]': 'columns()' },
-  template: `<app-toc-list
-    [list]="items()"
-    [start]="start()"
-    [listClass]="listClass()"
-    [listStyle]="listStyle()"
-  />`,
+  templateUrl: './slide-toc.slide-toc.html',
 })
 export class SlideToc {
   columns = input(1, { transform: numberAttribute });

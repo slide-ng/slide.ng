@@ -35,78 +35,7 @@ import { T } from '../i18n/t';
     '(document:click)': 'closeOutside($event)',
     '(window:resize)': 'fit()',
   },
-  template: `
-    <button
-      icon-btn
-      id="nav-sync"
-      [title]="'nav.sync' | t"
-      [active]="open()"
-      aria-haspopup="true"
-      [attr.aria-expanded]="open()"
-      [attr.aria-controls]="open() ? 'sync-menu' : null"
-      (click)="toggle()"
-    >
-      <div
-        class="i-ph:arrow-up-bold mx--1.2 scale-x-80"
-        [class]="flags().send ? 'text-green6 dark:text-green' : 'op30'"
-      ></div>
-      <div
-        class="i-ph:arrow-down-bold mx--1.2 scale-x-80"
-        [class]="flags().receive ? 'text-green6 dark:text-green' : 'op30'"
-      ></div>
-    </button>
-    @if (open()) {
-      <div
-        id="sync-menu"
-        (keydown)="menuKey($event)"
-        class="bg-main text-main shadow-xl absolute left-0 z-menu py-2 border border-main rounded-md max-w-[calc(100vw-1rem)] overflow-y-auto"
-        [class.bottom-10]="!below()"
-        [class.top-10]="below()"
-      >
-        <div class="text-sm flex flex-col gap-2">
-          <div class="px-3 whitespace-nowrap">
-            <span class="op75">{{ 'sync.for' | t }} </span>
-            <span class="font-bold text-primary">{{ role | t }}</span>
-          </div>
-          @if (!maySend) {
-            <div id="sync-receive-only-here" class="px-3 max-w-60 text-xs op75">
-              {{ 'sync.cannotSendHere' | t }}
-            </div>
-          }
-          <div class="h-1px opacity-10 bg-current w-full"></div>
-          <div role="radiogroup" aria-labelledby="sync-mode-title">
-            <div
-              id="sync-mode-title"
-              class="text-sm op75 px-3 py-1 select-none whitespace-nowrap font-bold"
-            >
-              {{ 'sync.mode' | t }}
-            </div>
-            @for (m of modes; track m.value) {
-              <button
-                type="button"
-                role="radio"
-                class="sync-mode flex w-full rounded whitespace-nowrap py-1 gap-1 px-2 cursor-default bg-transparent border-0 text-inherit hover:bg-gray-400/10 disabled:op50"
-                [attr.data-mode]="m.value"
-                [disabled]="!maySend && sends(m.value)"
-                [attr.aria-describedby]="
-                  !maySend && sends(m.value) ? 'sync-receive-only-here' : null
-                "
-                [attr.aria-checked]="mode() === m.value"
-                [attr.tabindex]="mode() === m.value ? 0 : -1"
-                (click)="choose(m.value)"
-              >
-                <div
-                  class="i-carbon:checkmark text-green-500 my-auto"
-                  [class.op0]="mode() !== m.value"
-                ></div>
-                <div [class.op75]="mode() !== m.value">{{ m.label | t }}</div>
-              </button>
-            }
-          </div>
-        </div>
-      </div>
-    }
-  `,
+  templateUrl: './sync-controls.html',
 })
 export class SyncControls {
   /** The bar is at the top of the page (`navPosition`): the menu opens below the button. */

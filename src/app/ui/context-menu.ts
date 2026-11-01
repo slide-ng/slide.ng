@@ -32,59 +32,7 @@ import { splitAt } from '../i18n/ui-text';
     '(document:click)': 'onClickOutside($event)',
     '(window:blur)': 'ui.contextMenu.set(null)',
   },
-  template: `
-    @if (ui.contextMenu(); as at) {
-      <!-- A labelled popup around the menu, so its content is not loose outside the page's landmarks. -->
-      <div role="dialog" [attr.aria-label]="'menu.label' | t">
-        <div
-          #menu
-          id="context-menu"
-          role="menu"
-          [attr.aria-label]="'menu.label' | t"
-          class="slidev-glass-effect fixed z-context-menu w-60 flex flex-wrap justify-items-start p-1 rounded-md shadow overflow-hidden select-none text-main"
-          [style.left.px]="left()"
-          [style.top.px]="top()"
-          (contextmenu)="$event.preventDefault()"
-          (click)="ui.contextMenu.set(null)"
-          (keydown)="key($event)"
-        >
-          @for (a of arrows(); track a.title) {
-            <button
-              type="button"
-              role="menuitem"
-              class="menu-small p-2 w-[40px] h-[40px] text-center cursor-pointer rounded flex"
-              [class]="a.disabled ? 'op40' : 'hover:bg-active'"
-              [title]="a.title"
-              [attr.aria-label]="a.title"
-              [attr.aria-disabled]="a.disabled"
-              (click)="press(a)"
-            >
-              <div [class]="a.icon + ' text-1.2em m-auto'"></div>
-            </button>
-          }
-          <div class="w-full my-1 border-t border-main"></div>
-          @for (item of items(); track item.label) {
-            <button
-              type="button"
-              role="menuitem"
-              class="slidev-menu-item w-full text-start"
-              [class.disabled]="item.disabled"
-              [attr.aria-disabled]="item.disabled"
-              (click)="press(item)"
-            >
-              <div class="mx-auto flex"><div [class]="item.icon + ' text-1.2em m-auto'"></div></div>
-              <div>{{ item.label }}</div>
-            </button>
-          }
-          <div class="w-full my-1 border-t border-main"></div>
-          <div class="w-full text-xs p-2 opacity-50">
-            {{ hint[0] }}<kbd class="border px-1 py-0.5 border-main rounded text-primary">Shift</kbd
-            >{{ hint[1] }}
-          </div>
-        </div>
-      </div>
-    }
-  `,
+  templateUrl: './context-menu.html',
 })
 export class ContextMenu {
   protected ui = inject(Ui);

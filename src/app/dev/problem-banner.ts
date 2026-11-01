@@ -7,18 +7,7 @@ import { T } from '../i18n/t';
 @Component({
   selector: 'app-problem-banner',
   imports: [T],
-  template: `@if (problem) {
-    <div
-      role="alert"
-      class="fixed top-0 inset-x-0 z-100 px-4 py-2 bg-red-700 text-white text-sm font-mono whitespace-pre-wrap"
-    >
-      @if (lastGood) {
-        {{ 'editor.problem' | t: { problem } }}
-      } @else {
-        {{ 'editor.problemSlides' | t: { problem } }}
-      }
-    </div>
-  }`,
+  templateUrl: './problem-banner.html',
 })
 export class ProblemBanner {
   protected problem = isDevMode() ? PROBLEM : '';

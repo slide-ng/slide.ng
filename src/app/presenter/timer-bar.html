@@ -1,0 +1,5 @@
+<div class="border-b mt-px border-main relative flex h-4px">
+  @if (timer.status() !== 'stopped') {
+    <div class="h-4px" [class]="color()" [style.width.%]="timer.percentage()"></div>
+  }
+</div>

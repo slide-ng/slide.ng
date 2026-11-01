@@ -27,30 +27,7 @@ import { highlightLines } from './ranges';
     '[style.--start]': 'startLine()',
     '[attr.data-title]': 'title()',
   },
-  template: `
-    @if (title() || icon()) {
-      <div class="slidev-code-block-title">
-        @if (icon()) {
-          <span class="slidev-code-title-icon w-3.5 h-3.5 relative" [class]="icon()"></span>
-        }
-        <div class="leading-1em">{{ title() }}</div>
-      </div>
-    }
-    <ng-content />
-    @if (!noCopy()) {
-      <button
-        class="slidev-code-copy absolute right-0 transition opacity-0 group-hover:opacity-20 hover:!opacity-100"
-        [class]="title() || icon() ? 'top-10' : 'top-0'"
-        [attr.title]="(copied() ? 'code.copied' : 'code.copy') | t"
-        (click)="copy()"
-      >
-        <span
-          [class]="copied() ? 'i-ph:check-circle' : 'i-ph:clipboard'"
-          class="inline-block p-2 w-8 h-8"
-        ></span>
-      </button>
-    }
-  `,
+  templateUrl: './code-block-wrapper.html',
 })
 export class CodeBlockWrapper extends RangedBlock {
   lines = input(false, { transform: booleanAttribute });

@@ -47,28 +47,7 @@ interface Badge {
     // While drawing, a pen tap on a badge is a stroke, not a jump.
     '[class.slide-ng-ghost-drawing]': 'drawing()',
   },
-  template: `
-    @for (b of badges(); track $index) {
-      <button
-        type="button"
-        class="slide-ng-ghost-badge"
-        [class.slide-ng-ghost-badge-next]="b.isNext"
-        [class.slide-ng-ghost-badge-hides]="b.hides"
-        [class.slide-ng-ghost-badge-rtl]="b.rtl"
-        [style.left.px]="b.rtl ? null : b.x"
-        [style.right.px]="b.rtl ? b.x : null"
-        [style.top.px]="b.y"
-        [attr.data-click]="b.at"
-        [title]="(b.hides ? 'presenter.goToClickHides' : 'presenter.goToClick') | t: { no: b.at }"
-        [attr.aria-label]="
-          (b.hides ? 'presenter.goToClickHides' : 'presenter.goToClick') | t: { no: b.at }
-        "
-        (click)="go(b.at, $event)"
-      >
-        {{ b.at }}
-      </button>
-    }
-  `,
+  templateUrl: './click-preview-layer.html',
 })
 export class ClickPreviewLayer {
   private nav = inject(Nav);

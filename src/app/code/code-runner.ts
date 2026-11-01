@@ -24,31 +24,7 @@ import { T } from '../i18n/t';
     '[class.slidev-vclick-hidden]': 'hidden()',
     '[attr.data-slide-ng-waitfor]': 'running() ? ".slidev-runner-output" : null',
   },
-  template: `
-    @if (running()) {
-      <div class="text-sm text-center opacity-50">{{ 'code.running' | t }}</div>
-    } @else if (!result()) {
-      <div class="text-sm text-center opacity-50">{{ 'code.idle' | t }}</div>
-    } @else {
-      <div class="slidev-runner-output">
-        @for (line of result()!.lines; track $index) {
-          <div class="output-line">{{ line.join(', ') }}</div>
-        }
-        @if (result()!.error) {
-          <div class="text-red-500">{{ result()!.error }}</div>
-        }
-      </div>
-    }
-    @if (code().trim()) {
-      <button
-        class="slidev-runner-run absolute right-1 top-1 w-8 h-8 flex justify-center items-center"
-        [title]="'code.run' | t"
-        (click)="run()"
-      >
-        <div class="i-carbon:play"></div>
-      </button>
-    }
-  `,
+  templateUrl: './code-runner.html',
 })
 export class CodeRunner implements OnInit, OnDestroy {
   code = input.required<string>();

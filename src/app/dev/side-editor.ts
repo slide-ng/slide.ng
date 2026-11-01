@@ -33,71 +33,7 @@ const WATCH_EVERY = 2000;
 @Component({
   selector: 'app-side-editor',
   imports: [T],
-  template: `
-    @if (state.isOpen(docked()) && state.available()) {
-      <aside
-        id="side-editor"
-        class="flex flex-col bg-main text-main"
-        [class]="
-          docked() ? 'h-full w-full' : 'fixed right-0 top-0 bottom-0 z-nav border-l border-main'
-        "
-        [style.width.px]="docked() ? null : state.width"
-      >
-        <div class="flex items-center gap-2 px-3 py-1 border-b border-main text-sm">
-          <span class="font-bold">{{ 'editor.slide' | t: { no: nav.no() } }}</span>
-          <span
-            id="editor-status"
-            class="op60 ml-auto"
-            [class.color-red-500]="status() === 'error' || status() === 'conflict'"
-            >{{ label() }}</span
-          >
-          <button
-            type="button"
-            id="editor-close"
-            class="px-1"
-            [title]="'editor.close' | t"
-            (click)="state.toggle(docked())"
-          >
-            <div class="i-carbon:close"></div>
-          </button>
-        </div>
-        <div
-          class="relative flex-auto overflow-auto"
-          style="background-color: var(--slidev-code-background)"
-        >
-          <div class="relative min-h-full">
-            <!-- This copy gives the box its height; the textarea has the same size and wraps the same way. -->
-            @if (html(); as coloured) {
-              <div
-                id="editor-highlight"
-                class="editor-text"
-                aria-hidden="true"
-                [innerHTML]="coloured"
-              ></div>
-            } @else {
-              <div id="editor-sizer" class="editor-text invisible" aria-hidden="true">
-                {{ text() }}
-              </div>
-            }
-            <textarea
-              #area
-              id="editor-text"
-              [attr.aria-label]="'editor.markdown' | t"
-              spellcheck="false"
-              class="editor-text absolute inset-0 w-full h-full bg-transparent outline-none resize-none overflow-hidden"
-              [class.highlighted]="!!html()"
-              [value]="text()"
-              [disabled]="status() === 'loading'"
-              (input)="edit($any($event.target).value)"
-              (keydown)="keydown($event)"
-              (keyup)="remember()"
-              (click)="remember()"
-            ></textarea>
-          </div>
-        </div>
-      </aside>
-    }
-  `,
+  templateUrl: './side-editor.html',
 })
 export class SideEditor {
   /** In a pane of the presenter page instead of fixed on the right of the deck page. */

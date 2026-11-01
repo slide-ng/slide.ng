@@ -4,6 +4,6 @@ import { Component } from '@angular/core';
 @Component({
   selector: 'sn-section',
   host: { class: 'slidev-layout section w-full h-full grid' },
-  template: '<div class="my-auto text-center"><ng-content /></div>',
+  templateUrl: './section.html',
 })
 export class SectionLayout {}

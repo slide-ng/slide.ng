@@ -10,9 +10,7 @@ import { LAYER_STEP, SLIDE_NO } from './slide-context';
   selector: 'app-slide-layer',
   imports: [NgComponentOutlet],
   host: { style: 'position: absolute; inset: 0; pointer-events: none; display: block' },
-  template: `@if (component(); as c) {
-    <ng-container *ngComponentOutlet="c; injector: injector()" />
-  }`,
+  templateUrl: './slide-layer.html',
 })
 export class SlideLayer {
   name = input.required<'global-top' | 'global-bottom' | 'slide-top' | 'slide-bottom'>();

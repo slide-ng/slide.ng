@@ -12,22 +12,7 @@ import { T } from '../i18n/t';
   selector: 'app-entry-page',
   imports: [RouterLink, T],
   host: { class: 'grid place-items-center h-full bg-main text-main' },
-  template: `
-    <main>
-      <nav id="entry" class="grid gap-3 w-72 text-lg" [attr.aria-label]="'entry.label' | t">
-        <h1 class="text-2xl mb-2">{{ title }}</h1>
-        <!-- On hover only the border takes the theme's primary colour: as text it can be too dark on the dark background. -->
-        @for (link of links; track link.path) {
-          <a
-            class="flex items-center gap-3 px-4 py-3 border border-main rounded hover:border-primary hover:bg-active"
-            [routerLink]="link.path"
-          >
-            <span [class]="link.icon"></span>{{ link.label | t }}
-          </a>
-        }
-      </nav>
-    </main>
-  `,
+  templateUrl: './entry-page.html',
 })
 export class EntryPage {
   protected readonly title = HEADMATTER['title'] ?? 'slide.ng';

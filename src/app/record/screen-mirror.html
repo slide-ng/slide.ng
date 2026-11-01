@@ -1,0 +1,23 @@
+<div class="h-full w-full flex items-center justify-center bg-black/80 rounded">
+  @if (stream()) {
+    <video #video autoplay muted playsinline class="max-h-full max-w-full"></video>
+    <button
+      id="mirror-stop"
+      class="absolute top-2 right-2 px-2 py-1 rounded bg-main border border-main text-sm"
+      (click)="stop()"
+    >
+      {{ 'presenter.mirrorStop' | t }}
+    </button>
+  } @else {
+    <button
+      id="mirror-start"
+      class="px-3 py-1.5 rounded bg-main border border-main text-sm"
+      (click)="start()"
+    >
+      {{ 'presenter.mirrorStart' | t }}
+    </button>
+    @if (error()) {
+      <div id="mirror-error" class="absolute bottom-2 text-xs color-red-400">{{ error() }}</div>
+    }
+  }
+</div>

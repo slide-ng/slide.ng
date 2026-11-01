@@ -1,0 +1,8 @@
+@if (anchor()) {
+  <span [id]="anchorId()" aria-hidden="true"></span>
+}
+<app-slide-layer name="global-bottom" [no]="no()" [at]="step()" />
+<ng-container #host />
+<app-drawing-preview [no]="no()" />
+<app-slide-layer name="global-top" [no]="no()" [at]="step()" />
+<app-deck-progress-bar [no]="no()" [at]="step()" />

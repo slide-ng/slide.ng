@@ -1,0 +1,5 @@
+@if (show()) {
+  <ng-content />
+} @else {
+  <ng-content select="[fallback]" />
+}

@@ -4,13 +4,7 @@ import { Timer } from './timer';
 // A coloured bar under the progress bar: how much of the planned time is used.
 @Component({
   selector: 'app-timer-bar',
-  template: `
-    <div class="border-b mt-px border-main relative flex h-4px">
-      @if (timer.status() !== 'stopped') {
-        <div class="h-4px" [class]="color()" [style.width.%]="timer.percentage()"></div>
-      }
-    </div>
-  `,
+  templateUrl: './timer-bar.html',
 })
 export class TimerBar {
   protected timer = inject(Timer);

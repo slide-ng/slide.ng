@@ -8,17 +8,7 @@ import { offlineReady } from '../lib/offline-worker';
 @Component({
   selector: 'app-offline-badge',
   host: { '(window:online)': 'online.set(true)', '(window:offline)': 'online.set(false)' },
-  template: `
-    @if (enabled && label(); as text) {
-      <div
-        id="offline-badge"
-        role="status"
-        class="absolute bottom-0 end-0 m-2 px-2 py-0.5 rounded text-xs bg-main text-main border border-main opacity-60 pointer-events-none select-none"
-      >
-        {{ text }}
-      </div>
-    }
-  `,
+  templateUrl: './offline-badge.html',
 })
 export class OfflineBadge {
   protected enabled = PWA && !isDevMode();
