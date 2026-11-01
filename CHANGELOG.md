@@ -4,6 +4,14 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+### Added
+
+- `browser.proxy`: a built deck (or one under `--remote`) can load the deck browser's pages through a proxy of your own, an address with `%s` for the page. Sites that refuse framing then show inside, and links and forms stay inside. slide.ng runs no server: `docs/browser-proxy/` has a fetch handler and a file each for Netlify, Vercel, Cloudflare Workers and Deno Deploy, all with free plans. `DECK_ORIGINS` keeps it to your own deck in browsers; every page it shows is sandboxed on an origin of its own (so it cannot reach the deck or other pages), cookies are dropped, and addresses written as local or private are refused.
+
+### Fixed
+
+- The deck browser's search came up blank in a built deck or with `--remote`: DuckDuckGo refuses to be shown in a frame and only the dev server's proxy gets around that. Without the proxy the default search is now Bing, which shows inside the deck. A search engine chosen in the settings or in `browser.search` is kept.
+
 ## [3.0.0] - 2026-11-01
 
 ### Upgrading from 2.x

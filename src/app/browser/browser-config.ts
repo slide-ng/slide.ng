@@ -9,10 +9,13 @@ export interface BrowserConfig {
   enabled: boolean;
   links: boolean;
   tabs: BrowserTab[];
-  search: string;
+  search: string | null;
+  proxy: string | null;
 }
 
 export const DEFAULT_SEARCH = 'https://duckduckgo.com/?q=%s';
+export const FRAMABLE_SEARCH = 'https://www.bing.com/search?q=%s';
+export const PLAIN_SEARCH = 'https://html.duckduckgo.com/html/?q=%s';
 
 export const SEARCH_ENGINES = [
   { name: 'DuckDuckGo', url: 'https://duckduckgo.com/?q=%s' },
@@ -43,7 +46,7 @@ export function webAddress(value: unknown): string | null {
 }
 
 export function readBrowserConfig(value: unknown): BrowserConfig {
-  if (value === false) return { enabled: false, links: false, tabs: [], search: DEFAULT_SEARCH };
+  if (value === false) return { enabled: false, links: false, tabs: [], search: null, proxy: null };
   const config = obj(value) ? value : {};
   const tabs = (Array.isArray(config['tabs']) ? config['tabs'] : []).flatMap((tab) => {
     const url = webAddress(obj(tab) ? tab['url'] : tab);
@@ -51,13 +54,13 @@ export function readBrowserConfig(value: unknown): BrowserConfig {
     const name = obj(tab) && typeof tab['name'] === 'string' ? tab['name'].trim() : '';
     return [{ name: name || tabTitle(url), url }];
   });
-  const search =
-    typeof config['search'] === 'string' &&
-    config['search'].includes('%s') &&
-    webAddress(config['search'].replace('%s', 'x'))
-      ? config['search']
-      : DEFAULT_SEARCH;
-  return { enabled: true, links: config['links'] !== false, tabs, search };
+  return {
+    enabled: true,
+    links: config['links'] !== false,
+    tabs,
+    search: searchAddress(config['search']),
+    proxy: searchAddress(config['proxy']),
+  };
 }
 
 export const deckBrowserConfig = (): BrowserConfig => readBrowserConfig(HEADMATTER['browser']);
@@ -100,6 +103,9 @@ export function addressOrSearch(text: string, search = DEFAULT_SEARCH): string |
   const query = text.trim();
   return query ? search.replace('%s', encodeURIComponent(query)) : null;
 }
+
+export const throughProxy = (template: string, url: string) =>
+  template.replace('%s', encodeURIComponent(url));
 
 export function proxiedAddress(url: string, proxy: WebProxy): string {
   const u = new URL(url);

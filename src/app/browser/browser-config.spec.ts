@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  DEFAULT_SEARCH,
+  throughProxy,
   addressOrSearch,
   isProxyOrigin,
   linkForBrowser,
@@ -17,7 +17,8 @@ describe('readBrowserConfig', () => {
       enabled: true,
       links: true,
       tabs: [],
-      search: DEFAULT_SEARCH,
+      search: null,
+      proxy: null,
     });
   });
   it('is off with `browser: false`', () => {
@@ -25,7 +26,8 @@ describe('readBrowserConfig', () => {
       enabled: false,
       links: false,
       tabs: [],
-      search: DEFAULT_SEARCH,
+      search: null,
+      proxy: null,
     });
   });
   it('reads the tabs, names them by host when unnamed, and drops what is not a web address', () => {
@@ -109,10 +111,19 @@ describe('addressOrSearch', () => {
     expect(addressOrSearch('192.168.1.5:8080')).toBe('https://192.168.1.5:8080/');
     expect(addressOrSearch('3.14')).toBe('https://duckduckgo.com/?q=3.14');
   });
+  it('takes a proxy address with %s, and puts the page in it', () => {
+    expect(readBrowserConfig({ proxy: 'https://p.dev/?url=%s' }).proxy).toBe(
+      'https://p.dev/?url=%s',
+    );
+    expect(readBrowserConfig({ proxy: 'https://p.dev/' }).proxy).toBeNull();
+    expect(throughProxy('https://p.dev/?url=%s', 'https://a.dev/x?q=1')).toBe(
+      'https://p.dev/?url=https%3A%2F%2Fa.dev%2Fx%3Fq%3D1',
+    );
+  });
   it('takes the search address of the headmatter only with %s and a web address', () => {
     expect(readBrowserConfig({ search: 'https://s.dev/?q=%s' }).search).toBe('https://s.dev/?q=%s');
-    expect(readBrowserConfig({ search: 'javascript:%s' }).search).toBe(DEFAULT_SEARCH);
-    expect(readBrowserConfig({ search: 'https://s.dev/' }).search).toBe(DEFAULT_SEARCH);
+    expect(readBrowserConfig({ search: 'javascript:%s' }).search).toBeNull();
+    expect(readBrowserConfig({ search: 'https://s.dev/' }).search).toBeNull();
   });
 });
 

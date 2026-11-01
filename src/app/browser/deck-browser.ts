@@ -6,11 +6,15 @@ import { WeatherNow, WeatherPlace, currentWeather, placeName } from './weather';
 import { UI_TEXT, uiText } from '../i18n/ui-text';
 import { SyncState } from '../sync/sync-state';
 import {
+  DEFAULT_SEARCH,
+  FRAMABLE_SEARCH,
+  PLAIN_SEARCH,
   WebProxy,
   searchAddress,
   deckBrowserConfig,
   isProxyOrigin,
   proxiedAddress,
+  throughProxy,
   tabTitle,
   webAddress,
 } from './browser-config';
@@ -197,7 +201,12 @@ export class DeckBrowser {
     return null;
   });
   readonly customiseOpen = signal(false);
-  readonly search = computed(() => searchAddress(this.prefs().search) ?? this.config.search);
+  readonly search = computed(
+    () =>
+      searchAddress(this.prefs().search) ??
+      this.config.search ??
+      (this.proxy() ? DEFAULT_SEARCH : this.config.proxy ? PLAIN_SEARCH : FRAMABLE_SEARCH),
+  );
   readonly links = computed(() => this.prefs().links ?? this.config.links);
   readonly bookmarked = computed(() => {
     const url = this.active()?.url;
@@ -243,6 +252,7 @@ export class DeckBrowser {
     if (!this.config.enabled) return;
     this.startSeed.set(Math.random());
     this.open.set(true);
+    void this.webProxy();
     const tab = this.active();
     if (tab) this.load(tab.id);
     else this.newTab();
@@ -527,6 +537,10 @@ export class DeckBrowser {
       if (proxy) {
         const src = proxiedAddress(tab.url, proxy);
         this.patch(id, { src, framable: true });
+        return;
+      }
+      if (this.config.proxy) {
+        this.patch(id, { src: throughProxy(this.config.proxy, tab.url), framable: true });
         return;
       }
       this.patch(id, { src: tab.url });
