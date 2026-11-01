@@ -144,7 +144,7 @@ export async function parseDeck(file = 'slides.md', sources, options = {}) {
   const webUrl = (v) => typeof v === 'string' && /^https?:\/\/\S+$/i.test(v.trim());
   if (browser != null && browser !== false && !isObject(browser))
     problems.push(
-      `${at('browser')}: \`browser: ${JSON.stringify(browser)}\` is not used: write false or { links, tabs } (the deck browser stays on)`,
+      `${at('browser')}: \`browser: ${JSON.stringify(browser)}\` is not used: write false or { links, tabs, search, proxy } (the deck browser stays on)`,
     );
   else if (isObject(browser)) {
     if (browser.links != null && typeof browser.links !== 'boolean')
@@ -157,6 +157,10 @@ export async function parseDeck(file = 'slides.md', sources, options = {}) {
     )
       problems.push(
         `${at('browser')}: \`browser.search: ${JSON.stringify(browser.search)}\` is not used: write a web address with %s for the words (the default search is used)`,
+      );
+    if (browser.proxy != null && !(webUrl(browser.proxy) && String(browser.proxy).includes('%s')))
+      problems.push(
+        `${at('browser')}: \`browser.proxy: ${JSON.stringify(browser.proxy)}\` is not used: write a web address with %s for the page (pages load directly)`,
       );
     if (browser.tabs != null && !Array.isArray(browser.tabs))
       problems.push(

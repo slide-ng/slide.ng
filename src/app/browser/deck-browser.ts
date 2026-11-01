@@ -13,6 +13,7 @@ import {
   deckBrowserConfig,
   isProxyOrigin,
   proxiedAddress,
+  throughProxy,
   tabTitle,
   webAddress,
 } from './browser-config';
@@ -203,7 +204,7 @@ export class DeckBrowser {
     () =>
       searchAddress(this.prefs().search) ??
       this.config.search ??
-      (this.proxy() ? DEFAULT_SEARCH : FRAMABLE_SEARCH),
+      (this.proxy() || this.config.proxy ? DEFAULT_SEARCH : FRAMABLE_SEARCH),
   );
   readonly links = computed(() => this.prefs().links ?? this.config.links);
   readonly bookmarked = computed(() => {
@@ -535,6 +536,10 @@ export class DeckBrowser {
       if (proxy) {
         const src = proxiedAddress(tab.url, proxy);
         this.patch(id, { src, framable: true });
+        return;
+      }
+      if (this.config.proxy) {
+        this.patch(id, { src: throughProxy(this.config.proxy, tab.url), framable: true });
         return;
       }
       this.patch(id, { src: tab.url });
