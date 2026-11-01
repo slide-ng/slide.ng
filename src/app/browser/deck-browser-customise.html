@@ -1,0 +1,637 @@
+<div class="fixed inset-0 z-modal grid place-items-center p-4">
+  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" (click)="close()"></div>
+  <div
+    #dialog
+    id="deck-browser-customise"
+    role="dialog"
+    aria-modal="true"
+    tabindex="-1"
+    [attr.aria-label]="'browser.customise' | t"
+    class="relative w-full max-w-4xl h-[min(36rem,90vh)] flex rounded-3xl border border-main bg-main text-main shadow-2xl overflow-hidden outline-none"
+    (keydown.escape)="$event.stopPropagation(); close()"
+  >
+    <nav class="w-56 shrink-0 flex flex-col gap-1 p-4 bg-active">
+      <p class="px-3 pt-2 pb-4 text-lg font-semibold">{{ 'browser.customise' | t }}</p>
+      @for (item of sections; track item.key) {
+        <button
+          type="button"
+          class="relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-start text-sm transition-colors"
+          [class.hover:bg-gray-400/10]="section() !== item.key"
+          [class.bg-main]="section() === item.key"
+          [class.font-semibold]="section() === item.key"
+          [attr.aria-current]="section() === item.key ? 'page' : null"
+          (click)="section.set(item.key)"
+        >
+          <div
+            [class]="item.icon + ' text-lg'"
+            [style.color]="section() === item.key ? '#ff7a3d' : null"
+          ></div>
+          <span>{{ item.label | t }}</span>
+        </button>
+      }
+    </nav>
+
+    <div class="flex-1 min-w-0 overflow-y-auto p-8">
+      <button
+        type="button"
+        class="absolute top-4 end-4 w-9 h-9 rounded-full grid place-content-center hover:bg-active"
+        [title]="'browser.close' | t"
+        [attr.aria-label]="'browser.close' | t"
+        (click)="close()"
+      >
+        <div class="i-ph:x text-lg"></div>
+      </button>
+
+      @switch (section()) {
+        @case ('background') {
+          @if (bgView() === 'cards') {
+            <h2 class="text-xl font-semibold mb-6">{{ 'browser.background' | t }}</h2>
+          } @else {
+            <h2 class="flex items-center gap-3 text-xl font-semibold mb-6">
+              <button
+                type="button"
+                class="w-8 h-8 -ms-1 rounded-full grid place-content-center hover:bg-active"
+                [attr.aria-label]="'browser.background' | t"
+                (click)="bgView.set('cards')"
+              >
+                <div class="i-ph:arrow-left rtl-flip"></div>
+              </button>
+              {{ bgTitle() | t }}
+            </h2>
+          }
+          <div class="rounded-2xl bg-active">
+            @if (bgView() === 'cards') {
+              <button
+                type="button"
+                role="switch"
+                class="w-full flex items-center justify-between gap-4 px-6 py-4 text-start text-sm border-b border-main"
+                [attr.aria-checked]="hasBackground()"
+                (click)="toggleBackground()"
+              >
+                <span>{{ 'browser.showBackground' | t }}</span>
+                <span
+                  class="relative w-10 h-6 shrink-0 rounded-full transition-colors"
+                  [class.bg-gray-500]="!hasBackground()"
+                  [class.op50]="!hasBackground()"
+                  [style.background-color]="hasBackground() ? '#cc4209' : null"
+                >
+                  <span
+                    class="absolute top-1 start-1 w-4 h-4 rounded-full bg-white shadow transition-transform"
+                    [class.translate-x-4]="hasBackground()"
+                  ></span>
+                </span>
+              </button>
+            }
+
+            @switch (bgView()) {
+              @case ('cards') {
+                <div class="grid grid-cols-2 gap-5 p-6">
+                  <button
+                    type="button"
+                    class="flex flex-col gap-2 text-sm"
+                    (click)="setBackground('none')"
+                  >
+                    <span
+                      class="relative aspect-[4/3] rounded-2xl ring-1 ring-black/10"
+                      [style.background]="art"
+                      [style.box-shadow]="isBrand() ? '0 0 0 3px #cc4209' : null"
+                    >
+                      <span class="absolute inset-0 grid place-content-center">
+                        <span class="w-14 h-14 drop-shadow-lg"
+                          ><app-slide-ng-mark class="w-full h-full"
+                        /></span>
+                      </span>
+                      @if (isBrand()) {
+                        <span
+                          class="absolute bottom-2 end-2 w-7 h-7 rounded-full bg-white grid place-content-center shadow"
+                        >
+                          <div class="i-ph:check-bold text-sm" style="color: #cc4209"></div>
+                        </span>
+                      }
+                    </span>
+                    <span>{{ 'browser.bgBrand' | t }}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="flex flex-col gap-2 text-sm"
+                    (click)="bgView.set('image')"
+                  >
+                    <span
+                      class="relative aspect-[4/3] rounded-2xl border-2 border-main grid place-content-center bg-main hover:bg-active transition-colors"
+                      [style.box-shadow]="isKind('image') ? '0 0 0 3px #cc4209' : null"
+                    >
+                      <span class="flex flex-col items-center gap-2 op70">
+                        <div class="i-ph:upload-simple text-2xl"></div>
+                        <span>{{ 'browser.bgUpload' | t }}</span>
+                      </span>
+                      @if (isKind('image')) {
+                        <span
+                          class="absolute bottom-2 end-2 w-7 h-7 rounded-full bg-white grid place-content-center shadow"
+                        >
+                          <div class="i-ph:check-bold text-sm" style="color: #cc4209"></div>
+                        </span>
+                      }
+                    </span>
+                    <span>{{ 'browser.bgImage' | t }}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="flex flex-col gap-2 text-sm"
+                    (click)="bgView.set('solid')"
+                  >
+                    <span
+                      class="relative aspect-[4/3] rounded-2xl ring-1 ring-black/10"
+                      [style.background]="solidPreview()"
+                      [style.box-shadow]="isKind('solid') ? '0 0 0 3px #cc4209' : null"
+                    >
+                      @if (isKind('solid')) {
+                        <span
+                          class="absolute bottom-2 end-2 w-7 h-7 rounded-full bg-white grid place-content-center shadow"
+                        >
+                          <div class="i-ph:check-bold text-sm" style="color: #cc4209"></div>
+                        </span>
+                      }
+                    </span>
+                    <span>{{ 'browser.bgSolid' | t }}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="flex flex-col gap-2 text-sm"
+                    (click)="bgView.set('gradient')"
+                  >
+                    <span
+                      class="relative aspect-[4/3] rounded-2xl ring-1 ring-black/10"
+                      [style.background]="gradientPreview()"
+                      [style.box-shadow]="isKind('gradient') ? '0 0 0 3px #cc4209' : null"
+                    >
+                      @if (isKind('gradient')) {
+                        <span
+                          class="absolute bottom-2 end-2 w-7 h-7 rounded-full bg-white grid place-content-center shadow"
+                        >
+                          <div class="i-ph:check-bold text-sm" style="color: #cc4209"></div>
+                        </span>
+                      }
+                    </span>
+                    <span>{{ 'browser.bgGradient' | t }}</span>
+                  </button>
+                </div>
+              }
+              @case ('image') {
+                <div>
+                  <button
+                    type="button"
+                    role="switch"
+                    class="w-full flex items-center justify-between gap-4 px-6 py-4 text-start text-sm border-b border-main"
+                    [attr.aria-checked]="shuffleOn('image')"
+                    (click)="toggleShuffle('image')"
+                  >
+                    <span>{{ 'browser.bgShuffle' | t }}</span>
+                    <span
+                      class="relative w-10 h-6 shrink-0 rounded-full transition-colors"
+                      [class.bg-gray-500]="!shuffleOn('image')"
+                      [class.op50]="!shuffleOn('image')"
+                      [style.background-color]="shuffleOn('image') ? '#cc4209' : null"
+                    >
+                      <span
+                        class="absolute top-1 start-1 w-4 h-4 rounded-full bg-white shadow transition-transform"
+                        [class.translate-x-4]="shuffleOn('image')"
+                      ></span>
+                    </span>
+                  </button>
+                  @if (uploadFull()) {
+                    <p
+                      id="deck-browser-upload-full"
+                      role="alert"
+                      class="mx-6 mt-5 -mb-1 flex items-center gap-2 text-sm"
+                      style="color: #cc4209"
+                    >
+                      <span class="i-ph:warning-circle shrink-0"></span>{{ 'browser.bgFull' | t }}
+                    </p>
+                  }
+                  <div class="grid grid-cols-2 gap-5 p-6">
+                    <label
+                      class="relative aspect-[4/3] rounded-2xl border-2 border-main grid place-content-center bg-main hover:bg-active transition-colors cursor-pointer"
+                    >
+                      <span class="flex flex-col items-center gap-2 text-sm op70">
+                        <div class="i-ph:upload-simple text-2xl"></div>
+                        <span>{{ 'browser.bgUpload' | t }}</span>
+                      </span>
+                      <input
+                        #file
+                        type="file"
+                        accept="image/*"
+                        class="sr-only"
+                        (change)="upload(file)"
+                      />
+                    </label>
+                    @for (image of browser.backgroundImages(); track image.id) {
+                      <div class="relative group">
+                        <button
+                          type="button"
+                          class="w-full aspect-[4/3] rounded-2xl ring-1 ring-black/10 bg-cover bg-center"
+                          [style.background-image]="'url(' + image.data + ')'"
+                          [style.box-shadow]="
+                            isBackground('image', image.id) ? '0 0 0 3px #cc4209' : null
+                          "
+                          [attr.aria-pressed]="isBackground('image', image.id)"
+                          [attr.aria-label]="'browser.bgImage' | t"
+                          (click)="setBackground('image', image.id)"
+                        ></button>
+                        <button
+                          type="button"
+                          class="absolute top-2 end-2 w-8 h-8 rounded-full bg-white/90 text-black grid place-content-center shadow op0 group-hover:op100 focus:op100 transition-opacity"
+                          [title]="'browser.bgRemove' | t"
+                          [attr.aria-label]="'browser.bgRemove' | t"
+                          (click)="browser.removeBackgroundImage(image.id); uploadFull.set(false)"
+                        >
+                          <div class="i-ph:x"></div>
+                        </button>
+                        @if (isBackground('image', image.id) && !shuffleOn('image')) {
+                          <span
+                            class="absolute bottom-2 end-2 w-7 h-7 rounded-full bg-white grid place-content-center shadow pointer-events-none"
+                          >
+                            <div class="i-ph:check-bold text-sm" style="color: #cc4209"></div>
+                          </span>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+              @default {
+                <div>
+                  <button
+                    type="button"
+                    role="switch"
+                    class="w-full flex items-center justify-between gap-4 px-6 py-4 text-start text-sm border-b border-main"
+                    [attr.aria-checked]="shuffleOn(drillKind())"
+                    (click)="toggleShuffle(drillKind())"
+                  >
+                    <span>{{ 'browser.bgShuffle' | t }}</span>
+                    <span
+                      class="relative w-10 h-6 shrink-0 rounded-full transition-colors"
+                      [class.bg-gray-500]="!shuffleOn(drillKind())"
+                      [class.op50]="!shuffleOn(drillKind())"
+                      [style.background-color]="shuffleOn(drillKind()) ? '#cc4209' : null"
+                    >
+                      <span
+                        class="absolute top-1 start-1 w-4 h-4 rounded-full bg-white shadow transition-transform"
+                        [class.translate-x-4]="shuffleOn(drillKind())"
+                      ></span>
+                    </span>
+                  </button>
+                  <div class="grid grid-cols-2 gap-5 p-6">
+                    @for (value of drillKind() === 'solid' ? solids : gradients; track value) {
+                      <button
+                        type="button"
+                        class="relative aspect-[4/3] rounded-2xl ring-1 ring-black/15 transition-transform hover:scale-[1.02]"
+                        [style.background]="value"
+                        [style.box-shadow]="
+                          isBackground(drillKind(), value) && !shuffleOn(drillKind())
+                            ? '0 0 0 3px #cc4209'
+                            : null
+                        "
+                        [attr.aria-pressed]="isBackground(drillKind(), value)"
+                        (click)="setBackground(drillKind(), value)"
+                      >
+                        @if (isBackground(drillKind(), value) && !shuffleOn(drillKind())) {
+                          <span
+                            class="absolute bottom-2 end-2 w-7 h-7 rounded-full bg-white grid place-content-center shadow"
+                          >
+                            <div class="i-ph:check-bold text-sm" style="color: #cc4209"></div>
+                          </span>
+                        }
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        }
+        @case ('appearance') {
+          <h2 class="text-xl font-semibold mb-6">{{ 'browser.appearance' | t }}</h2>
+          <div class="grid grid-cols-3 gap-4 max-w-xl">
+            @for (theme of themes; track theme.key) {
+              <button
+                type="button"
+                class="relative flex flex-col items-center gap-3 p-5 rounded-2xl bg-active text-sm hover:bg-gray-400/15"
+                [style.box-shadow]="
+                  browser.prefs().theme === theme.key ? '0 0 0 3px #cc4209' : null
+                "
+                [attr.aria-pressed]="browser.prefs().theme === theme.key"
+                (click)="browser.setPrefs({ theme: theme.key })"
+              >
+                <div [class]="theme.icon + ' text-3xl'"></div>
+                <span>{{ theme.label | t }}</span>
+              </button>
+            }
+          </div>
+        }
+        @case ('search') {
+          <h2 class="text-xl font-semibold mb-6">{{ 'browser.searchEngine' | t }}</h2>
+          <div class="max-w-md rounded-2xl bg-active p-2 text-sm">
+            <app-search-engine-picker />
+          </div>
+        }
+        @case ('shortcuts') {
+          <h2 class="text-xl font-semibold mb-6">{{ 'browser.shortcuts' | t }}</h2>
+          <div class="max-w-lg rounded-2xl bg-active text-sm">
+            @for (row of tileRows(); track row.label) {
+              <button
+                type="button"
+                role="switch"
+                class="w-full flex items-center justify-between gap-4 px-5 py-4 text-start border-b border-main last:border-b-0"
+                [attr.aria-checked]="row.on"
+                (click)="row.flip()"
+              >
+                <span>{{ row.label | t }}</span>
+                <span
+                  class="relative w-10 h-6 shrink-0 rounded-full transition-colors"
+                  [style.background-color]="row.on ? '#cc4209' : null"
+                  [class.bg-gray-500]="!row.on"
+                  [class.op50]="!row.on"
+                >
+                  <span
+                    class="absolute top-1 start-1 w-4 h-4 rounded-full bg-white shadow transition-transform"
+                    [class.translate-x-4]="row.on"
+                  ></span>
+                </span>
+              </button>
+            }
+          </div>
+        }
+        @case ('clock') {
+          <h2 class="text-xl font-semibold mb-6">{{ 'browser.clockDate' | t }}</h2>
+          <div class="max-w-lg rounded-2xl bg-active text-sm">
+            <button
+              type="button"
+              role="switch"
+              id="deck-browser-clock-toggle"
+              class="w-full flex items-center justify-between gap-4 px-5 py-4 text-start border-b border-main"
+              [attr.aria-checked]="browser.prefs().clock.show"
+              (click)="setClock({ show: !browser.prefs().clock.show })"
+            >
+              <span>{{ 'browser.showClock' | t }}</span>
+              <span
+                class="relative w-10 h-6 shrink-0 rounded-full transition-colors"
+                [class.bg-gray-500]="!browser.prefs().clock.show"
+                [class.op50]="!browser.prefs().clock.show"
+                [style.background-color]="browser.prefs().clock.show ? '#cc4209' : null"
+              >
+                <span
+                  class="absolute top-1 start-1 w-4 h-4 rounded-full bg-white shadow transition-transform"
+                  [class.translate-x-4]="browser.prefs().clock.show"
+                ></span>
+              </span>
+            </button>
+            <button
+              type="button"
+              role="switch"
+              class="w-full flex items-center justify-between gap-4 px-5 py-4 text-start border-b border-main"
+              [attr.aria-checked]="!!browser.prefs().clock.seconds"
+              (click)="setClock({ seconds: !browser.prefs().clock.seconds, show: true })"
+            >
+              <span>{{ 'browser.showSeconds' | t }}</span>
+              <span
+                class="relative w-10 h-6 shrink-0 rounded-full transition-colors"
+                [class.bg-gray-500]="!browser.prefs().clock.seconds"
+                [class.op50]="!browser.prefs().clock.seconds"
+                [style.background-color]="browser.prefs().clock.seconds ? '#cc4209' : null"
+              >
+                <span
+                  class="absolute top-1 start-1 w-4 h-4 rounded-full bg-white shadow transition-transform"
+                  [class.translate-x-4]="!!browser.prefs().clock.seconds"
+                ></span>
+              </span>
+            </button>
+            <button
+              type="button"
+              role="switch"
+              class="w-full flex items-center justify-between gap-4 px-5 py-4 text-start border-b border-main"
+              [attr.aria-checked]="browser.prefs().clock.date !== false"
+              (click)="setClock({ date: browser.prefs().clock.date === false })"
+            >
+              <span>{{ 'browser.showDate' | t }}</span>
+              <span
+                class="relative w-10 h-6 shrink-0 rounded-full transition-colors"
+                [class.bg-gray-500]="browser.prefs().clock.date === false"
+                [class.op50]="browser.prefs().clock.date === false"
+                [style.background-color]="browser.prefs().clock.date !== false ? '#cc4209' : null"
+              >
+                <span
+                  class="absolute top-1 start-1 w-4 h-4 rounded-full bg-white shadow transition-transform"
+                  [class.translate-x-4]="browser.prefs().clock.date !== false"
+                ></span>
+              </span>
+            </button>
+            <div class="flex items-center justify-between gap-4 px-5 py-4 border-b border-main">
+              <span>{{ 'browser.dateStyle' | t }}</span>
+              <div class="flex gap-1.5">
+                @for (style of dateStyles; track style.key) {
+                  <button
+                    type="button"
+                    class="px-2.5 h-9 rounded-lg border border-main text-xs whitespace-nowrap hover:bg-main"
+                    [style.box-shadow]="
+                      (browser.prefs().clock.dateStyle ?? 'long') === style.key
+                        ? '0 0 0 2px #cc4209'
+                        : null
+                    "
+                    [attr.aria-pressed]="(browser.prefs().clock.dateStyle ?? 'long') === style.key"
+                    (click)="setClock({ dateStyle: style.key, date: true })"
+                  >
+                    {{ datePreview(style.key) }}
+                  </button>
+                }
+              </div>
+            </div>
+            <div class="flex items-center justify-between gap-4 px-5 py-4 border-b border-main">
+              <span>{{ 'browser.clockFont' | t }}</span>
+              <div class="flex gap-1.5">
+                @for (font of clockFonts; track font.key) {
+                  <button
+                    type="button"
+                    class="w-12 h-10 rounded-lg border border-main text-lg hover:bg-main"
+                    [class]="font.css"
+                    [style.box-shadow]="
+                      browser.prefs().clock.font === font.key ? '0 0 0 2px #cc4209' : null
+                    "
+                    [attr.aria-pressed]="browser.prefs().clock.font === font.key"
+                    (click)="setClock({ font: font.key })"
+                  >
+                    12
+                  </button>
+                }
+              </div>
+            </div>
+            <div class="flex items-center justify-between gap-4 px-5 py-4 border-b border-main">
+              <span>{{ 'browser.clockSize' | t }}</span>
+              <div class="flex gap-1.5">
+                @for (size of clockSizes; track size) {
+                  <button
+                    type="button"
+                    class="w-10 h-10 rounded-lg border border-main uppercase hover:bg-main"
+                    [style.box-shadow]="
+                      browser.prefs().clock.size === size ? '0 0 0 2px #cc4209' : null
+                    "
+                    [attr.aria-pressed]="browser.prefs().clock.size === size"
+                    (click)="setClock({ size })"
+                  >
+                    {{ size }}
+                  </button>
+                }
+              </div>
+            </div>
+            <label class="flex items-center justify-between gap-4 px-5 py-4">
+              <span>{{ 'browser.clockFormat' | t }}</span>
+              <span class="relative">
+                <select
+                  class="appearance-none ps-3 pe-10 py-2 rounded-lg border border-main bg-main text-sm outline-none cursor-pointer focus:border-[#cc4209]"
+                  [value]="browser.prefs().clock.format"
+                  (change)="setClock({ format: $any($event.target).value })"
+                >
+                  <option value="auto">{{ 'browser.clockAuto' | t: { locale: locale } }}</option>
+                  <option value="12">{{ 'browser.clock12' | t }}</option>
+                  <option value="24">{{ 'browser.clock24' | t }}</option>
+                </select>
+                <div
+                  class="i-ph:caret-down pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 op60"
+                ></div>
+              </span>
+            </label>
+          </div>
+        }
+        @case ('weather') {
+          <h2 class="text-xl font-semibold mb-6">{{ 'browser.weather' | t }}</h2>
+          <div class="max-w-lg rounded-2xl bg-active text-sm">
+            <button
+              type="button"
+              role="switch"
+              id="deck-browser-weather-toggle"
+              class="w-full flex items-center justify-between gap-4 px-5 py-4 text-start border-b border-main"
+              [attr.aria-checked]="browser.prefs().weather.show"
+              (click)="toggleWeather()"
+            >
+              <span>{{ 'browser.showWeather' | t }}</span>
+              <span
+                class="relative w-10 h-6 shrink-0 rounded-full transition-colors"
+                [class.bg-gray-500]="!browser.prefs().weather.show"
+                [class.op50]="!browser.prefs().weather.show"
+                [style.background-color]="browser.prefs().weather.show ? '#cc4209' : null"
+              >
+                <span
+                  class="absolute top-1 start-1 w-4 h-4 rounded-full bg-white shadow transition-transform"
+                  [class.translate-x-4]="browser.prefs().weather.show"
+                ></span>
+              </span>
+            </button>
+            <div class="flex flex-col gap-3 px-5 py-4 border-b border-main">
+              <span>{{ 'browser.weatherPlace' | t }}</span>
+              @if (browser.prefs().weather.place; as place) {
+                <span class="flex items-center gap-2 op80">
+                  <div class="i-ph:map-pin"></div>
+                  {{ place.name }}
+                </span>
+              }
+              <form class="flex gap-2" (submit)="$event.preventDefault(); findWeatherPlace(city)">
+                <input
+                  #city
+                  id="deck-browser-weather-city"
+                  class="flex-1 min-w-0 px-3 py-2 rounded-lg border border-main bg-main outline-none focus:border-[#cc4209]"
+                  [placeholder]="'browser.weatherCity' | t"
+                />
+                <button type="submit" class="px-3 py-2 rounded-lg border border-main hover:bg-main">
+                  {{ 'browser.weatherFind' | t }}
+                </button>
+              </form>
+              <button
+                type="button"
+                class="self-start flex items-center gap-2 text-xs op70 hover:op100 disabled:op50"
+                [disabled]="locating()"
+                (click)="useMyLocation()"
+              >
+                <div class="i-ph:crosshair" [class.animate-pulse]="locating()"></div>
+                {{ (locating() ? 'browser.weatherLocating' : 'browser.weatherUseLocation') | t }}
+              </button>
+              @if (placeError()) {
+                <span class="text-xs text-red-500">{{ 'browser.weatherNotFound' | t }}</span>
+              }
+              @if (locationError(); as error) {
+                <span class="text-xs text-red-500">{{ error | t }}</span>
+              }
+            </div>
+            <div class="flex items-center justify-between gap-4 px-5 py-4 border-b border-main">
+              <span>{{ 'browser.weatherUnit' | t }}</span>
+              <div class="flex gap-1.5">
+                @for (unit of ['c', 'f']; track unit) {
+                  <button
+                    type="button"
+                    class="w-12 h-9 rounded-lg border border-main hover:bg-main"
+                    [style.box-shadow]="
+                      browser.prefs().weather.unit === unit ? '0 0 0 2px #cc4209' : null
+                    "
+                    [attr.aria-pressed]="browser.prefs().weather.unit === unit"
+                    (click)="setWeather({ unit: $any(unit) })"
+                  >
+                    °{{ unit === 'c' ? 'C' : 'F' }}
+                  </button>
+                }
+              </div>
+            </div>
+            <p class="px-5 py-4 text-xs op60">{{ 'browser.weatherPrivacy' | t }}</p>
+          </div>
+        }
+        @case ('links') {
+          <h2 class="text-xl font-semibold mb-6">{{ 'browser.linksData' | t }}</h2>
+          <div class="max-w-lg rounded-2xl bg-active text-sm">
+            @for (row of linkRows(); track row.label) {
+              <button
+                type="button"
+                role="switch"
+                class="w-full flex items-center justify-between gap-4 px-5 py-4 text-start border-b border-main"
+                [attr.aria-checked]="row.on"
+                (click)="row.flip()"
+              >
+                <span>{{ row.label | t }}</span>
+                <span
+                  class="relative w-10 h-6 shrink-0 rounded-full transition-colors"
+                  [style.background-color]="row.on ? '#cc4209' : null"
+                  [class.bg-gray-500]="!row.on"
+                  [class.op50]="!row.on"
+                >
+                  <span
+                    class="absolute top-1 start-1 w-4 h-4 rounded-full bg-white shadow transition-transform"
+                    [class.translate-x-4]="row.on"
+                  ></span>
+                </span>
+              </button>
+            }
+            <div class="flex flex-wrap gap-2 px-5 py-4">
+              <button
+                type="button"
+                class="flex items-center gap-2 px-3 py-2 rounded-lg border border-main hover:bg-main disabled:op40"
+                [disabled]="!browser.visited().length"
+                (click)="browser.clearRecent()"
+              >
+                <div class="i-ph:clock-counter-clockwise"></div>
+                {{ 'browser.clearRecent' | t }}
+              </button>
+              <button
+                type="button"
+                class="flex items-center gap-2 px-3 py-2 rounded-lg border border-red-500/40 text-red-500 hover:bg-red-500/10 disabled:op40"
+                [disabled]="!browser.bookmarks().length"
+                (click)="browser.clearBookmarks()"
+              >
+                <div class="i-ph:trash"></div>
+                {{ 'browser.clearBookmarks' | t }}
+              </button>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  </div>
+</div>

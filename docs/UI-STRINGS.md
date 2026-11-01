@@ -293,3 +293,105 @@ default; `src/app/i18n/en.ts` holds it and is the source of truth for the keys. 
 | `notesEdit.offline`           | The notes can only be edited while the dev server runs.                                  |
 
 `entry.overview` and `entry.notesEdit` also start the heading and tab title of `/overview` and `/notes-edit` (`Overview - <title>`).
+
+### The deck browser
+
+| key                          | English                                                                                |
+| ---------------------------- | -------------------------------------------------------------------------------------- |
+| `nav.browserShow`            | Show deck browser                                                                      |
+| `nav.browserHide`            | Hide deck browser                                                                      |
+| `browser.label`              | Deck browser                                                                           |
+| `browser.newTab`             | New tab                                                                                |
+| `browser.closeTab`           | Close tab                                                                              |
+| `browser.reload`             | Reload                                                                                 |
+| `browser.address`            | Address                                                                                |
+| `browser.openWindow`         | Open in window                                                                         |
+| `browser.hide`               | Back to the slides                                                                     |
+| `browser.refused`            | {site} does not allow being shown inside the deck.                                     |
+| `browser.maybeBlank`         | Blank? Some sites refuse to be shown here.                                             |
+| `presenter.browserOpen`      | Deck browser: {site}                                                                   |
+| `browser.back`               | Back                                                                                   |
+| `browser.forward`            | Forward                                                                                |
+| `browser.searchHint`         | Search or type an address                                                              |
+| `browser.start`              | browser (after the slide.ng name)                                                      |
+| `browser.bookmarkAdd`        | Bookmark this page                                                                     |
+| `browser.bookmarkRemove`     | Remove bookmark                                                                        |
+| `browser.bookmarks`          | Bookmarks                                                                              |
+| `browser.home`               | Start page                                                                             |
+| `browser.removeTile`         | Remove from the start page                                                             |
+| `browser.shortcuts`          | Shortcuts                                                                              |
+| `browser.recent`             | Recent                                                                                 |
+| `browser.settings`           | Browser settings                                                                       |
+| `browser.searchEngine`       | Search engine                                                                          |
+| `browser.customSearch`       | Your own: https://…?q=%s                                                               |
+| `browser.deckDefault`        | Use the deck default                                                                   |
+| `browser.openLinks`          | Open slide links here                                                                  |
+| `browser.showBookmarks`      | Show the bookmarks bar                                                                 |
+| `browser.clearRecent`        | Clear recent pages                                                                     |
+| `browser.clearBookmarks`     | Remove all bookmarks                                                                   |
+| `browser.noBookmarks`        | No bookmarks yet: the star in the toolbar adds the page.                               |
+| `browser.slides`             | Slides                                                                                 |
+| `browser.customEngine`       | Custom                                                                                 |
+| `browser.data`               | Data                                                                                   |
+| `browser.customise`          | Customise                                                                              |
+| `browser.close`              | Close                                                                                  |
+| `browser.background`         | Background                                                                             |
+| `browser.bgNone`             | None                                                                                   |
+| `browser.bgUpload`           | Upload from this device                                                                |
+| `browser.bgFull`             | No room to keep another image here. Remove one first.                                  |
+| `browser.bgImage`            | Use your own                                                                           |
+| `browser.bgSolid`            | Solid colours                                                                          |
+| `browser.bgGradient`         | Gradients                                                                              |
+| `browser.linksData`          | Links and data                                                                         |
+| `browser.showBookmarkTiles`  | Show bookmarks                                                                         |
+| `browser.showShortcutTiles`  | Show the deck's shortcuts                                                              |
+| `browser.showRecentTiles`    | Show recent pages                                                                      |
+| `browser.clock`              | Clock                                                                                  |
+| `browser.showClock`          | Show the clock                                                                         |
+| `browser.clockFormat`        | Format                                                                                 |
+| `browser.clockAuto`          | Automatic ({locale})                                                                   |
+| `browser.clock12`            | 12-hour                                                                                |
+| `browser.clock24`            | 24-hour                                                                                |
+| `browser.showBackground`     | Show a background                                                                      |
+| `browser.bgBrand`            | slide.ng                                                                               |
+| `browser.bgShuffle`          | Refresh on every new tab                                                               |
+| `browser.bgRemove`           | Remove this image                                                                      |
+| `browser.appearance`         | Appearance                                                                             |
+| `browser.themeAuto`          | Like the deck                                                                          |
+| `browser.themeLight`         | Light                                                                                  |
+| `browser.themeDark`          | Dark                                                                                   |
+| `browser.clockFont`          | Font                                                                                   |
+| `browser.clockSize`          | Size                                                                                   |
+| `browser.weather`            | Weather                                                                                |
+| `browser.showWeather`        | Show the weather                                                                       |
+| `browser.weatherPlace`       | Place                                                                                  |
+| `browser.weatherCity`        | City name                                                                              |
+| `browser.weatherFind`        | Find                                                                                   |
+| `browser.weatherUseLocation` | Use my location                                                                        |
+| `browser.weatherHere`        | My location                                                                            |
+| `browser.weatherNotFound`    | No place found                                                                         |
+| `browser.weatherUnit`        | Unit                                                                                   |
+| `browser.weatherPrivacy`     | The weather comes from Open-Meteo: the place is sent there while the weather is shown. |
+| `browser.weatherLoading`     | Getting the weather…                                                                   |
+| `browser.weatherFailed`      | Could not get the weather                                                              |
+| `browser.weatherRetry`       | Try again                                                                              |
+| `browser.wx.clear`           | Clear                                                                                  |
+| `browser.wx.partlyCloudy`    | Partly cloudy                                                                          |
+| `browser.wx.cloudy`          | Cloudy                                                                                 |
+| `browser.wx.fog`             | Fog                                                                                    |
+| `browser.wx.drizzle`         | Drizzle                                                                                |
+| `browser.wx.rain`            | Rain                                                                                   |
+| `browser.wx.snow`            | Snow                                                                                   |
+| `browser.wx.showers`         | Showers                                                                                |
+| `browser.wx.thunder`         | Thunderstorm                                                                           |
+| `browser.weatherLocating`    | Finding you…                                                                           |
+| `browser.weatherDenied`      | Location is blocked for this page. Allow it in the address bar, or type a city.        |
+| `browser.weatherNoLocation`  | Your location is not available. Type a city instead.                                   |
+| `browser.weatherFeels`       | Feels                                                                                  |
+| `browser.weatherFeelsLike`   | Feels like                                                                             |
+| `browser.weatherWind`        | Wind                                                                                   |
+| `browser.weatherHumidity`    | Humidity                                                                               |
+| `browser.showDate`           | Show the date                                                                          |
+| `browser.clockDate`          | Clock & date                                                                           |
+| `browser.dateStyle`          | Date                                                                                   |
+| `browser.showSeconds`        | Show seconds                                                                           |

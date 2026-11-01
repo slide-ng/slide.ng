@@ -27,6 +27,7 @@ import { PresenterCursor } from './presenter-cursor';
 import { contextMenuEnabled } from '../lib/switches';
 import { ProgressBar } from './progress-bar';
 import { TimerBar } from './timer-bar';
+import { DeckBrowser } from '../browser/deck-browser';
 import { TimerInlined } from './timer-inlined';
 import { NoteEditor } from './note-editor';
 import { PaneResizers } from './pane-resizers';
@@ -223,6 +224,26 @@ function readEditing(): boolean {
         <div class="grid-section bottom flex">
           <app-nav-bar [persist]="true" />
           <div class="flex-auto"></div>
+          @if (browser.shown(); as page) {
+            <div
+              id="presenter-browser"
+              class="flex items-center gap-2 my-auto me-2 px-3 py-1 rounded-full text-sm bg-active"
+            >
+              <div class="i-carbon:earth"></div>
+              <span class="truncate max-w-64">{{
+                'presenter.browserOpen' | t: { site: browser.active()?.name ?? page }
+              }}</span>
+              <button
+                type="button"
+                class="op60 hover:op100"
+                [title]="'browser.hide' | t"
+                [attr.aria-label]="'browser.hide' | t"
+                (click)="browser.hide()"
+              >
+                <div class="i-carbon:close"></div>
+              </button>
+            </div>
+          }
           <app-timer-inlined />
         </div>
       </div>
@@ -240,6 +261,7 @@ function readEditing(): boolean {
   `,
 })
 export class Presenter {
+  protected browser = inject(DeckBrowser);
   protected nav = inject(Nav);
   private ui = inject(Ui);
   protected announcement = computed(() => {

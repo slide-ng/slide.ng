@@ -33,6 +33,7 @@ export async function run({ t, open, press, pathOf, style, base, browser, proble
         'Switch to dark mode theme',
         'Show drawing toolbar',
         'Presenter Mode',
+        'Show deck browser',
         'Show info',
         'Change sync settings',
         'More Options',

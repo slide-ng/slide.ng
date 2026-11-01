@@ -540,6 +540,24 @@ Source: an independent review of the repository (nine findings). Each fix has a 
    (no window follows it). Every window that follows the move reports once its slide is there, also when it took the step as asked
    (on `position`, as nothing needs to follow it), so goto_slide waits for the first report rather than a fixed time: a fixed half
    second gave the asked step when the slide loaded slowly. A window that does not follow (its sync is off) is waited for 5 s.
+4. **The deck browser loads pages through a proxy in the dev server, and plain iframes elsewhere** (issue #72). No web page can show
+   a site that refuses framing, read where a cross-origin frame went, or move it through its history. A real webview needs a desktop
+   wrapper (Electron, Tauri) or Chrome's `<controlledframe>`, which only runs in Isolated Web Apps on ChromeOS, and capturing a tab
+   (Captured Surface Control) can only scroll and zoom it. So the companion server proxies each site on its own `*.localhost` origin
+   with a random key, drops the framing headers, and adds a small script that tells the deck the page's real address and title and
+   keeps links inside the deck browser. Back and forward are the deck's own list of what a tab showed, not the frame's history, so
+   they work the same with and without the proxy. Some sites still break through a proxy (sign-ins, apps that check where they run);
+   they keep **Open in window**. A built deck has no server: there the frames load directly, with a header check when the dev
+   server runs and the popup for sites that refuse.
+
+5. **`@iconify-json/meteocons` draws the deck browser's weather** (MIT, by Bas Milius). Colour weather icons with day and night
+   versions for every condition, read by UnoCSS like the other icon sets, so only the icons in use end up in the CSS and no code
+   is added to the app. The line icons of `ph` could not tell a sunny from a cloudy day at a glance.
+
+6. **`undici` fetches the deck browser's proxied pages** (MIT, the library behind Node's own `fetch`). The proxy has to check the
+   address it actually connects to, not one it looked up before: otherwise a name can answer a public address to the check and
+   this computer to the fetch (DNS rebinding). Node's built-in `fetch` takes no lookup of its own; undici's `Agent` does, so every
+   connection is checked where it is made. It was already installed for the tests (through jsdom) and runs only in the dev server.
 
 ## Made while measuring the first load
 

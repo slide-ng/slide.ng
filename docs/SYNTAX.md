@@ -66,6 +66,7 @@ In the headmatter (the frontmatter of the first slide) you can also set:
 | `monaco`, `twoslash`                                                             | `true` (default), `false`, `dev` or `build`: off, `{monaco}` blocks are plain code; Twoslash not run                                                                                                                                                                                                                                             |
 | `wakeLock`                                                                       | `true` (default), `false`, `dev`, `build`: the settings wake lock; a choice the browser stored wins                                                                                                                                                                                                                                              |
 | `navPosition`                                                                    | where the navigation bar sits on the slide page: `bottom-left` (default), `bottom-center`, `bottom-right`, `top-left`, `top-center` or `top-right`; left and right follow the writing direction, and its menus open below it at the top. A viewer can choose another place in the settings menu. The presenter page keeps its bar. Not in Slidev |
+| `browser`                                                                        | the deck browser (slide.ng's own, see "Deck browser" below): `false` turns it off; `{ links: false }` keeps links on slides opening as usual; `tabs: [{ name, url }]` are tiles on its start page; `search` is the search address with `%s` (DuckDuckGo by default)                                                                              |
 | `monacoRunUseStrict`                                                             | `false` runs `{monaco-run}` code without `"use strict"` (on by default, as in Slidev)                                                                                                                                                                                                                                                            |
 | `themeConfig`                                                                    | settings for the theme, e.g. `themeConfig: { primary: '#5d8392' }`; see "Themes and addons" below                                                                                                                                                                                                                                                |
 
@@ -1248,18 +1249,19 @@ in Slidev: `radius: 6` is `--slidev-theme-radius: 6`, which CSS does not take as
 
 ## Keys, mouse and the interface
 
-| key                          | action                                                                              |
-| ---------------------------- | ----------------------------------------------------------------------------------- |
-| right, space, page down      | next click, or next slide                                                           |
-| left, shift + space, page up | previous click, or previous slide                                                   |
-| down, shift + right          | next slide (skips the clicks)                                                       |
-| up, shift + left             | previous slide                                                                      |
-| `f`                          | fullscreen                                                                          |
-| `o` or backtick              | slide overview (arrows move, Enter opens, Escape closes)                            |
-| `d`                          | dark / light                                                                        |
-| `g`                          | go to a slide: type a number or part of a title, Enter (any case, accents optional) |
-| Escape                       | close the overview, dialogs and menus                                               |
-| `u`                          | presenter page: show or hide the upcoming clicks                                    |
+| key                          | action                                                                                                                   |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| right, space, page down      | next click, or next slide                                                                                                |
+| left, shift + space, page up | previous click, or previous slide                                                                                        |
+| down, shift + right          | next slide (skips the clicks)                                                                                            |
+| up, shift + left             | previous slide                                                                                                           |
+| `f`                          | fullscreen                                                                                                               |
+| `o` or backtick              | slide overview (arrows move, Enter opens, Escape closes)                                                                 |
+| `d`                          | dark / light                                                                                                             |
+| `g`                          | go to a slide: type a number or part of a title, Enter (any case, accents optional)                                      |
+| Escape                       | close the overview, dialogs and menus                                                                                    |
+| `u`                          | presenter page: show or hide the upcoming clicks                                                                         |
+| `b`                          | slide page: open or close the deck browser (Escape closes it too; in a page only with the dev proxy and nothing focused) |
 
 In a right-to-left deck the keys stay physical (right is next), the overview arrows follow its mirrored grid, and transitions are
 not mirrored (see [UI-STRINGS.md](UI-STRINGS.md)).
@@ -1333,6 +1335,56 @@ presses a button, and a touch on the slide hides it again. On a screen taller th
 - **Math** is read as its TeX source (`\frac{a}{b}`, not "a over b"): KaTeX is drawn without MathML, and the TeX is in visually hidden text,
   in the slide and in a title drawn by `<slide-ng-title-renderer>` or the table of contents alike.
   Say a formula in words in the text or the notes when the audience needs it.
+
+## Deck browser
+
+slide.ng's own (issue #72): a browser inside the deck, so a talk can show websites without leaving the slides. `b`, or the globe
+button in the bar, opens it as a full-screen layer over the current slide; closing it (the × button, `b` or Escape) brings back the
+same slide and click. Its tabs stay loaded while it is closed. In fullscreen, Escape closes the deck browser and keeps fullscreen; the next Escape leaves
+fullscreen. For that the deck locks the Escape key when it goes fullscreen (Chrome and Edge ask once for the keyboard permission;
+without it, or in other browsers, Escape leaves fullscreen at once as before).
+
+- A click on a link to another site, on a slide, opens it in a new tab of the deck browser (or the tab that already shows it).
+  Cmd/Ctrl/Shift/Alt+click and a middle click open the browser's own tab as before. `browser: { links: false }` turns this off.
+- The address field takes an address (`angular.dev`, `localhost:4200/demo`) or words to search for. Searches use
+  `browser.search`, an address with `%s` for the words (DuckDuckGo by default: it shows inside the deck through the proxy below, and in a built deck its results open in a window; Google blocks the proxy).
+- It opens on the slide.ng browser page, as does a new tab: a search box and a tile for each of the deck's `browser.tabs` and each
+  page opened since. `browser: { tabs: [{ name: Docs, url: https://angular.dev }] }` adds a tile; a click opens it in that tab.
+- Back and forward move through the pages a tab showed.
+- The star in the toolbar bookmarks the page, and the bookmark button next to it lists them all. Bookmarks also show in a bar
+  under the toolbar and first on the start page, and are
+  kept in this browser for this deck (`slide-ng-browser-bookmarks`).
+- **Customise** on the start page (or in the gear menu) opens a larger window: the start page background (none, the slide.ng
+  gradient, solid colours, gradients or images uploaded from this device, each optionally changing on every new tab; text
+  stays readable on light and dark ones), the deck browser's appearance (like the deck, light or dark), the search engine, which
+  tile groups the start page shows, a clock (format, font and size), the weather (off until turned on: a city or your location,
+  °C or °F; the current condition, high and low, feels-like, wind and humidity, and a five-day forecast on hover, from
+  Open-Meteo, which then gets that place, every fifteen minutes at most; when it cannot be reached the card says so and tries
+  again each minute), and links and data. All of it is kept in this browser. An uploaded image that no longer fits in the
+  browser's storage is refused with a message.
+- The gear in its toolbar opens the browser settings: the search engine (DuckDuckGo, Bing, Wikipedia or your own address with
+  `%s`), whether slide links open in it, whether the bookmarks bar shows, and buttons that clear recent pages and bookmarks. The
+  choices are kept in this browser for this deck (`slide-ng-browser-prefs`) and win over `browser.search` and `browser.links`;
+  "Use the deck default" goes back to the headmatter's search.
+- `browser: false` removes it (the key, the button and the link handling).
+
+With `slide-ng dev` (or `npm start`) on this machine, pages load through the companion server's proxy. Each site then gets its own
+address under `localhost`, so sites that refuse framing (GitHub, Google and most large sites) still show inside the deck, and the
+address field follows the clicks inside a page. The proxy drops the headers that refuse framing, keeps each site's cookies on its own
+proxy address, turns off service workers and sends links that open a new window to a new tab. An address on this computer or the
+local network (`localhost:4200`, `192.168.1.1`) loads only when the deck opened it (the address field, a slide link, a tile or
+a bookmark), not when a page in the deck browser points to it. Some sites still break through it,
+for example sign-ins that check where they are shown: **Open in window** opens the real page in a popup placed over the deck
+browser.
+
+Without the proxy (a built deck, or `--remote`), pages load directly. With the dev server running, a site that refuses framing gets
+a card with **Open in window**; in a built deck such a site stays blank and the same button is in the toolbar. Back, forward and the
+address field then only know the pages opened from the deck, not the clicks inside a page.
+
+The presenter page shows which page the deck browser shows, with a button that closes it in every window; the other windows follow
+the one that opened or closed it.
+
+Try it with the demo deck: `npm start -- examples/deck-browser/slides.md`.
 
 ## Translating the interface
 

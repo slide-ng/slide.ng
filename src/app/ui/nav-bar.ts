@@ -12,6 +12,7 @@ import {
 import { NgComponentOutlet } from '@angular/common';
 import { NAV_CONTROLS } from '../../slides/generated/layers';
 import { LANGUAGE_MENU } from '../../slides/generated/languages';
+import { DeckBrowser } from '../browser/deck-browser';
 import { Drawings } from '../drawing/drawings';
 import { Dark } from '../lib/dark';
 import { Download } from '../lib/download';
@@ -218,6 +219,17 @@ import { presenterEnabled } from '../lib/switches';
           }
         }
 
+        @if (!nav.isPresenter && browser.config.enabled) {
+          <button
+            icon-btn
+            id="nav-browser"
+            [title]="(browser.open() ? 'nav.browserHide' : 'nav.browserShow') | t"
+            [active]="browser.open()"
+            (click)="browser.toggle()"
+          >
+            <div class="i-carbon:earth"></div>
+          </button>
+        }
         @if (!nav.isPresenter) {
           <button icon-btn id="nav-info" [title]="'nav.info' | t" (click)="ui.info.set(!ui.info())">
             <div class="i-carbon:information"></div>
@@ -322,6 +334,7 @@ export class NavBar {
   protected dark = inject(Dark);
   protected fullscreen = inject(Fullscreen);
   protected download = inject(Download);
+  protected browser = inject(DeckBrowser);
   private view = inject(ViewPrefs);
   protected customControls = NAV_CONTROLS;
   /** As in Slidev, the sync menu is there whenever the deck has a presenter (and so window sync). */

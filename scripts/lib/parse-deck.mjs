@@ -139,6 +139,36 @@ export async function parseDeck(file = 'slides.md', sources, options = {}) {
       `${at('navPosition')}: \`navPosition: ${JSON.stringify(navAt)}\` is not used: write one of ${NAV_POSITIONS.join(', ')} (bottom-left is used).${didYouMean(String(navAt), NAV_POSITIONS)}`,
     );
 
+  const browser = own.browser;
+  const isObject = (v) => v != null && typeof v === 'object' && !Array.isArray(v);
+  const webUrl = (v) => typeof v === 'string' && /^https?:\/\/\S+$/i.test(v.trim());
+  if (browser != null && browser !== false && !isObject(browser))
+    problems.push(
+      `${at('browser')}: \`browser: ${JSON.stringify(browser)}\` is not used: write false or { links, tabs } (the deck browser stays on)`,
+    );
+  else if (isObject(browser)) {
+    if (browser.links != null && typeof browser.links !== 'boolean')
+      problems.push(
+        `${at('browser')}: \`browser.links: ${JSON.stringify(browser.links)}\` is not used: write true or false (true is used)`,
+      );
+    if (
+      browser.search != null &&
+      !(webUrl(browser.search) && String(browser.search).includes('%s'))
+    )
+      problems.push(
+        `${at('browser')}: \`browser.search: ${JSON.stringify(browser.search)}\` is not used: write a web address with %s for the words (DuckDuckGo is used)`,
+      );
+    if (browser.tabs != null && !Array.isArray(browser.tabs))
+      problems.push(
+        `${at('browser')}: \`browser.tabs\` is not used: write a list of { name, url }`,
+      );
+    for (const tab of Array.isArray(browser.tabs) ? browser.tabs : [])
+      if (!webUrl(isObject(tab) ? tab.url : tab))
+        problems.push(
+          `${at('browser')}: the tab ${JSON.stringify(tab)} is left out: its url must start with http:// or https://`,
+        );
+  }
+
   // Old Slidev decks pick Prism; code here is always Shiki, so Prism theme CSS no longer applies.
   if (own.highlighter && own.highlighter !== 'shiki')
     problems.push(

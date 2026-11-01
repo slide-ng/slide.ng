@@ -1,0 +1,806 @@
+@if (browser.config.enabled) {
+  <div
+    class="contents"
+    [class.dark]="browser.prefs().theme === 'dark'"
+    [class.deck-browser-light]="browser.prefs().theme === 'light'"
+  >
+    <section
+      id="deck-browser"
+      class="fixed inset-0 z-modal flex flex-col bg-main text-main"
+      [style.display]="browser.open() ? null : 'none'"
+      [attr.aria-hidden]="!browser.open()"
+      [attr.aria-label]="'browser.label' | t"
+      (keydown.escape)="hide($event)"
+    >
+      <div class="flex items-end gap-0.5 px-2 pt-2" role="tablist">
+        @for (tab of browser.tabs(); track tab.id) {
+          <div
+            class="deck-browser-tab group relative flex items-center w-52 min-w-0 rounded-t-lg transition-colors"
+            [class.bg-active]="tab.id === browser.activeId()"
+            [class.op70]="tab.id !== browser.activeId()"
+            [class.hover:op100]="tab.id !== browser.activeId()"
+            [class.hover:bg-active]="tab.id !== browser.activeId()"
+            [class.op40]="dragging() === tab.id"
+            [attr.data-tab-id]="tab.id"
+            draggable="true"
+            (dragstart)="tabDragStart($event, tab.id)"
+            (dragover)="tabDragOver($event, tab.id)"
+            (drop)="tabDrop($event)"
+            (dragend)="tabDragEnd()"
+          >
+            @if (dropMark()?.id === tab.id) {
+              <span
+                class="absolute top-1 bottom-0 w-0.5 rounded-full bg-[#cc4209] pointer-events-none"
+                [style.inset-inline-start.px]="dropMark()!.before ? -2 : null"
+                [style.inset-inline-end.px]="dropMark()!.before ? null : -2"
+              ></span>
+            }
+            <button
+              type="button"
+              role="tab"
+              class="flex-1 flex items-center gap-2 min-w-0 ps-3 pe-1 py-1.5 text-sm text-start"
+              [attr.aria-selected]="tab.id === browser.activeId()"
+              (click)="browser.select(tab.id)"
+            >
+              @if (tab.icon && !failed().has(tab.icon)) {
+                <span
+                  class="w-5 h-5 shrink-0 rounded-full bg-white grid place-content-center ring-1 ring-black/10"
+                >
+                  <img class="w-3.5 h-3.5" alt="" [src]="tab.icon" (error)="iconFailed(tab.icon)" />
+                </span>
+              } @else if (tab.url) {
+                <div class="i-carbon:earth shrink-0 op60"></div>
+              } @else {
+                <app-slide-ng-mark class="w-4 h-4 shrink-0" />
+              }
+              <span class="truncate">{{ tab.name || ('browser.newTab' | t) }}</span>
+            </button>
+            <button
+              type="button"
+              class="deck-browser-close-tab shrink-0 me-1.5 w-6 h-6 rounded-full grid place-content-center op50 hover:op100 hover:bg-active"
+              [title]="'browser.closeTab' | t"
+              [attr.aria-label]="'browser.closeTab' | t"
+              (click)="browser.close(tab.id)"
+            >
+              <div class="i-carbon:close"></div>
+            </button>
+          </div>
+        }
+        <button
+          icon-btn
+          id="deck-browser-new"
+          class="text-lg"
+          [title]="'browser.newTab' | t"
+          (click)="newTab()"
+        >
+          <div class="i-carbon:add"></div>
+        </button>
+      </div>
+
+      <form
+        class="flex items-center gap-0.5 px-2 py-1.5 text-base bg-active"
+        (submit)="go($event, address)"
+      >
+        <button
+          icon-btn
+          type="button"
+          id="deck-browser-back"
+          [title]="'browser.back' | t"
+          [disabled]="!browser.canBack()"
+          (click)="browser.back()"
+        >
+          <div class="i-ph:arrow-left rtl-flip"></div>
+        </button>
+        <button
+          icon-btn
+          type="button"
+          id="deck-browser-forward"
+          [title]="'browser.forward' | t"
+          [disabled]="!browser.canForward()"
+          (click)="browser.forward()"
+        >
+          <div class="i-ph:arrow-right rtl-flip"></div>
+        </button>
+        <button
+          icon-btn
+          type="button"
+          id="deck-browser-home"
+          [title]="'browser.home' | t"
+          (click)="browser.goHome()"
+        >
+          <div class="i-ph:house"></div>
+        </button>
+        <button
+          icon-btn
+          type="button"
+          id="deck-browser-reload"
+          [title]="'browser.reload' | t"
+          [disabled]="!browser.active()?.url"
+          (click)="reload()"
+        >
+          <div class="i-ph:arrow-clockwise"></div>
+        </button>
+        <div
+          class="deck-browser-omnibox flex-1 min-w-0 mx-1.5 flex items-center gap-2 h-9 ps-3 pe-1 rounded-xl border border-main bg-main transition-shadow focus-within:border-transparent focus-within:ring-2 focus-within:ring-[#cc4209]"
+        >
+          @if (
+            browser.active()?.url && browser.active()!.icon && !failed().has(browser.active()!.icon)
+          ) {
+            <span
+              class="w-5 h-5 shrink-0 rounded-full bg-white grid place-content-center ring-1 ring-black/10"
+            >
+              <img
+                class="w-3.5 h-3.5"
+                alt=""
+                [src]="browser.active()!.icon"
+                (error)="iconFailed(browser.active()!.icon)"
+              />
+            </span>
+          } @else {
+            <div class="i-ph:magnifying-glass shrink-0 op60"></div>
+          }
+          <input
+            #address
+            id="deck-browser-address"
+            class="flex-1 min-w-0 bg-transparent outline-none text-sm"
+            spellcheck="false"
+            autocomplete="off"
+            enterkeyhint="go"
+            [attr.aria-label]="'browser.address' | t"
+            [placeholder]="'browser.searchHint' | t"
+            [value]="browser.active()?.url ?? ''"
+            (focus)="address.select()"
+          />
+          @if (browser.active()?.url) {
+            <button
+              type="button"
+              id="deck-browser-bookmark"
+              class="w-7 h-7 shrink-0 rounded-lg grid place-content-center op70 hover:op100 hover:bg-active"
+              [title]="
+                (browser.bookmarked() ? 'browser.bookmarkRemove' : 'browser.bookmarkAdd') | t
+              "
+              [attr.aria-pressed]="browser.bookmarked()"
+              (click)="browser.toggleBookmark()"
+            >
+              <div
+                [class]="browser.bookmarked() ? 'i-ph:star-fill text-[#ff7a3d] op100' : 'i-ph:star'"
+              ></div>
+            </button>
+          }
+        </div>
+        @if (hint()) {
+          <span class="hidden md:block text-xs op60 px-1">{{ 'browser.maybeBlank' | t }}</span>
+        }
+        <div class="relative flex" #bookmarksBox>
+          <button
+            icon-btn
+            type="button"
+            id="deck-browser-bookmarks-menu-button"
+            [title]="'browser.bookmarks' | t"
+            [active]="bookmarksOpen()"
+            aria-haspopup="menu"
+            [attr.aria-expanded]="bookmarksOpen()"
+            (click)="toggleMenu('bookmarks')"
+          >
+            <div class="i-ph:bookmarks-simple"></div>
+          </button>
+          @if (bookmarksOpen()) {
+            <div
+              id="deck-browser-bookmarks-menu"
+              role="menu"
+              [attr.aria-label]="'browser.bookmarks' | t"
+              class="absolute end-0 top-11 z-menu w-80 max-h-[60vh] overflow-y-auto p-2 rounded-xl border border-main bg-main text-main shadow-xl text-sm"
+              (keydown.escape)="closeMenu($event)"
+            >
+              <p class="px-2 pt-1 pb-2 text-xs font-semibold uppercase tracking-wider op60">
+                {{ 'browser.bookmarks' | t }}
+              </p>
+              @for (mark of browser.bookmarks(); track mark.url) {
+                <div class="group flex items-center rounded-lg hover:bg-active">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    class="flex-1 min-w-0 flex items-center gap-3 px-2 py-2 text-start"
+                    [title]="mark.url"
+                    (click)="openTile(mark.url, mark.name); closeMenu()"
+                  >
+                    @if (mark.icon && !failed().has(mark.icon)) {
+                      <span
+                        class="w-6 h-6 shrink-0 rounded-full bg-white grid place-content-center ring-1 ring-black/10"
+                      >
+                        <img
+                          class="w-4 h-4"
+                          alt=""
+                          [src]="mark.icon"
+                          (error)="iconFailed(mark.icon)"
+                        />
+                      </span>
+                    } @else {
+                      <span
+                        class="w-6 h-6 shrink-0 rounded-full bg-[#cc4209] grid place-content-center"
+                      >
+                        <div class="i-carbon:star-filled text-white text-xs"></div>
+                      </span>
+                    }
+                    <span class="min-w-0 flex flex-col">
+                      <span class="truncate font-medium">{{ label(mark) }}</span>
+                      <span class="truncate text-xs op50">{{ host(mark.url) }}</span>
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    class="me-1 w-7 h-7 shrink-0 rounded-full grid place-content-center op0 group-hover:op60 hover:op100 focus:op100"
+                    [title]="'browser.bookmarkRemove' | t"
+                    [attr.aria-label]="'browser.bookmarkRemove' | t"
+                    (click)="browser.removeBookmark(mark.url)"
+                  >
+                    <div class="i-carbon:close"></div>
+                  </button>
+                </div>
+              } @empty {
+                <p class="px-2 py-3 op60">{{ 'browser.noBookmarks' | t }}</p>
+              }
+            </div>
+          }
+        </div>
+        <div class="relative flex" #settingsBox>
+          <button
+            icon-btn
+            type="button"
+            id="deck-browser-settings"
+            [title]="'browser.settings' | t"
+            [active]="settingsOpen()"
+            aria-haspopup="dialog"
+            [attr.aria-expanded]="settingsOpen()"
+            (click)="toggleMenu('settings')"
+          >
+            <div class="i-ph:gear-six"></div>
+          </button>
+          @if (settingsOpen()) {
+            <div
+              id="deck-browser-settings-menu"
+              role="dialog"
+              [attr.aria-label]="'browser.settings' | t"
+              class="absolute end-0 top-11 z-menu w-80 p-2 rounded-2xl border border-main bg-main text-main shadow-2xl text-sm flex flex-col gap-3"
+              (keydown.escape)="closeMenu($event)"
+            >
+              <section class="flex flex-col gap-1">
+                <p class="px-2 text-xs font-semibold uppercase tracking-wider op50">
+                  {{ 'browser.searchEngine' | t }}
+                </p>
+                <app-search-engine-picker />
+              </section>
+
+              <section class="flex flex-col gap-0.5 border-t border-main pt-3">
+                @for (toggle of toggles(); track toggle.key) {
+                  <button
+                    type="button"
+                    role="switch"
+                    class="flex items-center justify-between gap-3 px-2 py-2 rounded-lg text-start hover:bg-active"
+                    [attr.aria-checked]="toggle.on"
+                    (click)="toggle.flip()"
+                  >
+                    <span>{{ toggle.key | t }}</span>
+                    <span
+                      class="relative w-9 h-5 shrink-0 rounded-full transition-colors"
+                      [class.bg-[#cc4209]]="toggle.on"
+                      [class.bg-gray-500]="!toggle.on"
+                      [class.op50]="!toggle.on"
+                    >
+                      <span
+                        class="absolute top-0.5 start-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform"
+                        [class.translate-x-4]="toggle.on"
+                      ></span>
+                    </span>
+                  </button>
+                }
+              </section>
+
+              <section class="flex flex-col gap-0.5 border-t border-main pt-3">
+                <p class="px-2 pb-1 text-xs font-semibold uppercase tracking-wider op50">
+                  {{ 'browser.data' | t }}
+                </p>
+                <button
+                  type="button"
+                  class="flex items-center gap-3 px-2 py-2 rounded-lg text-start hover:bg-active disabled:op40 disabled:hover:bg-transparent"
+                  [disabled]="!browser.visited().length"
+                  (click)="browser.clearRecent()"
+                >
+                  <div class="i-ph:clock-counter-clockwise op70"></div>
+                  <span>{{ 'browser.clearRecent' | t }}</span>
+                </button>
+                <button
+                  type="button"
+                  class="flex items-center gap-3 px-2 py-2 rounded-lg text-start text-red-500 hover:bg-red-500/10 disabled:op40 disabled:hover:bg-transparent"
+                  [disabled]="!browser.bookmarks().length"
+                  (click)="browser.clearBookmarks()"
+                >
+                  <div class="i-ph:trash"></div>
+                  <span>{{ 'browser.clearBookmarks' | t }}</span>
+                </button>
+              </section>
+
+              <button
+                type="button"
+                class="flex items-center gap-3 px-2 py-2 rounded-lg text-start hover:bg-active border-t border-main pt-3"
+                (click)="closeMenu(); browser.customiseOpen.set(true)"
+              >
+                <div class="i-ph:pencil-simple op70"></div>
+                <span>{{ 'browser.customise' | t }}…</span>
+              </button>
+            </div>
+          }
+        </div>
+        <button
+          icon-btn
+          type="button"
+          id="deck-browser-window"
+          [title]="'browser.openWindow' | t"
+          [disabled]="!browser.active()?.url"
+          (click)="openWindow()"
+        >
+          <div class="i-ph:arrow-square-out"></div>
+        </button>
+        <button
+          type="button"
+          id="deck-browser-hide"
+          class="ms-1.5 flex items-center gap-1.5 h-8 ps-2.5 pe-3 rounded-lg bg-[#cc4209] text-white text-sm font-medium shadow-sm hover:brightness-110 transition"
+          [title]="'browser.hide' | t"
+          (click)="browser.hide()"
+        >
+          <div class="i-ph:presentation"></div>
+          <span>{{ 'browser.slides' | t }}</span>
+        </button>
+      </form>
+
+      @if (browser.bookmarks().length && browser.prefs().bookmarksBar) {
+        <nav
+          id="deck-browser-bookmarks"
+          class="flex items-center gap-1.5 px-3 pb-1.5 overflow-x-auto text-xs bg-active"
+          [attr.aria-label]="'browser.bookmarks' | t"
+        >
+          @for (mark of browser.bookmarks(); track mark.url) {
+            <span
+              class="deck-browser-bookmark group flex items-center shrink-0 rounded-full border border-main bg-active/40 hover:bg-active transition-colors"
+            >
+              <button
+                type="button"
+                class="flex items-center gap-2 ps-1 pe-1 py-0.5 max-w-52"
+                [title]="mark.name + '\n' + mark.url"
+                (click)="openTile(mark.url, mark.name)"
+              >
+                @if (mark.icon && !failed().has(mark.icon)) {
+                  <span
+                    class="w-5 h-5 shrink-0 rounded-full bg-white grid place-content-center ring-1 ring-black/10"
+                  >
+                    <img
+                      class="w-3.5 h-3.5"
+                      alt=""
+                      [src]="mark.icon"
+                      (error)="iconFailed(mark.icon)"
+                    />
+                  </span>
+                } @else {
+                  <span
+                    class="w-5 h-5 shrink-0 rounded-full bg-[#cc4209] grid place-content-center"
+                  >
+                    <div class="i-carbon:star-filled text-white text-[10px]"></div>
+                  </span>
+                }
+                <span class="truncate font-medium">{{ label(mark) }}</span>
+              </button>
+              <button
+                type="button"
+                class="pe-2 ps-0.5 op0 group-hover:op60 hover:op100 focus:op100 transition-opacity"
+                [title]="'browser.bookmarkRemove' | t"
+                [attr.aria-label]="'browser.bookmarkRemove' | t"
+                (click)="browser.removeBookmark(mark.url)"
+              >
+                <div class="i-carbon:close"></div>
+              </button>
+            </span>
+          }
+        </nav>
+      }
+      <div #view class="relative flex-1 min-h-0 bg-white">
+        @for (tab of frameTabs(); track tab.id + ':' + tab.rev) {
+          @if (tab.src && tab.framable !== false) {
+            <iframe
+              class="deck-browser-frame absolute inset-0 w-full h-full border-0"
+              [class.invisible]="tab.id !== browser.activeId()"
+              [src]="safe(tab)"
+              [title]="tab.name"
+              [attr.data-tab]="tab.id"
+              allow="
+                fullscreen;
+                clipboard-read;
+                clipboard-write;
+                autoplay;
+                encrypted-media;
+                picture-in-picture;
+              "
+            ></iframe>
+          }
+        }
+        @if (browser.active(); as tab) {
+          @if (tab.framable === false) {
+            <div
+              id="deck-browser-refused"
+              class="absolute inset-0 grid place-content-center gap-4 text-center bg-main text-main p-8"
+            >
+              <div class="i-carbon:locked text-4xl mx-auto op60"></div>
+              <p class="max-w-md">{{ 'browser.refused' | t: { site: tab.name } }}</p>
+              <button
+                type="button"
+                class="mx-auto px-4 py-2 rounded-md bg-[#cc4209] text-white"
+                (click)="openWindow()"
+              >
+                {{ 'browser.openWindow' | t }}
+              </button>
+            </div>
+          } @else if (!tab.url) {
+            @if (browser.open()) {
+              <ng-container *ngTemplateOutlet="start" />
+            }
+          }
+        } @else {
+          @if (browser.open()) {
+            <ng-container *ngTemplateOutlet="start" />
+          }
+        }
+      </div>
+    </section>
+
+    <ng-template #start>
+      <div
+        id="deck-browser-start"
+        class="absolute inset-0 overflow-auto flex flex-col items-center px-6 pt-[12vh] pb-8 gap-10"
+        [class.bg-main]="!startStyle().background"
+        [class.text-main]="!startStyle().dark && !startStyle().light"
+        [class.deck-browser-start-dark]="startStyle().dark"
+        [class.deck-browser-start-light]="startStyle().light"
+        [style.background]="startStyle().background"
+        [class.deck-browser-start-focused]="searchFocused()"
+      >
+        @if (browser.prefs().background.kind === 'none') {
+          <div class="absolute inset-0 grid place-items-center pointer-events-none overflow-hidden">
+            <app-slide-ng-mark class="w-[72vmin] h-[72vmin] op-[0.045]" />
+          </div>
+        }
+        <div
+          class="deck-browser-start-dim absolute inset-0 pointer-events-none"
+          style="
+            background: linear-gradient(
+              to bottom,
+              rgb(0 0 0 / 0.45),
+              transparent 24%,
+              transparent 72%,
+              rgb(0 0 0 / 0.45)
+            );
+          "
+        ></div>
+        <button
+          type="button"
+          id="deck-browser-customise-open"
+          class="deck-browser-start-fade deck-browser-customise-open absolute bottom-5 end-5 flex items-center h-9 px-2.5 rounded-full text-sm"
+          [title]="'browser.customise' | t"
+          [attr.aria-label]="'browser.customise' | t"
+          (click)="browser.customiseOpen.set(true)"
+        >
+          <div class="i-ph:pencil-simple text-base"></div>
+          <span class="deck-browser-customise-label"
+            ><span>{{ 'browser.customise' | t }}</span></span
+          >
+        </button>
+        @if (browser.prefs().weather.show && browser.prefs().weather.place) {
+          <div
+            id="deck-browser-weather"
+            class="deck-browser-start-fade deck-browser-weather absolute top-5 end-6 w-80 px-5 py-4 rounded-3xl backdrop-blur-xl shadow-lg select-none"
+            [class.bg-active]="!startStyle().background"
+            [style.background-color]="startStyle().background ? 'rgb(0 0 0 / 0.28)' : null"
+          >
+            @if (browser.weatherNow(); as now) {
+              <p class="flex items-center gap-1.5 text-xs op70 truncate">
+                <span class="i-ph:map-pin shrink-0"></span>
+                <span class="truncate">{{ browser.prefs().weather.place!.name }}</span>
+              </p>
+              <div class="mt-1 flex items-start justify-between gap-2">
+                <div class="min-w-0">
+                  <p class="text-6xl font-extralight leading-none tracking-tight tabular-nums">
+                    {{ now.temperature }}°
+                  </p>
+                  <p class="mt-2 text-sm font-medium truncate">{{ weatherText(now.code) | t }}</p>
+                  <p class="text-xs op70 tabular-nums whitespace-nowrap">
+                    ↑ {{ now.max }}° ↓ {{ now.min }}°
+                  </p>
+                </div>
+                <div
+                  [class]="weatherIcon(now.code, now.day) + ' w-20 h-20 -me-2 -mt-1 shrink-0'"
+                ></div>
+              </div>
+              <div class="mt-3 grid grid-cols-3 gap-2">
+                <div
+                  class="rounded-xl px-2.5 py-2 bg-gray-400/15"
+                  [title]="'browser.weatherFeelsLike' | t"
+                >
+                  <p class="text-[10px] font-semibold uppercase tracking-wider op60 truncate">
+                    {{ 'browser.weatherFeelsLike' | t }}
+                  </p>
+                  <p
+                    class="mt-0.5 flex items-center gap-1 text-sm font-medium tabular-nums whitespace-nowrap"
+                  >
+                    <span class="i-meteocons:thermometer-fill w-5 h-5 -ms-0.5 shrink-0"></span
+                    >{{ now.feelsLike }}°
+                  </p>
+                </div>
+                <div
+                  class="rounded-xl px-2.5 py-2 bg-gray-400/15"
+                  [title]="'browser.weatherWind' | t"
+                >
+                  <p class="text-[10px] font-semibold uppercase tracking-wider op60 truncate">
+                    {{ 'browser.weatherWind' | t }}
+                  </p>
+                  <p
+                    class="mt-0.5 flex items-center gap-1 text-sm font-medium tabular-nums whitespace-nowrap"
+                  >
+                    <span class="i-meteocons:wind-fill w-5 h-5 -ms-0.5 shrink-0"></span>{{ now.wind
+                    }}<span class="text-xs op60">{{
+                      browser.prefs().weather.unit === 'f' ? 'mph' : 'km/h'
+                    }}</span>
+                  </p>
+                </div>
+                <div
+                  class="rounded-xl px-2.5 py-2 bg-gray-400/15"
+                  [title]="'browser.weatherHumidity' | t"
+                >
+                  <p class="text-[10px] font-semibold uppercase tracking-wider op60 truncate">
+                    {{ 'browser.weatherHumidity' | t }}
+                  </p>
+                  <p
+                    class="mt-0.5 flex items-center gap-1 text-sm font-medium tabular-nums whitespace-nowrap"
+                  >
+                    <span class="i-meteocons:humidity-fill w-5 h-5 -ms-0.5 shrink-0"></span
+                    >{{ now.humidity }}%
+                  </p>
+                </div>
+              </div>
+              <div class="deck-browser-weather-days">
+                <div>
+                  <div
+                    class="grid grid-cols-5 pt-3 mt-3 border-t border-white/10 text-xs text-center"
+                  >
+                    @for (day of now.days.slice(1, 6); track day.date) {
+                      <div class="flex flex-col items-center">
+                        <span class="op70">{{ weekday(day.date) }}</span>
+                        <div [class]="weatherIcon(day.code) + ' w-9 h-9'"></div>
+                        <span class="tabular-nums">{{ day.max }}°</span>
+                        <span class="tabular-nums op60">{{ day.min }}°</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            } @else if (browser.weatherFailed()) {
+              <p class="flex items-center gap-1.5 text-xs op70 truncate">
+                <span class="i-ph:map-pin shrink-0"></span>
+                <span class="truncate">{{ browser.prefs().weather.place!.name }}</span>
+              </p>
+              <div class="mt-3 flex items-center gap-3">
+                <span class="i-ph:cloud-slash text-4xl shrink-0 op70"></span>
+                <p class="flex-1 min-w-0 text-sm font-medium" role="status">
+                  {{ 'browser.weatherFailed' | t }}
+                </p>
+                <button
+                  type="button"
+                  id="deck-browser-weather-retry"
+                  class="flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-medium bg-gray-400/20 hover:bg-gray-400/30 transition-colors"
+                  (click)="browser.refreshWeather(true)"
+                >
+                  <span class="i-ph:arrow-clockwise"></span>{{ 'browser.weatherRetry' | t }}
+                </button>
+              </div>
+            } @else {
+              <div role="status" [attr.aria-label]="'browser.weatherLoading' | t">
+                <div aria-hidden="true">
+                  <p class="flex items-center gap-1.5 text-xs op70 truncate">
+                    <span class="i-ph:map-pin shrink-0"></span>
+                    <span class="truncate">{{ browser.prefs().weather.place!.name }}</span>
+                  </p>
+                  <div class="mt-1 flex items-start justify-between gap-2">
+                    <div class="min-w-0">
+                      <p class="text-6xl font-extralight leading-none tracking-tight tabular-nums">
+                        <span class="deck-browser-bone">22°</span>
+                      </p>
+                      <p class="mt-2 text-sm font-medium">
+                        <span class="deck-browser-bone">Cloudy</span>
+                      </p>
+                      <p class="text-xs tabular-nums whitespace-nowrap">
+                        <span class="deck-browser-bone">↑ 22° ↓ 14°</span>
+                      </p>
+                    </div>
+                    <div
+                      class="deck-browser-bone w-20 h-20 -me-2 -mt-1 shrink-0 rounded-full"
+                    ></div>
+                  </div>
+                  <div class="mt-3 grid grid-cols-3 gap-2">
+                    <div class="rounded-xl px-2.5 py-2 bg-gray-400/15">
+                      <p class="text-[10px] font-semibold uppercase tracking-wider op60 truncate">
+                        {{ 'browser.weatherFeelsLike' | t }}
+                      </p>
+                      <p
+                        class="mt-0.5 flex items-center gap-1 text-sm font-medium tabular-nums whitespace-nowrap"
+                      >
+                        <span class="i-meteocons:thermometer-fill w-5 h-5 -ms-0.5 shrink-0"></span
+                        ><span class="deck-browser-bone">21°</span>
+                      </p>
+                    </div>
+                    <div class="rounded-xl px-2.5 py-2 bg-gray-400/15">
+                      <p class="text-[10px] font-semibold uppercase tracking-wider op60 truncate">
+                        {{ 'browser.weatherWind' | t }}
+                      </p>
+                      <p
+                        class="mt-0.5 flex items-center gap-1 text-sm font-medium tabular-nums whitespace-nowrap"
+                      >
+                        <span class="i-meteocons:wind-fill w-5 h-5 -ms-0.5 shrink-0"></span
+                        ><span class="deck-browser-bone">14<span class="text-xs">km/h</span></span>
+                      </p>
+                    </div>
+                    <div class="rounded-xl px-2.5 py-2 bg-gray-400/15">
+                      <p class="text-[10px] font-semibold uppercase tracking-wider op60 truncate">
+                        {{ 'browser.weatherHumidity' | t }}
+                      </p>
+                      <p
+                        class="mt-0.5 flex items-center gap-1 text-sm font-medium tabular-nums whitespace-nowrap"
+                      >
+                        <span class="i-meteocons:humidity-fill w-5 h-5 -ms-0.5 shrink-0"></span
+                        ><span class="deck-browser-bone">61%</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+        @if (browser.prefs().clock.show || browser.prefs().clock.date !== false) {
+          <div
+            id="deck-browser-clock"
+            class="deck-browser-start-fade absolute top-6 start-8 flex flex-col select-none"
+          >
+            @if (browser.prefs().clock.show) {
+              <span class="tracking-tight tabular-nums leading-none" [class]="clockClass()">{{
+                clock()
+              }}</span>
+            }
+            @if (browser.prefs().clock.date !== false) {
+              <span
+                id="deck-browser-date"
+                class="ps-0.5 op80"
+                [class]="dateClass()"
+                [class.mt-2]="browser.prefs().clock.show"
+                [class.text-sm]="browser.prefs().clock.show"
+                [class.text-xl]="!browser.prefs().clock.show"
+                >{{ today() }}</span
+              >
+            }
+          </div>
+        }
+        <div class="deck-browser-start-fade relative flex flex-col items-center gap-4 select-none">
+          <div class="relative grid place-content-center">
+            <div
+              class="deck-browser-glow absolute -inset-6 rounded-full blur-2xl op40"
+              [class.hidden]="!!startStyle().background"
+              style="background: radial-gradient(circle, #cc4209 0%, transparent 70%)"
+            ></div>
+            <app-slide-ng-mark class="relative w-16 h-16 drop-shadow-lg" [animated]="true" />
+          </div>
+          <p class="flex items-baseline gap-2 text-4xl tracking-tight">
+            @if (startStyle().background) {
+              <span class="font-extrabold">slide.ng</span>
+            } @else {
+              <span
+                class="font-extrabold bg-clip-text text-transparent"
+                style="background-image: linear-gradient(120deg, #ff7a3d, #cc4209 55%, #8f300a)"
+                >slide.ng</span
+              >
+            }
+            <span
+              class="font-light"
+              [class.op60]="!startStyle().background"
+              [class.op75]="!!startStyle().background"
+              >{{ 'browser.start' | t }}</span
+            >
+          </p>
+        </div>
+        <form
+          class="deck-browser-start-search relative w-full flex justify-center"
+          (submit)="go($event, search)"
+        >
+          <div
+            class="deck-browser-start-box group flex items-center gap-3 ps-3.5 pe-1.5 rounded-xl border border-main backdrop-blur-xl shadow-md"
+            [class.bg-active]="!startStyle().background"
+            [style.background-color]="startStyle().background ? 'rgb(28 28 30 / 0.97)' : null"
+            [style.color]="startStyle().background ? '#f2f2f2' : null"
+            [style.border-color]="startStyle().background ? 'rgb(255 255 255 / 0.06)' : null"
+          >
+            <app-slide-ng-mark class="w-5 h-5 shrink-0" />
+            <input
+              #search
+              id="deck-browser-search"
+              class="flex-1 min-w-0 bg-transparent outline-none"
+              spellcheck="false"
+              autocomplete="off"
+              enterkeyhint="search"
+              [attr.aria-label]="'browser.searchHint' | t"
+              [placeholder]="'browser.searchHint' | t"
+              (focus)="searchFocused.set(true)"
+              (blur)="searchFocused.set(false)"
+              (keydown.escape)="$event.stopPropagation(); search.blur()"
+            />
+            <button
+              type="submit"
+              class="deck-browser-start-go w-8 h-8 shrink-0 rounded-lg grid place-content-center hover:bg-black/20"
+              [attr.aria-label]="'browser.searchHint' | t"
+            >
+              <div class="i-ph:magnifying-glass text-lg"></div>
+            </button>
+          </div>
+        </form>
+        @for (section of sections(); track section.key) {
+          <section class="deck-browser-start-fade relative w-full max-w-3xl">
+            <h2 class="text-xs font-semibold uppercase tracking-wider op50 mb-2 px-2">
+              {{ section.key | t }}
+            </h2>
+            <div class="flex flex-wrap gap-1">
+              @for (tile of section.tiles; track tile.url) {
+                <div class="relative group">
+                  <button
+                    type="button"
+                    class="deck-browser-tile w-28 flex flex-col items-center gap-2 px-2 pt-3 pb-2 rounded-2xl hover:bg-active transition-colors"
+                    [title]="tile.name + '\n' + tile.url"
+                    (click)="openTile(tile.url, tile.name)"
+                  >
+                    <span
+                      class="w-14 h-14 rounded-2xl grid place-content-center shadow-sm ring-1 ring-black/10 transition-transform group-hover:scale-105"
+                      [class]="tile.icon && !failed().has(tile.icon) ? 'bg-white' : 'bg-[#cc4209]'"
+                    >
+                      @if (tile.icon && !failed().has(tile.icon)) {
+                        <img
+                          class="w-8 h-8"
+                          alt=""
+                          [src]="tile.icon"
+                          (error)="iconFailed(tile.icon)"
+                        />
+                      } @else {
+                        <span class="text-xl text-white font-semibold uppercase">{{
+                          initial(tile)
+                        }}</span>
+                      }
+                    </span>
+                    <span
+                      class="w-full text-xs leading-snug text-center line-clamp-2 break-words"
+                      >{{ label(tile) }}</span
+                    >
+                  </button>
+                  <button
+                    type="button"
+                    class="deck-browser-tile-remove absolute top-1 end-2 w-6 h-6 rounded-full grid place-content-center bg-main border border-main shadow-sm op0 group-hover:op100 focus:op100 transition-opacity"
+                    [title]="'browser.removeTile' | t"
+                    [attr.aria-label]="'browser.removeTile' | t"
+                    (click)="removeTile(tile.url)"
+                  >
+                    <div class="i-carbon:close text-xs"></div>
+                  </button>
+                </div>
+              }
+            </div>
+          </section>
+        }
+      </div>
+    </ng-template>
+
+    @if (browser.customiseOpen()) {
+      <app-deck-browser-customise />
+    }
+  </div>
+}

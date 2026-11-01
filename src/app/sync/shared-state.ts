@@ -30,6 +30,7 @@ export interface SharedState {
    *  `time`: when the move was made, by this window's clock (see cleanShared); 0 = a presenter's first position after
    *  it opened, which is not a move (see nav-sync). */
   lastUpdate: { id: string; type: 'presenter' | 'viewer'; time: number; via?: string } | null;
+  browser?: string | null;
 }
 
 export const initialShared = (): SharedState => ({
@@ -85,6 +86,9 @@ export function cleanShared(data: unknown, now = Date.now()): Partial<SharedStat
   ) {
     out.cursor = { x: c['x'], y: c['y'], style: c['style'] };
   }
+  const b = data['browser'];
+  if (b === null) out.browser = null;
+  else if (typeof b === 'string' && b.length <= 2048 && /^https?:\/\//i.test(b)) out.browser = b;
   const u = data['lastUpdate'];
   if (
     obj(u) &&

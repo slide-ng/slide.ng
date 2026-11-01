@@ -11,18 +11,42 @@ export class Fullscreen {
    */
   readonly available = !!document.fullscreenEnabled;
 
+  lockEscape = false;
+  private escapeLocked = false;
+
   constructor() {
-    document.addEventListener('fullscreenchange', () =>
-      this.isFullscreen.set(!!document.fullscreenElement),
-    );
+    document.addEventListener('fullscreenchange', () => {
+      this.isFullscreen.set(!!document.fullscreenElement);
+      if (!document.fullscreenElement && this.escapeLocked) {
+        this.escapeLocked = false;
+        keyboardLock()?.unlock();
+      }
+    });
+  }
+
+  escapeIsLocked() {
+    return this.escapeLocked && !!document.fullscreenElement;
   }
 
   toggle() {
     if (!document.fullscreenElement && !this.available) return;
     // The browser may refuse (no user gesture); nothing useful to do then.
-    const done = document.fullscreenElement
-      ? document.exitFullscreen()
-      : document.documentElement.requestFullscreen();
-    done.catch(() => {});
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+      return;
+    }
+    document.documentElement
+      .requestFullscreen()
+      .then(() => (this.lockEscape ? keyboardLock()?.lock(['Escape']) : undefined))
+      .then(() => (this.escapeLocked = this.lockEscape && !!document.fullscreenElement))
+      .catch(() => {});
   }
 }
+
+interface KeyboardLock {
+  lock(keys?: string[]): Promise<void>;
+  unlock(): void;
+}
+
+const keyboardLock = (): KeyboardLock | undefined =>
+  (navigator as Navigator & { keyboard?: KeyboardLock }).keyboard;

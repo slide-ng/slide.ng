@@ -1,3 +1,4 @@
+import { DeckBrowser } from '../browser/deck-browser';
 import { Drawings } from '../drawing/drawings';
 import { PresenterPrefs } from '../presenter/prefs';
 import { DragState } from '../drag/drag-state';
@@ -16,6 +17,7 @@ export function makeActions(
   drawings: Drawings,
   drag: DragState,
   prefs: PresenterPrefs,
+  browser: DeckBrowser,
 ): ShortcutActions {
   return {
     next: () => nav.next(),
@@ -38,5 +40,10 @@ export function makeActions(
     dragActive: () => drag.active() !== null,
     isPresenter: () => nav.isPresenter,
     toggleClickPreview: () => prefs.toggleClickPreview(),
+    browserEnabled: () => browser.config.enabled,
+    browserOpen: () => browser.open(),
+    toggleBrowser: () => browser.toggle(),
+    hideBrowser: () => browser.hide(),
+    escapeLocked: () => fullscreen.escapeIsLocked(),
   };
 }

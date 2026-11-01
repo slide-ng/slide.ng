@@ -9,6 +9,9 @@ import {
   viewChild,
 } from '@angular/core';
 import { SLIDES } from '../slides/generated';
+import { DeckBrowserLayer } from './browser/deck-browser-layer';
+import { DeckBrowser } from './browser/deck-browser';
+import { linkForBrowser } from './browser/browser-config';
 import { DragControls } from './drag/drag-controls';
 import { ProblemBanner } from './dev/problem-banner';
 import { SideEditor } from './dev/side-editor';
@@ -54,6 +57,7 @@ import { Overview } from './ui/overview';
     ContextMenu,
     OfflineBadge,
     ProblemBanner,
+    DeckBrowserLayer,
   ],
   providers: [Nav, Ui, Drawings],
   host: {
@@ -125,6 +129,7 @@ import { Overview } from './ui/overview';
     <app-info-dialog />
     <app-context-menu />
     <app-problem-banner />
+    <app-deck-browser />
     <div id="hud" aria-hidden="true">
       slide {{ nav.no() }}/{{ nav.total }} clicks {{ nav.clicks() }}/{{ nav.clicksTotal() }}
     </div>
@@ -135,6 +140,7 @@ import { Overview } from './ui/overview';
 export class Deck {
   protected nav = inject(Nav);
   protected ui = inject(Ui);
+  private browser = inject(DeckBrowser);
   protected barOffset = computed(() => {
     const drag = this.ui.barDrag();
     return drag ? `translate(${drag.dx}px, ${drag.dy}px) scale(1.04)` : null;
@@ -152,11 +158,23 @@ export class Deck {
   // `[results](#results)` to a heading of the same slide: the page's <base href> would turn it into another address and
   // leave the deck, so the slide scrolls to the element instead. `#/3` (hash routing) is a slide address and stays as it is.
   protected anchor(e: MouseEvent) {
+    if (this.openInBrowser(e)) return;
     const link = (e.target as Element | null)?.closest?.('a[href^="#"]');
     const id = link?.getAttribute('href')?.slice(1);
     if (!link || !id || id.startsWith('/')) return;
     e.preventDefault();
     document.getElementById(decodeURIComponent(id))?.scrollIntoView({ block: 'nearest' });
+  }
+  private openInBrowser(e: MouseEvent) {
+    if (!this.browser.links() || e.defaultPrevented || e.button !== 0) return false;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return false;
+    const target = e.target as Element | null;
+    const link = target?.closest?.('app-slide-show a[href]') as HTMLAnchorElement | null;
+    const url = link && linkForBrowser(link, location.origin);
+    if (!url) return false;
+    e.preventDefault();
+    this.browser.openUrl(url, link.textContent?.trim().slice(0, 40));
+    return true;
   }
   protected announcement = computed(() => {
     const no = this.nav.no();

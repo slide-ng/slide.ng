@@ -29,6 +29,7 @@ export function readConfig(env, cwd = process.cwd()) {
     /** Host names the machine is reached by (besides localhost and addresses). */
     hostnames: (env.SLIDE_NG_HOSTNAMES ?? '').split(',').filter(Boolean),
     port: Number(env.SLIDE_NG_DEV_PORT) || 0,
+    appPort: Number(env.SLIDE_NG_APP_PORT) || 0,
     /** With --remote: the addresses of this machine on the network, as `http://<address>:<port>/` (for MCP's get_info). */
     remoteUrls: (env.SLIDE_NG_REMOTE_URLS ?? '').split(',').filter(Boolean),
   };

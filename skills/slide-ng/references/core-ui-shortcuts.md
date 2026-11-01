@@ -5,18 +5,19 @@ description: Keys, mouse, the navigation bar, overview, dark mode and URL state
 
 # Keys and interface
 
-| key                          | action                                                                         |
-| ---------------------------- | ------------------------------------------------------------------------------ |
-| right, space, page down      | next click, or next slide                                                      |
-| left, shift + space, page up | previous click, or previous slide                                              |
-| down, shift + right          | next slide (skips the clicks)                                                  |
-| up, shift + left             | previous slide                                                                 |
-| `f`                          | fullscreen                                                                     |
-| `o` or backtick              | overview (arrows move, Enter opens, Escape closes; a button opens `/overview`) |
-| `d`                          | dark / light                                                                   |
-| `g`                          | go to a slide: number or part of a title (any case, accents optional), Enter   |
-| Escape                       | close overview, dialogs, menus                                                 |
-| `u`                          | presenter page: show or hide the upcoming clicks                               |
+| key                          | action                                                                                               |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------- |
+| right, space, page down      | next click, or next slide                                                                            |
+| left, shift + space, page up | previous click, or previous slide                                                                    |
+| down, shift + right          | next slide (skips the clicks)                                                                        |
+| up, shift + left             | previous slide                                                                                       |
+| `f`                          | fullscreen                                                                                           |
+| `o` or backtick              | overview (arrows move, Enter opens, Escape closes; a button opens `/overview`)                       |
+| `d`                          | dark / light                                                                                         |
+| `g`                          | go to a slide: number or part of a title (any case, accents optional), Enter                         |
+| Escape                       | close overview, dialogs, menus                                                                       |
+| `u`                          | presenter page: show or hide the upcoming clicks                                                     |
+| `b`                          | slide page: open or close the deck browser (Escape closes it while the focus is not inside the page) |
 
 - Shortcuts are off while typing in an editor and while drawing.
 - The bar at the bottom left shows when the mouse is there: fullscreen, previous, next, overview, dark mode, drawing, presenter mode, info, settings, counter. Right click opens the same actions as a menu (Shift + right click for the browser's menu). Click the dark area beside the slide: right half next, left half previous.
@@ -44,3 +45,7 @@ The deck, `/presenter/<n>` and `/notes` are described in `presenter-view.md`.
 - Alt text: `![text](/a.png)` or `<img alt>`. `image:` / `background:` in the frontmatter are CSS backgrounds and cannot have alt text: add an `<img alt>` or say it in the text.
 - Mermaid: `accTitle:` and `accDescr:` lines become the SVG's title and description.
 - Math is read as its TeX source (no MathML); say important formulas in words.
+
+## Deck browser
+
+`b` or the globe button opens a browser layer with tabs over the current slide; closing it brings back the same slide and click. A click on a link to another site, on a slide, opens it in a deck-browser tab (Cmd/Ctrl/Shift/Alt+click opens a real tab; `browser: { links: false }` turns this off). The address field takes an address or words to search for (`browser.search`, DuckDuckGo by default); it opens on the slide.ng browser page (a new tab too) with a search box and tiles for `browser.tabs` and recent pages; back and forward move through what a tab showed; the star bookmarks a page (a bar under the toolbar, kept per deck in the browser). Customise on the start page sets its background (colours, gradients or uploaded images, optionally changing per new tab), light or dark appearance, a clock, an opt-in weather widget (Open-Meteo) and which tile groups show. The gear opens browser settings (search engine, opening slide links, bookmarks bar, clearing), kept per deck and winning over the headmatter. Under `slide-ng dev` pages load through the companion's proxy, so sites that refuse framing still show and the address follows clicks inside a page (a local or private-network address loads only when the deck opened it, not when a page points to it); without it (a built deck, `--remote`) such sites get Open in window. The presenter page shows the open page and can close it; `browser: false` removes the feature.

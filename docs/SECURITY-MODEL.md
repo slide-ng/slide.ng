@@ -21,6 +21,32 @@ Without `--remote` the companion server listens on `127.0.0.1` and the Angular d
 
 What the server can do for the page that passes these checks: move `v-drag` elements and replace a slide's markdown in `slides.md` (or a file it imports with `src:`), save drawings, and save text into the files that a `<<< ./file {monaco-write}` line lists. It never accepts a file name from a request. Writes go to existing files only, never through a symbolic link, and `{monaco-write}` is limited to text-like files in the deck's folder (never `setup/`, `layouts/`, `components/` or `index.html` at the top of the deck's folder or of a theme or addon folder in it, `.git/`, `node_modules/`, package, lock, config or hidden files).
 
+The deck browser asks the companion server whether a site may be shown in a frame (`/__slide-ng/frame-check?url=`). The server
+then requests that address itself (http and https only, five seconds at most, the body is not read) and answers only true, false or
+null; the answer is kept for ten minutes. It is behind the same checks as every other request, so only the page (and, with
+`--remote`, a logged-in viewer) can ask, and it can learn nothing but whether an address allows framing.
+
+The deck browser's proxy runs in the companion server, on 127.0.0.1 and a port of its own, and only without `--remote`. It answers
+only host names of the form `<site>.<scheme>.<key>.localhost`, where the key is random for each session, so a page on the web cannot
+make it load anything. Each proxied site has its own origin, apart from the deck's origin and from the other sites: a page shown in
+it cannot read the deck's storage, and the dev server refuses its requests (wrong Host and Origin, no token). The proxy refuses to
+load the deck's own servers (the dev server port, the companion and itself), also through a name that points to this machine.
+Other addresses on this computer or a private network (0/8, loopback, 10/8, 100.64/10, 172.16/12, 192.168/16, link-local, IPv6
+unique-local and link-local, and IPv4-mapped forms of these, also through a name that resolves there) load only after the deck
+page asked for that origin through the companion (`POST /web-proxy/open`, with the token) because the presenter typed it, clicked
+a slide link, tile or bookmark: not when a page in the deck browser opens it or reports it as its address (so a tile or the
+address field showing it does not count either), also in another window that follows through sync. Only origins that are local
+when asked are kept, so a public name the presenter opened cannot later point here.
+The check runs again on the address each connection actually uses, so a name that changes its answer (DNS rebinding) is refused
+too. So a site shown in the deck browser cannot use the proxy to read local services. It
+drops the headers that refuse framing and the site's Content-Security-Policy, so a page in it has less protection against
+clickjacking than in a tab; it is meant for showing pages during a talk.
+
+The deck browser's weather widget is off by default. When it is on, the page asks Open-Meteo (`api.open-meteo.com`, and
+`geocoding-api.open-meteo.com` for a city name) for the weather of the chosen place. "Use my location" asks the browser
+for the position (rounded to about a kilometre) and sends it to OpenStreetMap's Nominatim for the city name; nothing else
+leaves the page.
+
 ## `--remote`
 
 `--remote` opens the dev server to your network so that others can follow the presenter. It always has a password (`--remote=secret`, `SLIDE_NG_PASSWORD`, a prompt on a terminal, or a random one that is printed). Wrong passwords are limited per client address, a login lasts 8 hours, and every other rule above still applies. The login cookie is signed with the password, so a login survives a restart of the dev server with the same password (and stops working when the password changes); it cannot be withdrawn before it runs out except by changing the password.

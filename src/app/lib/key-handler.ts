@@ -1,4 +1,5 @@
 import { DestroyRef, inject } from '@angular/core';
+import { DeckBrowser } from '../browser/deck-browser';
 import { Drawings } from '../drawing/drawings';
 import { DragState } from '../drag/drag-state';
 import { makeActions } from './actions';
@@ -16,6 +17,8 @@ import { typedJustNow } from '../dev/side-editor-state';
 // A checkbox or button takes no text, so the arrow keys still move the deck after one is clicked (a radio group uses the arrows
 // itself, so it counts as typing). Space and Enter still belong to the focused control (see key-focus.ts).
 const NOT_TEXT = new Set(['checkbox', 'button', 'submit', 'reset', 'color', 'file', 'image']);
+const BROWSER_KEYS = new Set(['toggle_browser', 'hide_browser', 'fullscreen']);
+
 export const isTyping = (t: EventTarget | null) =>
   t instanceof HTMLElement &&
   (t.isContentEditable ||
@@ -25,6 +28,7 @@ export const isTyping = (t: EventTarget | null) =>
 
 /** The keydown handler of a page that has a Nav and a Ui: the deck and the presenter share it. Call in a constructor. */
 export function keyHandler(nav: Nav, ui: Ui): (e: KeyboardEvent) => void {
+  const browser = inject(DeckBrowser);
   const actions = makeActions(
     nav,
     ui,
@@ -33,6 +37,7 @@ export function keyHandler(nav: Nav, ui: Ui): (e: KeyboardEvent) => void {
     inject(Drawings),
     inject(DragState),
     inject(PresenterPrefs),
+    browser,
   );
   const shortcuts = resolveShortcuts(actions);
   document.addEventListener('click', dropMouseFocus);
@@ -53,9 +58,14 @@ export function keyHandler(nav: Nav, ui: Ui): (e: KeyboardEvent) => void {
         (e.target as HTMLElement).blur();
       return;
     }
+    if (browser.customiseOpen()) {
+      if (e.key === 'Escape') browser.customiseOpen.set(false);
+      return;
+    }
     if (pressesControl(e)) return;
     const shortcut = findShortcut(e, shortcuts);
     if (!shortcut) return;
+    if (browser.open() && !BROWSER_KEYS.has(shortcut.name)) return;
     e.preventDefault();
     shortcut.run();
   };

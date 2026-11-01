@@ -356,8 +356,8 @@ const title = (page, selector) => page.locator(selector).first().getAttribute('t
   const next = await page.locator('#nav-next').boundingBox();
   t.ok(
     'the bar is mirrored: in the right corner, running from right to left',
-    bar.x > 640 && full.x > next.x,
-    JSON.stringify({ bar: bar.x, full: full.x, next: next.x }),
+    bar.x + bar.width > 1270 && bar.x > 0 && full.x > next.x,
+    JSON.stringify({ bar: [bar.x, bar.width], full: full.x, next: next.x }),
   );
   // The grid of places is mirrored too: `bottom-left` (the start) is drawn on the right and named so.
   await page.locator('#nav-settings').click();
