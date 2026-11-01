@@ -1,7 +1,8 @@
 // The deck browser's proxy for a built deck, as one fetch handler that runs on Cloudflare Workers, Netlify and Vercel edge
 // functions and Deno Deploy (see the files next to this one). It loads a page, drops the headers that refuse framing, and
 // sends links and forms back through itself, so a deck on any static host can show sites like DuckDuckGo inside. Pages it
-// shows all share its address, so it drops their cookies: nobody should sign in to anything through it.
+// shows are sandboxed, each on an origin of its own that cannot reach the deck or the other pages, and their cookies are
+// dropped: nobody should sign in to anything through it. It refuses addresses on the machine or network it runs on.
 
 const DROP = [
   'x-frame-options',
@@ -17,6 +18,27 @@ const DROP = [
 ];
 const SEND = ['accept', 'accept-language', 'content-type', 'user-agent'];
 const FORM_FIELD = '__slide_ng_url';
+const SANDBOX =
+  'sandbox allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads';
+
+const PRIVATE_V4 =
+  /^(0|10|127)\.|^169\.254\.|^172\.(1[6-9]|2\d|3[01])\.|^192\.168\.|^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./;
+
+export function isPrivateHost(hostname) {
+  const host = hostname
+    .toLowerCase()
+    .replace(/^\[|\]$/g, '')
+    .replace(/\.$/, '');
+  if (!host.includes('.') && !host.includes(':')) return true;
+  if (host === 'localhost' || /\.(localhost|local|internal|lan|home|arpa)$/.test(host)) return true;
+  if (/^[\d.]+$/.test(host)) return PRIVATE_V4.test(host);
+  if (host.includes(':')) {
+    const mapped = /^::ffff:([\d.]+)$/.exec(host)?.[1];
+    if (mapped) return PRIVATE_V4.test(mapped);
+    return /^(::1?|::ffff:.*|f[cd].*|fe[89ab].*)$/.test(host);
+  }
+  return false;
+}
 
 const text = (status, body) =>
   new Response(body, { status, headers: { 'content-type': 'text/plain; charset=utf-8' } });
@@ -24,7 +46,9 @@ const text = (status, body) =>
 const web = (value, base) => {
   try {
     const u = new URL(value, base);
-    return u.protocol === 'http:' || u.protocol === 'https:' ? u : null;
+    return (u.protocol === 'http:' || u.protocol === 'https:') && !isPrivateHost(u.hostname)
+      ? u
+      : null;
   } catch {
     return null;
   }
@@ -53,6 +77,11 @@ export function rewriteHtml(html, target, through) {
   };
   const tag = (t) => {
     if (/^<meta\b/i.test(t) && /http-equiv\s*=\s*["']?content-security-policy/i.test(t)) return '';
+    if (/^<meta\b/i.test(t) && /http-equiv\s*=\s*["']?refresh/i.test(t))
+      return t.replace(
+        /(\scontent\s*=\s*(["'])\s*\d+\s*[;,]\s*url\s*=\s*['"]?)([^'"]*?)(['"]?\2)/i,
+        (_, a, _q, v, z) => `${a}${link(v)}${z}`,
+      );
     let out = t
       .replace(/\s(integrity|nonce)\s*=\s*("[^"]*"|'[^']*')/gi, '')
       .replace(/(\starget\s*=\s*)(["']?)_(blank|top|parent)\2/gi, '$1$2_self$2');
@@ -92,11 +121,16 @@ export function rewriteHtml(html, target, through) {
 export async function proxy(request, { decks = [], fetch: get = fetch } = {}) {
   const self = new URL(request.url);
   const target = targetOf(self);
-  if (!target) return text(400, 'slide.ng deck browser proxy: add ?url=<page>');
+  if (!target) return text(400, 'slide.ng deck browser proxy: add ?url=<a public web page>');
 
   const allowed = decks.map((d) => d.trim().replace(/\/$/, '')).filter(Boolean);
-  const from = web(request.headers.get('referer') ?? '')?.origin ?? '';
-  if (allowed.length && from !== self.origin && !allowed.includes(from))
+  const referer = request.headers.get('referer');
+  let from = '';
+  try {
+    from = referer ? new URL(referer).origin : '';
+  } catch {}
+  const frame = /^(iframe|frame|document)$/.test(request.headers.get('sec-fetch-dest') ?? '');
+  if (allowed.length && from !== self.origin && !allowed.includes(from) && !(frame && !referer))
     return text(403, 'This proxy only answers its own decks.');
 
   const through = (u) =>
@@ -124,10 +158,18 @@ export async function proxy(request, { decks = [], fetch: get = fetch } = {}) {
   const location = out.get('location');
   const moved = location && web(location, target);
   if (moved) out.set('location', through(moved));
+  out.set('content-security-policy', SANDBOX);
   const type = out.get('content-type') ?? '';
   if (!/text\/html|application\/xhtml/i.test(type) || request.method === 'HEAD')
     return new Response(upstream.body, { status: upstream.status, headers: out });
-  const html = await upstream.text();
+  const charset = /charset=([\w-]+)/i.exec(type)?.[1] ?? 'utf-8';
+  let decoder;
+  try {
+    decoder = new TextDecoder(charset);
+  } catch {
+    decoder = new TextDecoder();
+  }
+  const html = decoder.decode(await upstream.arrayBuffer());
   out.set('content-type', 'text/html; charset=utf-8');
   return new Response(rewriteHtml(html, target, through), {
     status: upstream.status,

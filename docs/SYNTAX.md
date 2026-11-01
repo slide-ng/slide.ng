@@ -1394,8 +1394,11 @@ has one fetch handler (`browser-proxy.js`) and a file for each host that can run
 - **Deno Deploy**: deploy `deno.js`; the address is `https://<project>.deno.dev/?url=%s`.
 
 Set `DECK_ORIGINS` on the host to the deck's address (`https://you.github.io`; several are separated by commas): the proxy then only
-answers that deck and the pages shown through it, so others cannot use it as an open proxy. Every site shown through it shares the
-proxy's address, so it drops their cookies; do not sign in to anything through it. DuckDuckGo's plain version
+answers that deck and the pages shown through it. It reads the browser's `Referer`, so it stops other sites, not a script that sends
+a false one. Every page it shows is sandboxed on an origin of its own, so it cannot reach the deck (also when the proxy is on the
+deck's own site, as with Netlify) or the other pages, and their cookies are dropped; sites that need their own storage or a sign-in
+may not work, and nobody should sign in to anything through it. It refuses addresses of the machine or network it runs on
+(`localhost`, private and link-local ranges, names without a dot). DuckDuckGo's plain version
 (`search: https://html.duckduckgo.com/html/?q=%s`) works best; its main page needs scripts that a simple proxy does not keep. The
 address field follows only the pages opened from the deck, as without a proxy. Under `slide-ng dev` the dev server's own proxy
 still wins.
