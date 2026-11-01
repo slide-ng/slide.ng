@@ -1383,7 +1383,7 @@ address field then only know the pages opened from the deck, not the clicks insi
 
 **A proxy of your own, for a built deck.** `browser: { proxy: https://my-proxy.example/?url=%s }` loads every page of a built
 deck (or one under `--remote`) through that address, with `%s` for the page's address. With it, sites that refuse framing show
-inside, links and forms stay inside, and the default search is DuckDuckGo again. slide.ng runs no such server: `docs/browser-proxy/`
+inside, links and forms stay inside, and the default search is DuckDuckGo again (its plain version). slide.ng runs no such server: `docs/browser-proxy/`
 has one fetch handler (`browser-proxy.js`) and a file for each host that can run it for free:
 
 - **Netlify**: copy `netlify/edge-functions/deck-proxy/` (with `browser-proxy.js` in it) to the deck's repository; the address is
@@ -1394,12 +1394,13 @@ has one fetch handler (`browser-proxy.js`) and a file for each host that can run
 - **Deno Deploy**: deploy `deno.js`; the address is `https://<project>.deno.dev/?url=%s`.
 
 Set `DECK_ORIGINS` on the host to the deck's address (`https://you.github.io`; several are separated by commas): the proxy then only
-answers that deck and the pages shown through it. It reads the browser's `Referer`, so it stops other sites, not a script that sends
-a false one. Every page it shows is sandboxed on an origin of its own, so it cannot reach the deck (also when the proxy is on the
+answers that deck and the pages shown through it. It reads the browser's `Referer` (and makes its own pages always send one), so it
+stops other sites, not a script that sends a false one. Every page it shows is sandboxed on an origin of its own, so it cannot reach the deck (also when the proxy is on the
 deck's own site, as with Netlify) or the other pages, and their cookies are dropped; sites that need their own storage or a sign-in
-may not work, and nobody should sign in to anything through it. It refuses addresses of the machine or network it runs on
-(`localhost`, private and link-local ranges, names without a dot). DuckDuckGo's plain version
-(`search: https://html.duckduckgo.com/html/?q=%s`) works best; its main page needs scripts that a simple proxy does not keep. The
+may not work, and nobody should sign in to anything through it. It refuses addresses written as local or private (`localhost`,
+private and link-local ranges, names without a dot); it does not look up names, so run it on one of these hosts, which cannot reach a
+private network, and not on a machine inside one. With a proxy of your own the default search is
+DuckDuckGo's plain version (`https://html.duckduckgo.com/html/?q=%s`); its main page needs scripts that a simple proxy does not keep. The
 address field follows only the pages opened from the deck, as without a proxy. Under `slide-ng dev` the dev server's own proxy
 still wins.
 

@@ -6,7 +6,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ### Added
 
-- `browser.proxy`: a built deck (or one under `--remote`) can load the deck browser's pages through a proxy of your own, an address with `%s` for the page. Sites that refuse framing then show inside, and links and forms stay inside. slide.ng runs no server: `docs/browser-proxy/` has a fetch handler and a file each for Netlify, Vercel, Cloudflare Workers and Deno Deploy, all with free plans. `DECK_ORIGINS` keeps it to your own deck in browsers; every page it shows is sandboxed on an origin of its own (so it cannot reach the deck or other pages), cookies are dropped, and addresses of the machine or network it runs on are refused.
+- `browser.proxy`: a built deck (or one under `--remote`) can load the deck browser's pages through a proxy of your own, an address with `%s` for the page. Sites that refuse framing then show inside, and links and forms stay inside. slide.ng runs no server: `docs/browser-proxy/` has a fetch handler and a file each for Netlify, Vercel, Cloudflare Workers and Deno Deploy, all with free plans. `DECK_ORIGINS` keeps it to your own deck in browsers; every page it shows is sandboxed on an origin of its own (so it cannot reach the deck or other pages), cookies are dropped, and addresses written as local or private are refused.
 
 ### Fixed
 

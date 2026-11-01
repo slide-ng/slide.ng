@@ -2,7 +2,8 @@
 // functions and Deno Deploy (see the files next to this one). It loads a page, drops the headers that refuse framing, and
 // sends links and forms back through itself, so a deck on any static host can show sites like DuckDuckGo inside. Pages it
 // shows are sandboxed, each on an origin of its own that cannot reach the deck or the other pages, and their cookies are
-// dropped: nobody should sign in to anything through it. It refuses addresses on the machine or network it runs on.
+// dropped: nobody should sign in to anything through it. It refuses addresses written as local or private; it does not look up
+// names, so run it on an edge host (which cannot reach a private network), not on a machine inside one.
 
 const DROP = [
   'x-frame-options',
@@ -68,22 +69,27 @@ function targetOf(self) {
 
 export function rewriteHtml(html, target, through) {
   const escape = (s) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+  const own = /<base\b[^>]*\shref\s*=\s*(["'])(.*?)\1/i.exec(html)?.[2];
+  const baseUrl = (own && web(own.replace(/&amp;/g, '&'), target)) || target;
   const link = (value) => {
     const raw = value.replace(/&amp;/g, '&').trim();
-    if (!raw || raw.startsWith('#') || /^(javascript|mailto|tel|data|blob):/i.test(raw))
-      return value;
-    const u = web(raw, target);
+    if (!raw || /^(javascript|mailto|tel|data|blob):/i.test(raw)) return value;
+    if (raw.startsWith('#')) return escape(through(target) + raw);
+    const u = web(raw, baseUrl);
     return u ? escape(through(u)) : value;
   };
   const tag = (t) => {
     if (/^<meta\b/i.test(t) && /http-equiv\s*=\s*["']?content-security-policy/i.test(t)) return '';
+    if (/^<meta\b/i.test(t) && /\sname\s*=\s*["']?referrer/i.test(t)) return '';
+    if (/^<base\b/i.test(t)) return '';
     if (/^<meta\b/i.test(t) && /http-equiv\s*=\s*["']?refresh/i.test(t))
       return t.replace(
         /(\scontent\s*=\s*(["'])\s*\d+\s*[;,]\s*url\s*=\s*['"]?)([^'"]*?)(['"]?\2)/i,
         (_, a, _q, v, z) => `${a}${link(v)}${z}`,
       );
     let out = t
-      .replace(/\s(integrity|nonce)\s*=\s*("[^"]*"|'[^']*')/gi, '')
+      .replace(/\s(integrity|nonce|referrerpolicy)\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+      .replace(/(\srel\s*=\s*["'][^"']*?)\bnoreferrer\b/gi, '$1')
       .replace(/(\starget\s*=\s*)(["']?)_(blank|top|parent)\2/gi, '$1$2_self$2');
     if (/^<(a|area)\b/i.test(out))
       out = out.replace(/(\shref\s*=\s*)(["'])(.*?)\2/i, (_, a, q, v) => `${a}${q}${link(v)}${q}`);
@@ -91,7 +97,7 @@ export function rewriteHtml(html, target, through) {
       out = out.replace(/(\ssrc\s*=\s*)(["'])(.*?)\2/i, (_, a, q, v) => `${a}${q}${link(v)}${q}`);
     if (/^<form\b/i.test(out)) {
       const action = /\saction\s*=\s*(["'])(.*?)\1/i.exec(out)?.[2] ?? '';
-      const goes = web(action.replace(/&amp;/g, '&') || target.href, target) ?? target;
+      const goes = web(action.replace(/&amp;/g, '&') || target.href, baseUrl) ?? target;
       const get = !/\smethod\s*=\s*["']?post/i.test(out);
       const to = get ? through(null) : through(goes);
       out = /\saction\s*=/i.test(out)
@@ -107,7 +113,7 @@ export function rewriteHtml(html, target, through) {
     (whole, open, _name, body, close) =>
       open ? open + body + close : whole.startsWith('<!--') ? whole : tag(whole),
   );
-  const base = `<base href="${escape(target.href)}">`;
+  const base = `<base href="${escape(baseUrl.href)}">`;
   const head = /<head(\s[^>]*)?>/i.exec(out);
   return head
     ? out.slice(0, head.index + head[0].length) + base + out.slice(head.index + head[0].length)
@@ -129,8 +135,7 @@ export async function proxy(request, { decks = [], fetch: get = fetch } = {}) {
   try {
     from = referer ? new URL(referer).origin : '';
   } catch {}
-  const frame = /^(iframe|frame|document)$/.test(request.headers.get('sec-fetch-dest') ?? '');
-  if (allowed.length && from !== self.origin && !allowed.includes(from) && !(frame && !referer))
+  if (allowed.length && from !== self.origin && !allowed.includes(from))
     return text(403, 'This proxy only answers its own decks.');
 
   const through = (u) =>
@@ -158,7 +163,11 @@ export async function proxy(request, { decks = [], fetch: get = fetch } = {}) {
   const location = out.get('location');
   const moved = location && web(location, target);
   if (moved) out.set('location', through(moved));
+  const refresh = /^(\s*\d+\s*[;,]\s*url\s*=\s*)(.+)$/i.exec(out.get('refresh') ?? '');
+  const next = refresh && web(refresh[2].trim().replace(/^['"]|['"]$/g, ''), target);
+  if (next) out.set('refresh', refresh[1] + through(next));
   out.set('content-security-policy', SANDBOX);
+  out.set('referrer-policy', 'strict-origin-when-cross-origin');
   const type = out.get('content-type') ?? '';
   if (!/text\/html|application\/xhtml/i.test(type) || request.method === 'HEAD')
     return new Response(upstream.body, { status: upstream.status, headers: out });

@@ -35,7 +35,7 @@ describe('the deck browser proxy', () => {
     expect(html).toContain(
       'href="https://p.dev/proxy?url=https%3A%2F%2Fa.dev%2Fnext" target="_self"',
     );
-    expect(html).toContain('href="#top"');
+    expect(html).toContain('href="https://p.dev/proxy?url=https%3A%2F%2Fa.dev%2Fx#top"');
     expect(html).toContain(
       '<form action="https://p.dev/proxy"><input type="hidden" name="__slide_ng_url" value="https://a.dev/search">',
     );
@@ -59,6 +59,18 @@ describe('the deck browser proxy', () => {
   it('keeps a redirect inside', async () => {
     const res = await ask('https://p.dev/proxy?url=https%3A%2F%2Fa.dev%2Fmoved');
     expect(res.headers.get('location')).toBe('https://p.dev/proxy?url=https%3A%2F%2Fa.dev%2Fthere');
+  });
+  it('keeps a Refresh header inside', async () => {
+    const refreshing = (async () =>
+      new Response('', {
+        headers: { 'content-type': 'text/plain', refresh: '0; url=/later' },
+      })) as unknown as typeof fetch;
+    const res = await proxy(new Request('https://p.dev/proxy?url=https%3A%2F%2Fa.dev%2F'), {
+      fetch: refreshing,
+    });
+    expect(res.headers.get('refresh')).toBe(
+      '0; url=https://p.dev/proxy?url=https%3A%2F%2Fa.dev%2Flater',
+    );
   });
   it('answers only its decks and itself, and only web addresses', async () => {
     expect(
@@ -90,19 +102,32 @@ describe('the deck browser proxy', () => {
       (await ask('https://p.dev/proxy?url=http%3A%2F%2F169.254.169.254%2Flatest%2F')).status,
     ).toBe(400);
   });
-  it('lets a frame without a Referer through, but not a script', async () => {
-    const go = (dest?: string) =>
-      proxy(
-        new Request('https://p.dev/proxy?url=https%3A%2F%2Fa.dev%2F', {
-          headers: dest ? { 'sec-fetch-dest': dest } : {},
-        }),
-        {
-          decks: ['https://me.github.io'],
-          fetch: site,
-        },
-      );
-    expect((await go('iframe')).status).toBe(200);
-    expect((await go()).status).toBe(403);
+  it('turns away a frame from another site that hides its Referer, and makes its own pages send one', async () => {
+    const hidden = await proxy(
+      new Request('https://p.dev/proxy?url=https%3A%2F%2Fa.dev%2F', {
+        headers: { 'sec-fetch-dest': 'iframe' },
+      }),
+      { decks: ['https://me.github.io'], fetch: site },
+    );
+    expect(hidden.status).toBe(403);
+    const shown = await ask('https://p.dev/proxy?url=https%3A%2F%2Fa.dev%2F');
+    expect(shown.headers.get('referrer-policy')).toBe('strict-origin-when-cross-origin');
+  });
+  it("keeps the page's own base and its links' Referer", async () => {
+    const based = (async () =>
+      new Response(
+        '<head><base href="/docs/v2/"><meta name="referrer" content="no-referrer"></head><a href="x" rel="noreferrer nofollow" referrerpolicy="no-referrer">x</a>',
+        { headers: { 'content-type': 'text/html' } },
+      )) as unknown as typeof fetch;
+    const html = await (
+      await proxy(new Request('https://p.dev/proxy?url=https%3A%2F%2Fa.dev%2Fpage'), {
+        fetch: based,
+      })
+    ).text();
+    expect(html).toContain('<head><base href="https://a.dev/docs/v2/">');
+    expect(html.match(/<base/g)?.length).toBe(1);
+    expect(html).toContain('href="https://p.dev/proxy?url=https%3A%2F%2Fa.dev%2Fdocs%2Fv2%2Fx"');
+    expect(html).not.toMatch(/no-referrer|noreferrer|referrerpolicy/);
   });
   it('reads the page in its own charset and keeps a meta refresh inside', async () => {
     const latin = (async () =>
