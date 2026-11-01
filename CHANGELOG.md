@@ -4,6 +4,8 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+## [3.3.0] - 2026-11-01
+
 ### Changed
 
 - Every component of the app keeps its template in an `.html` file next to its `.ts` (`templateUrl`), instead of an inline `template` (#92): 102 components, each `@Component` with one property per line. The deck browser's button has a lighter globe. Nothing changes for a deck; a layout or component copied from the app to change it now comes in two files. `slide-ng theme eject` copies each built-in layout's `.html` with its `.ts`.
@@ -382,7 +384,8 @@ The first version, built in phases.
 
 See `docs/STATUS.md` for what is missing or not verified.
 
-[Unreleased]: https://github.com/slide-ng/slide.ng/compare/v3.2.0...HEAD
+[Unreleased]: https://github.com/slide-ng/slide.ng/compare/v3.3.0...HEAD
+[3.3.0]: https://github.com/slide-ng/slide.ng/compare/v3.2.0...v3.3.0
 [3.2.0]: https://github.com/slide-ng/slide.ng/compare/v3.1.1...v3.2.0
 [3.1.1]: https://github.com/slide-ng/slide.ng/compare/v3.1.0...v3.1.1
 [3.1.0]: https://github.com/slide-ng/slide.ng/compare/v3.0.0...v3.1.0
