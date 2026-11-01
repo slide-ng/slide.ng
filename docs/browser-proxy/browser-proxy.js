@@ -1,21 +1,22 @@
 // The deck browser's proxy for a built deck, as one fetch handler that runs on Cloudflare Workers, Netlify and Vercel edge
-// functions and Deno Deploy (see the files next to this one). It loads a page, drops the headers that refuse framing, and
-// sends links and forms back through itself, so a deck on any static host can show sites like DuckDuckGo inside. Pages it
-// shows are sandboxed, each on an origin of its own that cannot reach the deck or the other pages, and their cookies are
-// dropped: nobody should sign in to anything through it. It refuses addresses written as local or private; it does not look up
-// names, so run it on an edge host (which cannot reach a private network), not on a machine inside one.
+// functions and Deno Deploy (see the files next to this one). It loads a page, keeps only plain content headers (none that
+// refuse framing or act on the whole site, such as Clear-Site-Data), and sends links and forms back through itself, so a deck
+// on any static host can show sites like DuckDuckGo inside. Pages it shows are sandboxed, each on an origin of its own that
+// cannot reach the deck or the other pages, and their cookies are dropped: nobody should sign in to anything through it. It
+// refuses addresses written as local or private; it does not look up names, so run it on an edge host (which cannot reach a
+// private network), not on a machine inside one.
 
-const DROP = [
-  'x-frame-options',
-  'content-security-policy',
-  'content-security-policy-report-only',
-  'cross-origin-opener-policy',
-  'cross-origin-embedder-policy',
-  'cross-origin-resource-policy',
-  'strict-transport-security',
-  'set-cookie',
-  'content-encoding',
-  'content-length',
+const KEEP = [
+  'content-type',
+  'content-language',
+  'content-disposition',
+  'cache-control',
+  'expires',
+  'last-modified',
+  'etag',
+  'vary',
+  'location',
+  'refresh',
 ];
 const SEND = ['accept', 'accept-language', 'content-type', 'user-agent'];
 const FORM_FIELD = '__slide_ng_url';
@@ -158,8 +159,11 @@ export async function proxy(request, { decks = [], fetch: get = fetch } = {}) {
     return text(502, `Could not load ${target.href}`);
   }
 
-  const out = new Headers(upstream.headers);
-  for (const name of DROP) out.delete(name);
+  const out = new Headers();
+  for (const name of KEEP) {
+    const value = upstream.headers.get(name);
+    if (value) out.set(name, value);
+  }
   const location = out.get('location');
   const moved = location && web(location, target);
   if (moved) out.set('location', through(moved));
@@ -168,6 +172,7 @@ export async function proxy(request, { decks = [], fetch: get = fetch } = {}) {
   if (next) out.set('refresh', refresh[1] + through(next));
   out.set('content-security-policy', SANDBOX);
   out.set('referrer-policy', 'strict-origin-when-cross-origin');
+  out.set('x-content-type-options', 'nosniff');
   const type = out.get('content-type') ?? '';
   if (!/text\/html|application\/xhtml/i.test(type) || request.method === 'HEAD')
     return new Response(upstream.body, { status: upstream.status, headers: out });

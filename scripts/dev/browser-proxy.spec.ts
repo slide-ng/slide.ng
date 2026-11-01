@@ -13,6 +13,9 @@ const site = (async (url: string) =>
           'content-type': 'text/html',
           'x-frame-options': 'DENY',
           'set-cookie': 'sid=1',
+          'clear-site-data': '"cookies", "storage"',
+          nel: '{"report_to":"x","max_age":9999}',
+          'cache-control': 'max-age=60',
         },
       })) as unknown as typeof fetch;
 
@@ -28,6 +31,10 @@ describe('the deck browser proxy', () => {
     const html = await res.text();
     expect(res.headers.get('x-frame-options')).toBeNull();
     expect(res.headers.get('set-cookie')).toBeNull();
+    expect(res.headers.get('clear-site-data')).toBeNull();
+    expect(res.headers.get('nel')).toBeNull();
+    expect(res.headers.get('cache-control')).toBe('max-age=60');
+    expect(res.headers.get('x-content-type-options')).toBe('nosniff');
     expect(res.headers.get('content-security-policy')).toMatch(/^sandbox allow-scripts/);
     expect(res.headers.get('content-security-policy')).not.toContain('allow-same-origin');
     expect(html).toContain('<head><base href="https://a.dev/x">');
