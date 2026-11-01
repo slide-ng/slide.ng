@@ -338,6 +338,7 @@ default; `src/app/i18n/en.ts` holds it and is the source of truth for the keys. 
 | `browser.background`         | Background                                                                             |
 | `browser.bgNone`             | None                                                                                   |
 | `browser.bgUpload`           | Upload from this device                                                                |
+| `browser.bgFull`             | No room to keep another image here. Remove one first.                                  |
 | `browser.bgImage`            | Use your own                                                                           |
 | `browser.bgSolid`            | Solid colours                                                                          |
 | `browser.bgGradient`         | Gradients                                                                              |
@@ -372,6 +373,8 @@ default; `src/app/i18n/en.ts` holds it and is the source of truth for the keys. 
 | `browser.weatherUnit`        | Unit                                                                                   |
 | `browser.weatherPrivacy`     | The weather comes from Open-Meteo: the place is sent there while the weather is shown. |
 | `browser.weatherLoading`     | Getting the weather…                                                                   |
+| `browser.weatherFailed`      | Could not get the weather                                                              |
+| `browser.weatherRetry`       | Try again                                                                              |
 | `browser.wx.clear`           | Clear                                                                                  |
 | `browser.wx.partlyCloudy`    | Partly cloudy                                                                          |
 | `browser.wx.cloudy`          | Cloudy                                                                                 |

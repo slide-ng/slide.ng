@@ -136,6 +136,7 @@ export class DeckBrowser {
   private nextId = 1;
   private pending = new Map<number, string>();
   private origins = new Map<number, string>();
+  private openedByPage = new Set<string>();
   readonly proxy = signal<WebProxy | null>(null);
   private proxyAsked: Promise<WebProxy | null> | null = null;
   readonly tabs = signal<OpenTab[]>([]);
@@ -164,7 +165,8 @@ export class DeckBrowser {
   });
   readonly weatherNow = signal<WeatherNow | null>(null);
   private weatherKey = '';
-  private naming = false;
+  readonly weatherFailed = signal(false);
+  private weatherTimer?: ReturnType<typeof setTimeout>;
   private text = inject(UI_TEXT);
   private locale = inject(LOCALE_ID);
   private weatherAt = 0;
@@ -240,6 +242,8 @@ export class DeckBrowser {
   }
 
   hide() {
+    const focused = typeof document === 'undefined' ? null : document.activeElement;
+    if (focused instanceof HTMLElement && focused.closest('#deck-browser')) focused.blur();
     this.open.set(false);
   }
 
@@ -298,6 +302,7 @@ export class DeckBrowser {
     const url = webAddress(address);
     const tab = this.tabs().find((t) => t.id === id);
     if (!url || !tab) return;
+    this.openedByPage.delete(url);
     const history = [...tab.history.slice(0, tab.index + 1), url];
     this.patch(id, {
       url,
@@ -322,10 +327,18 @@ export class DeckBrowser {
     );
   }
 
-  addBackgroundImage(data: string) {
+  addBackgroundImage(data: string): boolean {
+    const probe = 'slide-ng-browser-room';
+    try {
+      localStorage.setItem(probe, data);
+      localStorage.removeItem(probe);
+    } catch {
+      return false;
+    }
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
     this.backgroundImages.update((all) => [...all, { id, data }]);
     this.setPrefs({ background: { kind: 'image', value: id } });
+    return true;
   }
 
   removeBackgroundImage(id: string) {
@@ -340,26 +353,32 @@ export class DeckBrowser {
       });
   }
 
-  refreshWeather() {
+  refreshWeather(force = false) {
     const { show, place, unit } = this.prefs().weather;
     if (!show || !place) return;
-    if (place.name === uiText(this.text, 'browser.weatherHere') && !this.naming) {
-      this.naming = true;
+    const key = `${place.lat},${place.lon},${unit}`;
+    if (!force && key === this.weatherKey && Date.now() - this.weatherAt < 15 * 60_000) return;
+    if (place.name === uiText(this.text, 'browser.weatherHere'))
       void placeName(place.lat, place.lon, this.locale).then((name) => {
         const now = this.prefs().weather;
         if (name && now.place?.lat === place.lat && now.place?.lon === place.lon)
-          this.setPrefs({ weather: { ...now, place: { ...place, name } } });
+          this.setPrefs({ weather: { ...now, place: { ...now.place, name } } });
       });
-    }
-    const key = `${place.lat},${place.lon},${unit}`;
-    if (key === this.weatherKey && Date.now() - this.weatherAt < 15 * 60_000) return;
     const first = !this.weatherNow();
     const started = Date.now();
     this.weatherKey = key;
     this.weatherAt = started;
+    this.weatherFailed.set(false);
+    clearTimeout(this.weatherTimer);
     void currentWeather(place, unit).then((now) => {
+      if (this.weatherKey !== key) return;
+      if (!now) {
+        this.weatherKey = '';
+        this.weatherFailed.set(true);
+        return;
+      }
       const wait = first ? Math.max(0, 1000 - (Date.now() - started)) : 0;
-      setTimeout(() => {
+      this.weatherTimer = setTimeout(() => {
         if (this.weatherKey === key) this.weatherNow.set(now);
       }, wait);
     });
@@ -450,10 +469,15 @@ export class DeckBrowser {
     )?.slideNgWeb;
     if (!proxy || !message || !isProxyOrigin(e.origin, proxy)) return;
     const tab = this.tabs().find((t) => this.frame(t.id)?.contentWindow === e.source);
+    if (tab && message.type === 'escape') {
+      if (tab.id === this.activeId()) this.hide();
+      return;
+    }
     const url = webAddress(message.url);
     if (!tab || !url) return;
     this.origins.set(tab.id, e.origin);
     if (message.type === 'open') {
+      this.openedByPage.add(url);
       this.openUrl(url);
       return;
     }
@@ -480,7 +504,9 @@ export class DeckBrowser {
     const tab = this.tabs().find((t) => t.id === id);
     if (!tab || (tab.loaded && !force) || !tab.url) return;
     this.patch(id, { loaded: true });
-    void this.webProxy().then((proxy) => {
+    void this.webProxy().then(async (proxy) => {
+      if (proxy && !this.openedByPage.has(tab.url))
+        await this.dev.send('POST', '/web-proxy/open', { url: tab.url });
       const now = this.tabs().find((t) => t.id === id);
       if (now?.url !== tab.url) return;
       if (proxy) {

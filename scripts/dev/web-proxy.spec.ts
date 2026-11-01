@@ -54,6 +54,14 @@ describe('rewriteHtml', () => {
     expect(out).not.toMatch(/content-security-policy|integrity|nonce/i);
     expect(out).toContain('target="_self"');
   });
+  it('leaves script text alone and maps url()s in style blocks', () => {
+    const out = rewriteHtml(
+      `<script>el.innerHTML = '<a href="https://x.dev/" target="_top">'</script><style>a{background:url(https://x.dev/i.png)}</style>`,
+      { key, port, base },
+    );
+    expect(out).toContain(`'<a href="https://x.dev/" target="_top">'`);
+    expect(out).toContain('url(http://x.dev.https.abc123.localhost:5000/i.png)');
+  });
   it('maps every address of a srcset', () => {
     const out = rewriteHtml('<img srcset="https://a.dev/1.png 1x, https://a.dev/2.png 2x">', {
       key,
@@ -89,17 +97,31 @@ describe('cookieForProxy', () => {
 
 describe('targetAllowed', () => {
   const resolve = (async (host: string) => [
-    { address: host === 'rebind.dev' ? '127.0.0.1' : '93.184.216.34', family: 4 },
-  ]) as unknown as Parameters<typeof targetAllowed>[2];
+    {
+      address:
+        host === 'rebind.dev'
+          ? '127.0.0.1'
+          : host === 'router.lan'
+            ? '192.168.1.1'
+            : '93.184.216.34',
+      family: 4,
+    },
+  ]) as unknown as Parameters<typeof targetAllowed>[3];
+  const opened = new Set(['http://localhost:4200', 'http://localhost:4230']);
   it("refuses the deck's own ports on this machine, also through a name that points here", async () => {
-    expect(await targetAllowed('http://localhost:4230/__slide-ng/session', [4230], resolve)).toBe(
-      false,
-    );
-    expect(await targetAllowed('http://rebind.dev:4230/', [4230], resolve)).toBe(false);
+    expect(
+      await targetAllowed('http://localhost:4230/__slide-ng/session', [4230], opened, resolve),
+    ).toBe(false);
+    expect(await targetAllowed('http://rebind.dev:4230/', [4230], opened, resolve)).toBe(false);
   });
-  it('lets other sites and other local apps through', async () => {
-    expect(await targetAllowed('http://localhost:4200/', [4230], resolve)).toBe(true);
-    expect(await targetAllowed('https://example.com/', [4230], resolve)).toBe(true);
-    expect(await targetAllowed('http://example.com:4230/', [4230], resolve)).toBe(true);
+  it('lets other sites through', async () => {
+    expect(await targetAllowed('https://example.com/', [4230], new Set(), resolve)).toBe(true);
+    expect(await targetAllowed('http://example.com:4230/', [4230], new Set(), resolve)).toBe(true);
+  });
+  it('lets a local or private address through only once the deck opened it', async () => {
+    expect(await targetAllowed('http://localhost:4200/', [4230], opened, resolve)).toBe(true);
+    expect(await targetAllowed('http://localhost:5432/', [4230], opened, resolve)).toBe(false);
+    expect(await targetAllowed('http://router.lan/', [4230], opened, resolve)).toBe(false);
+    expect(await targetAllowed('http://rebind.dev:8080/', [4230], opened, resolve)).toBe(false);
   });
 });

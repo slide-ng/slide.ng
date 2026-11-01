@@ -1,7 +1,7 @@
 // `npm run test:dev` (deck browser part): starts the real dev server on tests/e2e/deck-browser/slides.md, with a fake site on
 // 127.0.0.1:47121 that refuses framing. Through the companion's proxy the site still shows inside the deck, the address
 // follows clicks inside the page, back and forward move through what was seen, the search box uses `browser.search`, a
-// link that opens a new window becomes a tab, and the proxy refuses the deck's own servers.
+// link that opens a new window becomes a tab, and the proxy refuses the deck's own servers and local addresses the deck did not open.
 import { spawn } from 'node:child_process';
 import http from 'node:http';
 import { launch, reporter } from './browser.mjs';
@@ -178,6 +178,24 @@ t.ok(
   (await asks(`localhost.http-${PORT}.${proxy.key}.localhost:${proxy.port}`)) === 403 &&
     (await asks(`localhost.http-${PORT}.wrongkey.localhost:${proxy.port}`)) === 404,
   JSON.stringify(proxy),
+);
+
+t.ok(
+  'proxy: a local address loads only once the deck opened it',
+  (await asks(`127.0.0.1.http-${SITE + 1}.${proxy.key}.localhost:${proxy.port}`)) === 403 &&
+    (await page.evaluate(
+      async (url) => {
+        const { token } = await (await fetch('/__slide-ng/session')).json();
+        const res = await fetch('/__slide-ng/web-proxy/open', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'x-slide-ng-token': token },
+          body: JSON.stringify({ url }),
+        });
+        return res.status;
+      },
+      `http://127.0.0.1:${SITE + 1}/`,
+    )) === 200 &&
+    (await asks(`127.0.0.1.http-${SITE + 1}.${proxy.key}.localhost:${proxy.port}`)) === 502,
 );
 
 t.ok('no page errors', problems.length === 0, JSON.stringify(problems));

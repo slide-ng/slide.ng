@@ -580,14 +580,31 @@
                   </div>
                 </div>
               </div>
+            } @else if (browser.weatherFailed()) {
+              <p class="flex items-center gap-1.5 text-xs op70 truncate">
+                <span class="i-ph:map-pin shrink-0"></span>
+                <span class="truncate">{{ browser.prefs().weather.place!.name }}</span>
+              </p>
+              <div class="mt-3 flex items-center gap-3">
+                <span class="i-ph:cloud-slash text-4xl shrink-0 op70"></span>
+                <p class="flex-1 min-w-0 text-sm font-medium" role="status">
+                  {{ 'browser.weatherFailed' | t }}
+                </p>
+                <button
+                  type="button"
+                  id="deck-browser-weather-retry"
+                  class="flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-medium bg-gray-400/20 hover:bg-gray-400/30 transition-colors"
+                  (click)="browser.refreshWeather(true)"
+                >
+                  <span class="i-ph:arrow-clockwise"></span>{{ 'browser.weatherRetry' | t }}
+                </button>
+              </div>
             } @else {
               <div role="status" [attr.aria-label]="'browser.weatherLoading' | t">
                 <div aria-hidden="true">
-                  <p class="flex items-center gap-1.5 text-xs">
-                    <span class="deck-browser-bone w-[1em] h-[1em] shrink-0 rounded-full"></span>
-                    <span class="deck-browser-bone truncate">{{
-                      browser.prefs().weather.place!.name
-                    }}</span>
+                  <p class="flex items-center gap-1.5 text-xs op70 truncate">
+                    <span class="i-ph:map-pin shrink-0"></span>
+                    <span class="truncate">{{ browser.prefs().weather.place!.name }}</span>
                   </p>
                   <div class="mt-1 flex items-start justify-between gap-2">
                     <div class="min-w-0">
@@ -607,35 +624,35 @@
                   </div>
                   <div class="mt-3 grid grid-cols-3 gap-2">
                     <div class="rounded-xl px-2.5 py-2 bg-gray-400/15">
-                      <p class="text-[10px] font-semibold uppercase tracking-wider">
-                        <span class="deck-browser-bone">{{ 'browser.weatherFeelsLike' | t }}</span>
+                      <p class="text-[10px] font-semibold uppercase tracking-wider op60 truncate">
+                        {{ 'browser.weatherFeelsLike' | t }}
                       </p>
                       <p
                         class="mt-0.5 flex items-center gap-1 text-sm font-medium whitespace-nowrap"
                       >
-                        <span class="deck-browser-bone w-5 h-5 -ms-0.5 shrink-0 rounded-full"></span
+                        <span class="i-meteocons:thermometer-fill w-5 h-5 -ms-0.5 shrink-0"></span
                         ><span class="deck-browser-bone">20°</span>
                       </p>
                     </div>
                     <div class="rounded-xl px-2.5 py-2 bg-gray-400/15">
-                      <p class="text-[10px] font-semibold uppercase tracking-wider">
-                        <span class="deck-browser-bone">{{ 'browser.weatherWind' | t }}</span>
+                      <p class="text-[10px] font-semibold uppercase tracking-wider op60 truncate">
+                        {{ 'browser.weatherWind' | t }}
                       </p>
                       <p
                         class="mt-0.5 flex items-center gap-1 text-sm font-medium whitespace-nowrap"
                       >
-                        <span class="deck-browser-bone w-5 h-5 -ms-0.5 shrink-0 rounded-full"></span
+                        <span class="i-meteocons:wind-fill w-5 h-5 -ms-0.5 shrink-0"></span
                         ><span class="deck-browser-bone">10 km/h</span>
                       </p>
                     </div>
                     <div class="rounded-xl px-2.5 py-2 bg-gray-400/15">
-                      <p class="text-[10px] font-semibold uppercase tracking-wider">
-                        <span class="deck-browser-bone">{{ 'browser.weatherHumidity' | t }}</span>
+                      <p class="text-[10px] font-semibold uppercase tracking-wider op60 truncate">
+                        {{ 'browser.weatherHumidity' | t }}
                       </p>
                       <p
                         class="mt-0.5 flex items-center gap-1 text-sm font-medium whitespace-nowrap"
                       >
-                        <span class="deck-browser-bone w-5 h-5 -ms-0.5 shrink-0 rounded-full"></span
+                        <span class="i-meteocons:humidity-fill w-5 h-5 -ms-0.5 shrink-0"></span
                         ><span class="deck-browser-bone">60%</span>
                       </p>
                     </div>

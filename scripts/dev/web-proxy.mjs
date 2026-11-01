@@ -55,18 +55,28 @@ export function rewriteHtml(html, { key, port, base }) {
     }
   };
   const shim = `<script src="${SHIM_PATH}"></script>`;
-  let out = html
-    .replace(/<meta[^>]+http-equiv\s*=\s*["']?content-security-policy["']?[^>]*>/gi, '')
-    .replace(/\s(integrity|nonce)\s*=\s*("[^"]*"|'[^']*')/gi, '')
-    .replace(
-      /(\s(?:href|src|action|poster|data|formaction)\s*=\s*)(["'])(.*?)\2/gi,
-      (_, attr, q, value) => `${attr}${q}${map(value)}${q}`,
-    )
-    .replace(/(\ssrcset\s*=\s*)(["'])(.*?)\2/gi, (_, attr, q, value) => {
-      const set = value.replace(/(^|,\s*)(\S+)/g, (_m, sep, url) => `${sep}${map(url)}`);
-      return `${attr}${q}${set}${q}`;
-    })
-    .replace(/(\starget\s*=\s*)(["']?)_(top|parent)\2/gi, '$1$2_self$2');
+  const tag = (text) =>
+    /^<meta\b/i.test(text) && /http-equiv\s*=\s*["']?content-security-policy/i.test(text)
+      ? ''
+      : text
+          .replace(/\s(integrity|nonce)\s*=\s*("[^"]*"|'[^']*')/gi, '')
+          .replace(
+            /(\s(?:href|src|action|poster|data|formaction)\s*=\s*)(["'])(.*?)\2/gi,
+            (_, attr, q, value) => `${attr}${q}${map(value)}${q}`,
+          )
+          .replace(/(\ssrcset\s*=\s*)(["'])(.*?)\2/gi, (_, attr, q, value) => {
+            const set = value.replace(/(^|,\s*)(\S+)/g, (_m, sep, url) => `${sep}${map(url)}`);
+            return `${attr}${q}${set}${q}`;
+          })
+          .replace(/(\starget\s*=\s*)(["']?)_(top|parent)\2/gi, '$1$2_self$2');
+  let out = html.replace(
+    /(<(script|style|textarea|title)\b[^>]*>)([\s\S]*?)(<\/\2\s*>)|<!--[\s\S]*?-->|<[a-z][^>"']*(?:(?:"[^"]*"|'[^']*')[^>"']*)*>/gi,
+    (whole, open, name, body, close) => {
+      if (!open) return whole.startsWith('<!--') ? whole : tag(whole);
+      const inner = name.toLowerCase() === 'style' ? rewriteCss(body, { key, port, base }) : body;
+      return tag(open) + inner + close;
+    },
+  );
   const head = /<head(\s[^>]*)?>/i.exec(out);
   if (head)
     out = out.slice(0, head.index + head[0].length) + shim + out.slice(head.index + head[0].length);
@@ -172,20 +182,25 @@ const safeHost = (origin) => {
   }
 };
 
-const LOOPBACK = (address) => /^127\./.test(address) || address === '::1' || address === '0.0.0.0';
+const LOCAL = (address) =>
+  /^(127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.|0\.0\.0\.0$)/.test(address) ||
+  /^(::1?$|f[cd]|fe[89ab]|::ffff:(127|10|192\.168)\.)/i.test(address);
 
-export async function targetAllowed(target, blockedPorts, resolve = lookup) {
+export async function targetAllowed(target, blockedPorts, allowed = new Set(), resolve = lookup) {
   const u = new URL(target);
   const port = Number(u.port || (u.protocol === 'https:' ? 443 : 80));
-  if (!blockedPorts.includes(port)) return true;
   const host = u.hostname.replace(/^\[|\]$/g, '');
-  if (host === 'localhost' || host.endsWith('.localhost')) return false;
-  try {
-    const all = await resolve(host, { all: true });
-    return !all.some((a) => LOOPBACK(a.address));
-  } catch {
-    return false;
+  let local = host === 'localhost' || host.endsWith('.localhost');
+  if (!local) {
+    try {
+      const all = await resolve(host, { all: true });
+      local = all.some((a) => LOCAL(a.address));
+    } catch {
+      return false;
+    }
   }
+  if (!local) return true;
+  return !blockedPorts.includes(port) && allowed.has(u.origin);
 }
 
 const MAX_BODY = 50 * 1024 * 1024;
@@ -210,6 +225,7 @@ const charsetOf = (type) => /charset=([\w-]+)/i.exec(type)?.[1] ?? 'utf-8';
 
 export function createWebProxy({ deckOrigins = [], blockedPorts = [], fetch: get = fetch } = {}) {
   const key = randomBytes(6).toString('hex');
+  const allowed = new Set();
   let port = 0;
   const shim = () =>
     readShim().replace('__SLIDE_NG_WEB__', JSON.stringify({ key, port, deck: deckOrigins }));
@@ -232,8 +248,12 @@ export function createWebProxy({ deckOrigins = [], blockedPorts = [], fetch: get
       res
         .writeHead(status, { 'content-type': 'text/html; charset=utf-8' })
         .end(page(status, title, text));
-    if (!(await targetAllowed(target, [...blockedPorts, port])))
-      return html(403, 'Not shown here', `${escape(origin)} is part of this deck's own servers.`);
+    if (!(await targetAllowed(target, [...blockedPorts, port], allowed)))
+      return html(
+        403,
+        'Not shown here',
+        `${escape(origin)} is on this computer or network, and the deck did not open it.`,
+      );
     try {
       const body = req.method === 'GET' || req.method === 'HEAD' ? undefined : await readAll(req);
       const upstream = await get(target, {
@@ -278,6 +298,10 @@ export function createWebProxy({ deckOrigins = [], blockedPorts = [], fetch: get
     server,
     get port() {
       return port;
+    },
+    allow(url) {
+      const u = new URL(url);
+      if (u.protocol === 'http:' || u.protocol === 'https:') allowed.add(u.origin);
     },
     listen: (wanted = 0) =>
       new Promise((resolve) =>

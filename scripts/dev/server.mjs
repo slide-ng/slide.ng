@@ -19,6 +19,7 @@ export async function startServer(ctx) {
     });
     await proxy.listen();
     ctx.webProxy = { key: proxy.key, port: proxy.port };
+    ctx.allowWebTarget = proxy.allow;
   }
   const hub = createHub();
   const server = createServer(createHandler(ctx, { hub }));

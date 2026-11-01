@@ -113,6 +113,17 @@ export function createHandler(ctx, { hub } = {}) {
         problem: ctx.buildError ? generatorProblem(ctx.appRoot ?? process.cwd()) : '',
       });
     if (path === '/web-proxy' && method === 'GET') return json(res, 200, ctx.webProxy ?? null);
+    if (path === '/web-proxy/open' && method === 'POST') {
+      const { url: target } = await body(req, 4_000);
+      if (typeof target !== 'string' || !ctx.allowWebTarget)
+        throw new HttpError(400, 'url must be text');
+      try {
+        ctx.allowWebTarget(target);
+      } catch {
+        throw new HttpError(400, 'not a web address');
+      }
+      return json(res, 200, { ok: true });
+    }
     if (path === '/frame-check' && method === 'GET') {
       const embedder = `http://${req.headers.host ?? 'localhost'}`;
       return json(res, 200, {

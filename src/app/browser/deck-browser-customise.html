@@ -201,6 +201,16 @@
                       ></span>
                     </span>
                   </button>
+                  @if (uploadFull()) {
+                    <p
+                      id="deck-browser-upload-full"
+                      role="alert"
+                      class="mx-6 mt-5 -mb-1 flex items-center gap-2 text-sm"
+                      style="color: #cc4209"
+                    >
+                      <span class="i-ph:warning-circle shrink-0"></span>{{ 'browser.bgFull' | t }}
+                    </p>
+                  }
                   <div class="grid grid-cols-2 gap-5 p-6">
                     <label
                       class="relative aspect-[4/3] rounded-2xl border-2 border-main grid place-content-center bg-main hover:bg-active transition-colors cursor-pointer"
@@ -235,7 +245,7 @@
                           class="absolute top-2 end-2 w-8 h-8 rounded-full bg-white/90 text-black grid place-content-center shadow op0 group-hover:op100 focus:op100 transition-opacity"
                           [title]="'browser.bgRemove' | t"
                           [attr.aria-label]="'browser.bgRemove' | t"
-                          (click)="browser.removeBackgroundImage(image.id)"
+                          (click)="browser.removeBackgroundImage(image.id); uploadFull.set(false)"
                         >
                           <div class="i-ph:x"></div>
                         </button>

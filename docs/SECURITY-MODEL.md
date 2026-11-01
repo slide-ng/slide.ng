@@ -30,13 +30,16 @@ The deck browser's proxy runs in the companion server, on 127.0.0.1 and a port o
 only host names of the form `<site>.<scheme>.<key>.localhost`, where the key is random for each session, so a page on the web cannot
 make it load anything. Each proxied site has its own origin, apart from the deck's origin and from the other sites: a page shown in
 it cannot read the deck's storage, and the dev server refuses its requests (wrong Host and Origin, no token). The proxy refuses to
-load the deck's own servers (the dev server port, the companion and itself), also through a name that points to this machine. It
+load the deck's own servers (the dev server port, the companion and itself), also through a name that points to this machine.
+Other addresses on this computer or a private network (loopback, 10/8, 172.16/12, 192.168/16, link-local, also through a name
+that resolves there) load only after the deck page asked for that origin through the companion (`POST /web-proxy/open`, with the
+token), so a site shown in the deck browser cannot use the proxy to read local services. It
 drops the headers that refuse framing and the site's Content-Security-Policy, so a page in it has less protection against
 clickjacking than in a tab; it is meant for showing pages during a talk.
 
 The deck browser's weather widget is off by default. When it is on, the page asks Open-Meteo (`api.open-meteo.com`, and
 `geocoding-api.open-meteo.com` for a city name) for the weather of the chosen place. "Use my location" asks the browser
-for the position (rounded to about a kilometre) and sends it once to OpenStreetMap's Nominatim for the city name; nothing else
+for the position (rounded to about a kilometre) and sends it to OpenStreetMap's Nominatim for the city name; nothing else
 leaves the page.
 
 ## `--remote`

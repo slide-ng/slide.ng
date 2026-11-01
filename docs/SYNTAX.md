@@ -1249,19 +1249,19 @@ in Slidev: `radius: 6` is `--slidev-theme-radius: 6`, which CSS does not take as
 
 ## Keys, mouse and the interface
 
-| key                          | action                                                                                                    |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------- |
-| right, space, page down      | next click, or next slide                                                                                 |
-| left, shift + space, page up | previous click, or previous slide                                                                         |
-| down, shift + right          | next slide (skips the clicks)                                                                             |
-| up, shift + left             | previous slide                                                                                            |
-| `f`                          | fullscreen                                                                                                |
-| `o` or backtick              | slide overview (arrows move, Enter opens, Escape closes)                                                  |
-| `d`                          | dark / light                                                                                              |
-| `g`                          | go to a slide: type a number or part of a title, Enter (any case, accents optional)                       |
-| Escape                       | close the overview, dialogs and menus                                                                     |
-| `u`                          | presenter page: show or hide the upcoming clicks                                                          |
-| `b`                          | slide page: open or close the deck browser (Escape closes it too, while the focus is not inside the page) |
+| key                          | action                                                                                                   |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------- |
+| right, space, page down      | next click, or next slide                                                                                |
+| left, shift + space, page up | previous click, or previous slide                                                                        |
+| down, shift + right          | next slide (skips the clicks)                                                                            |
+| up, shift + left             | previous slide                                                                                           |
+| `f`                          | fullscreen                                                                                               |
+| `o` or backtick              | slide overview (arrows move, Enter opens, Escape closes)                                                 |
+| `d`                          | dark / light                                                                                             |
+| `g`                          | go to a slide: type a number or part of a title, Enter (any case, accents optional)                      |
+| Escape                       | close the overview, dialogs and menus                                                                    |
+| `u`                          | presenter page: show or hide the upcoming clicks                                                         |
+| `b`                          | slide page: open or close the deck browser (Escape closes it too; inside a page only with the dev proxy) |
 
 In a right-to-left deck the keys stay physical (right is next), the overview arrows follow its mirrored grid, and transitions are
 not mirrored (see [UI-STRINGS.md](UI-STRINGS.md)).
@@ -1354,13 +1354,14 @@ without it, or in other browsers, Escape leaves fullscreen at once as before).
 - The star in the toolbar bookmarks the page, and the bookmark button next to it lists them all. Bookmarks also show in a bar
   under the toolbar and first on the start page, and are
   kept in this browser for this deck (`slide-ng-browser-bookmarks`).
-- **Customise** on the start page (or in the gear menu) opens a larger window: a background for the start page (none, solid
 - **Customise** on the start page (or in the gear menu) opens a larger window: the start page background (none, the slide.ng
   gradient, solid colours, gradients or images uploaded from this device, each optionally changing on every new tab; text
   stays readable on light and dark ones), the deck browser's appearance (like the deck, light or dark), the search engine, which
   tile groups the start page shows, a clock (format, font and size), the weather (off until turned on: a city or your location,
   °C or °F; the current condition, high and low, feels-like, wind and humidity, and a five-day forecast on hover, from
-  Open-Meteo, which then gets that place, every fifteen minutes at most), and links and data. All of it is kept in this browser.
+  Open-Meteo, which then gets that place, every fifteen minutes at most; when it cannot be reached the card says so and tries
+  again each minute), and links and data. All of it is kept in this browser. An uploaded image that no longer fits in the
+  browser's storage is refused with a message.
 - The gear in its toolbar opens the browser settings: the search engine (DuckDuckGo, Bing, Wikipedia or your own address with
   `%s`), whether slide links open in it, whether the bookmarks bar shows, and buttons that clear recent pages and bookmarks. The
   choices are kept in this browser for this deck (`slide-ng-browser-prefs`) and win over `browser.search` and `browser.links`;
@@ -1370,7 +1371,9 @@ without it, or in other browsers, Escape leaves fullscreen at once as before).
 With `slide-ng dev` (or `npm start`) on this machine, pages load through the companion server's proxy. Each site then gets its own
 address under `localhost`, so sites that refuse framing (GitHub, Google and most large sites) still show inside the deck, and the
 address field follows the clicks inside a page. The proxy drops the headers that refuse framing, keeps each site's cookies on its own
-proxy address, turns off service workers and sends links that open a new window to a new tab. Some sites still break through it,
+proxy address, turns off service workers and sends links that open a new window to a new tab. An address on this computer or the
+local network (`localhost:4200`, `192.168.1.1`) loads only when the deck opened it (the address field, a slide link, a tile or
+a bookmark), not when a page in the deck browser points to it. Some sites still break through it,
 for example sign-ins that check where they are shown: **Open in window** opens the real page in a popup placed over the deck
 browser.
 

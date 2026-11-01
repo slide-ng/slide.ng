@@ -95,7 +95,12 @@ export class DeckBrowserLayer {
       if (weather.show) untracked(() => this.browser.refreshWeather());
     });
     const tick = setInterval(() => {
-      if (this.browser.open()) this.now.set(new Date());
+      const { clock } = this.browser.prefs();
+      if (!this.browser.open() || this.browser.active()?.url) return;
+      if (!clock.show && clock.date === false) return;
+      const now = new Date();
+      if (clock.show && clock.seconds) this.now.set(now);
+      else if (Math.floor(+now / 60_000) !== Math.floor(+this.now() / 60_000)) this.now.set(now);
     }, 1000);
     const weather = setInterval(() => {
       if (this.browser.open()) this.browser.refreshWeather();

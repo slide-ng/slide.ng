@@ -229,6 +229,8 @@ export class DeckBrowserCustomise {
     this.browser.setPrefs({ tiles: { ...this.browser.prefs().tiles, ...change } });
   }
 
+  protected uploadFull = signal(false);
+
   protected async upload(input: HTMLInputElement) {
     const file = input.files?.[0];
     input.value = '';
@@ -240,6 +242,6 @@ export class DeckBrowserCustomise {
     canvas.width = Math.round(bitmap.width * scale);
     canvas.height = Math.round(bitmap.height * scale);
     canvas.getContext('2d')?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    this.browser.addBackgroundImage(canvas.toDataURL('image/jpeg', 0.8));
+    this.uploadFull.set(!this.browser.addBackgroundImage(canvas.toDataURL('image/jpeg', 0.8)));
   }
 }

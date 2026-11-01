@@ -132,6 +132,10 @@
     };
   }
 
+  addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !e.defaultPrevented && !e.repeat) tell({ type: 'escape' });
+  });
+
   addEventListener('message', (e) => {
     if (e.source !== parentWindow || !deck.includes(e.origin)) return;
     const command = e.data?.slideNgWeb;
