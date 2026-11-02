@@ -143,17 +143,20 @@ const DROP_REQUEST = new Set([
 ]);
 
 // Which site asked for a request, as far as the cookie rules care: the page (`Origin`, else `Referer`), or the user (the deck
-// itself asked, or a page asked its own origin). A request that tells nothing is taken as another site's and gets fewer cookies.
-export function cookieContext(req, key, target) {
+// itself asked, or a page asked its own origin). A request that tells nothing, or that comes from any address other than the
+// deck and the proxied pages, is taken as another site's and gets fewer cookies: such a site can learn the key from a shown page.
+export function cookieContext(req, key, target, deckOrigins = []) {
   const { origin, referer, 'sec-fetch-site': site, 'sec-fetch-mode': mode } = req.headers;
   const asked = (raw) => {
+    let asking;
     try {
-      new URL(raw);
+      asking = new URL(raw).origin;
     } catch {
       return 'null:';
     }
+    if (deckOrigins.includes(asking)) return null;
     const real = toReal(raw, key);
-    return real === raw ? null : real;
+    return real === raw ? 'null:' : real;
   };
   let from = 'null:';
   if (site === 'same-origin') from = target;
@@ -335,7 +338,7 @@ export function createWebProxy({
       if (!(await targetAllowed(target, [...blockedPorts, port], allowed))) return refuse();
       if (path === COOKIE_PATH) return await scriptCookie(req, res, origin);
       const body = req.method === 'GET' || req.method === 'HEAD' ? undefined : await readAll(req);
-      const context = cookieContext(req, key, target);
+      const context = cookieContext(req, key, target, deckOrigins);
       const sent = requestHeaders(req, { key, target });
       const cookie = await jar.header(target, context);
       if (cookie) sent.cookie = cookie;

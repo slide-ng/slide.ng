@@ -125,7 +125,7 @@ describe('cookieContext', () => {
   const mine = `http://shop.example.com.https.${key}.localhost:${port}`;
   const theirs = `http://evil.test.https.${key}.localhost:${port}`;
   const ask = (headers: Record<string, string>, method = 'GET') =>
-    cookieContext({ headers, method }, key, target);
+    cookieContext({ headers, method }, key, target, ['http://localhost:4230']);
 
   it('is strict when the page asked its own origin', () => {
     expect(ask({ 'sec-fetch-site': 'same-origin' })).toBe('strict');
@@ -135,6 +135,14 @@ describe('cookieContext', () => {
     expect(ask({ referer: 'http://localhost:4230/1', 'sec-fetch-mode': 'navigate' })).toBe(
       'strict',
     );
+  });
+  it('never takes a real site for the deck, also one that learned the key', () => {
+    const evil = { origin: 'https://evil.test', 'sec-fetch-site': 'cross-site' };
+    expect(ask({ ...evil, 'sec-fetch-mode': 'navigate' }, 'POST')).toBe('none');
+    expect(ask({ ...evil, 'sec-fetch-mode': 'cors' }, 'POST')).toBe('none');
+    expect(ask({ referer: 'https://evil.test/', 'sec-fetch-mode': 'navigate' })).toBe('lax');
+    expect(ask({ origin: 'https://shop.example.com' }, 'POST')).toBe('none');
+    expect(ask({ origin: 'http://localhost:9999' }, 'POST')).toBe('none');
   });
   it('is lax when a page of another site sent the user here with a link', () => {
     expect(ask({ referer: `${theirs}/`, 'sec-fetch-mode': 'navigate' })).toBe('lax');

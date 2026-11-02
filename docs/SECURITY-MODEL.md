@@ -47,7 +47,8 @@ and never sent to the browser: a page cannot read them (`document.cookie` shows 
 HttpOnly) or send them to another site. The proxy applies SameSite on its own, because the browser would count a proxied page as
 another site than the deck. The page that started a request (`Origin`, else `Referer`) is the one on top; a cookie without SameSite
 counts as Lax; a link from another site gets the Lax cookies and a form or a script of another site only the `SameSite=None` ones. A
-request that says nothing about who asked is taken as another site's. So a page shown next to another one cannot act as the
+request that says nothing about who asked, or that comes from any address other than the deck and the proxied pages, is taken as
+another site's, also when it knows the proxy's key. So a page shown next to another one cannot act as the
 presenter there. A cookie that a page sets with `document.cookie` goes to the proxy through `POST /__slide-ng-web/cookie`, which
 answers only a request that the page made to its own origin (`Sec-Fetch-Site: same-origin`, and the page address named in the
 request is that origin).
