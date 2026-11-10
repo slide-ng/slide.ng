@@ -1,18 +1,50 @@
 // `npm run test:dev` (deck browser part): starts the real dev server on tests/e2e/deck-browser/slides.md, with a fake site on
 // 127.0.0.1:47121 that refuses framing. Through the companion's proxy the site still shows inside the deck, the address
 // follows clicks inside the page, back and forward move through what was seen, the search box uses `browser.search`, a
-// link that opens a new window becomes a tab, and the proxy refuses the deck's own servers and local addresses the deck did not open.
+// link that opens a new window becomes a tab, a sign-in with a default (Lax) cookie or a cookie set by a script stays signed in,
+// a form of another site gets none of those cookies, and the proxy refuses the deck's own servers and local addresses the deck
+// did not open.
 import { spawn } from 'node:child_process';
 import http from 'node:http';
 import { launch, reporter } from './browser.mjs';
 
 const PORT = 4241;
 const SITE = 47121;
+const EVIL = 47123;
 const t = reporter();
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+const transfers = [];
 const site = http.createServer((req, res) => {
   const url = new URL(req.url, `http://127.0.0.1:${SITE}`);
+  const has = (name) =>
+    (req.headers.cookie ?? '').split(/;\s*/).some((c) => c.startsWith(`${name}=`));
+  const refusing = (body) => {
+    res.setHeader('content-type', 'text/html');
+    res.setHeader('x-frame-options', 'DENY');
+    res.setHeader('content-security-policy', "frame-ancestors 'none'");
+    res.end(body);
+  };
+  if (url.pathname === '/signin' && req.method === 'POST') {
+    res.writeHead(303, { 'set-cookie': 'sid=1; Path=/; HttpOnly', location: '/signin' }).end();
+    return;
+  }
+  if (url.pathname === '/signin')
+    return refusing(
+      `<!doctype html><title>Sign in</title><p id="status">${has('sid') ? 'SIGNED-IN' : 'SIGNED-OUT'}</p>` +
+        `<form method="post" action="/signin"><button id="go">Sign in</button></form>` +
+        `<form method="post" action="/transfer"><button id="pay-own">Pay</button></form>` +
+        `<button id="script" onclick="document.cookie='tok=1; path=/'">Set by script</button> <a id="who" href="/whoami">who</a>`,
+    );
+  if (url.pathname === '/whoami')
+    return refusing(
+      `<!doctype html><title>Who</title><p id="status">${has('tok') ? 'SCRIPT-COOKIE' : 'NO-SCRIPT-COOKIE'}</p>` +
+        `<p id="seen"></p><script>document.getElementById('seen').textContent = document.cookie</script>`,
+    );
+  if (url.pathname === '/transfer') {
+    transfers.push({ method: req.method, signedIn: has('sid') });
+    return refusing('<!doctype html><title>Done</title><p id="status">DONE</p>');
+  }
   res.setHeader('content-type', 'text/html');
   res.setHeader('x-frame-options', 'DENY');
   res.setHeader('content-security-policy', "frame-ancestors 'none'");
@@ -25,6 +57,13 @@ const site = http.createServer((req, res) => {
   );
 });
 await new Promise((r) => site.listen(SITE, '127.0.0.1', r));
+const evil = http.createServer((req, res) => {
+  res.setHeader('content-type', 'text/html');
+  res.end(
+    `<!doctype html><title>Other site</title><form method="post" action="http://127.0.0.1:${SITE}/transfer"><button id="pay">Pay</button></form>`,
+  );
+});
+await new Promise((r) => evil.listen(EVIL, r));
 
 const dev = spawn('npm', ['start', '--', '--port', String(PORT)], {
   stdio: 'ignore',
@@ -160,6 +199,74 @@ t.ok(
   await address(),
 );
 
+const open = async (address) => {
+  await page.locator('#deck-browser-address').fill(address);
+  await page.locator('#deck-browser-address').press('Enter');
+};
+const statusIs = async (path, want) => {
+  for (let i = 0; i < 40; i++) {
+    const f = frameOf(path);
+    if (
+      (await f
+        ?.locator('#status')
+        .innerText()
+        .catch(() => '')) === want
+    )
+      return true;
+    await sleep(250);
+  }
+  return false;
+};
+
+await open(`http://127.0.0.1:${SITE}/signin`);
+t.ok('cookies: a page starts signed out', await statusIs('/signin', 'SIGNED-OUT'));
+await frameOf('/signin').locator('#go').click();
+t.ok(
+  'cookies: a sign-in with a default (Lax) cookie stays signed in',
+  await statusIs('/signin', 'SIGNED-IN'),
+);
+t.ok(
+  'cookies: the browser itself holds none of the site cookies',
+  (await page.context().cookies()).filter((c) => c.domain.includes('.localhost')).length === 0,
+  JSON.stringify((await page.context().cookies()).map((c) => c.name)),
+);
+await frameOf('/signin').locator('#script').click();
+await sleep(700);
+await frameOf('/signin').locator('#who').click();
+t.ok(
+  'cookies: a cookie a script sets with document.cookie reaches the site',
+  await statusIs('/whoami', 'SCRIPT-COOKIE'),
+);
+t.ok(
+  'cookies: document.cookie shows it, and not the HttpOnly sign-in',
+  (await frameOf('/whoami')?.locator('#seen').innerText()) === 'tok=1',
+);
+await open(`http://127.0.0.1:${SITE}/signin?again=1`);
+await statusIs('/signin', 'SIGNED-IN');
+await frameOf('/signin').locator('#pay-own').click();
+for (let i = 0; i < 40 && transfers.length < 1; i++) await sleep(250);
+t.ok(
+  'cookies: a form of the same site carries the sign-in',
+  transfers[0]?.method === 'POST' && transfers[0]?.signedIn === true,
+  JSON.stringify(transfers),
+);
+await open(`http://localhost:${EVIL}/`);
+let pay = null;
+for (let i = 0; i < 40 && !pay; i++) {
+  pay =
+    page
+      .frames()
+      .find((f) => f.url().includes('.localhost:') && f.url().includes('http-' + EVIL)) ?? null;
+  if (!pay) await sleep(250);
+}
+await pay.locator('#pay').click();
+for (let i = 0; i < 40 && transfers.length < 2; i++) await sleep(250);
+t.ok(
+  'cookies: a form of another site arrives without the sign-in',
+  transfers[1]?.method === 'POST' && transfers[1]?.signedIn === false,
+  JSON.stringify(transfers),
+);
+
 const proxy = await page.evaluate(async () => {
   const { token } = await (await fetch('/__slide-ng/session')).json();
   return (await fetch('/__slide-ng/web-proxy', { headers: { 'x-slide-ng-token': token } })).json();
@@ -201,5 +308,6 @@ t.ok(
 t.ok('no page errors', problems.length === 0, JSON.stringify(problems));
 await browser.close();
 site.close();
+evil.close();
 stop();
 process.exit(t.done());
