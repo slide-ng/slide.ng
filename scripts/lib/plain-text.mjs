@@ -26,7 +26,11 @@ export function plainTitle(title) {
     .replace(/(\*\*|\*|~~)(\S(?:.*?\S)?)\1/g, '$2')
     .replace(/(?<!\w)(__|_)(\S(?:.*?\S)?)\1(?!\w)/g, '$2')
     .replace(/<(rt|rp)\b[^>]*>[\s\S]*?<\/\1>/gi, '') // a ruby reading is not part of the title text
+    .replace(/<br\b[^>]*>/gi, ' ')
+    .replace(/<img\b[^>]*?\salt\s*=\s*(["'])(.*?)\1[^>]*>/gi, ' $2 ')
     .replace(/<\/?[A-Za-z][^>]*>/g, '') // H<sub>2</sub>O is H2O
+    .replace(/&(?:ngsp|nbsp);/g, ' ')
+    .replace(/ {2,}/g, ' ')
     .replace(/NGESC(\d+)X/g, (_, i) => escaped[+i])
     .replace(/NGMATH(\d+)X/g, (_, i) => texText(maths[+i].latex))
     .trim();
