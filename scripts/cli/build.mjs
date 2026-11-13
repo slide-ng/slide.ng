@@ -1,7 +1,15 @@
 // The `build` command: a static copy of the deck that any web server can host.
 //   slide-ng build [slides.md..] [--base /talk/] [--out dist] [--download] [--without-notes] [--router-mode hash]
 // Several entries are built one after another into <out>/<name>/ (see entries.mjs).
-import { copyFileSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 import { moveInlineScripts } from '../build/csp.mjs';
 import { makeOffline } from '../build/offline.mjs';
@@ -217,7 +225,10 @@ async function afterBuild({ dist, deck, entry, root, base, workDir, download, fl
 
   // GitHub Pages answers an unknown address with 404.html; Netlify reads _redirects. Both send it to the app.
   copyFileSync(join(dist, 'index.html'), join(dist, '404.html'));
-  writeFileSync(join(dist, '_redirects'), `${base}*    ${base}index.html   200\n`);
+  const redirects = join(dist, '_redirects');
+  const own = existsSync(redirects) ? readFileSync(redirects, 'utf8').trimEnd() : '';
+  const fallback = `${base}*    ${base}index.html   200\n`;
+  writeFileSync(redirects, own ? `${own}\n${fallback}` : fallback);
   if (pwaEnabled(head)) {
     await makeIcons(
       head,

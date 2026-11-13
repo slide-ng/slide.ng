@@ -97,6 +97,7 @@ writeFileSync(
 mkdirSync(join(deckDir, 'public'), { recursive: true });
 writeFileSync(join(deckDir, 'public', 'brand.css'), 'body { --brand: on; }\n');
 writeFileSync(join(deckDir, 'public', 'brand.js'), "window.__brandJs = 'ran';\n");
+writeFileSync(join(deckDir, 'public', '_redirects'), '/tr    /talk/1?lang=tr    302!\n');
 const site = join(scratch, 'site-a');
 await cli(
   [
@@ -119,8 +120,9 @@ t.ok(
   list.join(),
 );
 t.ok(
-  '_redirects sends every address under the base to index.html',
-  readFileSync(join(site, '_redirects'), 'utf8').startsWith('/talk/*    /talk/index.html   200'),
+  "_redirects keeps the deck's own rules, then sends every address under the base to index.html",
+  readFileSync(join(site, '_redirects'), 'utf8') ===
+    '/tr    /talk/1?lang=tr    302!\n/talk/*    /talk/index.html   200\n',
 );
 t.ok(
   'the build folder is marked as ours, and the work folder is gone',

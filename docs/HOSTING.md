@@ -99,6 +99,9 @@ The build contains `_redirects`. Or use `netlify.toml`:
   status = 200
 ```
 
+Netlify reads `_redirects` before `netlify.toml`, so the build's catch-all wins over redirects written there. Put your own rules
+in `public/_redirects` instead: the build keeps them and adds its catch-all after them, so `/tr  /1?lang=tr  302` works.
+
 ## Vercel
 
 ```json

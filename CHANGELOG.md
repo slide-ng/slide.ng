@@ -4,6 +4,10 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+### Fixed
+
+- A deck's own `public/_redirects` was replaced by the build's, so its rules were lost on Netlify (and rules in `netlify.toml` never ran, since `_redirects` is read first and its catch-all matched everything). The build now keeps them and adds its catch-all after them.
+
 ## [3.5.0] - 2026-11-13
 
 ### Added
