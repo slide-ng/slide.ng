@@ -4,7 +4,7 @@
   <div class="relative w-13 h-12 flex items-center justify-center">
     <div
       class="timer-icon group-hover:op-0 group-focus-within:op-0 text-2xl"
-      [class]="timer.mode === 'countdown' ? 'i-carbon:timer' : 'i-carbon:time'"
+      [class]="timer.mode() === 'countdown' ? 'i-carbon:timer' : 'i-carbon:time'"
       aria-hidden="true"
     ></div>
     <div

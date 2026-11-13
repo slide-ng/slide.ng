@@ -4,6 +4,14 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+### Added
+
+- **Timer Minutes** in the settings sets the timer's length in this browser: a countdown of that many minutes over the deck's `duration`. Empty goes back to the deck's.
+
+### Fixed
+
+- The floating timer was drawn over the settings and other menus; it now stays under them.
+
 ## [3.5.1] - 2026-11-13
 
 ### Fixed

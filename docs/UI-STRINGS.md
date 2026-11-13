@@ -98,6 +98,7 @@ default; `src/app/i18n/en.ts` holds it and is the source of truth for the keys. 
 | `settings.wakeLock`           | Wake Lock                                      |
 | `settings.hideIdleCursor`     | Hide Idle Cursor                               |
 | `settings.showTimer`          | Show Timer                                     |
+| `settings.timerMinutes`       | Timer Minutes                                  |
 | `settings.timerSize`          | Timer Size                                     |
 | `settings.timerFade`          | Timer Fades                                    |
 | `settings.timerFadeIdle`      | When Idle                                      |

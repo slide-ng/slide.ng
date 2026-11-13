@@ -12,6 +12,8 @@ import { FilterSettings } from './filter-settings';
 import { NavPositionSettings } from './nav-position-settings';
 import { SegmentControl } from './segment-control';
 import { TimerPrefs } from './timer-prefs';
+import { HEADMATTER } from '../../slides/generated';
+import { parseDuration } from '../presenter/timer';
 
 // The content of the settings menu ("More Options").
 @Component({
@@ -28,6 +30,7 @@ export class Settings {
   protected download = inject(Download);
   protected devices = inject(Devices);
   protected timerPrefs = inject(TimerPrefs);
+  protected deckMinutes = String(Math.round(parseDuration(HEADMATTER['duration']) / 60));
   protected timerSizes = [
     { id: 'timer-size-s', label: 'S', value: 's' },
     { id: 'timer-size-m', label: 'M', value: 'm' },
@@ -52,6 +55,10 @@ export class Settings {
     { id: 'scale-fit', label: this.ui.text('settings.fit'), hue: 'Fit', value: 0 },
     { id: 'scale-1', label: '1:1', value: 1 },
   ];
+  protected setMinutes(input: HTMLInputElement) {
+    this.timerPrefs.setMinutes(input.value);
+    input.value = String(this.timerPrefs.minutes() ?? '');
+  }
   protected timerFades = [
     { id: 'timer-fade-idle', label: this.ui.text('settings.timerFadeIdle'), value: 'idle' },
     { id: 'timer-fade-always', label: this.ui.text('settings.timerFadeAlways'), value: 'always' },

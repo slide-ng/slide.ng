@@ -5,6 +5,7 @@ import { HEADMATTER } from '../../slides/generated';
 import { TimerState } from '../sync/shared-state';
 import { SyncState } from '../sync/sync-state';
 import { scopedKey } from '../lib/deck-scope';
+import { TimerPrefs } from '../ui/timer-prefs';
 
 /** `30min`, `1h30min`, `90s`, `1.5h` or a plain number of minutes -> seconds. Empty or wrong text gives 30 minutes (Slidev's default). */
 export function parseDuration(value: unknown): number {
@@ -70,16 +71,23 @@ function readSaved(): TimerState | null {
 @Injectable({ providedIn: 'root' })
 export class Timer {
   private sync = inject(SyncState);
-  readonly mode: 'stopwatch' | 'countdown' =
-    HEADMATTER['timer'] === 'countdown' ? 'countdown' : 'stopwatch';
-  readonly duration = parseDuration(HEADMATTER['duration']);
+  private prefs = inject(TimerPrefs);
+  readonly mode = computed<'stopwatch' | 'countdown'>(() =>
+    this.prefs.minutes() != null || HEADMATTER['timer'] === 'countdown' ? 'countdown' : 'stopwatch',
+  );
+  readonly duration = computed(() => {
+    const minutes = this.prefs.minutes();
+    return minutes != null ? minutes * 60 : parseDuration(HEADMATTER['duration']);
+  });
   private state = computed(() => this.sync.shared().timer);
   /** The clock; it ticks only while the timer runs. */
   readonly now = signal(Date.now());
   readonly status = computed(() => this.state().status);
   readonly passed = computed(() => passedMs(this.state(), this.now()) / 1000);
-  readonly percentage = computed(() => (this.passed() / this.duration) * 100);
-  readonly parts = computed(() => clockParts(this.mode, this.duration, this.state(), this.now()));
+  readonly percentage = computed(() => (this.passed() / this.duration()) * 100);
+  readonly parts = computed(() =>
+    clockParts(this.mode(), this.duration(), this.state(), this.now()),
+  );
 
   constructor() {
     // A reload of the presenter page keeps a running or paused timer (it is kept per tab). A new tab gets it from the
