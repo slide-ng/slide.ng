@@ -18,7 +18,7 @@ slide-ng build --router-mode hash # replaces the headmatter's routerMode for thi
 Verify: the last line is `Built N slides into <out> (base /talk/).` and `<out>/index.html` exists.
 
 - The output is plain files; any web server hands them out.
-- **History mode** (default) needs the host to answer unknown paths with `index.html`. The build writes `404.html` (GitHub Pages) and `_redirects` (Netlify). Nginx: `try_files $uri $uri/ /index.html;`. Vercel: a rewrite of `/(.*)` to `/index.html`.
+- **History mode** (default) needs the host to answer unknown paths with `index.html`. The build writes `404.html` (GitHub Pages) and `_redirects` (Netlify). Netlify reads `_redirects` before `netlify.toml`, so put your own redirects in `public/_redirects`: the build keeps them ahead of its catch-all. Nginx: `try_files $uri $uri/ /index.html;`. Vercel: a rewrite of `/(.*)` to `/index.html`.
 - **Hash mode** (`routerMode: hash`) needs nothing from the host: addresses are `/#/3`.
 - **Memory mode** (`routerMode: memory`) never changes the address: the deck opens at slide 1, deep links and `/presenter` or `/notes` links open slide 1 too (open the presenter with the bar's button); only `<base>#/<number>`, the href of a slide link, opens that slide. Back and Forward leave the deck, and reloading the presenter returns to the audience view. For kiosks; `--download` still works. `--offline` uses hash routing instead, with a warning. The dev server keeps the slide across reloads.
 - `--base` is a path (`/talk/`), not a full address. Build for the prefix you deploy under.
