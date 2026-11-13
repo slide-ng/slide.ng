@@ -1338,7 +1338,7 @@ presses a button, and a touch on the slide hides it again. On a screen taller th
 
 ## Deck browser
 
-slide.ng's own (issue #72): a browser inside the deck, so a talk can show websites without leaving the slides. `b`, or the globe
+slide.ng's own (issue #72): a browser inside the deck, so a talk can show websites without leaving the slides. `b`, or the Chrome
 button in the bar, opens it as a full-screen layer over the current slide; closing it (the × button, `b` or Escape) brings back the
 same slide and click. Its tabs stay loaded while it is closed. In fullscreen, Escape closes the deck browser and keeps fullscreen; the next Escape leaves
 fullscreen. For that the deck locks the Escape key when it goes fullscreen (Chrome and Edge ask once for the keyboard permission;

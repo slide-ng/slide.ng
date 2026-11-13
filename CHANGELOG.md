@@ -10,6 +10,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ### Changed
 
+- The deck browser's button in the bar and on the presenter page shows the Chrome logo instead of a globe, which looked too much like the translate button next to it.
 - `tough-cookie` (BSD-3-Clause) is a dependency now, used only by the dev server's proxy for those cookies.
 
 ## [3.3.0] - 2026-11-01
