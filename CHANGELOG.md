@@ -4,6 +4,8 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+## [3.7.0] - 2026-11-13
+
 ### Added
 
 - **Timer Starts at Slide** in the settings, and `timerStart` in the headmatter: a stopped timer starts by itself when the deck moves to that slide. Opening a page on that slide, or a reset there, does not start it.
@@ -433,7 +435,8 @@ The first version, built in phases.
 
 See `docs/STATUS.md` for what is missing or not verified.
 
-[Unreleased]: https://github.com/slide-ng/slide.ng/compare/v3.6.0...HEAD
+[Unreleased]: https://github.com/slide-ng/slide.ng/compare/v3.7.0...HEAD
+[3.7.0]: https://github.com/slide-ng/slide.ng/compare/v3.6.0...v3.7.0
 [3.6.0]: https://github.com/slide-ng/slide.ng/compare/v3.5.1...v3.6.0
 [3.5.1]: https://github.com/slide-ng/slide.ng/compare/v3.5.0...v3.5.1
 [3.5.0]: https://github.com/slide-ng/slide.ng/compare/v3.4.0...v3.5.0
