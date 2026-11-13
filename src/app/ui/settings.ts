@@ -59,6 +59,10 @@ export class Settings {
     this.timerPrefs.setMinutes(input.value);
     input.value = String(this.timerPrefs.minutes() ?? '');
   }
+  protected setStart(input: HTMLInputElement) {
+    this.timerPrefs.setStart(input.value);
+    input.value = String(this.timerPrefs.startSlide() ?? '');
+  }
   protected timerFades = [
     { id: 'timer-fade-idle', label: this.ui.text('settings.timerFadeIdle'), value: 'idle' },
     { id: 'timer-fade-always', label: this.ui.text('settings.timerFadeAlways'), value: 'always' },

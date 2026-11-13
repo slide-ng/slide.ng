@@ -4,6 +4,19 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+### Added
+
+- **Timer Starts at Slide** in the settings, and `timerStart` in the headmatter: a stopped timer starts by itself when the deck moves to that slide. Opening a page on that slide, or a reset there, does not start it.
+
+### Changed
+
+- The deck browser is marked as beta: a Beta label in its address bar and on its start page, and a note in the docs. Some sites do not load or behave as in a real browser yet.
+- `<slide-ng-timer />` has a reset button that shows on hover, like the floating timer, and takes clicks inside a layer or footer that has `pointer-events: none`.
+
+### Fixed
+
+- A window of the deck that follows another one opened a new browser tab for every link clicked in the other window's deck browser, and the two could keep adding tabs. It now moves its current tab along.
+
 ## [3.6.0] - 2026-11-13
 
 ### Added

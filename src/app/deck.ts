@@ -39,6 +39,7 @@ import { NavBar } from './ui/nav-bar';
 import { OfflineBadge } from './ui/offline-badge';
 import { FloatingTimer } from './ui/floating-timer';
 import { TimerPrefs } from './ui/timer-prefs';
+import { autoStartTimer } from './ui/timer-auto-start';
 import { Overview } from './ui/overview';
 
 // The route /:no, the audience's page. Shows one slide on a scaled canvas and hosts the controls around it.
@@ -136,6 +137,7 @@ export class Deck {
   protected bar = computed(() => navPosition(this.view.navPosition()));
 
   constructor() {
+    autoStartTimer();
     effect(() => this.ui.barPinned.set(this.portrait()));
     afterRenderEffect(() => {
       const place = this.bar();

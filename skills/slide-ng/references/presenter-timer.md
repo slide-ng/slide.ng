@@ -8,6 +8,7 @@ description: Talk duration and the timer on the presenter page
 ```yaml
 duration: 30min # 30min, 1h30min, 90s, or a number of minutes
 timer: countdown # or stopwatch (default)
+timerStart: 3 # start a stopped timer when the deck moves to slide 3
 ```
 
 - The time is shared by every window and device (also with clocks set differently). A reloaded presenter tab keeps it; a reopened one gets it from another open window, or from the dev server. The newest start, pause or reset wins, so a tab that comes back with an older timer does not undo a reset made elsewhere.

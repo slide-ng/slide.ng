@@ -380,7 +380,7 @@ Available in every slide without importing anything.
 | `<slide-ng-toc />`                                                                                                                                                                     | table of contents from the slides' `title` and `level`. Options: `columns="2"`, `listClass="..."`, `start="1"`, `listStyle="..."`, `minDepth`, `maxDepth`, `mode="all\|onlyCurrentTree\|onlySiblings"`                                                                                                                                                                             |
 | `<slide-ng-current-no />`                                                                                                                                                              | the number of the slide it is on                                                                                                                                                                                                                                                                                                                                                   |
 | `<slide-ng-total />`                                                                                                                                                                   | the number of slides                                                                                                                                                                                                                                                                                                                                                               |
-| `<slide-ng-timer />`                                                                                                                                                                   | the presenter timer (`duration`, `timer`) as text, for a talk without the presenter page; a click starts or pauses it, and every window shows the same time                                                                                                                                                                                                                        |
+| `<slide-ng-timer />`                                                                                                                                                                   | the presenter timer (`duration`, `timer`) as text, for a talk without the presenter page; a click starts or pauses it, hover shows a reset button, and every window shows the same time (it takes clicks inside a `pointer-events: none` footer)                                                                                                                                   |
 | `<slide-ng-progress-bar position="top" height="6" color="red" />`                                                                                                                      | a bar that shows how far through the deck the slide is, see Progress bar                                                                                                                                                                                                                                                                                                           |
 | `<slide-ng-title-renderer />`, `no="3"`                                                                                                                                                | a slide's title as HTML (inline markdown and `$math$`); without `no`, the slide it is on                                                                                                                                                                                                                                                                                           |
 | `<slide-ng-link to="3">text</slide-ng-link>`                                                                                                                                           | a link to slide 3, or to a `routeAlias`. (Called `slide-ng-link` because `link` is a built-in HTML tag.)                                                                                                                                                                                                                                                                           |
@@ -982,6 +982,7 @@ audience page on another device only follows.
 ---
 duration: 30min # 30min, 1h30min, 90s, or a number of minutes
 timer: countdown # or stopwatch (default)
+timerStart: 3 # start a stopped timer when the deck moves to slide 3
 ---
 ```
 
@@ -995,7 +996,8 @@ are always shown.
 
 **Without the presenter page**, the timer can be on the slides too. **Show Timer** in the settings menu or the right-click menu puts
 a clock over the slide page: drag it anywhere (the place is kept in the browser), set **Timer Minutes** (a countdown of that length in this
-browser, over `duration`; empty goes back to the deck\'s), pick its size (S, M, L) in the settings, click it to
+browser, over `duration`; empty goes back to the deck\'s), set **Timer Starts at Slide** (a stopped timer starts when the
+deck moves to that slide, in this browser, over `timerStart`; opening a page on that slide or a reset there does not start it), pick its size (S, M, L) in the settings, click it to
 start or pause, and hover it for reset and hide. It fades after 3 seconds without mouse movement and comes back when the
 mouse moves; **Timer Fades: Always** in the settings keeps it faded until you hover it. `<slide-ng-timer />` places the same clock in a slide or a layer, styled by its
 `class` (`<slide-ng-timer class="text-4xl text-red" />`), and inside `<slide-ng-drag>` it can be moved like anything else. Both show
@@ -1346,6 +1348,9 @@ presses a button, and a touch on the slide hides it again. On a screen taller th
   Say a formula in words in the text or the notes when the audience needs it.
 
 ## Deck browser
+
+**Beta.** The deck browser is still in beta (a Beta label in its address bar says so): some sites do not load or behave as they
+would in a real browser, and syncing it between windows can still go wrong. Try your pages before the talk.
 
 slide.ng's own (issue #72): a browser inside the deck, so a talk can show websites without leaving the slides. `b`, or the Chrome
 button in the bar, opens it as a full-screen layer over the current slide; closing it (the × button, `b` or Escape) brings back the

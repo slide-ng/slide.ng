@@ -5,19 +5,19 @@ description: Keys, mouse, the navigation bar, overview, dark mode and URL state
 
 # Keys and interface
 
-| key                          | action                                                                                               |
-| ---------------------------- | ---------------------------------------------------------------------------------------------------- |
-| right, space, page down      | next click, or next slide                                                                            |
-| left, shift + space, page up | previous click, or previous slide                                                                    |
-| down, shift + right          | next slide (skips the clicks)                                                                        |
-| up, shift + left             | previous slide                                                                                       |
-| `f`                          | fullscreen                                                                                           |
-| `o` or backtick              | overview (arrows move, Enter opens, Escape closes; a button opens `/overview`)                       |
-| `d`                          | dark / light                                                                                         |
-| `g`                          | go to a slide: number or part of a title (any case, accents optional), Enter                         |
-| Escape                       | close overview, dialogs, menus                                                                       |
-| `u`                          | presenter page: show or hide the upcoming clicks                                                     |
-| `b`                          | slide page: open or close the deck browser (Escape closes it while the focus is not inside the page) |
+| key                          | action                                                                                                        |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| right, space, page down      | next click, or next slide                                                                                     |
+| left, shift + space, page up | previous click, or previous slide                                                                             |
+| down, shift + right          | next slide (skips the clicks)                                                                                 |
+| up, shift + left             | previous slide                                                                                                |
+| `f`                          | fullscreen                                                                                                    |
+| `o` or backtick              | overview (arrows move, Enter opens, Escape closes; a button opens `/overview`)                                |
+| `d`                          | dark / light                                                                                                  |
+| `g`                          | go to a slide: number or part of a title (any case, accents optional), Enter                                  |
+| Escape                       | close overview, dialogs, menus                                                                                |
+| `u`                          | presenter page: show or hide the upcoming clicks                                                              |
+| `b`                          | slide page: open or close the deck browser, in beta (Escape closes it while the focus is not inside the page) |
 
 - Shortcuts are off while typing in an editor and while drawing.
 - The bar at the bottom left shows when the mouse is there: fullscreen, previous, next, overview, dark mode, drawing, presenter mode, info, settings, counter. Right click opens the same actions as a menu (Shift + right click for the browser's menu). Click the dark area beside the slide: right half next, left half previous.

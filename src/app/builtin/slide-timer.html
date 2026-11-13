@@ -1,13 +1,23 @@
 @if (live) {
-  <button
-    type="button"
-    class="slide-ng-timer font-mono tabular-nums cursor-pointer bg-transparent border-0 p-0 text-inherit"
-    [class.op50]="timer.status() !== 'running'"
-    [attr.aria-label]="(timer.status() === 'running' ? 'timer.pause' : 'timer.start') | t"
-    (click)="timer.toggle()"
-  >
-    <app-clock-face />
-  </button>
+  <span class="slide-ng-timer group inline-flex items-center gap-1 pointer-events-auto">
+    <button
+      type="button"
+      class="font-mono tabular-nums cursor-pointer bg-transparent border-0 p-0 text-inherit"
+      [class.op50]="timer.status() !== 'running'"
+      [attr.aria-label]="(timer.status() === 'running' ? 'timer.pause' : 'timer.start') | t"
+      (click)="timer.toggle()"
+    >
+      <app-clock-face />
+    </button>
+    <button
+      type="button"
+      class="slide-ng-timer-reset w-[1.2em] h-[1.2em] flex items-center justify-center cursor-pointer bg-transparent border-0 p-0 text-inherit op-0 group-hover:op-100 focus-visible:op-100"
+      [attr.aria-label]="'timer.reset' | t"
+      (click)="timer.reset()"
+    >
+      <div class="i-carbon:renew"></div>
+    </button>
+  </span>
 } @else {
   <span class="slide-ng-timer font-mono tabular-nums"><app-clock-face /></span>
 }

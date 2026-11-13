@@ -34,6 +34,7 @@ import { PaneResizers } from './pane-resizers';
 import { SideEditor } from '../dev/side-editor';
 import { SideEditorState } from '../dev/side-editor-state';
 import { scopedKey } from '../lib/deck-scope';
+import { autoStartTimer } from '../ui/timer-auto-start';
 
 const EDITING_NOTES = 'slide-ng-editing-notes';
 function readEditing(): boolean {
@@ -127,6 +128,7 @@ export class Presenter {
   });
 
   constructor() {
+    autoStartTimer();
     inject(Title).setTitle(this.title);
     startNavSync(this.nav);
   }
