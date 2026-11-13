@@ -1,22 +1,17 @@
-import { Component, DestroyRef, ElementRef, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, computed, inject, signal } from '@angular/core';
 import { T } from '../i18n/t';
+import { watchIdle } from '../lib/idle';
+import { ClockFace } from '../presenter/clock-face';
 import { Timer } from '../presenter/timer';
 import { TimerPrefs } from './timer-prefs';
 
-/** Pixels the pointer must move before a press on the clock is a drag and not a click. */
 const DRAG_START = 4;
-
+const IDLE = 3000;
 const clamp = (n: number) => Math.min(0.98, Math.max(0.02, n));
 
-/** Milliseconds without mouse movement before the timer fades. */
-const IDLE = 3000;
-
-// The timer over the slide page, for a talk without the presenter page: shown from the settings or the right-click menu,
-// dragged anywhere on the stage, in three sizes. A click on the clock starts or pauses it; hover it for reset and hide. It fades
-// while the mouse rests, like the navigation bar, and comes back when the mouse moves.
 @Component({
   selector: 'app-floating-timer',
-  imports: [T],
+  imports: [ClockFace, T],
   templateUrl: './floating-timer.html',
 })
 export class FloatingTimer {
@@ -24,9 +19,9 @@ export class FloatingTimer {
   protected prefs = inject(TimerPrefs);
   private host = inject(ElementRef<HTMLElement>);
   protected dragging = signal(false);
-  private press: { x: number; y: number; id: number } | null = null;
-  private idle = signal(false);
   protected hovered = signal(false);
+  private idle = signal(false);
+  private press: { x: number; y: number; id: number } | null = null;
   protected opacity = computed(() => {
     if (this.dragging() || this.hovered()) return 1;
     if (this.prefs.fade() === 'always' || this.idle()) return 0.25;
@@ -34,18 +29,7 @@ export class FloatingTimer {
   });
 
   constructor() {
-    let wait: ReturnType<typeof setTimeout> | undefined;
-    const wake = () => {
-      this.idle.set(false);
-      clearTimeout(wait);
-      wait = setTimeout(() => this.idle.set(true), IDLE);
-    };
-    wake();
-    window.addEventListener('pointermove', wake, { passive: true });
-    inject(DestroyRef).onDestroy(() => {
-      window.removeEventListener('pointermove', wake);
-      clearTimeout(wait);
-    });
+    watchIdle(IDLE, (idle) => this.idle.set(idle))();
   }
 
   protected down(event: PointerEvent) {
@@ -75,7 +59,15 @@ export class FloatingTimer {
     if (!this.press || event.pointerId !== this.press.id) return;
     event.stopPropagation();
     if (!this.dragging()) this.timer.toggle();
+    this.cancel();
+  }
+
+  protected cancel() {
     this.press = null;
     this.dragging.set(false);
+  }
+
+  protected keyClick(event: MouseEvent) {
+    if (event.detail === 0) this.timer.toggle();
   }
 }

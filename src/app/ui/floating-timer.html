@@ -2,15 +2,18 @@
   id="floating-timer"
   class="group absolute z-nav flex items-center gap-2 rounded-lg px-3 py-1 bg-main shadow select-none"
   [style.opacity]="opacity()"
-  style="transition: opacity 0.5s"
+  style="transition: opacity 0.5s; transform: translate(-50%, -50%)"
   (pointerenter)="hovered.set(true)"
   (pointerleave)="hovered.set(false)"
   (focusin)="hovered.set(true)"
   (focusout)="hovered.set(false)"
+  (touchstart)="$event.stopPropagation()"
+  (touchmove)="$event.stopPropagation()"
+  (touchend)="$event.stopPropagation()"
+  (touchcancel)="$event.stopPropagation()"
   [class.cursor-grabbing]="dragging()"
   [style.left.%]="prefs.place().x * 100"
   [style.top.%]="prefs.place().y * 100"
-  [style.transform]="'translate(-50%, -50%)'"
 >
   <button
     id="floating-timer-clock"
@@ -24,15 +27,10 @@
     (pointerdown)="down($event)"
     (pointermove)="move($event)"
     (pointerup)="up($event)"
-    (pointercancel)="up($event)"
-    (keydown.enter)="timer.toggle()"
+    (pointercancel)="cancel()"
+    (click)="keyClick($event)"
   >
-    @if (timer.parts().h) {
-      <span>{{ timer.parts().h }}</span
-      ><span class="op50">:</span>
-    }
-    <span>{{ timer.parts().m }}</span
-    ><span class="op50">:</span><span>{{ timer.parts().s }}</span>
+    <app-clock-face />
   </button>
   <div class="flex flex-col gap-1 op-0 group-hover:op-100 group-focus-within:op-100">
     <button

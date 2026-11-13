@@ -1486,8 +1486,8 @@ reader chooses another. It works in `dev`, in a build and in an offline folder.
   The generator warns, with files and lines, when the files have a different number of slides. A slide the translation does not have is
   shown from the entry file; a slide past the entry file's last is left out. `hide: true` drops a slide from its own file only, so hide it
   in every file.
-- **`?lang=tr` in the address** opens the page in Turkish and stores that choice, as the menu does, then takes `lang` off the
-  address: a link such as `https://talk.example/1?lang=tr` opens slide 1 in Turkish. A language that is not in `languages` is
+- **`?lang=tr` in the address** opens the page in Turkish for that tab (other windows of the deck keep their language, and a choice in
+  the menu replaces it), then takes `lang` off the address: a link such as `https://talk.example/1?lang=tr` opens slide 1 in Turkish. A language that is not in `languages` is
   ignored. In hash mode it goes before the `#` (`/?lang=tr#/1`).
 - **`--lang tr`** starts the page in Turkish (`dev`, `build`), and `export --lang tr` exports the Turkish slides. A language that is not in
   `languages` is warned about and ignored.
