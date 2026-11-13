@@ -6,6 +6,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ### Fixed
 
+- A slide title with a `<br>`, a picture or `&ngsp;` lost its spaces and words in the tab title, the "go to" list, the screen reader's announcement and the PDF outline: `Open Source 101<br>with <img alt="Angular">` read "Open Source 101with". A line break and `&ngsp;` (or `&nbsp;`) are now a space, and a picture is its `alt` text.
 - Through the dev proxy, a sign-in never stayed signed in: the shown page sits on its own `*.localhost` origin, which the browser counts as another site than the deck, so it refused a `SameSite=Lax` cookie (the default). The proxy now keeps each site's cookies itself, in memory until the dev server stops, and applies SameSite on its own: a sign-in stays, and a form of another site still does not carry it. Cookies that a page sets with `document.cookie` work too. Tried in Chrome on a local test site only.
 
 ### Changed
