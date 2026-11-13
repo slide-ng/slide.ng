@@ -4,6 +4,8 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+## [3.6.0] - 2026-11-13
+
 ### Added
 
 - **Timer Minutes** in the settings sets the timer's length in this browser: a countdown of that many minutes over the deck's `duration`. Empty goes back to the deck's.
@@ -418,7 +420,8 @@ The first version, built in phases.
 
 See `docs/STATUS.md` for what is missing or not verified.
 
-[Unreleased]: https://github.com/slide-ng/slide.ng/compare/v3.5.1...HEAD
+[Unreleased]: https://github.com/slide-ng/slide.ng/compare/v3.6.0...HEAD
+[3.6.0]: https://github.com/slide-ng/slide.ng/compare/v3.5.1...v3.6.0
 [3.5.1]: https://github.com/slide-ng/slide.ng/compare/v3.5.0...v3.5.1
 [3.5.0]: https://github.com/slide-ng/slide.ng/compare/v3.4.0...v3.5.0
 [3.4.0]: https://github.com/slide-ng/slide.ng/compare/v3.3.0...v3.4.0
