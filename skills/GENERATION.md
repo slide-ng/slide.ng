@@ -409,17 +409,17 @@ setup file, a theme file) next to the samples of the same page. Fragments that c
     "references/export-formats.md": {
       "sources": {
         "README.md": "d0082db0ba43f2594254dc328a059074005d71b871f95b01e5cb39139865f028",
-        "docs/STATUS.md": "8ae48829601dc20500cdcb34fe4cff8dd6015227d29400a9db41ff67b36c95a5",
+        "docs/STATUS.md": "06307d0c7575cb4e42fc7cf3fcb5860394721f5d8c5c73eec6e1929e55b09f84",
         "docs/SYNTAX.md": "5e8da47b83d60aab9f75f9a05b1982034944672649fe1016d3f3643614783531"
       },
-      "hash": "d5ddc6d385ea6b3173f4f6bccd3be09daff2f4826cd302f051ccfb09028aaa47"
+      "hash": "2915860ce0fdd713902f02436522da61b44957747ffcacd9204dad586c26dbfe"
     },
     "references/export-notes.md": {
       "sources": {
         "README.md": "d0082db0ba43f2594254dc328a059074005d71b871f95b01e5cb39139865f028",
-        "docs/STATUS.md": "8ae48829601dc20500cdcb34fe4cff8dd6015227d29400a9db41ff67b36c95a5"
+        "docs/STATUS.md": "06307d0c7575cb4e42fc7cf3fcb5860394721f5d8c5c73eec6e1929e55b09f84"
       },
-      "hash": "af916aebf6e4ac301e7b44f62e95925693c3beb2c717730e37402d5ac725c3ad"
+      "hash": "caad334bcef56168365936b5be5abfeba8a4c647b03330bcc3555fe5d7aaa49e"
     },
     "references/export-options.md": {
       "sources": {
@@ -430,10 +430,10 @@ setup file, a theme file) next to the samples of the same page. Fragments that c
     },
     "references/export-print-route.md": {
       "sources": {
-        "docs/STATUS.md": "8ae48829601dc20500cdcb34fe4cff8dd6015227d29400a9db41ff67b36c95a5",
+        "docs/STATUS.md": "06307d0c7575cb4e42fc7cf3fcb5860394721f5d8c5c73eec6e1929e55b09f84",
         "docs/SYNTAX.md": "5e8da47b83d60aab9f75f9a05b1982034944672649fe1016d3f3643614783531"
       },
-      "hash": "2ee41754d1a8ab54b4fb1b772fd27ad0f378511095dafe6a4880d4362eecfe35"
+      "hash": "dbff62afef9ba95319d7b257605a45f78749f01860571abb3f7e680158fb6da2"
     },
     "references/layout-builtin.md": {
       "sources": {
@@ -496,10 +496,10 @@ setup file, a theme file) next to the samples of the same page. Fragments that c
     "references/mcp-server.md": {
       "sources": {
         "docs/PARITY.md": "3ab3d98b0b76c8e0dd7cd12651cb555043cf63b11a98f762a565523b03e67b7a",
-        "docs/STATUS.md": "8ae48829601dc20500cdcb34fe4cff8dd6015227d29400a9db41ff67b36c95a5",
+        "docs/STATUS.md": "06307d0c7575cb4e42fc7cf3fcb5860394721f5d8c5c73eec6e1929e55b09f84",
         "scripts/mcp/index.mjs": "dbd7696b72a0d8311f939ff6ad698b51bc3261be10d1293f38ed1239241fd05f"
       },
-      "hash": "069171bb6d14de32a5a5c8acc4604dfe858d8ad650ad2295fa61f18789ac36ec"
+      "hash": "ef51035f319712266dc599085d4cb13f07f55c7312ba2045eabf6d94da372234"
     },
     "references/mcp-tools.md": {
       "sources": {
@@ -510,9 +510,9 @@ setup file, a theme file) next to the samples of the same page. Fragments that c
     "references/not-supported.md": {
       "sources": {
         "docs/PARITY.md": "3ab3d98b0b76c8e0dd7cd12651cb555043cf63b11a98f762a565523b03e67b7a",
-        "docs/STATUS.md": "8ae48829601dc20500cdcb34fe4cff8dd6015227d29400a9db41ff67b36c95a5"
+        "docs/STATUS.md": "06307d0c7575cb4e42fc7cf3fcb5860394721f5d8c5c73eec6e1929e55b09f84"
       },
-      "hash": "42a8008bdc6e74db0b1439091e743e2740f8a97e92a55726243633bb5b5a9118"
+      "hash": "46617d2c544ba9f06ed91de69acb62692b1b39ad10f77b27a644da6e53d9662a"
     },
     "references/offline-checklist.md": {
       "sources": {
