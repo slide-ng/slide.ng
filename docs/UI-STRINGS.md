@@ -99,6 +99,7 @@ default; `src/app/i18n/en.ts` holds it and is the source of truth for the keys. 
 | `settings.hideIdleCursor`     | Hide Idle Cursor                               |
 | `settings.showTimer`          | Show Timer                                     |
 | `settings.timerMinutes`       | Timer Minutes                                  |
+| `settings.timerStart`         | Timer Starts at Slide                          |
 | `settings.timerSize`          | Timer Size                                     |
 | `settings.timerFade`          | Timer Fades                                    |
 | `settings.timerFadeIdle`      | When Idle                                      |
@@ -311,6 +312,8 @@ default; `src/app/i18n/en.ts` holds it and is the source of truth for the keys. 
 | `nav.browserShow`            | Show deck browser                                                                      |
 | `nav.browserHide`            | Hide deck browser                                                                      |
 | `browser.label`              | Deck browser                                                                           |
+| `browser.beta`               | Beta                                                                                   |
+| `browser.betaHint`           | The deck browser is in beta: some sites and features may not work yet.                 |
 | `browser.newTab`             | New tab                                                                                |
 | `browser.closeTab`           | Close tab                                                                              |
 | `browser.reload`             | Reload                                                                                 |

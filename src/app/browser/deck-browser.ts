@@ -238,7 +238,7 @@ export class DeckBrowser {
     effect(() => {
       const remote = this.sync.shared().browser;
       if (remote === undefined || remote === untracked(() => this.shown())) return;
-      untracked(() => (remote ? this.openUrl(remote, '', false) : this.hide()));
+      untracked(() => (remote ? this.follow(remote) : this.hide()));
     });
     if (typeof window !== 'undefined') window.addEventListener('message', (e) => this.receive(e));
   }
@@ -275,6 +275,15 @@ export class DeckBrowser {
       this.tabs.update((all) => [...all, tab]);
       this.select(tab.id);
     }
+    this.open.set(true);
+  }
+
+  private follow(address: string) {
+    const url = webAddress(address);
+    const tab = this.active();
+    if (!url || !tab?.url || this.tabs().some((t) => t.url === url))
+      return this.openUrl(address, '', false);
+    this.go(tab, url);
     this.open.set(true);
   }
 
@@ -321,8 +330,12 @@ export class DeckBrowser {
     const tab = this.tabs().find((t) => t.id === id);
     if (!url || !tab) return;
     this.choose(url);
+    this.go(tab, url, name);
+  }
+
+  private go(tab: OpenTab, url: string, name = '') {
     const history = [...tab.history.slice(0, tab.index + 1), url];
-    this.patch(id, {
+    this.patch(tab.id, {
       url,
       name: name || tabTitle(url),
       icon: siteIcon(url),
@@ -331,7 +344,7 @@ export class DeckBrowser {
       framable: null,
       loaded: false,
     });
-    this.load(id, true);
+    this.load(tab.id, true);
   }
 
   toggleBookmark() {

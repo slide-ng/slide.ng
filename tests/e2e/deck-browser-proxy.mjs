@@ -3,7 +3,7 @@
 // follows clicks inside the page, back and forward move through what was seen, the search box uses `browser.search`, a
 // link that opens a new window becomes a tab, a sign-in with a default (Lax) cookie or a cookie set by a script stays signed in,
 // a form of another site gets none of those cookies, and the proxy refuses the deck's own servers and local addresses the deck
-// did not open.
+// did not open, and links followed in one window move a second window of the deck along in the same tab.
 import { spawn } from 'node:child_process';
 import http from 'node:http';
 import { launch, reporter } from './browser.mjs';
@@ -304,6 +304,34 @@ t.ok(
     )) === 200 &&
     (await asks(`127.0.0.1.http-${SITE + 1}.${proxy.key}.localhost:${proxy.port}`)) === 502,
 );
+
+const other = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+other.on('pageerror', (e) => problems.push(String(e)));
+await other.goto(`http://localhost:${PORT}/1`);
+await other.waitForSelector('#hud', { state: 'attached', timeout: 60000 });
+await page.fill('#deck-browser-address', `http://127.0.0.1:${SITE}/demo`);
+await page.press('#deck-browser-address', 'Enter');
+await addressIs(`http://127.0.0.1:${SITE}/demo`);
+await sleep(1500);
+const tabCounts = async () => [
+  await page.locator('.deck-browser-tab').count(),
+  await other.locator('.deck-browser-tab').count(),
+];
+const tabsBefore = await tabCounts();
+const demoFrame = await waitFrame('/demo');
+await demoFrame.locator('#next').click();
+await addressIs(`http://127.0.0.1:${SITE}/next`);
+await sleep(3000);
+const tabsAfter = await tabCounts();
+const followed = await other.inputValue('#deck-browser-address');
+t.ok(
+  'sync: links followed in one window move the other window along in the same tab',
+  tabsAfter[0] === tabsBefore[0] &&
+    tabsAfter[1] === tabsBefore[1] &&
+    followed === `http://127.0.0.1:${SITE}/next`,
+  JSON.stringify({ tabsBefore, tabsAfter, followed }),
+);
+await other.close();
 
 t.ok('no page errors', problems.length === 0, JSON.stringify(problems));
 await browser.close();

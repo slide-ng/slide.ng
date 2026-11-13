@@ -151,6 +151,12 @@
             [value]="browser.active()?.url ?? ''"
             (focus)="address.select()"
           />
+          <span
+            id="deck-browser-beta"
+            class="shrink-0 px-1.5 rounded border border-main text-xs op60 select-none"
+            [title]="'browser.betaHint' | t"
+            >{{ 'browser.beta' | t }}</span
+          >
           @if (browser.active()?.url) {
             <button
               type="button"
@@ -709,6 +715,13 @@
               [class.op60]="!startStyle().background"
               [class.op75]="!!startStyle().background"
               >{{ 'browser.start' | t }}</span
+            >
+            <span
+              id="deck-browser-start-beta"
+              class="self-center px-2 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider text-white"
+              style="background: #cc4209"
+              [title]="'browser.betaHint' | t"
+              >{{ 'browser.beta' | t }}</span
             >
           </p>
         </div>

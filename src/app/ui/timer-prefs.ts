@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, computed } from '@angular/core';
+import { HEADMATTER } from '../../slides/generated';
 import { scopedKey } from '../lib/deck-scope';
 import { storedSignal } from '../lib/stored-signal';
 
@@ -17,6 +18,9 @@ export class TimerPrefs {
   readonly fade = storedSignal<TimerFade>('slide-ng-timer-fade', 'idle');
   readonly minutes = storedSignal<number | null>('slide-ng-timer-minutes', null);
   readonly place = storedSignal<TimerPlace>('slide-ng-timer-place', { x: 0.92, y: 0.06 });
+  readonly startSlide = storedSignal<number | null>('slide-ng-timer-start', null);
+  readonly deckStart = positive(HEADMATTER['timerStart']);
+  readonly startAt = computed(() => this.startSlide() ?? this.deckStart);
 
   constructor() {
     const key = scopedKey('slide-ng-timer-minutes');
@@ -35,7 +39,15 @@ export class TimerPrefs {
     this.minutes.set(text.trim() && Number.isFinite(n) && n > 0 ? n : null);
   }
 
+  setStart(text: string) {
+    this.startSlide.set(text.trim() ? positive(Number(text)) : null);
+  }
+
   toggle() {
     this.shown.update((v) => !v);
   }
+}
+
+function positive(value: unknown): number | null {
+  return typeof value === 'number' && Number.isInteger(value) && value > 0 ? value : null;
 }
