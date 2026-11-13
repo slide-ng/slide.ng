@@ -130,7 +130,7 @@ export class SlideProgressBar {
   protected minutesText = computed(() => {
     const timer = this.timer();
     if (!timer || timer.status() === 'stopped') return '';
-    return minutesLabel(timer.mode, timer.duration, timer.passed(), this.words);
+    return minutesLabel(timer.mode(), timer.duration(), timer.passed(), this.words);
   });
 
   protected hostStyle = computed(() => {

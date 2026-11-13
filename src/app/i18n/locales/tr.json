@@ -51,6 +51,7 @@
   "settings.wakeLock": "Ekranı açık tut",
   "settings.hideIdleCursor": "Boştaki imleci gizle",
   "settings.showTimer": "Süreyi göster",
+  "settings.timerMinutes": "Süre (dakika)",
   "settings.timerSize": "Süre boyutu",
   "settings.timerFade": "Süre soluklaşır",
   "settings.timerFadeIdle": "Boştayken",

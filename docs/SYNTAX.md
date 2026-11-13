@@ -994,7 +994,8 @@ another window. Hover the clock (or Tab to it) for the pause, play and reset but
 are always shown.
 
 **Without the presenter page**, the timer can be on the slides too. **Show Timer** in the settings menu or the right-click menu puts
-a clock over the slide page: drag it anywhere (the place is kept in the browser), pick its size (S, M, L) in the settings, click it to
+a clock over the slide page: drag it anywhere (the place is kept in the browser), set **Timer Minutes** (a countdown of that length in this
+browser, over `duration`; empty goes back to the deck\'s), pick its size (S, M, L) in the settings, click it to
 start or pause, and hover it for reset and hide. It fades after 3 seconds without mouse movement and comes back when the
 mouse moves; **Timer Fades: Always** in the settings keeps it faded until you hover it. `<slide-ng-timer />` places the same clock in a slide or a layer, styled by its
 `class` (`<slide-ng-timer class="text-4xl text-red" />`), and inside `<slide-ng-drag>` it can be moved like anything else. Both show

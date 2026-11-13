@@ -63,6 +63,19 @@
         />
       </span>
     </label>
+    <label class="slidev-form-item">
+      <span class="slidev-form-title">{{ 'settings.timerMinutes' | t }}</span>
+      <input
+        type="number"
+        id="settings-timer-minutes"
+        min="1"
+        step="1"
+        class="w-16 bg-transparent border border-main rounded px-1"
+        [value]="timerPrefs.minutes() ?? ''"
+        [placeholder]="deckMinutes"
+        (change)="setMinutes($any($event.target))"
+      />
+    </label>
     @if (timerPrefs.shown()) {
       <div class="slidev-form-item">
         <span class="slidev-form-title">{{ 'settings.timerSize' | t }}</span>
