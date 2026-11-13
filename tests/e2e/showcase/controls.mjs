@@ -211,9 +211,9 @@ export async function run({ t, open, press, pathOf, style, base, browser, proble
   );
   const labels = await page.locator('#context-menu .slidev-menu-item').allInnerTexts();
   t.ok(
-    'menu entries match Slidev',
+    "menu entries match Slidev's, then Show Timer",
     labels.map((l) => l.trim()).join('|') ===
-      'Show drawing toolbar|Show slide overview|Enter Presenter Mode|Enter fullscreen|Show Navigation Bar',
+      'Show drawing toolbar|Show slide overview|Enter Presenter Mode|Enter fullscreen|Show Navigation Bar|Show Timer',
     labels.join('|'),
   );
   t.ok(
@@ -244,7 +244,7 @@ export async function run({ t, open, press, pathOf, style, base, browser, proble
   t.ok(
     'the open context menu has the focus and the arrow keys move in it, not through the slides',
     walk.join('|') ===
-      'Previous Click|Next Click|Previous Slide|Show Navigation Bar|Previous Click|Show Navigation Bar' &&
+      'Previous Click|Next Click|Previous Slide|Show Timer|Previous Click|Show Timer' &&
       pathOf(page) === menuAt &&
       (await page.locator('#context-menu').count()) === 0,
     `${walk.join('|')} ${pathOf(page)}`,
