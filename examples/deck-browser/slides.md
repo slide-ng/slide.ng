@@ -8,7 +8,7 @@ browser:
 
 # Deck browser
 
-Press `b`, or the globe button in the bar, to open it. `b`, Escape or the × button bring you back here.
+Press `b`, or the Chrome button in the bar, to open it. `b`, Escape or the × button bring you back here.
 
 ---
 
