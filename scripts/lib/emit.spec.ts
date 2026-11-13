@@ -250,6 +250,15 @@ describe('plainTitle', () => {
       'H2O and 振り仮名',
     );
   });
+  it('keeps the words around a line break, a picture and an Angular space', () => {
+    expect(
+      plainTitle('Open Source 101<br>with <img src="/a.png" style="height: 1em" alt="Angular" />'),
+    ).toBe('Open Source 101 with Angular');
+    expect(plainTitle('A<br/>B <img src="/logo.svg" alt="" /> C')).toBe('A B C');
+    expect(plainTitle('<span>What gets merged</span>&ngsp;<span>PRs</span>')).toBe(
+      'What gets merged PRs',
+    );
+  });
   it('keeps the TeX of $math$ without its dollars, and drops markdown escapes', () => {
     expect(plainTitle('Karmaşıklık $O(1)$')).toBe('Karmaşıklık O(1)');
     expect(plainTitle('**Fast** $a_1 * b_2$ and $5 or \\*not\\*')).toBe(
