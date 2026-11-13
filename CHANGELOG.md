@@ -4,6 +4,8 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+## [3.5.1] - 2026-11-13
+
 ### Fixed
 
 - A deck's own `public/_redirects` was replaced by the build's, so its rules were lost on Netlify (and rules in `netlify.toml` never ran, since `_redirects` is read first and its catch-all matched everything). The build now keeps them and adds its catch-all after them.
@@ -408,7 +410,8 @@ The first version, built in phases.
 
 See `docs/STATUS.md` for what is missing or not verified.
 
-[Unreleased]: https://github.com/slide-ng/slide.ng/compare/v3.5.0...HEAD
+[Unreleased]: https://github.com/slide-ng/slide.ng/compare/v3.5.1...HEAD
+[3.5.1]: https://github.com/slide-ng/slide.ng/compare/v3.5.0...v3.5.1
 [3.5.0]: https://github.com/slide-ng/slide.ng/compare/v3.4.0...v3.5.0
 [3.4.0]: https://github.com/slide-ng/slide.ng/compare/v3.3.0...v3.4.0
 [3.3.0]: https://github.com/slide-ng/slide.ng/compare/v3.2.0...v3.3.0
