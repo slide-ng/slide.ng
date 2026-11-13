@@ -19,6 +19,7 @@ import { Ui } from '../lib/ui-state';
 import { CONTEXT_MENU_SETUP } from '../setup/tokens';
 import { T } from '../i18n/t';
 import { splitAt } from '../i18n/ui-text';
+import { TimerPrefs } from './timer-prefs';
 
 // The right-click menu (Slidev's ContextMenu): four arrows, then a list of actions. Shift+F10 or the menu key opens it
 // from the keyboard: the focus goes to its first item, the arrow keys (and Tab) move between the items instead of through
@@ -40,6 +41,7 @@ export class ContextMenu {
   private fullscreen = inject(Fullscreen);
   private drawings = inject(Drawings);
   private view = inject(ViewPrefs);
+  private timerPrefs = inject(TimerPrefs);
   private setup = inject(CONTEXT_MENU_SETUP); // setup/context-menu.ts of the roots
   private menu = viewChild<ElementRef<HTMLElement>>('menu');
   // The key is drawn as a <kbd>, so the text is drawn in two parts around it.
@@ -128,6 +130,12 @@ export class ContextMenu {
                     disabled: false,
                   },
                 ]),
+            {
+              icon: 'i-carbon:timer',
+              label: this.ui.text(this.timerPrefs.shown() ? 'menu.timerHide' : 'menu.timerShow'),
+              run: () => this.timerPrefs.toggle(),
+              disabled: false,
+            },
             ...(this.view.navPosition() === null
               ? []
               : [

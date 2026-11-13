@@ -27,6 +27,7 @@ export const COMPONENTS = [
     test: /<slide-ng-current-no[\s>/]/,
   },
   { className: 'SlidesTotal', file: 'builtin/slides-total', test: /<slide-ng-total[\s>/]/ },
+  { className: 'SlideTimer', file: 'builtin/slide-timer', test: /<slide-ng-timer[\s>/]/ },
   {
     className: 'SlideProgressBar',
     file: 'builtin/progress-bar',
@@ -110,6 +111,7 @@ export const BUILTIN_ELEMENTS = [
   'slide-ng-progress-bar',
   'slide-ng-render-when',
   'slide-ng-switch',
+  'slide-ng-timer',
   'slide-ng-title-renderer',
   'slide-ng-toc',
   'slide-ng-total',

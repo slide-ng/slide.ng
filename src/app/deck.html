@@ -50,6 +50,9 @@
       }
     </div>
   }
+  @if (timerPrefs.shown()) {
+    <app-floating-timer />
+  }
   <app-offline-badge />
 </main>
 <app-drawing-controls />

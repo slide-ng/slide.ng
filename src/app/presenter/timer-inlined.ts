@@ -1,12 +1,13 @@
 import { Component, computed, inject } from '@angular/core';
 import { T } from '../i18n/t';
+import { ClockFace } from './clock-face';
 import { Timer } from './timer';
 
 // The clock at the bottom right of the presenter page. Hover it (or Tab to it) for pause / play and reset; on a touch screen,
 // which cannot hover (a phone used as the remote), they are always shown.
 @Component({
   selector: 'app-timer-inlined',
-  imports: [T],
+  imports: [ClockFace, T],
   templateUrl: './timer-inlined.html',
   styles: `
     @media (hover: none) {

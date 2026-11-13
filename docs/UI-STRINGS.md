@@ -97,6 +97,11 @@ default; `src/app/i18n/en.ts` holds it and is the source of truth for the keys. 
 | `settings.navBottomRight`     | Bottom right                                   |
 | `settings.wakeLock`           | Wake Lock                                      |
 | `settings.hideIdleCursor`     | Hide Idle Cursor                               |
+| `settings.showTimer`          | Show Timer                                     |
+| `settings.timerSize`          | Timer Size                                     |
+| `settings.timerFade`          | Timer Fades                                    |
+| `settings.timerFadeIdle`      | When Idle                                      |
+| `settings.timerFadeAlways`    | Always                                         |
 | `settings.presenterCursor`    | Show Presenter Cursor                          |
 | `settings.darkMode`           | Dark Mode                                      |
 | `settings.downloadHint`       | The PDF is added by: slide-ng build --download |
@@ -133,6 +138,8 @@ default; `src/app/i18n/en.ts` holds it and is the source of truth for the keys. 
 | `menu.presenterExit`  | Exit Presenter Mode                                        |
 | `menu.barShow`        | Show Navigation Bar                                        |
 | `menu.barReset`       | Reset Navigation Bar Position                              |
+| `menu.timerShow`      | Show Timer                                                 |
+| `menu.timerHide`      | Hide Timer                                                 |
 | `menu.nativeHint`     | Hold {key} and right click to open the native context menu |
 
 ### The info dialog and the offline badge
@@ -175,6 +182,8 @@ default; `src/app/i18n/en.ts` holds it and is the source of truth for the keys. 
 | `timer.start`             | Start the timer                   |
 | `timer.pause`             | Pause the timer                   |
 | `timer.reset`             | Reset the timer                   |
+| `timer.hide`              | Hide the timer                    |
+| `timer.move`              | Drag to move the timer            |
 
 ### The progress bar (its name, and its minutes with `progressBar: { minutes: true }`)
 

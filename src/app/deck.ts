@@ -37,6 +37,8 @@ import { Goto } from './ui/goto';
 import { InfoDialog } from './ui/info-dialog';
 import { NavBar } from './ui/nav-bar';
 import { OfflineBadge } from './ui/offline-badge';
+import { FloatingTimer } from './ui/floating-timer';
+import { TimerPrefs } from './ui/timer-prefs';
 import { Overview } from './ui/overview';
 
 // The route /:no, the audience's page. Shows one slide on a scaled canvas and hosts the controls around it.
@@ -56,6 +58,7 @@ import { Overview } from './ui/overview';
     InfoDialog,
     ContextMenu,
     OfflineBadge,
+    FloatingTimer,
     ProblemBanner,
     DeckBrowserLayer,
   ],
@@ -71,6 +74,7 @@ import { Overview } from './ui/overview';
 export class Deck {
   protected nav = inject(Nav);
   protected ui = inject(Ui);
+  protected timerPrefs = inject(TimerPrefs);
   private browser = inject(DeckBrowser);
   protected barOffset = computed(() => {
     const drag = this.ui.barDrag();

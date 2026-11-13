@@ -16,6 +16,7 @@ describe('a deck in several languages', () => {
   const before = { lang: html.lang, dir: html.getAttribute('dir'), title: document.title };
   afterEach(() => {
     localStorage.removeItem('slide-ng-language');
+    sessionStorage.removeItem('slide-ng-language');
     html.lang = before.lang;
     if (before.dir == null) html.removeAttribute('dir');
     else html.dir = before.dir;
@@ -33,6 +34,19 @@ describe('a deck in several languages', () => {
     expect(pickLanguage(LANGUAGES, 'en')).toBe('ar');
     expect([html.lang, html.dir, document.title]).toEqual(['ar', 'rtl', 'محاضرة']);
     localStorage.setItem('slide-ng-language', 'de');
+    expect(pickLanguage(LANGUAGES, 'en')).toBe('en');
+  });
+  it('starts in the language of ?lang= for this tab only, and takes it off the address', () => {
+    const at = location.pathname;
+    localStorage.setItem('slide-ng-language', 'en');
+    history.replaceState(null, '', `${at}?lang=ar&clicks=2#x`);
+    expect(pickLanguage(LANGUAGES, 'en')).toBe('ar');
+    expect(storedLanguage()).toBe('en');
+    expect(location.search + location.hash).toBe('?clicks=2#x');
+    history.replaceState(null, '', `${at}?lang=de`);
+    expect(pickLanguage(LANGUAGES, 'en')).toBe('ar');
+    expect(location.search).toBe('');
+    chooseLanguage('en', vi.fn());
     expect(pickLanguage(LANGUAGES, 'en')).toBe('en');
   });
   it('stores a choice under the key of this deck', () => {

@@ -4,6 +4,12 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+### Added
+
+- **Show Timer**, in the settings menu and the right-click menu, puts the presenter timer over the slide page for a talk without the presenter page: drag it anywhere, pick a size (S, M, L) in the settings, click it to start or pause, and hover it for reset and hide. It fades while the mouse rests, or always until hovered (**Timer Fades** in the settings). The place, size and the choice to show it are kept in the browser.
+- `<slide-ng-timer />` shows the presenter timer (`duration`, `timer: countdown`) on a slide or in a layer, so a talk without the presenter page has a clock. A click starts or pauses it, and the presenter page and every other window show the same time. In a layer, import `SlideTimer` from `slide-ng/builtin/slide-timer`.
+- `?lang=tr` in a deck's address opens it in that language of `languages` for that tab (other windows keep theirs, and the language menu replaces it), so a link can open a talk in Turkish: `https://talk.example/1?lang=tr`. The parameter is taken off the address once read.
+
 ## [3.4.0] - 2026-11-13
 
 ### Fixed

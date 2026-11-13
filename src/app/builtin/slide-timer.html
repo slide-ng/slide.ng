@@ -1,0 +1,13 @@
+@if (live) {
+  <button
+    type="button"
+    class="slide-ng-timer font-mono tabular-nums cursor-pointer bg-transparent border-0 p-0 text-inherit"
+    [class.op50]="timer.status() !== 'running'"
+    [attr.aria-label]="(timer.status() === 'running' ? 'timer.pause' : 'timer.start') | t"
+    (click)="timer.toggle()"
+  >
+    <app-clock-face />
+  </button>
+} @else {
+  <span class="slide-ng-timer font-mono tabular-nums"><app-clock-face /></span>
+}
