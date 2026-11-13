@@ -11,6 +11,7 @@ import { T } from '../i18n/t';
 import { FilterSettings } from './filter-settings';
 import { NavPositionSettings } from './nav-position-settings';
 import { SegmentControl } from './segment-control';
+import { TimerPrefs } from './timer-prefs';
 
 // The content of the settings menu ("More Options").
 @Component({
@@ -26,6 +27,12 @@ export class Settings {
   protected wake = inject(WakeLock);
   protected download = inject(Download);
   protected devices = inject(Devices);
+  protected timerPrefs = inject(TimerPrefs);
+  protected timerSizes = [
+    { id: 'timer-size-s', label: 'S', value: 's' },
+    { id: 'timer-size-m', label: 'M', value: 'm' },
+    { id: 'timer-size-l', label: 'L', value: 'l' },
+  ];
   // `hue` keeps each badge's colour the same in every language (it is made from the English name).
   protected cursorOptions = [
     {
@@ -44,5 +51,9 @@ export class Settings {
   protected scaleOptions = [
     { id: 'scale-fit', label: this.ui.text('settings.fit'), hue: 'Fit', value: 0 },
     { id: 'scale-1', label: '1:1', value: 1 },
+  ];
+  protected timerFades = [
+    { id: 'timer-fade-idle', label: this.ui.text('settings.timerFadeIdle'), value: 'idle' },
+    { id: 'timer-fade-always', label: this.ui.text('settings.timerFadeAlways'), value: 'always' },
   ];
 }

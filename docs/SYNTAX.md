@@ -380,6 +380,7 @@ Available in every slide without importing anything.
 | `<slide-ng-toc />`                                                                                                                                                                     | table of contents from the slides' `title` and `level`. Options: `columns="2"`, `listClass="..."`, `start="1"`, `listStyle="..."`, `minDepth`, `maxDepth`, `mode="all\|onlyCurrentTree\|onlySiblings"`                                                                                                                                                                             |
 | `<slide-ng-current-no />`                                                                                                                                                              | the number of the slide it is on                                                                                                                                                                                                                                                                                                                                                   |
 | `<slide-ng-total />`                                                                                                                                                                   | the number of slides                                                                                                                                                                                                                                                                                                                                                               |
+| `<slide-ng-timer />`                                                                                                                                                                   | the presenter timer (`duration`, `timer`) as text, for a talk without the presenter page; a click starts or pauses it, and every window shows the same time                                                                                                                                                                                                                        |
 | `<slide-ng-progress-bar position="top" height="6" color="red" />`                                                                                                                      | a bar that shows how far through the deck the slide is, see Progress bar                                                                                                                                                                                                                                                                                                           |
 | `<slide-ng-title-renderer />`, `no="3"`                                                                                                                                                | a slide's title as HTML (inline markdown and `$math$`); without `no`, the slide it is on                                                                                                                                                                                                                                                                                           |
 | `<slide-ng-link to="3">text</slide-ng-link>`                                                                                                                                           | a link to slide 3, or to a `routeAlias`. (Called `slide-ng-link` because `link` is a built-in HTML tag.)                                                                                                                                                                                                                                                                           |
@@ -992,6 +993,13 @@ tab that comes back with the timer it kept (a reload, a phone tab the browser ha
 another window. Hover the clock (or Tab to it) for the pause, play and reset buttons; on a touch screen they
 are always shown.
 
+**Without the presenter page**, the timer can be on the slides too. **Show Timer** in the settings menu or the right-click menu puts
+a clock over the slide page: drag it anywhere (the place is kept in the browser), pick its size (S, M, L) in the settings, click it to
+start or pause, and hover it for reset and hide. It fades after 3 seconds without mouse movement and comes back when the
+mouse moves; **Timer Fades: Always** in the settings keeps it faded until you hover it. `<slide-ng-timer />` places the same clock in a slide or a layer, styled by its
+`class` (`<slide-ng-timer class="text-4xl text-red" />`), and inside `<slide-ng-drag>` it can be moved like anything else. Both show
+the shared timer, so the presenter page and every window agree.
+
 The presenter's mouse is shown on the audience page as a pointer or a red laser dot (settings menu, or the bar button).
 
 **Click preview** (slide.ng's own, Slidev has none): the eye button in the presenter's bar, or `u`, draws the whole current slide on the presenter page.
@@ -1478,6 +1486,9 @@ reader chooses another. It works in `dev`, in a build and in an offline folder.
   The generator warns, with files and lines, when the files have a different number of slides. A slide the translation does not have is
   shown from the entry file; a slide past the entry file's last is left out. `hide: true` drops a slide from its own file only, so hide it
   in every file.
+- **`?lang=tr` in the address** opens the page in Turkish and stores that choice, as the menu does, then takes `lang` off the
+  address: a link such as `https://talk.example/1?lang=tr` opens slide 1 in Turkish. A language that is not in `languages` is
+  ignored. In hash mode it goes before the `#` (`/?lang=tr#/1`).
 - **`--lang tr`** starts the page in Turkish (`dev`, `build`), and `export --lang tr` exports the Turkish slides. A language that is not in
   `languages` is warned about and ignored.
 - **In `dev`**, the side editor, the notes editor and `slide-ng-drag` write to the file of the language on screen. Every file listed is

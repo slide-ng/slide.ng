@@ -50,6 +50,38 @@
       </span>
     </label>
   }
+  @if (!nav.isPresenter) {
+    <label class="slidev-form-item">
+      <span class="slidev-form-title">{{ 'settings.showTimer' | t }}</span>
+      <span class="slidev-checkbox">
+        <i class="i-carbon:checkmark" [class.op0]="!timerPrefs.shown()"></i>
+        <input
+          type="checkbox"
+          id="settings-show-timer"
+          [checked]="timerPrefs.shown()"
+          (change)="timerPrefs.toggle()"
+        />
+      </span>
+    </label>
+    @if (timerPrefs.shown()) {
+      <div class="slidev-form-item">
+        <span class="slidev-form-title">{{ 'settings.timerSize' | t }}</span>
+        <app-segment-control
+          [options]="timerSizes"
+          [value]="timerPrefs.size()"
+          (changed)="timerPrefs.size.set($any($event))"
+        />
+      </div>
+      <div class="slidev-form-item">
+        <span class="slidev-form-title">{{ 'settings.timerFade' | t }}</span>
+        <app-segment-control
+          [options]="timerFades"
+          [value]="timerPrefs.fade()"
+          (changed)="timerPrefs.fade.set($any($event))"
+        />
+      </div>
+    }
+  }
   @if (nav.isPresenter) {
     <label class="slidev-form-item">
       <span class="slidev-form-title">{{ 'settings.presenterCursor' | t }}</span>

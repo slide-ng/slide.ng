@@ -1,0 +1,57 @@
+<div
+  id="floating-timer"
+  class="group absolute z-nav flex items-center gap-2 rounded-lg px-3 py-1 bg-main shadow select-none"
+  [style.opacity]="opacity()"
+  style="transition: opacity 0.5s"
+  (pointerenter)="hovered.set(true)"
+  (pointerleave)="hovered.set(false)"
+  (focusin)="hovered.set(true)"
+  (focusout)="hovered.set(false)"
+  [class.cursor-grabbing]="dragging()"
+  [style.left.%]="prefs.place().x * 100"
+  [style.top.%]="prefs.place().y * 100"
+  [style.transform]="'translate(-50%, -50%)'"
+>
+  <button
+    id="floating-timer-clock"
+    type="button"
+    class="font-mono tabular-nums cursor-grab bg-transparent border-0 p-0 text-inherit touch-none"
+    [class.text-xl]="prefs.size() === 's'"
+    [class.text-3xl]="prefs.size() === 'm'"
+    [class.text-6xl]="prefs.size() === 'l'"
+    [attr.aria-label]="(timer.status() === 'running' ? 'timer.pause' : 'timer.start') | t"
+    [title]="'timer.move' | t"
+    (pointerdown)="down($event)"
+    (pointermove)="move($event)"
+    (pointerup)="up($event)"
+    (pointercancel)="up($event)"
+    (keydown.enter)="timer.toggle()"
+  >
+    @if (timer.parts().h) {
+      <span>{{ timer.parts().h }}</span
+      ><span class="op50">:</span>
+    }
+    <span>{{ timer.parts().m }}</span
+    ><span class="op50">:</span><span>{{ timer.parts().s }}</span>
+  </button>
+  <div class="flex flex-col gap-1 op-0 group-hover:op-100 group-focus-within:op-100">
+    <button
+      id="floating-timer-reset"
+      type="button"
+      class="w-5 h-5 flex items-center justify-center cursor-pointer bg-transparent border-0 p-0 text-inherit"
+      [attr.aria-label]="'timer.reset' | t"
+      (click)="timer.reset()"
+    >
+      <div class="i-carbon:renew"></div>
+    </button>
+    <button
+      id="floating-timer-hide"
+      type="button"
+      class="w-5 h-5 flex items-center justify-center cursor-pointer bg-transparent border-0 p-0 text-inherit"
+      [attr.aria-label]="'timer.hide' | t"
+      (click)="prefs.shown.set(false)"
+    >
+      <div class="i-carbon:close"></div>
+    </button>
+  </div>
+</div>

@@ -30,6 +30,22 @@ export function storedLanguage(): string | null {
   }
 }
 
+/** `?lang=tr` in the address, when it names one of the deck's languages: it is stored and taken off the address. */
+function addressLanguage(languages: readonly DeckLanguage[]): string | null {
+  const url = new URL(location.href);
+  const lang = url.searchParams.get('lang');
+  if (lang == null) return null;
+  url.searchParams.delete('lang');
+  history.replaceState(history.state, '', url.pathname + url.search + url.hash);
+  if (!languages.some((l) => l.lang === lang)) return null;
+  try {
+    localStorage.setItem(scopedKey(KEY), lang);
+  } catch {
+    // storage blocked: this page still starts in it
+  }
+  return lang;
+}
+
 /** Load the page again at the same address, in the language that is stored now. */
 function reload() {
   window.dispatchEvent(new Event(LANGUAGE_RELOAD));
@@ -37,11 +53,12 @@ function reload() {
 }
 
 /**
- * The language of this page: the stored choice when it is one of the deck's, else `fallback`. Sets `<html lang>`, `dir` and
- * the title for it, and loads the page again when another window of this deck (the presenter, the audience) switches.
+ * The language of this page: `?lang=` in the address, else the stored choice when it is one of the deck's, else `fallback`.
+ * Sets `<html lang>`, `dir` and the title for it, and loads the page again when another window of this deck (the presenter,
+ * the audience) switches.
  */
 export function pickLanguage(languages: readonly DeckLanguage[], fallback: string): string {
-  const stored = storedLanguage();
+  const stored = addressLanguage(languages) ?? storedLanguage();
   const picked =
     languages.find((l) => l.lang === stored) ??
     languages.find((l) => l.lang === fallback) ??

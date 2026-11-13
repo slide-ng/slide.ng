@@ -35,6 +35,17 @@ describe('a deck in several languages', () => {
     localStorage.setItem('slide-ng-language', 'de');
     expect(pickLanguage(LANGUAGES, 'en')).toBe('en');
   });
+  it('starts in the language of ?lang= in the address, stores it and takes it off', () => {
+    const at = location.pathname;
+    localStorage.setItem('slide-ng-language', 'en');
+    history.replaceState(null, '', `${at}?lang=ar&clicks=2#x`);
+    expect(pickLanguage(LANGUAGES, 'en')).toBe('ar');
+    expect(storedLanguage()).toBe('ar');
+    expect(location.search + location.hash).toBe('?clicks=2#x');
+    history.replaceState(null, '', `${at}?lang=de`);
+    expect(pickLanguage(LANGUAGES, 'en')).toBe('ar');
+    expect(location.search).toBe('');
+  });
   it('stores a choice under the key of this deck', () => {
     const load = vi.fn();
     chooseLanguage('ar', load);
