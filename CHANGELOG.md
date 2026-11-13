@@ -4,6 +4,8 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+## [3.4.0] - 2026-11-13
+
 ### Fixed
 
 - A slide title with a `<br>`, a picture or `&ngsp;` lost its spaces and words in the tab title, the "go to" list, the screen reader's announcement and the PDF outline: `Open Source 101<br>with <img alt="Angular">` read "Open Source 101with". A line break and `&ngsp;` (or `&nbsp;`) are now a space, and a picture is its `alt` text.
@@ -394,7 +396,8 @@ The first version, built in phases.
 
 See `docs/STATUS.md` for what is missing or not verified.
 
-[Unreleased]: https://github.com/slide-ng/slide.ng/compare/v3.3.0...HEAD
+[Unreleased]: https://github.com/slide-ng/slide.ng/compare/v3.4.0...HEAD
+[3.4.0]: https://github.com/slide-ng/slide.ng/compare/v3.3.0...v3.4.0
 [3.3.0]: https://github.com/slide-ng/slide.ng/compare/v3.2.0...v3.3.0
 [3.2.0]: https://github.com/slide-ng/slide.ng/compare/v3.1.1...v3.2.0
 [3.1.1]: https://github.com/slide-ng/slide.ng/compare/v3.1.0...v3.1.1
