@@ -54,7 +54,7 @@
   "engines": {
     "node": ">=22.22.3"
   },
-  "packageManager": "npm@10.9.4",
+  "packageManager": "npm@10.9.10",
   "scripts": {
     "ng": "ng",
     "generate": "node scripts/generate.mjs",
