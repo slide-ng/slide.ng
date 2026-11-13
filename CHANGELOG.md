@@ -4,6 +4,8 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+## [3.5.0] - 2026-11-13
+
 ### Added
 
 - **Show Timer**, in the settings menu and the right-click menu, puts the presenter timer over the slide page for a talk without the presenter page: drag it anywhere, pick a size (S, M, L) in the settings, click it to start or pause, and hover it for reset and hide. It fades while the mouse rests, or always until hovered (**Timer Fades** in the settings). The place, size and the choice to show it are kept in the browser.
@@ -402,7 +404,8 @@ The first version, built in phases.
 
 See `docs/STATUS.md` for what is missing or not verified.
 
-[Unreleased]: https://github.com/slide-ng/slide.ng/compare/v3.4.0...HEAD
+[Unreleased]: https://github.com/slide-ng/slide.ng/compare/v3.5.0...HEAD
+[3.5.0]: https://github.com/slide-ng/slide.ng/compare/v3.4.0...v3.5.0
 [3.4.0]: https://github.com/slide-ng/slide.ng/compare/v3.3.0...v3.4.0
 [3.3.0]: https://github.com/slide-ng/slide.ng/compare/v3.2.0...v3.3.0
 [3.2.0]: https://github.com/slide-ng/slide.ng/compare/v3.1.1...v3.2.0
