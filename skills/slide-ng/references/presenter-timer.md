@@ -24,3 +24,5 @@ timer: stopwatch
 
 # A long talk
 ```
+
+A missing, invalid or non-positive `duration` uses 30 minutes.
