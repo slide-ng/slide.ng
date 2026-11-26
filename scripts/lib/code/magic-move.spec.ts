@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { inflateRawSync } from 'node:zlib';
 import { initHighlighter } from './highlighter.mjs';
 import { isMagicMove, magicMoveOptions, renderMagicMove } from './magic-move.mjs';

@@ -1,3 +1,4 @@
+// @vitest-environment node
 import {
   RENAMED_ATTRIBUTES,
   RENAMED_ELEMENTS,
