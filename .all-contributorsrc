@@ -26,6 +26,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "isnaenihidayat",
+      "name": "Isnaeni Hidayat",
+      "avatar_url": "https://avatars.githubusercontent.com/u/57924096?v=4",
+      "profile": "https://isnaeni.vercel.app/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

@@ -73,6 +73,7 @@ Thanks to everyone who has helped. This project follows the [all-contributors](h
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/erkamyaman"><img src="https://avatars.githubusercontent.com/u/88717125?v=4?s=100" width="100px;" alt="Erkam Yaman"/><br /><sub><b>Erkam Yaman</b></sub></a><br /><a href="https://github.com/slide-ng/slide.ng/commits?author=erkamyaman" title="Code">💻</a> <a href="https://github.com/slide-ng/slide.ng/commits?author=erkamyaman" title="Documentation">📖</a> <a href="#infra-erkamyaman" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="#maintenance-erkamyaman" title="Maintenance">🚧</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://www.abikb.xyz/"><img src="https://avatars.githubusercontent.com/u/131433061?v=4?s=100" width="100px;" alt="Abiram"/><br /><sub><b>Abiram</b></sub></a><br /><a href="https://github.com/slide-ng/slide.ng/commits?author=abiramcodes" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://isnaeni.vercel.app/"><img src="https://avatars.githubusercontent.com/u/57924096?v=4?s=100" width="100px;" alt="Isnaeni Hidayat"/><br /><sub><b>Isnaeni Hidayat</b></sub></a><br /><a href="https://github.com/slide-ng/slide.ng/commits?author=isnaenihidayat" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
