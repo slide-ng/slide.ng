@@ -9,19 +9,25 @@ import { TimerPrefs } from '../ui/timer-prefs';
 
 /** `30min`, `1h30min`, `90s`, `1.5h` or a plain number of minutes -> seconds. Empty or wrong text gives 30 minutes (Slidev's default). */
 export function parseDuration(value: unknown): number {
-  if (typeof value === 'number' && value > 0) return value * 60;
-  if (typeof value !== 'string') return 30 * 60;
+  const fallback = 30 * 60;
   const units: Record<string, number> = { h: 3600, hr: 3600, min: 60, m: 60, s: 1 };
-  let seconds = 0,
-    found = false;
-  for (const [, n, unit] of value
-    .toLowerCase()
-    .matchAll(/(\d+(?:\.\d+)?)\s*(hr|h|min|m|s)(?![a-z])/g)) {
-    seconds += +n * units[unit];
-    found = true;
+  let seconds = 0;
+  if (typeof value === 'number') {
+    seconds = value * 60;
+  } else if (typeof value === 'string') {
+    const text = value.trim().toLowerCase();
+    if (/^\d+(\.\d+)?$/.test(text)) {
+      seconds = Number(text) * 60;
+    } else {
+      let end = 0;
+      for (const match of text.matchAll(/\s*(\d+(?:\.\d+)?)\s*(hr|h|min|m|s)/gy)) {
+        seconds += Number(match[1]) * units[match[2]];
+        end = match.index + match[0].length;
+      }
+      if (end !== text.length) return fallback;
+    }
   }
-  if (!found && /^\d+(\.\d+)?$/.test(value.trim())) return +value * 60;
-  return found && seconds > 0 ? seconds : 30 * 60;
+  return Number.isFinite(seconds) && seconds > 0 ? seconds : fallback;
 }
 
 /** Milliseconds the timer has been running at `now`. */

@@ -10,12 +10,18 @@ describe('parseDuration', () => {
     expect(parseDuration('1.5h')).toBe(5400);
     expect(parseDuration(45)).toBe(2700);
     expect(parseDuration('20')).toBe(1200);
+    expect(parseDuration(' 1 HR 30 MIN ')).toBe(5400);
   });
   it('falls back to 30 minutes', () => {
     expect(parseDuration(undefined)).toBe(1800);
     expect(parseDuration('soon')).toBe(1800);
     expect(parseDuration('0min')).toBe(1800);
   });
+
+  it.each(['-5min', '1h typo', '1h + 30min', '0', Infinity, Number.MAX_VALUE])(
+    'rejects invalid duration %s',
+    (value) => expect(parseDuration(value)).toBe(1800),
+  );
 });
 
 describe('passedMs', () => {

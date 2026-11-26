@@ -986,6 +986,8 @@ timerStart: 3 # start a stopped timer when the deck moves to slide 3
 ---
 ```
 
+A missing, invalid or non-positive `duration` uses 30 minutes.
+
 The timer is shared: every window and device shows the same time passed, also when their clocks are not set alike (each message carries the
 sender's clock). A reload of the presenter tab keeps it. A presenter tab opened again gets it from any other open window of the deck, and while
 the dev server runs from the server too; in a built deck with no other window left open it starts again. Every tab keeps the timer it shows,
