@@ -4,6 +4,12 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+## [3.7.1] - 2026-11-27
+
+### Fixed
+
+- The presenter countdown skipped the parts of `duration` it could not read, so `20min abc` counted as 20 minutes and a plain `"20"` as the 30-minute default. A number of minutes written as text now works, and a malformed, zero or non-finite duration gives 30 minutes.
+
 ## [3.7.0] - 2026-11-13
 
 ### Added
@@ -435,7 +441,8 @@ The first version, built in phases.
 
 See `docs/STATUS.md` for what is missing or not verified.
 
-[Unreleased]: https://github.com/slide-ng/slide.ng/compare/v3.7.0...HEAD
+[Unreleased]: https://github.com/slide-ng/slide.ng/compare/v3.7.1...HEAD
+[3.7.1]: https://github.com/slide-ng/slide.ng/compare/v3.7.0...v3.7.1
 [3.7.0]: https://github.com/slide-ng/slide.ng/compare/v3.6.0...v3.7.0
 [3.6.0]: https://github.com/slide-ng/slide.ng/compare/v3.5.1...v3.6.0
 [3.5.1]: https://github.com/slide-ng/slide.ng/compare/v3.5.0...v3.5.1
